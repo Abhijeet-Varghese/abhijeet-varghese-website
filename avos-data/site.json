@@ -1,0 +1,2177 @@
+{
+    "settings": {
+        "siteName": "Abhijeet Varghese",
+        "tagline": "Making ambitious ideas impossible to misunderstand.",
+        "email": "hi@abhijeetvarghese.com",
+        "phone": "+91-96940 80706",
+        "theme": "light",
+        "sidebarCollapsed": false,
+        "designTokens": {
+            "radius": 16,
+            "shadow": 40,
+            "spacing": 24,
+            "container": 1280,
+            "accent": "#2E5AAC",
+            "bodyFont": "Inter Tight",
+            "headingFont": "Inter Tight",
+            "accentFont": "Instrument Serif"
+        },
+        "favicon": "media/logo.png",
+        "logo": "media/logo.png",
+        "ogImage": "media/hero-portrait.webp",
+        "metaDescription": "Abhijeet Varghese is a multidisciplinary creative systems leader with 12+ years across experience design, enterprise innovation, immersive technology and AI-enabled creative production.",
+        "keywords": "Abhijeet Varghese, creative director, experience design, enterprise innovation, UX design, design leadership, brand experience, immersive technology, AI design, creative strategy, experience centre, design consulting",
+        "socials": [
+            {
+                "id": "s1",
+                "label": "LinkedIn",
+                "href": "https://www.linkedin.com/in/abhijeetvarghese/"
+            },
+            {
+                "id": "s2",
+                "label": "Instagram",
+                "href": "https://www.instagram.com/abhijeetvarghese/"
+            },
+            {
+                "id": "s3",
+                "label": "WhatsApp",
+                "href": "https://api.whatsapp.com/send?phone=919694080706"
+            },
+            {
+                "id": "s4",
+                "label": "YouTube",
+                "href": "https://www.youtube.com/@AbhijeetVarghese"
+            },
+            {
+                "id": "s5",
+                "label": "Behance",
+                "href": "https://www.behance.net/abhijeetvarghese"
+            }
+        ],
+        "availability": "Available for select projects — 2026",
+        "updated": "2026-08-15T12:55:36.000Z"
+    },
+    "sections": [
+        {
+            "id": "hero",
+            "type": "hero",
+            "name": "Hero",
+            "kicker": "Cover story",
+            "status": "published",
+            "order": 1,
+            "theme": "dark",
+            "title": "Making ambitious ideas impossible to misunderstand.",
+            "roles": [
+                "Creative Systems Leader",
+                "Experience Design",
+                "Enterprise Innovation"
+            ],
+            "lede": "The most meaningful work doesn't happen when strategy, design, technology, AI and people work separately. It happens when they work together.",
+            "sub": "For over 12 years, I've been helping organizations transform complex ideas into products, experiences and enterprise solutions that people understand, trust and remember.",
+            "portrait": "media/hero-portrait.webp",
+            "cta": {
+                "label": "Explore my work",
+                "href": "case-studies.html"
+            },
+            "cta2": {
+                "label": "Download résumé",
+                "href": "assets/Abhijeet-Varghese-Resume.pdf"
+            },
+            "marquee": [
+                "Experience Design",
+                "Creative Strategy",
+                "Brand Systems",
+                "Experience Centres",
+                "Immersive Technology",
+                "AI-Enabled Production",
+                "Enterprise Innovation",
+                "Creative Leadership"
+            ]
+        },
+        {
+            "id": "clients",
+            "type": "clients",
+            "name": "Clients",
+            "kicker": "Trust",
+            "status": "published",
+            "order": 2,
+            "theme": "light",
+            "title": "Experiences built for.",
+            "lede": "Global enterprises, national institutions and culture-defining brands — organizations that trusted the work when it mattered.",
+            "note": "Delivering work across enterprise, defence, manufacturing, technology, retail, aviation, government, media and emerging industries.",
+            "clientIds": [
+                "c1",
+                "c2",
+                "c3",
+                "c4",
+                "c5",
+                "c6",
+                "c7",
+                "c8",
+                "c9",
+                "c10",
+                "c11",
+                "c12",
+                "c13",
+                "c14",
+                "c15",
+                "c16"
+            ]
+        },
+        {
+            "id": "capabilities",
+            "type": "capabilities",
+            "name": "Capabilities",
+            "kicker": "Capabilities",
+            "status": "published",
+            "order": 3,
+            "theme": "dark",
+            "title": "Complex challenges don't need more specialists.",
+            "title2": "They need people who can connect the dots.",
+            "items": [
+                {
+                    "num": "01",
+                    "name": "Creative Strategy",
+                    "body": "Direction before decoration. I turn ambiguity into a shared point of view — the idea everything else hangs on — so teams stop debating taste and start building against intent."
+                },
+                {
+                    "num": "02",
+                    "name": "Brand Systems",
+                    "body": "Systems, not style guides. Identities engineered to survive real organizations — coherent across products, print, motion and environments, and simple enough for everyone else to use without me."
+                },
+                {
+                    "num": "03",
+                    "name": "Digital Products",
+                    "body": "Interfaces that respect the person using them. From enterprise dashboards to consumer apps, I design products where the complexity lives in the system — never on the screen."
+                },
+                {
+                    "num": "04",
+                    "name": "Experience Centres",
+                    "body": "Physical spaces where organizations explain themselves. I architect centres that turn strategy into something visitors can walk through, touch — and finally understand."
+                },
+                {
+                    "num": "05",
+                    "name": "Creative Leadership",
+                    "body": "Teams make the work; leaders make the conditions. Mentoring, standards, reviews and rituals that raise the ceiling of what a creative team believes it can ship."
+                },
+                {
+                    "num": "06",
+                    "name": "AI-Enabled Creative Production",
+                    "body": "Machines for momentum, humans for judgment. I design workflows where AI compresses weeks of exploration into days — while taste, ethics and craft remain unmistakably human."
+                }
+            ]
+        },
+        {
+            "id": "work",
+            "type": "work",
+            "name": "Featured Work",
+            "kicker": "Featured work",
+            "status": "published",
+            "order": 4,
+            "theme": "light",
+            "title": "Work that had to be understood.",
+            "lede": "Three engagements, chosen not for scale but for what they demanded — clarity where clarity was hardest.",
+            "projectIds": [
+                "prj-1",
+                "prj-2",
+                "prj-3"
+            ]
+        },
+        {
+            "id": "thinking",
+            "type": "thinking",
+            "name": "Thinking",
+            "kicker": "Point of view",
+            "status": "published",
+            "order": 5,
+            "theme": "dark",
+            "quote": "Technology evolves every day. Human understanding doesn't.",
+            "lede": "Every engagement I take on is a translation problem: turning what an organization knows into what its audience understands. Tools change quarterly; the human mind doesn't. So I design for the constant — attention, trust, memory — and let the tools serve it, never the other way around.",
+            "essayIds": [
+                "art-1",
+                "art-2",
+                "art-3",
+                "art-4"
+            ],
+            "image": "media/working-session.webp",
+            "imageCaption": "Where most projects actually begin — paper, questions and honest conversation."
+        },
+        {
+            "id": "journey",
+            "type": "journey",
+            "name": "Journey",
+            "kicker": "Journey",
+            "status": "published",
+            "order": 6,
+            "theme": "light",
+            "title": "Not a timeline. An evolution.",
+            "eras": [
+                {
+                    "name": "Graphic Design",
+                    "note": "Learning to see"
+                },
+                {
+                    "name": "Animation",
+                    "note": "Learning to move"
+                },
+                {
+                    "name": "Storytelling",
+                    "note": "Learning to mean"
+                },
+                {
+                    "name": "Experience Design",
+                    "note": "Learning to orchestrate"
+                },
+                {
+                    "name": "Immersive Tech",
+                    "note": "Learning to build worlds"
+                },
+                {
+                    "name": "Creative Leadership",
+                    "note": "Learning to multiply others"
+                },
+                {
+                    "name": "Enterprise Innovation",
+                    "note": "Learning to shift systems"
+                },
+                {
+                    "name": "AI",
+                    "note": "Moving faster — deliberately"
+                },
+                {
+                    "name": "Future",
+                    "note": "Still curious",
+                    "future": true
+                }
+            ],
+            "coda": "The tools changed. The curiosity never did."
+        },
+        {
+            "id": "ai",
+            "type": "ai",
+            "name": "AI",
+            "kicker": "Method",
+            "status": "published",
+            "order": 7,
+            "theme": "dark",
+            "title": "Building with AI.",
+            "title2": "Thinking like a human.",
+            "p1": "AI is the fastest collaborator I've ever worked with — and it still needs direction. I integrate it across research, ideation, storyboards, scripts, image generation, video generation, concept development and rapid prototyping.",
+            "p2": "The point was never to make more. It's to see more options, sooner — and choose better. Every output passes through the same filter it always did: does a human being understand this, trust this, remember this?",
+            "chips": [
+                "Research",
+                "Ideation",
+                "Storyboards",
+                "Scripts",
+                "Image Generation",
+                "Video Generation",
+                "Concept Development",
+                "Rapid Prototyping"
+            ],
+            "projects": [
+                {
+                    "name": "The Virtual Life",
+                    "body": "An AI-crafted narrative world — exploring how generated media can carry genuine emotional weight."
+                },
+                {
+                    "name": "Immersive Wedding Invitation",
+                    "body": "A platform that turns a wedding invitation into an explorable experience — AI-personalized for every guest."
+                }
+            ],
+            "motto": "AI accelerates the hands. It doesn't replace the head — or the heart.",
+            "image": "media/experience-centre.webp",
+            "imageCaption": "An enterprise experience centre — strategy made walkable."
+        },
+        {
+            "id": "focus",
+            "type": "focus",
+            "name": "CTA",
+            "kicker": "Now",
+            "status": "published",
+            "order": 8,
+            "theme": "light",
+            "title": "Current focus.",
+            "lede": "If you have a hard problem and high standards, we should talk.",
+            "list": [
+                "Enterprise Innovation",
+                "Creative Systems",
+                "Experience Design",
+                "AI-Enabled Creative Workflows",
+                "Innovation Consulting",
+                "Leadership"
+            ],
+            "openLabel": "Open to",
+            "openTo": [
+                "Leadership Roles",
+                "Enterprise Consulting",
+                "Innovation Partnerships",
+                "Speaking"
+            ],
+            "note": "Every engagement starts the same way — an honest conversation about what actually needs to change."
+        },
+        {
+            "id": "contact",
+            "type": "contact",
+            "name": "Contact",
+            "kicker": "Begin",
+            "status": "published",
+            "order": 9,
+            "theme": "dark",
+            "title": "Let's build something worth remembering.",
+            "lede": "One conversation is enough to know if this fits. Share the essentials, pick a time — the invite comes straight from my desk.",
+            "micro": [
+                {
+                    "label": "Working",
+                    "value": "Worldwide · IST hours"
+                },
+                {
+                    "label": "Responds",
+                    "value": "Within 24 hours, personally"
+                },
+                {
+                    "label": "Email",
+                    "value": "hi@abhijeetvarghese.com",
+                    "href": "mailto:hi@abhijeetvarghese.com"
+                },
+                {
+                    "label": "Call / WhatsApp",
+                    "value": "+91-96940 80706",
+                    "href": "tel:+919694080706"
+                }
+            ]
+        }
+    ],
+    "pages": [
+        {
+            "id": "p-story",
+            "title": "About",
+            "slug": "story",
+            "status": "published",
+            "template": "About",
+            "seo": {
+                "title": "About — Abhijeet Varghese | Creative Director & Experience Designer",
+                "desc": "A creative director and experience designer who started in VFX and animation and now shapes films, interactive experiences, VR/XR, experience centres and brand systems.",
+                "keywords": "about, abhijeet varghese, creative director, experience designer, animation, immersive"
+            },
+            "updated": "just now",
+            "blocks": [
+                {
+                    "id": "b0",
+                    "type": "hero",
+                    "content": {
+                        "kicker": "The Story",
+                        "title": "I DIDN'T START OUT DESIGNING EXPERIENCES.",
+                        "lede": "VFX and animation were my entry point.\nThe frame became interaction.\nInteraction became environment.\nEventually, I started thinking about the whole experience.",
+                        "roles": [
+                            "Creative Direction",
+                            "Experience Design",
+                            "Immersive Technology",
+                            "Visual Storytelling"
+                        ],
+                        "marquee": [
+                            "Experience Design",
+                            "Creative Strategy",
+                            "Brand Systems",
+                            "Experience Centres",
+                            "Immersive Technology",
+                            "AI-Enabled Production",
+                            "Enterprise Innovation",
+                            "Creative Leadership"
+                        ]
+                    }
+                },
+                {
+                    "id": "b1",
+                    "type": "image",
+                    "content": {
+                        "src": "media/hero-portrait.webp",
+                        "alt": "Editorial portrait of Abhijeet Varghese",
+                        "caption": "Abhijeet Varghese — Creative Director & Experience Designer"
+                    }
+                },
+                {
+                    "id": "b2",
+                    "type": "quote",
+                    "content": {
+                        "text": "01 · Motion",
+                        "variant": "act",
+                        "note": "The frame starts moving. Time becomes a material."
+                    }
+                },
+                {
+                    "id": "b3",
+                    "type": "prose",
+                    "content": {
+                        "label": "FRAME · TIMING · MOVEMENT",
+                        "paragraphs": [
+                            "I LEARNED TO THINK IN TIME.",
+                            "VFX and animation taught me movement, rhythm, composition and visual storytelling."
+                        ]
+                    }
+                },
+                {
+                    "id": "b4",
+                    "type": "quote",
+                    "content": {
+                        "text": "02 · Interaction",
+                        "variant": "act",
+                        "note": "The work moves beyond passive viewing."
+                    }
+                },
+                {
+                    "id": "b5",
+                    "type": "prose",
+                    "content": {
+                        "label": "BEHAVIOUR · RESPONSE · INTUITION",
+                        "paragraphs": [
+                            "THEN THE FRAME STARTED RESPONDING.",
+                            "I became interested in how people move, interact, notice and understand."
+                        ]
+                    }
+                },
+                {
+                    "id": "b6",
+                    "type": "quote",
+                    "content": {
+                        "text": "03 · Environment",
+                        "variant": "act",
+                        "note": "The screen wasn’t enough."
+                    }
+                },
+                {
+                    "id": "b7",
+                    "type": "prose",
+                    "content": {
+                        "label": "SPACE · SCALE · ATMOSPHERE",
+                        "paragraphs": [
+                            "THEN THE SCREEN WASN'T ENOUGH.",
+                            "I started thinking about space, atmosphere, scale and how environments communicate."
+                        ]
+                    }
+                },
+                {
+                    "id": "b8",
+                    "type": "quote",
+                    "content": {
+                        "text": "SPACE HAS A NARRATIVE TOO.",
+                        "variant": "statement",
+                        "note": ""
+                    }
+                },
+                {
+                    "id": "b9",
+                    "type": "quote",
+                    "content": {
+                        "text": "04 · Experience",
+                        "variant": "act",
+                        "note": "Design isn’t only what people see — it’s what they feel."
+                    }
+                },
+                {
+                    "id": "b10",
+                    "type": "prose",
+                    "content": {
+                        "label": "STORY · SYSTEM · TECHNOLOGY · REALITY",
+                        "paragraphs": [
+                            "THEN EVERYTHING HAD TO WORK TOGETHER.",
+                            "Story, interaction, space, technology, content and production became one problem."
+                        ]
+                    }
+                },
+                {
+                    "id": "b11",
+                    "type": "list",
+                    "content": {
+                        "style": "system",
+                        "items": [
+                            "STORY",
+                            "AUDIENCE",
+                            "INTERACTION",
+                            "SPACE",
+                            "TECHNOLOGY",
+                            "PRODUCTION",
+                            "REALITY"
+                        ]
+                    }
+                },
+                {
+                    "id": "b12",
+                    "type": "quote",
+                    "content": {
+                        "text": "05 · People",
+                        "variant": "act",
+                        "note": "The work is ultimately about people."
+                    }
+                },
+                {
+                    "id": "b13",
+                    "type": "prose",
+                    "content": {
+                        "label": "COLLABORATION · DIRECTION · EMPATHY",
+                        "paragraphs": [
+                            "BECAUSE EXPERIENCES ARE FOR PEOPLE.",
+                            "The work became about bringing different disciplines and people around one idea."
+                        ]
+                    }
+                },
+                {
+                    "id": "b14",
+                    "type": "quote",
+                    "content": {
+                        "text": "06 · Creative Leadership",
+                        "variant": "act",
+                        "note": "Direction, story, technology and execution — together."
+                    }
+                },
+                {
+                    "id": "b15",
+                    "type": "prose",
+                    "content": {
+                        "label": "IDEA · TEAM · EXECUTION",
+                        "paragraphs": [
+                            "THEN THE WORK BECAME BIGGER THAN THE IDEA.",
+                            "Creative direction, collaboration, production and execution had to hold together in the real world."
+                        ]
+                    }
+                },
+                {
+                    "id": "b16",
+                    "type": "prose",
+                    "content": {
+                        "paragraphs": [
+                            "<p class=\"about-duo\"><span>Does it look good?</span><strong>Does it <em>work?</em></strong></p>"
+                        ]
+                    }
+                },
+                {
+                    "id": "b17",
+                    "type": "quote",
+                    "content": {
+                        "text": "I'M A CREATIVE PERSON FIRST.",
+                        "variant": "statement",
+                        "note": ""
+                    }
+                },
+                {
+                    "id": "b18",
+                    "type": "quote",
+                    "content": {
+                        "text": "THE DISTANCE BETWEEN THE IDEA AND REALITY.",
+                        "variant": "epic",
+                        "note": ""
+                    }
+                },
+                {
+                    "id": "b19",
+                    "type": "quote",
+                    "content": {
+                        "text": "GOOD IDEAS HAVE TO SURVIVE REALITY.",
+                        "variant": "epic",
+                        "note": ""
+                    }
+                },
+                {
+                    "id": "b20",
+                    "type": "quote",
+                    "content": {
+                        "text": "That's the work I'm interested in.",
+                        "variant": "finale",
+                        "note": ""
+                    }
+                },
+                {
+                    "id": "b21",
+                    "type": "cta",
+                    "content": {
+                        "title": "— Abhijeet Varghese",
+                        "role": "Creative Director & Experience Designer",
+                        "button": "Start a conversation",
+                        "href": "contact.html",
+                        "text": ""
+                    }
+                }
+            ]
+        },
+        {
+            "id": "p-experience",
+            "title": "Experience",
+            "slug": "experience",
+            "status": "published",
+            "template": "Experience",
+            "kicker": "Experience",
+            "lede": "Where I've worked, what I've led, and how my responsibilities have evolved.",
+            "seo": {
+                "title": "Experience — Abhijeet Varghese | Creative Director & Experience Designer",
+                "desc": "Where I've worked, what I've led, and how my responsibilities have evolved — from creative project management to creative direction across immersive, AR/VR and experience design.",
+                "keywords": "experience, career, creative director, experience design, RAMS Creative Technologies, PlugXR, Angel Creations, Arena Animation"
+            },
+            "updated": "just now",
+            "blocks": [
+                {
+                    "id": "j-rams",
+                    "type": "job",
+                    "content": {
+                        "company": "RAMS Creative Technologies",
+                        "role": "Creative Head",
+                        "role_sub": "Immersive & Brand Systems",
+                        "dates": "Sep 2024 — Jan 2026",
+                        "location": "Jaipur",
+                        "summary": "Led creative direction for experience centres and immersive storytelling environments, developing spatial concepts, experience frameworks and visual strategies while directing multidisciplinary teams across design, animation, XR development and interactive media.",
+                        "responsibilities": [
+                            "Led creative direction for enterprise experience centres, immersive environments and brand systems.",
+                            "Developed creative concepts, visual directions and initial spatial experience frameworks.",
+                            "Translated client briefs and business requirements into creative concepts, experience narratives and visual communication systems.",
+                            "Worked directly with clients and stakeholders to understand requirements, present concepts and establish creative direction.",
+                            "Directed multidisciplinary teams across graphic design, visual design, animation, motion graphics, XR development and interactive media production where required.",
+                            "Guided the development of visual storytelling environments for technology, enterprise, industrial and immersive applications.",
+                            "Contributed to experience-centre planning, spatial concepts, visitor journeys and immersive storytelling.",
+                            "Directed interactive and immersive experiences, including AR, VR and XR experiences.",
+                            "Provided art direction across graphic design, visual communication, motion design, animation and experiential media.",
+                            "Guided the creation of visual assets and communication materials supporting physical and digital experiences.",
+                            "Translated complex technical and engineering information into clear visual narratives.",
+                            "Reviewed design, animation, motion and immersive outputs to maintain creative consistency and quality.",
+                            "Guided production execution across multiple creative disciplines.",
+                            "Coordinated creative requirements between clients, designers, animators, developers, XR specialists and production teams.",
+                            "Presented experience concepts, visual strategies, storyboards and creative solutions to stakeholders.",
+                            "Provided creative direction from concept development through execution and final delivery.",
+                            "Supported immersive storytelling, VR modules, interactive displays and experiential environments.",
+                            "Oversaw creative quality across multidisciplinary production pipelines."
+                        ],
+                        "disciplines": [
+                            "Creative Direction",
+                            "Experience Design",
+                            "Graphic Design",
+                            "Art Direction",
+                            "Brand Systems",
+                            "Motion Graphics",
+                            "Animation",
+                            "VFX / Visual Effects",
+                            "Visual Storytelling",
+                            "AR",
+                            "VR",
+                            "XR",
+                            "Interactive Media",
+                            "Spatial Experience",
+                            "Immersive Experiences",
+                            "Team Leadership",
+                            "Production"
+                        ],
+                        "image": "media/experience-centre.webp",
+                        "alt": "An enterprise experience centre — strategy made walkable."
+                    }
+                },
+                {
+                    "id": "j-plugxr",
+                    "type": "job",
+                    "content": {
+                        "company": "PlugXR Reality",
+                        "role": "Creative Head",
+                        "role_sub": "AR/VR Platform & Experience Design",
+                        "dates": "Jan 2024 — May 2024",
+                        "location": "",
+                        "summary": "Led creative direction for AR/VR platform experiences and immersive product demonstrations, developing storytelling frameworks and guiding teams creating interactive AR/VR modules in collaboration with product teams.",
+                        "responsibilities": [
+                            "Led creative direction for AR/VR platform experiences, demonstrations and immersive product presentations.",
+                            "Developed storytelling frameworks for communicating AR/VR products and capabilities.",
+                            "Developed concepts and interaction approaches for interactive AR and VR modules.",
+                            "Guided teams working on AR/VR experience development.",
+                            "Collaborated with product teams to align creative concepts with platform capabilities, usability and user requirements.",
+                            "Developed visual and experiential approaches for enterprise AR/VR demonstrations.",
+                            "Designed visual storytelling systems for immersive product communication.",
+                            "Reviewed AR/VR experiences from a creative and usability perspective.",
+                            "Conducted creative reviews to ensure clarity, consistency and quality.",
+                            "Structured immersive experiences so complex technology could be communicated clearly to users and stakeholders.",
+                            "Supported enterprise presentations and demonstrations through immersive storytelling.",
+                            "Contributed to AR experience modules and immersive case studies.",
+                            "Worked across visual design, interaction concepts and immersive experience development.",
+                            "Guided creative teams through concept development, iteration and final presentation."
+                        ],
+                        "disciplines": [
+                            "Creative Direction",
+                            "AR",
+                            "VR",
+                            "Experience Design",
+                            "Interaction Design",
+                            "Visual Design",
+                            "Visual Storytelling",
+                            "Immersive Experience",
+                            "Product Collaboration",
+                            "Creative Reviews",
+                            "Team Leadership"
+                        ],
+                        "image": "",
+                        "alt": ""
+                    }
+                },
+                {
+                    "id": "j-independent",
+                    "type": "job",
+                    "content": {
+                        "company": "Independent",
+                        "role": "Creative Director",
+                        "role_sub": "Experience & Innovation Consultant",
+                        "dates": "Oct 2022 — Jan 2024",
+                        "location": "",
+                        "summary": "Provided independent creative direction and experience consulting across design, animation, immersive media and experiential environments, working directly with clients, distributed creative teams and vendors.",
+                        "responsibilities": [
+                            "Provided creative direction across design, animation, immersive media and experiential environments.",
+                            "Worked directly with clients to understand project briefs, business requirements and communication challenges.",
+                            "Developed creative concepts, experience concepts and storytelling strategies.",
+                            "Translated client requirements into visual concepts, experience frameworks and executable creative direction.",
+                            "Worked across graphic design, visual communication, branding and digital design.",
+                            "Developed motion graphics, animation and visual storytelling content.",
+                            "Worked across animation and VFX-led visual development.",
+                            "Developed creative treatments, storyboards and visual directions for video and animation projects.",
+                            "Supported photography and video shooting and visual-content production where required by project scope.",
+                            "Developed concepts for video, animation and experiential content.",
+                            "Directed distributed creative teams across different locations and disciplines.",
+                            "Coordinated external creative teams, specialists, production partners and vendors.",
+                            "Managed multidisciplinary creative collaboration across designers, animators, developers and production specialists.",
+                            "Developed interactive installations and communication systems.",
+                            "Worked on immersive and experiential environments combining visual storytelling and technology.",
+                            "Presented creative concepts, visual directions and design solutions to clients and stakeholders.",
+                            "Guided projects from concept development through creative production and delivery.",
+                            "Provided art direction and quality control across creative outputs.",
+                            "Helped translate complex ideas into clearer visual and experiential communication.",
+                            "Delivered visual storytelling environments for enterprise organisations.",
+                            "Managed the relationship between creative intent, client expectations and production execution."
+                        ],
+                        "disciplines": [
+                            "Creative Direction",
+                            "Creative Consulting",
+                            "Graphic Design",
+                            "Branding",
+                            "Art Direction",
+                            "Motion Graphics",
+                            "Animation",
+                            "VFX",
+                            "Video",
+                            "Photography / Shooting",
+                            "Visual Storytelling",
+                            "Interactive",
+                            "Immersive",
+                            "Experience Design",
+                            "Experiential Design",
+                            "Team Direction",
+                            "Vendor Coordination",
+                            "Production"
+                        ],
+                        "image": "media/working-session.webp",
+                        "alt": "Where projects begin — paper, questions and honest conversation."
+                    }
+                },
+                {
+                    "id": "j-rams",
+                    "type": "job",
+                    "content": {
+                        "company": "RAMS Creative Technologies",
+                        "role": "Creative Head",
+                        "role_sub": "",
+                        "dates": "Sep 2021 — Sep 2022",
+                        "location": "Jaipur",
+                        "summary": "Led creative direction across design, animation and interactive experience projects, developing storytelling frameworks, communication strategies and visual narratives while directing and mentoring multidisciplinary creative teams.",
+                        "responsibilities": [
+                            "Led creative direction across graphic design, visual design, animation and interactive experience projects.",
+                            "Developed creative concepts and visual directions based on project requirements.",
+                            "Developed storytelling frameworks and communication strategies.",
+                            "Translated complex technical subjects into accessible visual narratives.",
+                            "Developed concepts for interactive and digital experiences.",
+                            "Guided experience concept development from initial idea through execution.",
+                            "Directed multidisciplinary creative teams.",
+                            "Provided art direction across design, animation and interactive media.",
+                            "Guided designers and animators through creative development and production.",
+                            "Mentored designers and animators.",
+                            "Reviewed creative work and provided creative direction.",
+                            "Conducted creative reviews and quality-control processes.",
+                            "Reviewed visual, animation and interactive outputs.",
+                            "Maintained consistency between creative concept and final execution.",
+                            "Collaborated with stakeholders to develop and refine creative solutions.",
+                            "Worked across visual communication, animation, motion and interactive experience development.",
+                            "Developed creative approaches for technical and complex subjects.",
+                            "Supported multidisciplinary production and project delivery."
+                        ],
+                        "disciplines": [
+                            "Creative Direction",
+                            "Graphic Design",
+                            "Art Direction",
+                            "Visual Design",
+                            "Motion Graphics",
+                            "Animation",
+                            "Visual Storytelling",
+                            "Interactive Experience",
+                            "Digital Experience",
+                            "Team Leadership",
+                            "Mentoring",
+                            "Production"
+                        ],
+                        "image": "",
+                        "alt": ""
+                    }
+                },
+                {
+                    "id": "j-angel",
+                    "type": "job",
+                    "content": {
+                        "company": "Angel Creations",
+                        "role": "Creative Director",
+                        "role_sub": "",
+                        "dates": "Jan 2016 — Apr 2021",
+                        "location": "",
+                        "summary": "Founded and led a creative studio delivering branding, graphic design, animation and creative communication projects, while directing multidisciplinary teams, client relationships and end-to-end creative delivery.",
+                        "responsibilities": [
+                            "Founded and led a creative studio delivering branding, graphic design, animation and creative communication projects.",
+                            "Directed overall creative strategy and execution across client projects.",
+                            "Developed brand identity systems and visual communication.",
+                            "Developed graphic design solutions across digital and physical communication requirements.",
+                            "Directed motion graphics and animation campaigns.",
+                            "Worked across animation, VFX and visual storytelling.",
+                            "Developed concepts, storyboards and visual treatments for animation and video content.",
+                            "Directed creative production from initial concept through final delivery.",
+                            "Developed creative treatments for video and visual-content projects.",
+                            "Supported shooting and visual-content production where required by project scope.",
+                            "Directed visual storytelling and communication for client campaigns.",
+                            "Developed storytelling frameworks for brand communication.",
+                            "Managed multidisciplinary creative teams.",
+                            "Managed designers, animators and creative specialists.",
+                            "Assigned creative responsibilities and guided teams through project execution.",
+                            "Reviewed design, animation, motion and visual outputs.",
+                            "Maintained creative quality and consistency across projects.",
+                            "Developed creative concepts based on client briefs and business requirements.",
+                            "Presented concepts, design directions and creative solutions to clients and stakeholders.",
+                            "Built and maintained long-term client relationships.",
+                            "Managed creative expectations, project requirements and delivery timelines.",
+                            "Coordinated internal teams and external creative resources.",
+                            "Oversaw end-to-end creative delivery while maintaining creative quality.",
+                            "Balanced creative direction, client expectations, production constraints and deadlines."
+                        ],
+                        "disciplines": [
+                            "Creative Direction",
+                            "Graphic Design",
+                            "Brand Identity",
+                            "Branding",
+                            "Art Direction",
+                            "Motion Graphics",
+                            "Animation",
+                            "VFX",
+                            "Video",
+                            "Shooting",
+                            "Visual Storytelling",
+                            "Creative Production",
+                            "Team Leadership",
+                            "Client Management",
+                            "Project Delivery"
+                        ],
+                        "image": "",
+                        "alt": ""
+                    }
+                },
+                {
+                    "id": "j-arena",
+                    "type": "job",
+                    "content": {
+                        "company": "Arena Animation",
+                        "role": "Creative Project Manager",
+                        "role_sub": "",
+                        "dates": "Jan 2014 — Jan 2016",
+                        "location": "",
+                        "summary": "Managed animation and design production projects, coordinating creative teams, schedules, workflows and quality-control processes while building foundational expertise in animation production pipelines.",
+                        "responsibilities": [
+                            "Managed animation and design production projects from planning through delivery.",
+                            "Coordinated teams of designers and animators.",
+                            "Managed production schedules, deadlines and delivery requirements.",
+                            "Monitored project progress across creative production stages.",
+                            "Coordinated resources required for animation and design production.",
+                            "Implemented workflow improvements to improve production efficiency.",
+                            "Supported creative reviews and quality-control processes.",
+                            "Reviewed production output against project requirements.",
+                            "Coordinated communication between production requirements and creative teams.",
+                            "Assisted with production planning and task allocation.",
+                            "Supported animation production pipelines and delivery processes.",
+                            "Built foundational expertise in animation production, design workflows and creative project management."
+                        ],
+                        "disciplines": [
+                            "Project Management",
+                            "Animation",
+                            "Graphic Design",
+                            "Creative Production",
+                            "Team Coordination",
+                            "Production Planning",
+                            "Workflow Management",
+                            "Quality Control"
+                        ],
+                        "image": "",
+                        "alt": ""
+                    }
+                },
+                {
+                    "id": "cta1",
+                    "type": "cta",
+                    "content": {
+                        "title": "Now, the work.",
+                        "text": "The roles are the record — the work is the evidence.",
+                        "button": "Explore the work",
+                        "href": "case-studies.html"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "p-cases",
+            "title": "Case Studies",
+            "slug": "case-studies",
+            "status": "published",
+            "template": "Page",
+            "seo": {
+                "title": "Case Studies — Abhijeet Varghese",
+                "desc": "Work that had to be understood.",
+                "keywords": "case studies"
+            },
+            "updated": "4d ago",
+            "blocks": [
+                {
+                    "id": "b1",
+                    "type": "hero",
+                    "content": {
+                        "kicker": "03 · Case Studies",
+                        "title": "Work that had to be <em>understood</em>.",
+                        "lede": "Three engagements, chosen not for scale but for what they demanded — clarity where clarity was hardest."
+                    }
+                },
+                {
+                    "id": "b2",
+                    "type": "cases",
+                    "content": {
+                        "projectIds": [
+                            "prj-1",
+                            "prj-2",
+                            "prj-3"
+                        ],
+                        "note": "Detailed case studies — problem framing, process, artefacts and measurable outcomes — are shared personally rather than published.",
+                        "mailto": "hi@abhijeetvarghese.com"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "p-contact",
+            "title": "Contact",
+            "slug": "contact",
+            "status": "published",
+            "template": "Contact",
+            "seo": {
+                "title": "Start a Conversation — Abhijeet Varghese",
+                "desc": "Write or book an intro call.",
+                "keywords": "contact"
+            },
+            "updated": "3h ago",
+            "blocks": [
+                {
+                    "id": "b1",
+                    "type": "hero",
+                    "content": {
+                        "kicker": "04 · Contact",
+                        "title": "Let's build something <em>worth remembering</em>.",
+                        "lede": "One conversation is enough to know if this fits. Share the essentials, pick a time — the invite comes straight from my desk."
+                    }
+                },
+                {
+                    "id": "b2",
+                    "type": "contact",
+                    "content": {
+                        "note": "Every engagement starts the same way — an honest conversation about what actually needs to change. Whether it's a leadership role, an enterprise engagement or an idea that needs a clearer voice."
+                    }
+                }
+            ]
+        },
+        {
+            "id": "p-insights",
+            "title": "Insights",
+            "slug": "insights",
+            "status": "published",
+            "template": "Blog Index",
+            "seo": {
+                "title": "Insights & Essays — Abhijeet Varghese",
+                "desc": "Thinking out loud, on purpose.",
+                "keywords": "insights, essays"
+            },
+            "updated": "1d ago",
+            "blocks": [
+                {
+                    "id": "b1",
+                    "type": "hero",
+                    "content": {
+                        "kicker": "05 · Insights",
+                        "title": "Thinking out loud, <em>on purpose</em>.",
+                        "lede": "Notes from the edge of design, technology and enterprise — written to be argued with, not just read."
+                    }
+                },
+                {
+                    "id": "b2",
+                    "type": "articles",
+                    "content": {
+                        "kind": "essay"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "p-journal",
+            "title": "Journal",
+            "slug": "journal",
+            "status": "published",
+            "template": "Blog Index",
+            "seo": {
+                "title": "Journal — Abhijeet Varghese",
+                "desc": "Notes from the workbench.",
+                "keywords": "journal"
+            },
+            "updated": "1d ago",
+            "blocks": [
+                {
+                    "id": "b1",
+                    "type": "hero",
+                    "content": {
+                        "kicker": "06 · Journal",
+                        "title": "Notes from the <em>workbench</em>.",
+                        "lede": "Unpolished, honest, dated. The thinking that happens between projects."
+                    }
+                },
+                {
+                    "id": "b2",
+                    "type": "articles",
+                    "content": {
+                        "kind": "journal"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "p-recruiters",
+            "title": "For Recruiters",
+            "slug": "for-recruiters",
+            "status": "published",
+            "template": "Page",
+            "seo": {
+                "title": "For Recruiters — Abhijeet Varghese",
+                "desc": "A design leader who ships.",
+                "keywords": "recruiters, design leadership"
+            },
+            "updated": "1w ago",
+            "blocks": [
+                {
+                    "id": "b1",
+                    "type": "hero",
+                    "content": {
+                        "kicker": "07 · For Recruiters",
+                        "title": "A design leader who <em>ships</em>.",
+                        "lede": "If you're hiring for creative direction, design leadership or innovation roles — here's what I bring and how to reach me."
+                    }
+                },
+                {
+                    "id": "b2",
+                    "type": "prose",
+                    "content": {
+                        "paragraphs": [
+                            "I lead the kind of work most teams find hardest: <strong>complex, ambiguous, high-stakes</strong>. Twelve-plus years across experience design, enterprise innovation, immersive technology and AI-enabled creative production — with a track record of building teams, standards and rituals that raise the ceiling of what a creative organization can ship.",
+                            "I've delivered for global enterprises, national institutions and culture-defining brands — from enterprise technology platforms and safety-critical industrial environments to immersive defence training and national-scale communication. I design <strong>systems</strong> — brand, product, experience, team — not just artefacts.",
+                            "I'm open to leadership roles that need someone who can connect strategy, design, technology and AI — and make it all feel human."
+                        ]
+                    }
+                },
+                {
+                    "id": "b3",
+                    "type": "card",
+                    "content": {
+                        "title": "Currently open to",
+                        "chips": [
+                            "Design Leadership",
+                            "Creative Direction",
+                            "Head of Experience",
+                            "Enterprise Innovation",
+                            "Consulting",
+                            "Speaking"
+                        ],
+                        "body": "Full résumé available on request — or download it directly.",
+                        "download": true
+                    }
+                }
+            ]
+        },
+        {
+            "id": "p-consulting",
+            "title": "Consulting",
+            "slug": "consulting",
+            "status": "published",
+            "template": "Page",
+            "seo": {
+                "title": "Consulting — Abhijeet Varghese",
+                "desc": "Clarity, as a service.",
+                "keywords": "consulting"
+            },
+            "updated": "1w ago",
+            "blocks": [
+                {
+                    "id": "b1",
+                    "type": "hero",
+                    "content": {
+                        "kicker": "08 · Consulting",
+                        "title": "Clarity, <em>as a service</em>.",
+                        "lede": "Hard problem, high standards, tight timeline? That's the work I'm built for."
+                    }
+                },
+                {
+                    "id": "b2",
+                    "type": "prose",
+                    "content": {
+                        "paragraphs": [
+                            "Most organizations don't need more decoration — they need <strong>direction</strong>. I work as a creative systems partner: translating strategy into experiences, building the systems that keep them coherent, and standing them up with the teams that will run them."
+                        ]
+                    }
+                },
+                {
+                    "id": "b3",
+                    "type": "list",
+                    "content": {
+                        "items": [
+                            "Creative Strategy — the idea everything hangs on",
+                            "Brand Systems — identities that survive real organizations",
+                            "Digital Products — complexity in the system, never on the screen",
+                            "Experience Centres — strategy made walkable",
+                            "AI-Enabled Workflows — weeks of exploration in days"
+                        ]
+                    }
+                },
+                {
+                    "id": "b4",
+                    "type": "card",
+                    "content": {
+                        "title": "Every engagement starts the same way",
+                        "body": "An honest conversation about what actually needs to change — then a plan, a team and a standard. If you have a hard problem and high standards, we should talk.",
+                        "cta": "Start a conversation",
+                        "href": "contact.html"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "p-sitemap",
+            "title": "Sitemap",
+            "slug": "sitemap",
+            "status": "published",
+            "template": "Page",
+            "seo": {
+                "title": "Sitemap — Abhijeet Varghese",
+                "desc": "Every corner of this site.",
+                "keywords": "sitemap"
+            },
+            "updated": "2w ago",
+            "blocks": [
+                {
+                    "id": "b1",
+                    "type": "hero",
+                    "content": {
+                        "kicker": "09 · Sitemap",
+                        "title": "Every corner of this <em>site</em>.",
+                        "lede": "If you're looking for it, it's here."
+                    }
+                },
+                {
+                    "id": "b2",
+                    "type": "sitemap",
+                    "content": []
+                }
+            ]
+        },
+        {
+            "id": "p-privacy",
+            "title": "Privacy Policy",
+            "slug": "privacy-policy",
+            "status": "published",
+            "template": "Page",
+            "seo": {
+                "title": "Privacy Policy — Abhijeet Varghese",
+                "desc": "Plain English about your data.",
+                "keywords": "privacy"
+            },
+            "updated": "2w ago",
+            "blocks": [
+                {
+                    "id": "b1",
+                    "type": "hero",
+                    "content": {
+                        "kicker": "10 · Legal",
+                        "title": "Plain English about <em>your data</em>.",
+                        "lede": "This site collects as little as possible, and never sells anything."
+                    }
+                },
+                {
+                    "id": "b2",
+                    "type": "prose",
+                    "content": {
+                        "headings": [
+                            {
+                                "h": "1. What we collect",
+                                "p": "When you contact me — by email, phone, or the booking calendar — you share what you choose to share: your name, email address, organization and the details of your inquiry. That's it."
+                            },
+                            {
+                                "h": "2. Booking",
+                                "p": "Intro calls are scheduled through Calendly, which processes your name, email and time-slot selection on their own servers. Their privacy policy applies to that step, and the data is used only to arrange our call."
+                            },
+                            {
+                                "h": "3. Cookies & analytics",
+                                "p": "This site does not run third-party advertising or tracking analytics. If a privacy-conscious analytics tool is added later, this policy will be updated first."
+                            },
+                            {
+                                "h": "4. What we do with your information",
+                                "p": "Reply to you. Arrange meetings. Keep a record of what we discussed so the next conversation starts from memory, not scratch. We do not sell, rent or trade personal information."
+                            },
+                            {
+                                "h": "5. Your rights",
+                                "p": "You can ask what data I hold about you, ask for it to be corrected, or ask for it to be deleted — at any time, no forms, just write: hi@abhijeetvarghese.com"
+                            },
+                            {
+                                "h": "6. Changes",
+                                "p": "If this policy changes, the date below updates. Last revised: August 2026."
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "id": "p-terms",
+            "title": "Terms",
+            "slug": "terms",
+            "status": "published",
+            "template": "Page",
+            "seo": {
+                "title": "Terms of Use — Abhijeet Varghese",
+                "desc": "The fine print, without the fog.",
+                "keywords": "terms"
+            },
+            "updated": "2w ago",
+            "blocks": [
+                {
+                    "id": "b1",
+                    "type": "hero",
+                    "content": {
+                        "kicker": "11 · Legal",
+                        "title": "The fine print, <em>without the fog</em>.",
+                        "lede": "Short version: be respectful, ask before reusing, and everything here is provided as-is."
+                    }
+                },
+                {
+                    "id": "b2",
+                    "type": "prose",
+                    "content": {
+                        "headings": [
+                            {
+                                "h": "1. Use of this site",
+                                "p": "This site is a portfolio and professional resource. You may browse, share links and reference the work with attribution. Scraping, reselling or misrepresenting the content is not permitted."
+                            },
+                            {
+                                "h": "2. Intellectual property",
+                                "p": "All work shown here — design, copy, imagery and concepts — belongs to Abhijeet Varghese or the organizations the work was created for. Client logos remain the property of their owners."
+                            },
+                            {
+                                "h": "3. No guarantees",
+                                "p": "Content is provided as is for information. Nothing on this site constitutes professional advice or an offer of employment or engagement."
+                            },
+                            {
+                                "h": "4. Booking",
+                                "p": "Booked calls are confirmed by email. Life happens — rescheduling is one message away, and no-shows are treated with the same grace we'd ask for."
+                            },
+                            {
+                                "h": "5. Contact",
+                                "p": "Questions about these terms? hi@abhijeetvarghese.com. Last revised: August 2026."
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    ],
+    "blocks": [
+        {
+            "type": "hero",
+            "name": "Hero",
+            "desc": "Full-bleed editorial opener"
+        },
+        {
+            "type": "text",
+            "name": "Text",
+            "desc": "Rich text, headings, lists"
+        },
+        {
+            "type": "image",
+            "name": "Image",
+            "desc": "Single image with caption"
+        },
+        {
+            "type": "gallery",
+            "name": "Gallery",
+            "desc": "Grid or carousel of media"
+        },
+        {
+            "type": "video",
+            "name": "Video",
+            "desc": "Embed or hosted video"
+        },
+        {
+            "type": "quote",
+            "name": "Quote",
+            "desc": "Editorial pull quote"
+        },
+        {
+            "type": "timeline",
+            "name": "Timeline",
+            "desc": "Vertical era strip"
+        },
+        {
+            "type": "accordion",
+            "name": "Accordion",
+            "desc": "Collapsible sections"
+        },
+        {
+            "type": "tabs",
+            "name": "Tabs",
+            "desc": "Tabbed content"
+        },
+        {
+            "type": "cards",
+            "name": "Cards",
+            "desc": "Card grid"
+        },
+        {
+            "type": "stats",
+            "name": "Statistics",
+            "desc": "Number highlights"
+        },
+        {
+            "type": "testimonials",
+            "name": "Testimonials",
+            "desc": "Client voices"
+        },
+        {
+            "type": "cta",
+            "name": "CTA",
+            "desc": "Call to action band"
+        },
+        {
+            "type": "forms",
+            "name": "Form",
+            "desc": "Custom form embed"
+        },
+        {
+            "type": "code",
+            "name": "Code Embed",
+            "desc": "HTML / JS embed"
+        },
+        {
+            "type": "logowall",
+            "name": "Logo Wall",
+            "desc": "Client logo grid"
+        },
+        {
+            "type": "newsletter",
+            "name": "Newsletter",
+            "desc": "Subscribe capture"
+        },
+        {
+            "type": "buttons",
+            "name": "Buttons",
+            "desc": "Action buttons"
+        }
+    ],
+    "projects": [
+        {
+            "id": "prj-1",
+            "title": "Enterprise Technology, Made Understandable",
+            "client": "Orange Business",
+            "industry": "Enterprise Technology",
+            "status": "published",
+            "year": "2025",
+            "featured": true,
+            "image": "media/case-orange.webp",
+            "summary": "Helping enterprise technology become understandable.",
+            "views": "8,421",
+            "role": "Creative Direction & Experience Strategy",
+            "challenge": "Genuinely complex platforms had let complexity become the experience. Powerful capability, buried under jargon.",
+            "approach": "Translate system architecture into human narratives — experience films, interactive demos and centre experiences that make capability legible.",
+            "outcome": "Enterprise technology buyers can finally see, understand — and remember.",
+            "updated": "3d ago"
+        },
+        {
+            "id": "prj-2",
+            "title": "Intuitive Experiences for Industrial Environments",
+            "client": "BPCL",
+            "industry": "Energy & Industrial",
+            "status": "published",
+            "year": "2025",
+            "featured": true,
+            "image": "media/case-bpcl.webp",
+            "summary": "Designing intuitive experiences for complex industrial environments.",
+            "views": "6,740",
+            "role": "Design Strategy & Experience Lead",
+            "challenge": "Safety-critical operations ran on dense manuals and denser screens. Comprehension wasn't a nicety — it was risk management.",
+            "approach": "Intuitive interfaces and immersive walkthroughs of complex processes, designed to be understood under pressure.",
+            "outcome": "Experiences operators trust at a glance — clarity measured in seconds, not slides.",
+            "updated": "5d ago"
+        },
+        {
+            "id": "prj-3",
+            "title": "Immersive Solutions for the Indian Army",
+            "client": "Indian Army",
+            "industry": "Defence & Immersive",
+            "status": "published",
+            "year": "2025",
+            "featured": true,
+            "image": "media/case-army.webp",
+            "summary": "Creating immersive solutions where clarity, precision and execution matter most.",
+            "views": "12,084",
+            "role": "Creative Lead — Immersive Solutions",
+            "challenge": "Communication at enormous scale, under the highest stakes, asking for absolute precision and discipline.",
+            "approach": "Immersive storytelling and visualization pipelines where every frame is verified — built with the discipline of the institution it served.",
+            "outcome": "Work where clarity, precision and execution mattered most — and delivered.",
+            "updated": "1w ago"
+        },
+        {
+            "id": "prj-4",
+            "title": "The Virtual Life",
+            "client": "Personal / AI Lab",
+            "industry": "AI & Narrative",
+            "status": "draft",
+            "year": "2026",
+            "featured": false,
+            "image": "media/essay-01.webp",
+            "summary": "An AI-crafted narrative world exploring emotional weight in generated media.",
+            "views": "—",
+            "role": "Creator & Director",
+            "challenge": "Can generated media carry genuine emotional weight?",
+            "approach": "Built a narrative world with AI across image, video and sound, curated by hand.",
+            "outcome": "A proof that tools serve the story — not the other way around.",
+            "updated": "2d ago"
+        },
+        {
+            "id": "prj-5",
+            "title": "Immersive Wedding Invitation",
+            "client": "Personal / AI Lab",
+            "industry": "Experiential",
+            "status": "draft",
+            "year": "2026",
+            "featured": false,
+            "image": "media/essay-02.webp",
+            "summary": "A platform that turns a wedding invitation into an explorable experience.",
+            "views": "—",
+            "role": "Creator & Director",
+            "challenge": "Make every guest feel personally invited.",
+            "approach": "AI-personalized experiences per guest inside one shared world.",
+            "outcome": "Invitations people don't just open — they revisit.",
+            "updated": "4d ago"
+        },
+        {
+            "id": "prj-6",
+            "title": "Experience Centre — Strategy Made Walkable",
+            "client": "Enterprise Client",
+            "industry": "Experience Centres",
+            "status": "scheduled",
+            "year": "2026",
+            "featured": false,
+            "image": "media/experience-centre.webp",
+            "summary": "Physical spaces where organizations explain themselves.",
+            "views": "—",
+            "role": "Experience Architect",
+            "challenge": "Turn strategy into something visitors can walk through and touch.",
+            "approach": "Centre master-planning: narrative arc, spatial flow, interactive media systems.",
+            "outcome": "Centres that function as decision rooms, not showrooms.",
+            "updated": "6d ago"
+        }
+    ],
+    "articles": [
+        {
+            "id": "art-1",
+            "title": "Technology Should Feel Human",
+            "type": "essay",
+            "status": "published",
+            "category": "Design",
+            "readTime": "6 min",
+            "date": "2026-07-12",
+            "image": "media/essay-01.webp",
+            "excerpt": "The most advanced systems fail when they forget the person holding them.",
+            "body": "Every technology starts life as a promise. Somewhere between the promise and the rollout, the human being quietly leaves the room.\n\nI've spent twelve years inside that translation problem. The pattern repeats everywhere — the system is powerful, the people are smart, and the experience is still alienating.\n\nWhat does a human interface actually mean? It means respecting attention, which is finite. It means earning trust, which takes repeated, honest behaviour. And it means designing for memory — because the only interface people carry is the one in their heads.\n\nTechnology evolves every day. Human understanding doesn't. That asymmetry is the brief.",
+            "views": "3,204",
+            "updated": "2h ago",
+            "slug": "technology-should-feel-human"
+        },
+        {
+            "id": "art-2",
+            "title": "AI Isn't Replacing Creativity",
+            "type": "essay",
+            "status": "published",
+            "category": "AI",
+            "readTime": "8 min",
+            "date": "2026-06-20",
+            "image": "media/essay-02.webp",
+            "excerpt": "Machines compress exploration; humans still do judgment.",
+            "body": "Every few decades a tool arrives that seems to make craft obsolete. Photography didn't kill painting — it relocated the argument.\n\nWhat AI actually compresses is exploration. The first 80 percent of any creative task can now happen in minutes instead of weeks.\n\nBut exploration was never the hard part. The hard part was always judgment: knowing which variation deserves to exist.\n\nSo the new workflow looks like this: machines for momentum, humans for judgment.",
+            "views": "1,982",
+            "updated": "Yesterday",
+            "slug": "ai-isnt-replacing-creativity"
+        },
+        {
+            "id": "art-3",
+            "title": "Designing Experiences People Remember",
+            "type": "essay",
+            "status": "published",
+            "category": "Experience",
+            "readTime": "7 min",
+            "date": "2026-05-15",
+            "image": "media/essay-03.webp",
+            "excerpt": "Memory is the real medium.",
+            "body": "Ask anyone what they remember about a great launch. Not the average minutes — the peak, and the ending.\n\nDesigning for memory also means designing for retelling. An experience that can be told as a story propagates.\n\nSo I design for the moments people will retell. A single honest moment beats a hundred polished ones.",
+            "views": "2,876",
+            "updated": "1w ago",
+            "slug": "designing-experiences-people-remember"
+        },
+        {
+            "id": "art-4",
+            "title": "Why Enterprise Experiences Fail",
+            "type": "essay",
+            "status": "published",
+            "category": "Enterprise",
+            "readTime": "9 min",
+            "date": "2026-04-02",
+            "image": "media/essay-04.webp",
+            "excerpt": "Jargon, org charts and inherited complexity — the three silent killers.",
+            "body": "Enterprise experiences don't fail for lack of talent or budget. They fail for three quieter reasons, and all three are translation failures.\n\nThe first killer is jargon. The second is the org chart. The third is inherited complexity.\n\nThe fix is the same for all three: treat clarity as a first-class requirement.",
+            "views": "1,540",
+            "updated": "3d ago",
+            "slug": "why-enterprise-experiences-fail"
+        },
+        {
+            "id": "art-5",
+            "title": "What a year of AI-enabled production taught me",
+            "type": "journal",
+            "status": "published",
+            "category": "Journal",
+            "readTime": "4 min",
+            "date": "2026-08-04",
+            "image": "media/journal-01.webp",
+            "excerpt": "Compression is the real gift.",
+            "body": "Twelve months into running AI-enabled production pipelines, the headline lesson is not about the technology at all. It's about where the human hours went: not into making, but into deciding.",
+            "views": "1,102",
+            "updated": "4d ago",
+            "slug": "what-a-year-of-ai-enabled-production-taught-me"
+        },
+        {
+            "id": "art-6",
+            "title": "The experience centre as a strategic instrument",
+            "type": "journal",
+            "status": "published",
+            "category": "Journal",
+            "readTime": "3 min",
+            "date": "2026-06-11",
+            "image": "media/journal-02.webp",
+            "excerpt": "The best centres are decision rooms, not showrooms.",
+            "body": "Most experience centres are built backwards. The centres that matter are built as decision rooms — places where the organization confronts its own strategy made visible.",
+            "views": "864",
+            "updated": "2w ago",
+            "slug": "the-experience-centre-as-a-strategic-instrument"
+        },
+        {
+            "id": "art-7",
+            "title": "On writing for non-designers",
+            "type": "journal",
+            "status": "draft",
+            "category": "Journal",
+            "readTime": "3 min",
+            "date": "2026-04-19",
+            "image": "media/journal/journal-03.webp",
+            "excerpt": "The second audience is always the one that matters.",
+            "body": "Most design documentation has two audiences: the designer who wrote it, and everyone else. Write for the person who will implement it at 6pm on a Friday.",
+            "views": "—",
+            "updated": "1w ago",
+            "slug": "on-writing-for-non-designers"
+        },
+        {
+            "id": "art-8",
+            "title": "Clarity as a business metric",
+            "type": "journal",
+            "status": "review",
+            "category": "Journal",
+            "readTime": "3 min",
+            "date": "2026-01-22",
+            "image": "media/journal/journal-04.webp",
+            "excerpt": "If you can't measure understanding, you're guessing about trust.",
+            "body": "Clarity is measurable, if you define it honestly: the time it takes a real user to correctly answer 'what does this do, and what should I do next?'",
+            "views": "1,014",
+            "updated": "3w ago",
+            "slug": "clarity-as-a-business-metric"
+        }
+    ],
+    "media": [
+        {
+            "id": "med-1",
+            "name": "hero-portrait.webp",
+            "folder": "Hero",
+            "size": "38 KB",
+            "w": 512,
+            "h": 512,
+            "src": "media/hero-portrait.webp",
+            "alt": "Editorial portrait of Abhijeet Varghese",
+            "tags": [
+                "hero",
+                "portrait"
+            ]
+        },
+        {
+            "id": "med-2",
+            "name": "case-orange.webp",
+            "folder": "Case Studies",
+            "size": "52 KB",
+            "w": 640,
+            "h": 427,
+            "src": "media/case-orange.webp",
+            "alt": "Enterprise technology briefing room",
+            "tags": [
+                "work",
+                "enterprise"
+            ]
+        },
+        {
+            "id": "med-3",
+            "name": "case-bpcl.webp",
+            "folder": "Case Studies",
+            "size": "48 KB",
+            "w": 640,
+            "h": 427,
+            "src": "media/case-bpcl.webp",
+            "alt": "Engineers at a process touchscreen",
+            "tags": [
+                "work",
+                "industrial"
+            ]
+        },
+        {
+            "id": "med-4",
+            "name": "case-army.webp",
+            "folder": "Case Studies",
+            "size": "61 KB",
+            "w": 640,
+            "h": 427,
+            "src": "media/case-army.webp",
+            "alt": "Immersive training theatre",
+            "tags": [
+                "work",
+                "defence"
+            ]
+        },
+        {
+            "id": "med-5",
+            "name": "working-session.webp",
+            "folder": "Thinking",
+            "size": "44 KB",
+            "w": 640,
+            "h": 427,
+            "src": "media/working-session.webp",
+            "alt": "Working session over journey maps",
+            "tags": [
+                "process"
+            ]
+        },
+        {
+            "id": "med-6",
+            "name": "experience-centre.webp",
+            "folder": "Experience Centres",
+            "size": "58 KB",
+            "w": 640,
+            "h": 427,
+            "src": "media/experience-centre.webp",
+            "alt": "Enterprise experience centre with LED wall",
+            "tags": [
+                "space",
+                "centre"
+            ]
+        },
+        {
+            "id": "med-7",
+            "name": "essay-01.webp",
+            "folder": "Essays",
+            "size": "22 KB",
+            "w": 640,
+            "h": 357,
+            "src": "media/essay-01.webp",
+            "alt": "Abstract azure ribbons",
+            "tags": [
+                "essay"
+            ]
+        },
+        {
+            "id": "med-8",
+            "name": "essay-02.webp",
+            "folder": "Essays",
+            "size": "24 KB",
+            "w": 640,
+            "h": 357,
+            "src": "media/essay-02.webp",
+            "alt": "Neural network nodes",
+            "tags": [
+                "essay",
+                "ai"
+            ]
+        },
+        {
+            "id": "med-9",
+            "name": "essay-03.webp",
+            "folder": "Essays",
+            "size": "21 KB",
+            "w": 640,
+            "h": 357,
+            "src": "media/essay-03.webp",
+            "alt": "Concentric rings",
+            "tags": [
+                "essay"
+            ]
+        },
+        {
+            "id": "med-10",
+            "name": "essay-04.webp",
+            "folder": "Essays",
+            "size": "23 KB",
+            "w": 640,
+            "h": 357,
+            "src": "media/essay-04.webp",
+            "alt": "Architectural grid",
+            "tags": [
+                "essay",
+                "enterprise"
+            ]
+        },
+        {
+            "id": "med-11",
+            "name": "journal-01.webp",
+            "folder": "Journal",
+            "size": "20 KB",
+            "w": 640,
+            "h": 357,
+            "src": "media/journal-01.webp",
+            "alt": "Light streaks",
+            "tags": [
+                "journal"
+            ]
+        },
+        {
+            "id": "med-12",
+            "name": "journal-02.webp",
+            "folder": "Journal",
+            "size": "21 KB",
+            "w": 640,
+            "h": 357,
+            "src": "media/journal-02.webp",
+            "alt": "Topographic contours",
+            "tags": [
+                "journal"
+            ]
+        },
+        {
+            "id": "med-13",
+            "name": "logo.png",
+            "folder": "Brand",
+            "size": "39 KB",
+            "w": 500,
+            "h": 500,
+            "src": "media/logo.png",
+            "alt": "Abhijeet Varghese logo",
+            "tags": [
+                "brand",
+                "logo"
+            ]
+        }
+    ],
+    "seo": [
+        {
+            "id": "seo-1",
+            "title": "Abhijeet Varghese — Creative Systems Leader | Experience Design, Enterprise Innovation & AI",
+            "url": "/",
+            "score": 98,
+            "keywords": [
+                "creative systems leader",
+                "experience design",
+                "enterprise innovation"
+            ],
+            "desc": "12+ years turning complex ideas into experiences people understand, trust and remember.",
+            "updated": "1h ago"
+        },
+        {
+            "id": "seo-2",
+            "title": "Case Studies — Abhijeet Varghese | Enterprise Experience Design",
+            "url": "/case-studies",
+            "score": 95,
+            "keywords": [
+                "enterprise experience design",
+                "case studies"
+            ],
+            "desc": "Selected work: Orange Business, BPCL and the Indian Army — clarity under pressure.",
+            "updated": "4d ago"
+        },
+        {
+            "id": "seo-3",
+            "title": "Insights & Essays — Abhijeet Varghese | Design, AI & Enterprise",
+            "url": "/insights",
+            "score": 97,
+            "keywords": [
+                "design essays",
+                "AI creativity"
+            ],
+            "desc": "Essays on experience design, AI-enabled creativity and enterprise innovation.",
+            "updated": "1d ago"
+        },
+        {
+            "id": "seo-4",
+            "title": "For Recruiters — Abhijeet Varghese | Design Leadership",
+            "url": "/for-recruiters",
+            "score": 92,
+            "keywords": [
+                "design leadership",
+                "big 4",
+                "faang"
+            ],
+            "desc": "A creative systems leader open to design leadership roles.",
+            "updated": "1w ago"
+        },
+        {
+            "id": "seo-5",
+            "title": "Start a Conversation — Abhijeet Varghese",
+            "url": "/contact",
+            "score": 93,
+            "keywords": [
+                "book intro call"
+            ],
+            "desc": "Write to Abhijeet Varghese or book an intro call. Replies within 24 hours.",
+            "updated": "3h ago"
+        }
+    ],
+    "nav": {
+        "primary": [
+            {
+                "id": "n1",
+                "label": "Story",
+                "href": "story.html",
+                "page": "story"
+            },
+            {
+                "id": "n2",
+                "label": "Experience",
+                "href": "experience.html",
+                "page": "experience"
+            },
+            {
+                "id": "n3",
+                "label": "Case Studies",
+                "href": "case-studies.html",
+                "page": "case-studies"
+            },
+            {
+                "id": "n3b",
+                "label": "Portfolio",
+                "href": "case-studies.html",
+                "page": "case-studies"
+            },
+            {
+                "id": "n4",
+                "label": "Start a conversation",
+                "href": "contact.html",
+                "page": "contact",
+                "cta": true
+            }
+        ],
+        "footerColumns": [
+            {
+                "id": "fc1",
+                "label": "Menu",
+                "links": [
+                    {
+                        "id": "fl1",
+                        "label": "Story",
+                        "href": "story.html"
+                    },
+                    {
+                        "id": "fl2",
+                        "label": "Experience",
+                        "href": "experience.html"
+                    },
+                    {
+                        "id": "fl3",
+                        "label": "Case Studies",
+                        "href": "case-studies.html"
+                    },
+                    {
+                        "id": "fl3b",
+                        "label": "Portfolio",
+                        "href": "case-studies.html"
+                    },
+                    {
+                        "id": "fl4",
+                        "label": "Start a conversation",
+                        "href": "contact.html"
+                    },
+                    {
+                        "id": "fl5",
+                        "label": "Download résumé",
+                        "href": "assets/Abhijeet-Varghese-Resume.pdf"
+                    }
+                ]
+            },
+            {
+                "id": "fc2",
+                "label": "Resources",
+                "links": [
+                    {
+                        "id": "fl6",
+                        "label": "Insights",
+                        "href": "insights.html"
+                    },
+                    {
+                        "id": "fl7",
+                        "label": "Journal",
+                        "href": "journal.html"
+                    },
+                    {
+                        "id": "fl8",
+                        "label": "Sitemap",
+                        "href": "sitemap.html"
+                    },
+                    {
+                        "id": "fl9",
+                        "label": "For Recruiters",
+                        "href": "for-recruiters.html"
+                    },
+                    {
+                        "id": "fl10",
+                        "label": "Consulting",
+                        "href": "consulting.html"
+                    }
+                ]
+            },
+            {
+                "id": "fc3",
+                "label": "Social",
+                "links": [
+                    {
+                        "id": "fl11",
+                        "label": "LinkedIn",
+                        "href": "https://www.linkedin.com/in/abhijeetvarghese/",
+                        "external": true
+                    },
+                    {
+                        "id": "fl12",
+                        "label": "Instagram",
+                        "href": "https://www.instagram.com/abhijeetvarghese/",
+                        "external": true
+                    },
+                    {
+                        "id": "fl13",
+                        "label": "WhatsApp",
+                        "href": "https://api.whatsapp.com/send?phone=919694080706",
+                        "external": true
+                    },
+                    {
+                        "id": "fl14",
+                        "label": "YouTube",
+                        "href": "https://www.youtube.com/@AbhijeetVarghese",
+                        "external": true
+                    },
+                    {
+                        "id": "fl15",
+                        "label": "Behance",
+                        "href": "https://www.behance.net/abhijeetvarghese",
+                        "external": true
+                    }
+                ]
+            },
+            {
+                "id": "fc4",
+                "label": "Legal",
+                "links": [
+                    {
+                        "id": "fl16",
+                        "label": "Privacy Policy",
+                        "href": "privacy-policy.html"
+                    },
+                    {
+                        "id": "fl17",
+                        "label": "Terms",
+                        "href": "terms.html"
+                    }
+                ]
+            }
+        ],
+        "copyright": "© 2026 Abhijeet Varghese. All Rights Reserved. Designing experiences where creativity, technology and human understanding come together."
+    },
+    "clients": [
+        {
+            "id": "c1",
+            "name": "Amazon",
+            "monogram": "a",
+            "industry": "Technology",
+            "logo": "amazon.webp"
+        },
+        {
+            "id": "c2",
+            "name": "Orange Business",
+            "monogram": "OB",
+            "industry": "Enterprise",
+            "logo": "orange-business.webp"
+        },
+        {
+            "id": "c3",
+            "name": "Indian Army",
+            "monogram": "IA",
+            "industry": "Defence",
+            "logo": "indian-army.webp"
+        },
+        {
+            "id": "c4",
+            "name": "TATA Advanced Systems",
+            "monogram": "TAS",
+            "industry": "Defence",
+            "logo": "tata-advanced-systems.webp"
+        },
+        {
+            "id": "c5",
+            "name": "Indian Oil",
+            "monogram": "IOC",
+            "industry": "Energy",
+            "logo": "indian-oil.webp"
+        },
+        {
+            "id": "c6",
+            "name": "BPCL",
+            "monogram": "BP",
+            "industry": "Energy",
+            "logo": "bpcl.webp"
+        },
+        {
+            "id": "c7",
+            "name": "Samsung SDS",
+            "monogram": "SS",
+            "industry": "Technology",
+            "logo": "samsung-sds.webp"
+        },
+        {
+            "id": "c8",
+            "name": "Sony BBC Earth",
+            "monogram": "SBE",
+            "industry": "Media",
+            "logo": "sony-bbc-earth.webp"
+        },
+        {
+            "id": "c9",
+            "name": "Nickelodeon",
+            "monogram": "N",
+            "industry": "Media",
+            "logo": "nickelodeon.webp"
+        },
+        {
+            "id": "c10",
+            "name": "Rockwell Automation",
+            "monogram": "RA",
+            "industry": "Manufacturing",
+            "logo": "rockwell-automation.webp"
+        },
+        {
+            "id": "c11",
+            "name": "Govt. of Rajasthan",
+            "monogram": "GR",
+            "industry": "Government",
+            "logo": "govt-of-rajasthan.webp"
+        },
+        {
+            "id": "c12",
+            "name": "Metabloqs",
+            "monogram": "M",
+            "industry": "Emerging",
+            "logo": "metabloqs.webp"
+        },
+        {
+            "id": "c13",
+            "name": "Papa John's",
+            "monogram": "PJ",
+            "industry": "Retail",
+            "logo": "papa-johns.webp"
+        },
+        {
+            "id": "c14",
+            "name": "Dunkin' Donuts",
+            "monogram": "D",
+            "industry": "Retail",
+            "logo": "dunkin.webp"
+        },
+        {
+            "id": "c15",
+            "name": "JK Lakshmi Cement",
+            "monogram": "JK",
+            "industry": "Manufacturing",
+            "logo": "jk-lakshmi-cement.webp"
+        },
+        {
+            "id": "c16",
+            "name": "Regional Express",
+            "monogram": "RX",
+            "industry": "Aviation",
+            "logo": "regional-express.webp"
+        }
+    ],
+    "testimonials": [
+        {
+            "id": "t1",
+            "quote": "Abhijeet turned our platform into something our buyers finally understood — in one meeting, not one quarter.",
+            "role": "Head of Marketing",
+            "org": "Orange Business",
+            "status": "published"
+        },
+        {
+            "id": "t2",
+            "quote": "The experience centre he designed changed how we argue about strategy internally.",
+            "role": "CXO",
+            "org": "Enterprise Client",
+            "status": "published"
+        },
+        {
+            "id": "t3",
+            "quote": "Precision, discipline and clarity — exactly what our environment demanded.",
+            "role": "Programme Director",
+            "org": "Defence Client",
+            "status": "published"
+        }
+    ],
+    "downloads": [
+        {
+            "id": "d1",
+            "name": "Abhijeet-Varghese-Resume.pdf",
+            "type": "PDF",
+            "size": "348 KB",
+            "downloads": 1284,
+            "status": "published",
+            "href": "assets/Abhijeet-Varghese-Resume.pdf"
+        },
+        {
+            "id": "d2",
+            "name": "Portfolio-2026.pdf",
+            "type": "PDF",
+            "size": "12.4 MB",
+            "downloads": 642,
+            "status": "published",
+            "href": ""
+        },
+        {
+            "id": "d3",
+            "name": "Experience-Centres-Playbook.pdf",
+            "type": "PDF",
+            "size": "3.8 MB",
+            "downloads": 318,
+            "status": "published",
+            "href": ""
+        }
+    ]
+}

@@ -1,0 +1,13 @@
+
+/* ============================================================
+   AV OS — design tokens (generated at publish — do not edit)
+   ============================================================ */
+:root {
+  --color-primary: #2E5AAC;
+  --color-accent: #2E5AAC;
+  --radius-card: 16px;
+  --space-section: 24px;
+  --container-width: 1280px;
+  --font-body: "Inter Tight";
+  --font-accent: "Instrument Serif";
+}
