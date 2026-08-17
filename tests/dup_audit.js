@@ -7,7 +7,9 @@ const { chromium } = require('playwright');
   const r = await page.evaluate(() => {
     // collect visible copy, excluding nav/footer/compass/aria-hidden
     const seen = {};
-    document.querySelectorAll('main p, main h1, main h2, main h3, main li, main figcaption, main a, main strong, main em, main span.about-prologue__mq-track span').forEach(el => {
+    // Select semantic copy blocks without also selecting their nested text
+    // children (which previously counted one CTA as both <p> and <a>).
+    document.querySelectorAll('main p:not(:has(a)), main h1, main h2, main h3, main li, main figcaption, main a').forEach(el => {
       if (el.closest('.about-compass')) return;
       if (el.closest('[aria-hidden="true"]')) return;
       const t = (el.textContent || '').trim().replace(/\s+/g, ' ');
@@ -47,4 +49,5 @@ const { chromium } = require('playwright');
   if (r.removed.spaceNarrDup > 1) issues.push('SPACE NARRATIVE DUPLICATED ' + r.removed.spaceNarrDup);
   console.log(issues.length ? 'DUP ISSUES:\n' + issues.join('\n') : 'DUP AUDIT: ALL CLEAN');
   await browser.close();
+  process.exit(issues.length ? 1 : 0);
 })();

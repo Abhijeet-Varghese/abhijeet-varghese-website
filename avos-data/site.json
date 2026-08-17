@@ -953,6 +953,24 @@
             ]
         },
         {
+            "id": "p-portfolio",
+            "title": "Portfolio",
+            "slug": "portfolio",
+            "status": "published",
+            "template": "Portfolio",
+            "kicker": "Selected practice",
+            "displayTitle": "Work across frames, systems and spaces.",
+            "lede": "A visual index of selected work across enterprise technology, industrial environments and immersive communication — each project shaped to make complexity legible.",
+            "statement": "The medium changes. The work is always about clarity.",
+            "seo": {
+                "title": "Portfolio — Abhijeet Varghese | Experience Design & Creative Direction",
+                "desc": "Selected portfolio work across experience design, creative direction, immersive technology, enterprise communication and spatial experiences.",
+                "keywords": "Abhijeet Varghese portfolio, experience design portfolio, creative direction, immersive technology, enterprise design"
+            },
+            "updated": "just now",
+            "blocks": []
+        },
+        {
             "id": "p-contact",
             "title": "Contact",
             "slug": "contact",
@@ -1386,20 +1404,33 @@
     "projects": [
         {
             "id": "prj-1",
-            "title": "Enterprise Technology, Made Understandable",
+            "title": "Orange Business New Executive Briefing Center",
             "client": "Orange Business",
-            "industry": "Enterprise Technology",
+            "industry": "Experience Design & Creative Technology",
             "status": "published",
             "year": "2025",
             "featured": true,
-            "image": "media/case-orange.webp",
-            "summary": "Helping enterprise technology become understandable.",
+            "image": "media/case-orange-experience-in-action.webp",
+            "imageAlt": "Orange Business Executive Briefing Center — Experience in Action case-study thumbnail",
+            "preserveFrame": true,
+            "summary": "A strategy-led physical-digital experience created for executive engagement, product storytelling, immersive demonstration and collaboration.",
             "views": "8,421",
-            "role": "Creative Direction & Experience Strategy",
-            "challenge": "Genuinely complex platforms had let complexity become the experience. Powerful capability, buried under jargon.",
-            "approach": "Translate system architecture into human narratives — experience films, interactive demos and centre experiences that make capability legible.",
-            "outcome": "Enterprise technology buyers can finally see, understand — and remember.",
-            "updated": "3d ago"
+            "role": "Experience Strategy & Creative Technology Lead",
+            "challenge": "Transform executive briefing into an experiential environment.",
+            "approach": "Connect business objectives, brand, visitor journey, content, technology and physical environment.",
+            "outcome": "A connected executive experience supporting engagement, demonstration, collaboration and evolving digital content.",
+            "updated": "just now",
+            "slug": "orange-business-executive-briefing-center",
+            "caseStudyPath": "experience-design/orange-business-executive-briefing-center/",
+            "caseStudyTemplate": "orange-business-ebc",
+            "legacyPaths": [
+                "case-study-enterprise-technology-made-understandable.html"
+            ],
+            "seo": {
+                "title": "Orange Business Experience Center & Executive Briefing Center | Abhijeet Varghese",
+                "desc": "Explore Abhijeet Varghese's Orange Business Executive Briefing Center in Mumbai — a physical-digital experience combining experience strategy, interactive media, XR, VR, creative technology, spatial experience and enterprise collaboration.",
+                "keywords": "Orange Business Executive Briefing Center, experience design, creative technology, interactive media, XR, VR, spatial experience, Mumbai"
+            }
         },
         {
             "id": "prj-2",
@@ -1416,7 +1447,12 @@
             "challenge": "Safety-critical operations ran on dense manuals and denser screens. Comprehension wasn't a nicety — it was risk management.",
             "approach": "Intuitive interfaces and immersive walkthroughs of complex processes, designed to be understood under pressure.",
             "outcome": "Experiences operators trust at a glance — clarity measured in seconds, not slides.",
-            "updated": "5d ago"
+            "updated": "5d ago",
+            "seo": {
+                "title": "Intuitive Experiences for Industrial Environments — Abhijeet Varghese",
+                "desc": "Designing intuitive experiences for complex industrial environments.",
+                "keywords": "BPCL, Energy & Industrial, Design Strategy & Experience Lead, case study, Abhijeet Varghese"
+            }
         },
         {
             "id": "prj-3",
@@ -1433,7 +1469,12 @@
             "challenge": "Communication at enormous scale, under the highest stakes, asking for absolute precision and discipline.",
             "approach": "Immersive storytelling and visualization pipelines where every frame is verified — built with the discipline of the institution it served.",
             "outcome": "Work where clarity, precision and execution mattered most — and delivered.",
-            "updated": "1w ago"
+            "updated": "1w ago",
+            "seo": {
+                "title": "Immersive Solutions for the Indian Army — Abhijeet Varghese",
+                "desc": "Creating immersive solutions where clarity, precision and execution matter most.",
+                "keywords": "Indian Army, Defence & Immersive, Creative Lead — Immersive Solutions, case study, Abhijeet Varghese"
+            }
         },
         {
             "id": "prj-4",
@@ -1450,7 +1491,12 @@
             "challenge": "Can generated media carry genuine emotional weight?",
             "approach": "Built a narrative world with AI across image, video and sound, curated by hand.",
             "outcome": "A proof that tools serve the story — not the other way around.",
-            "updated": "2d ago"
+            "updated": "2d ago",
+            "seo": {
+                "title": "The Virtual Life — Abhijeet Varghese",
+                "desc": "An AI-crafted narrative world exploring emotional weight in generated media.",
+                "keywords": "Personal / AI Lab, AI & Narrative, Creator & Director, case study, Abhijeet Varghese"
+            }
         },
         {
             "id": "prj-5",
@@ -1467,7 +1513,12 @@
             "challenge": "Make every guest feel personally invited.",
             "approach": "AI-personalized experiences per guest inside one shared world.",
             "outcome": "Invitations people don't just open — they revisit.",
-            "updated": "4d ago"
+            "updated": "4d ago",
+            "seo": {
+                "title": "Immersive Wedding Invitation — Abhijeet Varghese",
+                "desc": "A platform that turns a wedding invitation into an explorable experience.",
+                "keywords": "Personal / AI Lab, Experiential, Creator & Director, case study, Abhijeet Varghese"
+            }
         },
         {
             "id": "prj-6",
@@ -1484,7 +1535,12 @@
             "challenge": "Turn strategy into something visitors can walk through and touch.",
             "approach": "Centre master-planning: narrative arc, spatial flow, interactive media systems.",
             "outcome": "Centres that function as decision rooms, not showrooms.",
-            "updated": "6d ago"
+            "updated": "6d ago",
+            "seo": {
+                "title": "Experience Centre — Strategy Made Walkable — Abhijeet Varghese",
+                "desc": "Physical spaces where organizations explain themselves.",
+                "keywords": "Enterprise Client, Experience Centres, Experience Architect, case study, Abhijeet Varghese"
+            }
         }
     ],
     "articles": [
@@ -1501,7 +1557,12 @@
             "body": "Every technology starts life as a promise. Somewhere between the promise and the rollout, the human being quietly leaves the room.\n\nI've spent twelve years inside that translation problem. The pattern repeats everywhere — the system is powerful, the people are smart, and the experience is still alienating.\n\nWhat does a human interface actually mean? It means respecting attention, which is finite. It means earning trust, which takes repeated, honest behaviour. And it means designing for memory — because the only interface people carry is the one in their heads.\n\nTechnology evolves every day. Human understanding doesn't. That asymmetry is the brief.",
             "views": "3,204",
             "updated": "2h ago",
-            "slug": "technology-should-feel-human"
+            "slug": "technology-should-feel-human",
+            "seo": {
+                "title": "Technology Should Feel Human — Abhijeet Varghese",
+                "desc": "The most advanced systems fail when they forget the person holding them.",
+                "keywords": "Design, Essay, Abhijeet Varghese"
+            }
         },
         {
             "id": "art-2",
@@ -1516,7 +1577,12 @@
             "body": "Every few decades a tool arrives that seems to make craft obsolete. Photography didn't kill painting — it relocated the argument.\n\nWhat AI actually compresses is exploration. The first 80 percent of any creative task can now happen in minutes instead of weeks.\n\nBut exploration was never the hard part. The hard part was always judgment: knowing which variation deserves to exist.\n\nSo the new workflow looks like this: machines for momentum, humans for judgment.",
             "views": "1,982",
             "updated": "Yesterday",
-            "slug": "ai-isnt-replacing-creativity"
+            "slug": "ai-isnt-replacing-creativity",
+            "seo": {
+                "title": "AI Isn't Replacing Creativity — Abhijeet Varghese",
+                "desc": "Machines compress exploration; humans still do judgment.",
+                "keywords": "AI, Essay, Abhijeet Varghese"
+            }
         },
         {
             "id": "art-3",
@@ -1531,7 +1597,12 @@
             "body": "Ask anyone what they remember about a great launch. Not the average minutes — the peak, and the ending.\n\nDesigning for memory also means designing for retelling. An experience that can be told as a story propagates.\n\nSo I design for the moments people will retell. A single honest moment beats a hundred polished ones.",
             "views": "2,876",
             "updated": "1w ago",
-            "slug": "designing-experiences-people-remember"
+            "slug": "designing-experiences-people-remember",
+            "seo": {
+                "title": "Designing Experiences People Remember — Abhijeet Varghese",
+                "desc": "Memory is the real medium.",
+                "keywords": "Experience, Essay, Abhijeet Varghese"
+            }
         },
         {
             "id": "art-4",
@@ -1546,7 +1617,12 @@
             "body": "Enterprise experiences don't fail for lack of talent or budget. They fail for three quieter reasons, and all three are translation failures.\n\nThe first killer is jargon. The second is the org chart. The third is inherited complexity.\n\nThe fix is the same for all three: treat clarity as a first-class requirement.",
             "views": "1,540",
             "updated": "3d ago",
-            "slug": "why-enterprise-experiences-fail"
+            "slug": "why-enterprise-experiences-fail",
+            "seo": {
+                "title": "Why Enterprise Experiences Fail — Abhijeet Varghese",
+                "desc": "Jargon, org charts and inherited complexity — the three silent killers.",
+                "keywords": "Enterprise, Essay, Abhijeet Varghese"
+            }
         },
         {
             "id": "art-5",
@@ -1561,7 +1637,12 @@
             "body": "Twelve months into running AI-enabled production pipelines, the headline lesson is not about the technology at all. It's about where the human hours went: not into making, but into deciding.",
             "views": "1,102",
             "updated": "4d ago",
-            "slug": "what-a-year-of-ai-enabled-production-taught-me"
+            "slug": "what-a-year-of-ai-enabled-production-taught-me",
+            "seo": {
+                "title": "What a year of AI-enabled production taught me — Abhijeet Varghese",
+                "desc": "Compression is the real gift.",
+                "keywords": "Journal, Abhijeet Varghese"
+            }
         },
         {
             "id": "art-6",
@@ -1576,7 +1657,12 @@
             "body": "Most experience centres are built backwards. The centres that matter are built as decision rooms — places where the organization confronts its own strategy made visible.",
             "views": "864",
             "updated": "2w ago",
-            "slug": "the-experience-centre-as-a-strategic-instrument"
+            "slug": "the-experience-centre-as-a-strategic-instrument",
+            "seo": {
+                "title": "The experience centre as a strategic instrument — Abhijeet Varghese",
+                "desc": "The best centres are decision rooms, not showrooms.",
+                "keywords": "Journal, Abhijeet Varghese"
+            }
         },
         {
             "id": "art-7",
@@ -1591,7 +1677,12 @@
             "body": "Most design documentation has two audiences: the designer who wrote it, and everyone else. Write for the person who will implement it at 6pm on a Friday.",
             "views": "—",
             "updated": "1w ago",
-            "slug": "on-writing-for-non-designers"
+            "slug": "on-writing-for-non-designers",
+            "seo": {
+                "title": "On writing for non-designers — Abhijeet Varghese",
+                "desc": "The second audience is always the one that matters.",
+                "keywords": "Journal, Abhijeet Varghese"
+            }
         },
         {
             "id": "art-8",
@@ -1606,7 +1697,12 @@
             "body": "Clarity is measurable, if you define it honestly: the time it takes a real user to correctly answer 'what does this do, and what should I do next?'",
             "views": "1,014",
             "updated": "3w ago",
-            "slug": "clarity-as-a-business-metric"
+            "slug": "clarity-as-a-business-metric",
+            "seo": {
+                "title": "Clarity as a business metric — Abhijeet Varghese",
+                "desc": "If you can't measure understanding, you're guessing about trust.",
+                "keywords": "Journal, Abhijeet Varghese"
+            }
         }
     ],
     "media": [
@@ -1626,16 +1722,18 @@
         },
         {
             "id": "med-2",
-            "name": "case-orange.webp",
+            "name": "case-orange-experience-in-action.webp",
             "folder": "Case Studies",
-            "size": "52 KB",
-            "w": 640,
-            "h": 427,
-            "src": "media/case-orange.webp",
-            "alt": "Enterprise technology briefing room",
+            "size": "178 KB",
+            "w": 1536,
+            "h": 1024,
+            "src": "media/case-orange-experience-in-action.webp",
+            "alt": "Orange Business Executive Briefing Center — Experience in Action",
             "tags": [
                 "work",
-                "enterprise"
+                "enterprise",
+                "experience centre",
+                "Orange Business"
             ]
         },
         {
@@ -1874,8 +1972,8 @@
             {
                 "id": "n3b",
                 "label": "Portfolio",
-                "href": "case-studies.html",
-                "page": "case-studies"
+                "href": "portfolio.html",
+                "page": "portfolio"
             },
             {
                 "id": "n4",
@@ -1908,7 +2006,7 @@
                     {
                         "id": "fl3b",
                         "label": "Portfolio",
-                        "href": "case-studies.html"
+                        "href": "portfolio.html"
                     },
                     {
                         "id": "fl4",

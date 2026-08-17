@@ -104,7 +104,7 @@ const axe = require('axe-core');
   });
   console.log('ABOUT:', JSON.stringify({ pageH: r.pageH, prologueTitle: r.prologueTitle.slice(0, 30), identity: r.identity, statement: r.statement.slice(0, 40), nums: r.nums, facts: r.facts, courses: r.courses, territories: r.territories, triggers: r.triggers, labels: r.labels, system: r.system, interludes: r.interludes, philosophy: r.philosophy, curious: r.curious, footerBg: r.footerBg, overflow: r.overflow, missing: r.missing }, null, 1));
   if (!r.noHero) issues.push('HERO PRESENT');
-  if (!r.prologueTitle.includes("I DIDN'T START OUT")) issues.push("PROLOGUE TITLE");
+  if (!r.prologueTitle.replace(/\s+/g, ' ').includes("I DIDN'T START OUT")) issues.push("PROLOGUE TITLE");
   if (!r.roleLine.includes('Creative Director')) issues.push('ROLE LINE');
   if (!r.identity) issues.push('IDENTITY MISSING');
   if (!r.identityName.includes('Abhijeet Varghese')) issues.push('IDENTITY NAME ' + r.identityName);
@@ -170,14 +170,16 @@ const axe = require('axe-core');
   if (zoomFill.imgW < zoomFill.frameW - 4) issues.push('ZOOM IMAGE SMALLER THAN CANVAS ' + zoomFill.imgW + '/' + zoomFill.frameW);
 
   // --- the 3D film stack: seek into card 03 and verify ---
-  const seek = f => page.evaluate(frac => {
-    const evo = document.querySelector('.about-evo3d');
-    const scrollable = Math.max(evo.offsetHeight - window.innerHeight, 1);
-    window.scrollTo(0, evo.getBoundingClientRect().top + window.scrollY + scrollable * frac);
-  }, f);
-  await seek(0);
-  await page.waitForTimeout(1500);
-  await seek(2 / 5);
+  const seekCard = act => page.evaluate(n => {
+    const runway = document.querySelector('.about-evo3d__scroll');
+    const total = document.querySelectorAll('.about-evo3d__card').length;
+    const scrollable = Math.max(runway.offsetHeight - window.innerHeight, 1);
+    const point = n === 1 ? 0 : (n - 1) + 0.12;
+    window.scrollTo(0, runway.getBoundingClientRect().top + window.scrollY + scrollable * point / (total + 1.2));
+  }, act);
+  await seekCard(1);
+  await page.waitForTimeout(1200);
+  await seekCard(3);
   await page.waitForTimeout(1600);
   const exp = await page.evaluate(() => {
     const card = document.querySelector('.about-evo3d__card[data-act="03"]');
@@ -230,7 +232,7 @@ const axe = require('axe-core');
   if (ax.length) issues.push('AXE STAGE ' + JSON.stringify(ax));
 
   // ch04 — the signal chain; ch06 — the duo
-  await seek(3 / 5);
+  await seekCard(4);
   await page.waitForTimeout(1600);
   const sys = await page.evaluate(() => {
     const card = document.querySelector('.about-evo3d__card[data-act="04"]');
@@ -238,7 +240,7 @@ const axe = require('axe-core');
   });
   console.log('SYSTEM:', sys);
   if (sys !== 'STORY|AUDIENCE|INTERACTION|SPACE|TECHNOLOGY|PRODUCTION|REALITY') issues.push('SYSTEM NAMES ' + sys);
-  await seek(0.97);
+  await seekCard(6);
   await page.waitForTimeout(1600);
   const duo = await page.evaluate(() => {
     const card = document.querySelector('.about-evo3d__card[data-act="06"]');
@@ -268,8 +270,8 @@ const axe = require('axe-core');
 
   // --- mobile: the stack recomposes ---
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.reload({ waitUntil: 'domcontentloaded' });
-  await page.waitForTimeout(2000);
+  await page.goto('http://127.0.0.1:8092/story.html?as4=mobile', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(1600);
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(600);
   const m = await page.evaluate(() => {

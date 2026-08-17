@@ -11,6 +11,7 @@ final class PublishEngine
 {
     private array $site;
     private string $out;
+    private ?string $assetVersion = null;
 
     public function __construct(array $site)
     {
@@ -42,6 +43,25 @@ final class PublishEngine
         return str_starts_with($src, 'media/') ? 'assets/' . substr($src, 6) : $src;
     }
 
+    /** Reserve intrinsic image space from the canonical template asset to prevent CLS. */
+    private function imageSizeAttrs(string $publicSrc): string
+    {
+        $path = parse_url($publicSrc, PHP_URL_PATH) ?: $publicSrc;
+        $file = AV_TEMPLATE . '/' . ltrim($path, '/');
+        if (!is_file($file)) return '';
+        $size = @getimagesize($file);
+        if (!$size || empty($size[0]) || empty($size[1])) return '';
+        return ' width="' . (int)$size[0] . '" height="' . (int)$size[1] . '"';
+    }
+
+    /** Prefix document-relative public links when rendering a nested clean URL. */
+    private function prefixedHref(string $href, string $prefix = ''): string
+    {
+        if ($prefix === '' || $href === '' || str_starts_with($href, '#') || str_starts_with($href, '/') || str_starts_with($href, '//')) return $href;
+        if (preg_match('#^[a-z][a-z0-9+.-]*:#i', $href)) return $href;
+        return $prefix . $href;
+    }
+
     private function slugify(string $s): string
     {
         $s = strtolower(trim($s));
@@ -65,13 +85,39 @@ final class PublishEngine
     }
 
     /* ---------- head + shell ---------- */
+    private function assetVersion(): string
+    {
+        if ($this->assetVersion !== null) return $this->assetVersion;
+        $ctx = hash_init('sha256');
+        $files = [];
+        foreach (['css', 'js'] as $part) {
+            $root = AV_TEMPLATE . '/' . $part;
+            if (!is_dir($root)) continue;
+            $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS));
+            foreach ($it as $file) {
+                if (!$file->isFile()) continue;
+                $files[] = $file->getPathname();
+            }
+        }
+        sort($files, SORT_STRING);
+        foreach ($files as $file) {
+            hash_update($ctx, str_replace(AV_TEMPLATE, '', $file));
+            hash_update_file($ctx, $file);
+        }
+        return $this->assetVersion = AV_VERSION . '-' . substr(hash_final($ctx), 0, 12);
+    }
+
     private function head(array $s, string $title, string $desc, string $file, string $type = 'website', ?string $image = null): string
     {
-        $siteUrl = AV_SITE_URL;
+        $siteUrl = rtrim(AV_SITE_URL, '/');
+        $canonicalUrl = $siteUrl . ($file === 'index.html' ? '/' : '/' . ltrim($file, '/'));
         $favicon = $this->media($s['favicon'] ?? 'media/logo.png');
         $ogImage = $image ?: $this->media($s['ogImage'] ?? 'media/hero-portrait.webp');
         $metaDesc = $desc ?: $this->v($s, 'metaDescription', '');
-        $cacheBust = AV_VERSION . '-' . substr(md5(json_encode($s['updated'] ?? '')), 0, 6);
+        $cacheBust = $this->assetVersion();
+        $lcpPreload = ($file === 'index.html' || $type === 'article')
+            ? '  <link rel="preload" href="' . $this->esc($ogImage) . '" as="image" fetchpriority="high">'
+            : '';
         return <<<HTML
 <!doctype html>
 <html lang="en">
@@ -83,11 +129,12 @@ final class PublishEngine
   <meta name="keywords" content="{$this->esc($this->v($s, 'keywords', ''))}">
   <meta name="robots" content="index, follow, max-image-preview:large">
   <meta name="theme-color" content="#F7F5EF">
-  <link rel="canonical" href="{$siteUrl}/{$this->esc($file)}">
+  <link rel="canonical" href="{$this->esc($canonicalUrl)}">
   <!-- LCP font preload (Inter Tight normal — body copy above the fold) -->
   <link rel="preload" href="assets/fonts/inter-tight-normal.woff2" as="font" type="font/woff2" crossorigin>
+{$lcpPreload}
   <meta property="og:type" content="{$type}">
-  <meta property="og:url" content="{$siteUrl}/{$this->esc($file)}">
+  <meta property="og:url" content="{$this->esc($canonicalUrl)}">
   <meta property="og:site_name" content="{$this->esc($this->v($s, 'siteName', 'Abhijeet Varghese'))}">
   <meta property="og:title" content="{$this->esc($title)}">
   <meta property="og:description" content="{$this->esc($metaDesc)}">
@@ -107,39 +154,44 @@ final class PublishEngine
 HTML;
     }
 
-    private function chrome(array $s, array $nav, ?string $active): string
+    private function chrome(array $s, array $nav, ?string $active, string $prefix = ''): string
     {
         // `cta: true` items are rendered as the styled button below, not as list links
         $primary = array_filter($nav['primary'] ?? [], fn($l) => empty($l['hidden']) && empty($l['cta']));
         $lis = [];
+        $currentMarked = false;
         foreach ($primary as $l) {
-            $cur = (($l['page'] ?? '') === $active) ? ' aria-current="page"' : '';
-            $lis[] = '        <li><a href="' . $this->esc($l['href']) . '"' . $cur . '>' . $this->esc($l['label']) . '</a></li>';
+            $isCurrent = !$currentMarked && (($l['page'] ?? '') === $active);
+            $cur = $isCurrent ? ' aria-current="page"' : '';
+            if ($isCurrent) $currentMarked = true;
+            $lis[] = '        <li><a href="' . $this->esc($this->prefixedHref((string)$l['href'], $prefix)) . '"' . $cur . '>' . $this->esc($l['label']) . '</a></li>';
         }
         $mlis = [];
         foreach (array_values($primary) as $i => $l) {
-            $mlis[] = '          <li><a href="' . $this->esc($l['href']) . '"><em>' . str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT) . '</em>' . $this->esc($l['label']) . '</a></li>';
+            $mlis[] = '          <li><a href="' . $this->esc($this->prefixedHref((string)$l['href'], $prefix)) . '"><em>' . str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT) . '</em>' . $this->esc($l['label']) . '</a></li>';
         }
-        $logo = $this->media($s['logo'] ?? 'media/logo.png');
+        $logo = $this->prefixedHref($this->media($s['logo'] ?? 'media/logo.png'), $prefix);
         $name = $s['siteName'] ?? 'Abhijeet Varghese';
+        $homeHref = $this->prefixedHref('index.html', $prefix);
+        $contactHref = $this->prefixedHref('contact.html', $prefix);
         return <<<HTML
   <header class="site-nav" id="siteNav">
     <nav class="site-nav__inner" aria-label="Primary">
-      <a class="brand" href="index.html" aria-label="{$this->esc($name)} — home">
+      <a class="brand" href="{$this->esc($homeHref)}" aria-label="{$this->esc($name)} — home">
         <img class="brand__logo" src="{$this->esc($logo)}" alt="{$this->esc($name)} logo" width="36" height="36" decoding="async">
         <span class="brand__name">{$this->esc($name)}</span>
       </a>
       <ul class="nav-links">
 {$this->join($lis)}
       </ul>
-      <a class="btn btn--accent btn--small" href="contact.html">Start a conversation</a>
+      <a class="btn btn--accent btn--small" href="{$this->esc($contactHref)}">Start a conversation</a>
       <button class="nav-toggle" type="button" id="navToggle" aria-expanded="false" aria-controls="mobileMenu" aria-label="Open menu">
         <span class="nav-toggle__line" aria-hidden="true"></span>
         <span class="nav-toggle__line" aria-hidden="true"></span>
         <span class="nav-toggle__line" aria-hidden="true"></span>
       </button>
     </nav>
-    <div class="mobile-menu" id="mobileMenu" hidden>
+    <div class="mobile-menu" id="mobileMenu" role="dialog" aria-modal="true" aria-label="Site menu" hidden>
       <div class="mobile-menu__bar">
         <span class="mobile-menu__title">Menu</span>
         <button class="mobile-menu__close" type="button" id="mobileClose" aria-label="Close menu">
@@ -151,7 +203,7 @@ HTML;
 {$this->join($mlis)}
         </ul>
         <div class="mobile-menu__actions">
-          <a class="btn btn--accent btn--block" href="contact.html">Start a conversation</a>
+          <a class="btn btn--accent btn--block" href="{$this->esc($contactHref)}">Start a conversation</a>
           <a class="mobile-menu__mail" href="mailto:{$this->esc($this->v($s, 'email', ''))}">{$this->esc($this->v($s, 'email', ''))}</a>
         </div>
       </nav>
@@ -160,7 +212,7 @@ HTML;
 HTML;
     }
 
-    private function footer(array $s, array $nav): string
+    private function footer(array $s, array $nav, string $prefix = ''): string
     {
         $cols = [];
         foreach (($nav['footerColumns'] ?? []) as $c) {
@@ -174,7 +226,7 @@ HTML;
             $links = [];
             foreach (($c['links'] ?? []) as $l) {
                 $ext = !empty($l['external']) ? ' target="_blank" rel="noopener"' : '';
-                $links[] = '<li><a href="' . $this->esc($l['href']) . '"' . $ext . '>' . $this->esc($l['label']) . '</a></li>';
+                $links[] = '<li><a href="' . $this->esc($this->prefixedHref((string)$l['href'], $prefix)) . '"' . $ext . '>' . $this->esc($l['label']) . '</a></li>';
             }
             $cols[] = '      <div class="footer__col">
         <p class="footer__label">' . $this->esc($c['label']) . '</p>
@@ -187,13 +239,14 @@ HTML;
         foreach (($s['socials'] ?? []) as $x) {
             $socials[] = '<li><a href="' . $this->esc($x['href']) . '" target="_blank" rel="noopener">' . $this->socialIcon($x['label'] ?? '') . $this->esc($x['label'] ?? '') . '</a></li>';
         }
-        $logo = $this->media($s['logo'] ?? 'media/logo.png');
+        $logo = $this->prefixedHref($this->media($s['logo'] ?? 'media/logo.png'), $prefix);
+        $homeHref = $this->prefixedHref('index.html', $prefix);
         $siteName = $this->esc($this->v($s, 'siteName', 'Abhijeet Varghese'));
             return <<<HTML
   <footer class="footer footer--arena">
     <div class="container footer__inner">
       <div class="footer__brand">
-        <a class="footer__brandtop" href="index.html" aria-label="{$this->esc($this->v($s, 'siteName', ''))} — home">
+        <a class="footer__brandtop" href="{$this->esc($homeHref)}" aria-label="{$this->esc($this->v($s, 'siteName', ''))} — home">
           <img class="brand__logo brand__logo--foot" src="{$this->esc($logo)}" alt="{$this->esc($this->v($s, 'siteName', ''))} logo" width="36" height="36" decoding="async">
           <span class="footer__name">{$this->esc($this->v($s, 'siteName', ''))}</span>
         </a>
@@ -229,7 +282,7 @@ HTML;
     private function shell(array $s, array $nav, string $title, string $desc, string $file, string $body, ?string $active = null, string $type = 'website', ?string $image = null, ?string $jsonld = null, ?string $bodyClass = null): string
     {
         $ld = $jsonld ? '<script type="application/ld+json">' . $jsonld . '</script>' : '';
-        $cacheBust = AV_VERSION . '-' . substr(md5(json_encode($s['updated'] ?? '')), 0, 6);
+        $cacheBust = $this->assetVersion();
         // close button on inner pages (fixed position, returns home); the homepage has no need for it
         $close = ($active !== null && $active !== 'home' && $active !== '')
             ? "\n  <a class=\"page-close\" href=\"index.html\" aria-label=\"Back to home\"><svg width=\"17\" height=\"17\" viewBox=\"0 0 18 18\" fill=\"none\" aria-hidden=\"true\"><path d=\"m3 3 12 12M15 3 3 15\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\"/></svg></a>"
@@ -265,7 +318,7 @@ HTML;
           <span class="hp-hero__name-line">{$n1}</span>
           <span class="hp-hero__name-line">{$n2}</span>
         </h1>
-        <figure class="hp-hero__portrait" data-cur="EXPLORE">
+        <figure class="hp-hero__portrait">
           <img src="{$this->esc($portrait)}" alt="Editorial portrait of {$name}" width="1024" height="1024" fetchpriority="high" decoding="async">
           <span class="hp-hero__veil" aria-hidden="true"></span>
         </figure>
@@ -355,11 +408,13 @@ HTML;
             $p = $byId[$id] ?? null;
             if (!$p) continue;
             $img = $this->media($p['image'] ?? '');
+            $imgAlt = (string)($p['imageAlt'] ?? (($p['client'] ?? '') . ' — ' . ($p['industry'] ?? '') . ' engagement'));
+            $parallax = !empty($p['preserveFrame']) ? '0' : '0.05';
             $num = str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT);
             $cases[] = <<<HTML
         <article class="case" id="case-{$this->esc($p['id'])}">
-          <figure class="case__panel" data-parallax="0.05" data-reveal="img">
-            <picture><img src="{$this->esc($img)}" alt="{$this->esc($this->v($p, 'client', ''))} — {$this->esc($this->v($p, 'industry', ''))} engagement" width="1536" height="1024" loading="lazy" decoding="async"></picture>
+          <figure class="case__panel" data-parallax="{$parallax}" data-reveal="img">
+            <picture><img src="{$this->esc($img)}" alt="{$this->esc($imgAlt)}" width="1536" height="1024" loading="lazy" decoding="async"></picture>
             <figcaption class="case__card" data-reveal>
               <p class="case__kicker"><span>{$this->esc($this->v($p, 'industry', ''))}</span><span class="case__client">{$this->esc($this->v($p, 'client', ''))}</span></p>
               <h3 class="case__title">{$this->esc($this->v($p, 'title', ''))}</h3>
@@ -881,11 +936,13 @@ HTML;
             $p = $byId[$id] ?? null;
             if (!$p) continue;
             $img = $this->media($p['image'] ?? '');
+            $imgAlt = (string)($p['imageAlt'] ?? (($p['client'] ?? '') . ' — ' . ($p['industry'] ?? '') . ' engagement'));
+            $parallax = !empty($p['preserveFrame']) ? '0' : '0.05';
             $num = str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT);
             $cases[] = <<<HTML
         <article class="case" id="case-{$this->esc($p['id'])}">
-          <figure class="case__panel" data-parallax="0.05" data-reveal="img">
-            <picture><img src="{$this->esc($img)}" alt="{$this->esc($this->v($p, 'client', ''))} — {$this->esc($this->v($p, 'industry', ''))} engagement" width="1536" height="1024" loading="lazy" decoding="async"></picture>
+          <figure class="case__panel" data-parallax="{$parallax}" data-reveal="img">
+            <picture><img src="{$this->esc($img)}" alt="{$this->esc($imgAlt)}" width="1536" height="1024" loading="lazy" decoding="async"></picture>
             <figcaption class="case__card" data-reveal>
               <p class="case__kicker"><span>{$this->esc($this->v($p, 'industry', ''))}</span><span class="case__client">{$this->esc($this->v($p, 'client', ''))}</span></p>
               <h3 class="case__title">{$this->esc($this->v($p, 'title', ''))}</h3>
@@ -984,22 +1041,161 @@ HTML;
             $slug = $a['slug'] ?? $this->slugify($a['title'] ?? '');
             $items[] = '<a href="' . (($a['type'] ?? 'essay') === 'essay' ? 'essay-' : 'journal-') . $slug . '.html" data-reveal><strong>' . $this->esc($a['title']) . '</strong><span>' . (($a['type'] ?? 'essay') === 'essay' ? 'Essay' : 'Journal') . ' · ' . $this->esc($a['category'] ?? '') . '</span></a>';
         }
+        foreach (($this->site['projects'] ?? []) as $project) {
+            if (!$this->isDue($project) || ($project['status'] ?? 'published') !== 'published') continue;
+            $items[] = '<a href="' . $this->esc($this->caseStudyFile($project)) . '" data-reveal><strong>' . $this->esc($project['title'] ?? 'Case study') . '</strong><span>Case Study · ' . $this->esc($project['client'] ?? '') . '</span></a>';
+        }
         $items[] = '<a href="assets/Abhijeet-Varghese-Resume.pdf" data-reveal><strong>Download résumé</strong><span>PDF</span></a>';
         return '<section class="page-section t-light"><div class="container"><div class="sitemap-grid" data-reveal-group data-dbase=".1">' . $this->join($items) . '</div></div></section>';
     }
 
-    /** Stable filename for a project's dedicated case-study page. */
+    /** Stable public route for a project's dedicated case-study page. */
     private function caseStudyFile(array $p): string
     {
+        $custom = trim((string)($p['caseStudyPath'] ?? ''));
+        // Backward-compatible fallback for content stores created before the
+        // Orange Business long-form case-study fields were introduced.
+        if ($custom === '' && ($p['id'] ?? '') === 'prj-1') {
+            $custom = 'experience-design/orange-business-executive-briefing-center/';
+        }
+        if ($custom !== '') {
+            $custom = ltrim((string)preg_replace('#/+#', '/', $custom), '/');
+            if (!str_contains($custom, '..')) return $custom;
+        }
         $slug = (string)($p['slug'] ?? '');
         if ($slug === '') $slug = $this->slugify((string)($p['title'] ?? ''));
         if ($slug === '') $slug = (string)($p['id'] ?? 'prj');
         return 'case-study-' . $slug . '.html';
     }
 
+    /** Filesystem destination for a public case-study route. */
+    private function caseStudyOutputFile(array $p): string
+    {
+        $route = $this->caseStudyFile($p);
+        return str_ends_with($route, '/') ? $route . 'index.html' : $route;
+    }
+
+    /** Lightweight static fallback for legacy URLs; Apache also receives a 301. */
+    private function renderCaseStudyRedirect(string $route): string
+    {
+        $target = '/' . ltrim($route, '/');
+        $canonical = rtrim(AV_SITE_URL, '/') . $target;
+        return '<!doctype html><html lang="en"><head><meta charset="utf-8">'
+            . '<meta name="viewport" content="width=device-width,initial-scale=1">'
+            . '<meta name="robots" content="noindex,follow">'
+            . '<title>Case study moved — Abhijeet Varghese</title>'
+            . '<link rel="canonical" href="' . $this->esc($canonical) . '">'
+            . '<meta http-equiv="refresh" content="0;url=' . $this->esc($target) . '">'
+            . '</head><body><main><p>This case study has moved to '
+            . '<a href="' . $this->esc($target) . '">Orange Business New Executive Briefing Center</a>.</p>'
+            . '</main><script>location.replace(' . json_encode($target) . ');</script></body></html>';
+    }
+
+    /** Supplied long-form Orange Business case study, adapted to AV OS publishing. */
+    private function renderOrangeBusinessCaseStudy(array $p, array $s, array $nav): string
+    {
+        $templateFile = __DIR__ . '/templates/orange-business-executive-briefing-center.html';
+        if (!is_file($templateFile)) throw new RuntimeException('Orange Business case-study template missing');
+        $html = (string)file_get_contents($templateFile);
+        $siteUrl = rtrim(AV_SITE_URL, '/');
+        $route = $this->caseStudyFile($p);
+        $pageUrl = $siteUrl . '/' . ltrim($route, '/');
+        $mediaUrl = $siteUrl . '/assets/media/';
+
+        $personId = $siteUrl . '/#person';
+        $projectId = $pageUrl . '#project';
+        $articleId = $pageUrl . '#article';
+        $webPageId = $pageUrl . '#webpage';
+        $breadcrumbId = $pageUrl . '#breadcrumb';
+        $imageId = $pageUrl . '#hero-image';
+        $graph = [
+            [
+                '@type' => 'Person', '@id' => $personId,
+                'name' => $s['siteName'] ?? 'Abhijeet Varghese',
+                'url' => $siteUrl . '/',
+                'jobTitle' => 'Experience Strategy & Creative Technology Lead',
+                'knowsAbout' => ['Experience Strategy', 'Experience Design', 'Creative Technology', 'Immersive Experience', 'XR', 'VR', 'Experience Centers', 'Executive Briefing Centers', 'Interactive Experience', 'Spatial Experience', 'Enterprise Experience'],
+            ],
+            [
+                '@type' => 'CreativeWork', '@id' => $projectId,
+                'name' => 'Orange Business New Executive Briefing Center',
+                'creator' => ['@id' => $personId],
+                'locationCreated' => ['@type' => 'Place', 'name' => 'Mumbai, India'],
+                'about' => ['Experience Design', 'Experience Strategy', 'Creative Technology', 'Interactive Experience Design', 'Immersive Experience Design', 'Executive Briefing Center'],
+                'image' => ['@id' => $imageId],
+            ],
+            [
+                '@type' => 'Article', '@id' => $articleId,
+                'headline' => 'Orange Business New Executive Briefing Center',
+                'description' => 'Case study documenting the experience strategy, creative technology, interactive media, XR, content and physical-digital experience behind the Orange Business New Executive Briefing Center in Mumbai.',
+                'author' => ['@id' => $personId],
+                'about' => ['@id' => $projectId],
+                'mainEntityOfPage' => ['@id' => $webPageId],
+            ],
+            [
+                '@type' => 'WebPage', '@id' => $webPageId,
+                'url' => $pageUrl,
+                'name' => 'Orange Business Experience Center & Executive Briefing Center',
+                'description' => 'A strategy-led physical-digital experience for executive engagement, product storytelling, immersive demonstration and collaboration.',
+                'breadcrumb' => ['@id' => $breadcrumbId],
+                'mainEntity' => ['@id' => $articleId],
+                'inLanguage' => 'en',
+            ],
+            [
+                '@type' => 'BreadcrumbList', '@id' => $breadcrumbId,
+                'itemListElement' => [
+                    ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => $siteUrl . '/'],
+                    ['@type' => 'ListItem', 'position' => 2, 'name' => 'Case Studies', 'item' => $siteUrl . '/case-studies.html'],
+                    ['@type' => 'ListItem', 'position' => 3, 'name' => 'Orange Business Executive Briefing Center', 'item' => $pageUrl],
+                ],
+            ],
+            [
+                '@type' => 'ImageObject', '@id' => $imageId,
+                'contentUrl' => $mediaUrl . 'orange-business-executive-briefing-center-mumbai-panoramic.jpeg',
+                'caption' => 'Panoramic view of the Orange Business New Executive Briefing Center in Mumbai',
+            ],
+        ];
+
+        $videos = [
+            'rotoscope.mp4' => ['rotoscope-video', 'Orange Business Rotoscope Interactive Display', 'Physical movement of the Rotoscope display changing digital content inside the Orange Business Executive Briefing Center.', 'orange-business-rotoscope-experience.jpg'],
+            'videowall.mp4' => ['videowall-video', 'Orange Business Interactive Video Wall', 'Interactive video wall used for presentation, demonstration, media playback and executive collaboration.', 'orange-business-interactive-video-wall.jpg'],
+            'VR.mp4' => ['vr-video', 'Orange Business Immersive VR Experience', 'Visitor using the immersive VR product-knowledge experience in the Orange Business Executive Briefing Center.', 'orange-business-vr-experience.jpg'],
+        ];
+        foreach ($videos as $file => [$id, $name, $description, $poster]) {
+            $available = is_file(AV_TEMPLATE . '/assets/media/video/' . $file);
+            if ($available) {
+                $graph[] = [
+                    '@type' => 'VideoObject', '@id' => $pageUrl . '#' . $id,
+                    'name' => $name, 'description' => $description,
+                    'thumbnailUrl' => [$mediaUrl . $poster],
+                    'contentUrl' => $mediaUrl . 'video/' . $file,
+                ];
+                $html = str_replace(' data-video-file="' . $file . '"', '', $html);
+            } else {
+                $pattern = '#<source\\s+data-video-file="' . preg_quote($file, '#') . '"[^>]*>#';
+                $html = (string)preg_replace($pattern, '', $html, 1);
+            }
+        }
+
+        $structuredData = json_encode(
+            ['@context' => 'https://schema.org', '@graph' => $graph],
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG
+        );
+        return strtr($html, [
+            '{{SITE_URL}}' => $siteUrl,
+            '{{ASSET_VERSION}}' => $this->assetVersion(),
+            '{{STRUCTURED_DATA}}' => $structuredData ?: '{}',
+            '{{SITE_CHROME}}' => $this->chrome($s, $nav, 'case-studies', '../../'),
+            '{{SITE_FOOTER}}' => $this->footer($s, $nav, '../../'),
+        ]);
+    }
+
     /** Dedicated case-study page — every project gets its own URL (no more anchor-only). */
     private function renderCaseStudy(array $p, array $s, array $nav): string
     {
+        if (($p['caseStudyTemplate'] ?? '') === 'orange-business-ebc' || ($p['id'] ?? '') === 'prj-1') {
+            return $this->renderOrangeBusinessCaseStudy($p, $s, $nav);
+        }
         $siteUrl = AV_SITE_URL;
         $file = $this->caseStudyFile($p);
         $img = $this->media($p['image'] ?? '');
@@ -1058,14 +1254,16 @@ HTML;
       </div>
     </section>
 HTML;
-        $seoTitle = $title . ' — ' . ($s['siteName'] ?? '');
+        $seo = $p['seo'] ?? [];
+        $seoTitle = $seo['title'] ?? ($title . ' — ' . ($s['siteName'] ?? ''));
+        $seoDesc = $seo['desc'] ?? ($summary ?: $title);
         $ld = json_encode([
             '@context' => 'https://schema.org', '@type' => 'CreativeWork',
             'headline' => $title, 'about' => $industry,
             'author' => ['@type' => 'Person', 'name' => $s['siteName'] ?? ''],
             'image' => $siteUrl . '/' . $img, 'url' => $siteUrl . '/' . $file, 'inLanguage' => 'en',
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        return $this->shell($s, $nav, $seoTitle, $summary ?: $title, $file, $body, 'case-studies', 'website', $img, $ld);
+        return $this->shell($s, $nav, $seoTitle, $seoDesc, $file, $body, 'case-studies', 'article', $img, $ld);
     }
 
     private function renderPage(array $page, array $s, array $nav): string
@@ -1077,6 +1275,10 @@ HTML;
         // Experience page — editorial employment record.
         if (($page['template'] ?? '') === 'Experience') {
             return $this->renderExperience($page, $s, $nav);
+        }
+        // Portfolio — visual index, distinct from the narrative Case Studies page.
+        if (($page['template'] ?? '') === 'Portfolio') {
+            return $this->renderPortfolio($page, $s, $nav);
         }
         $siteUrl = AV_SITE_URL;
         $body = [];
@@ -1106,6 +1308,147 @@ HTML;
         $desc = $seo['desc'] ?? ($s['metaDescription'] ?? '');
         $ld = json_encode(['@context' => 'https://schema.org', '@type' => 'WebPage', 'name' => $page['title'], 'url' => $siteUrl . '/' . $page['slug'] . '.html', 'inLanguage' => 'en']);
         return $this->shell($s, $nav, $title, $desc, $page['slug'] . '.html', $this->join($body), $page['slug'], 'website', null, $ld);
+    }
+
+    /* ============================================================
+       PORTFOLIO — visual work index, deliberately distinct from the
+       narrative Case Studies page. Uses only published project data.
+       ============================================================ */
+    private function renderPortfolio(array $page, array $s, array $nav): string
+    {
+        $siteUrl = AV_SITE_URL;
+        $projects = array_values(array_filter(
+            $this->site['projects'] ?? [],
+            fn($p) => ($p['status'] ?? '') === 'published'
+        ));
+        $pieces = [];
+        $ldParts = [];
+        foreach ($projects as $i => $project) {
+            $num = str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT);
+            $title = (string)($project['title'] ?? 'Untitled project');
+            $client = (string)($project['client'] ?? 'Selected work');
+            $industry = (string)($project['industry'] ?? 'Experience Design');
+            $summary = (string)($project['summary'] ?? '');
+            $role = (string)($project['role'] ?? 'Creative Direction');
+            $year = (string)($project['year'] ?? '');
+            $image = $this->media((string)($project['image'] ?? 'media/hero-portrait.webp'));
+            $imageAlt = (string)($project['imageAlt'] ?? ($title . ' — ' . $client));
+            $file = $this->caseStudyFile($project);
+            $variant = 'portfolio-piece--' . (($i % 3) + 1);
+            $pieces[] = <<<HTML
+        <article class="portfolio-piece {$variant}" data-reveal>
+          <a class="portfolio-piece__link" href="{$this->esc($file)}" aria-label="View {$this->esc($title)}">
+            <figure class="portfolio-piece__media">
+              <img src="{$this->esc($image)}" alt="{$this->esc($imageAlt)}" width="1536" height="1024" loading="lazy" decoding="async">
+              <span class="portfolio-piece__index" aria-hidden="true">{$num}</span>
+              <span class="portfolio-piece__view" aria-hidden="true">View project ↗</span>
+            </figure>
+            <div class="portfolio-piece__copy">
+              <div class="portfolio-piece__eyebrow"><span>{$this->esc($client)}</span><span>{$this->esc($industry)}</span></div>
+              <h2>{$this->esc($title)}</h2>
+              <p>{$this->esc($summary)}</p>
+              <dl><div><dt>Role</dt><dd>{$this->esc($role)}</dd></div><div><dt>Year</dt><dd>{$this->esc($year)}</dd></div></dl>
+            </div>
+          </a>
+        </article>
+HTML;
+            $ldParts[] = [
+                '@type' => 'CreativeWork',
+                'name' => $title,
+                'about' => $industry,
+                'image' => $siteUrl . '/' . $image,
+                'url' => $siteUrl . '/' . $file,
+            ];
+        }
+
+        $capabilities = [];
+        foreach (($this->site['sections'] ?? []) as $section) {
+            if (($section['id'] ?? '') === 'capabilities') {
+                $capabilities = array_slice($section['items'] ?? [], 0, 6);
+                break;
+            }
+        }
+        $capRows = [];
+        foreach ($capabilities as $i => $cap) {
+            $num = str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT);
+            $capRows[] = '<li data-reveal style="--d:' . ($i * 0.06) . 's"><span>' . $num . '</span><h3>' . $this->esc($cap['name'] ?? '') . '</h3><p>' . $this->esc($cap['body'] ?? '') . '</p></li>';
+        }
+
+        $logos = [];
+        foreach (($this->site['clients'] ?? []) as $client) {
+            if (empty($client['logo'])) continue;
+            $logos[] = '<li data-reveal><img src="assets/logos/' . $this->esc($client['logo']) . '" alt="' . $this->esc($client['name'] ?? '') . '" width="160" height="48" loading="lazy" decoding="async"></li>';
+        }
+
+        $projectCount = count($projects);
+        $clientCount = count($this->site['clients'] ?? []);
+        $kicker = $this->esc((string)($page['kicker'] ?? 'Selected practice'));
+        $lede = $this->esc((string)($page['lede'] ?? ''));
+        $statement = $this->esc((string)($page['statement'] ?? 'The medium changes. The work is always about clarity.'));
+        $arrow = self::ARROW;
+        $body = <<<HTML
+    <section class="portfolio-hero t-dark" aria-label="Portfolio introduction">
+      <div class="portfolio-hero__grid" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="container portfolio-hero__inner">
+        <div class="portfolio-hero__meta" data-reveal><span>{$kicker}</span><span>2014 — 2026</span></div>
+        <h1 class="portfolio-hero__title">
+          <span data-reveal>Work across</span>
+          <em data-reveal style="--d:.12s">frames, systems</em>
+          <span data-reveal style="--d:.22s">and spaces.</span>
+        </h1>
+        <div class="portfolio-hero__foot" data-reveal style="--d:.32s">
+          <p>{$lede}</p>
+          <dl><div><dt>Selected work</dt><dd>{$projectCount}</dd></div><div><dt>Organisations</dt><dd>{$clientCount}</dd></div></dl>
+        </div>
+      </div>
+    </section>
+
+    <section class="portfolio-index t-light" aria-label="Selected portfolio projects">
+      <div class="container">
+        <header class="portfolio-index__head">
+          <p data-reveal>Selected portfolio</p>
+          <h2 data-reveal>Different mediums.<br><em>One standard of clarity.</em></h2>
+          <span data-reveal>Visual index / {$projectCount} works</span>
+        </header>
+        <div class="portfolio-index__grid">{$this->join($pieces)}</div>
+      </div>
+    </section>
+
+    <section class="portfolio-practice t-dark" aria-label="Practice areas">
+      <div class="container portfolio-practice__inner">
+        <header><p data-reveal>Practice spectrum</p><h2 data-reveal>{$statement}</h2></header>
+        <ol>{$this->join($capRows)}</ol>
+      </div>
+    </section>
+
+    <section class="portfolio-proof t-light" aria-label="Selected organisations">
+      <div class="container">
+        <header><p data-reveal>Selected organisations</p><h2 data-reveal>Trusted when the work<br><em>had to be understood.</em></h2></header>
+        <ul class="portfolio-proof__logos">{$this->join($logos)}</ul>
+      </div>
+    </section>
+
+    <section class="portfolio-cta t-dark" aria-label="Start a conversation">
+      <div class="container portfolio-cta__inner">
+        <p data-reveal>Have a complicated idea?</p>
+        <h2 data-reveal>Let's make it<br><em>impossible to misunderstand.</em></h2>
+        <a class="btn btn--accent" href="contact.html" data-reveal>Start a conversation {$arrow}</a>
+      </div>
+    </section>
+HTML;
+
+        $seo = $page['seo'] ?? [];
+        $title = $seo['title'] ?? ('Portfolio — ' . ($s['siteName'] ?? ''));
+        $desc = $seo['desc'] ?? ($s['metaDescription'] ?? '');
+        $ld = json_encode([
+            '@context' => 'https://schema.org',
+            '@type' => 'CollectionPage',
+            'name' => $page['title'] ?? 'Portfolio',
+            'url' => $siteUrl . '/portfolio.html',
+            'inLanguage' => 'en',
+            'hasPart' => $ldParts,
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        return $this->shell($s, $nav, $title, $desc, 'portfolio.html', $body, 'portfolio', 'website', null, $ld, 'portfolio-page');
     }
 
     /* ============================================================
@@ -1187,7 +1530,6 @@ HTML;
             . '<button class="about-compass__btn" type="button" id="aboutCompassBtn" aria-expanded="false" aria-controls="aboutCompassList">'
             . '<span class="about-compass__num" id="aboutCompassNum">01</span>'
             . '<span class="about-compass__name" id="aboutCompassName">Motion</span>'
-            . '<span class="about-compass__bar" aria-hidden="true"><span id="aboutCompassFill"></span></span>'
             . '<span class="about-compass__chev" aria-hidden="true">▾</span></button>'
             . '<ul class="about-compass__list" id="aboutCompassList" hidden>' . $compassItems . '</ul></nav>';
 
@@ -1216,33 +1558,45 @@ HTML;
     {
         $titlePlain = trim(strip_tags((string)($heroBlock['content']['title'] ?? "I DIDN'T START OUT DESIGNING EXPERIENCES.")));
         $words = preg_split('/\s+/', $titlePlain);
-        // the headline reads as two cinematic lines
-        $l1 = implode(' ', array_slice($words, 0, 4));   // "I DIDN'T START OUT"
-        $l2raw = rtrim(implode(' ', array_slice($words, 4)), '.!?…'); // "DESIGNING EXPERIENCES"
-        $l2 = '<em>' . $l2raw . '.</em>';
-        $role = $this->esc($this->v($s, 'role', 'Creative Director & Experience Designer'));
-        // the four role chips — kept per user direction
+        // Three editorial beats: assertion → turn → destination.
+        $l1 = implode(' ', array_slice($words, 0, 2));       // I DIDN'T
+        $l2 = implode(' ', array_slice($words, 2, 2));       // START OUT
+        $l3raw = rtrim(implode(' ', array_slice($words, 4)), '.!?…');
+        $l3 = '<em>' . $l3raw . '.</em>';
+        $ledeLines = array_values(array_filter(array_map('trim', preg_split('/\R/', (string)($heroBlock['content']['lede'] ?? '')))));
+        $lede = $this->esc(($ledeLines[0] ?? 'VFX and animation were my entry point.') . ' ' . ($ledeLines[count($ledeLines) - 1] ?? 'Eventually, I started thinking about the whole experience.'));
+        // The four role chips and the crawl stay; redundant title-card labels
+        // and the repeated role line are intentionally removed in the latest
+        // minimal About treatment.
         $roles = '';
         foreach (($heroBlock['content']['roles'] ?? ['Creative Direction', 'Experience Design', 'Immersive Technology', 'Visual Storytelling']) as $r) {
             $roles .= '<span class="about-prologue__role-chip">' . $this->esc($r) . '</span>';
         }
-        // the crawl — roles scroll beneath the title card (kept per user direction)
         $mq = '';
         foreach (($heroBlock['content']['roles'] ?? ['Creative Direction', 'Experience Design', 'Immersive Technology', 'Visual Storytelling']) as $r) {
             $mq .= '<span>' . $this->esc($r) . '</span><span class="about-prologue__mq-dot" aria-hidden="true">✦</span>';
         }
         return <<<HTML
-    <section class="about-prologue t-dark" id="prologue" aria-label="Prologue">
-      <span class="about-prologue__tag" aria-hidden="true">REEL 001 — THE STORY</span>
+    <section class="about-prologue t-dark" id="prologue" aria-label="About — opening frame">
+      <div class="about-prologue__blueprint" aria-hidden="true"><i></i><i></i><i></i></div>
       <div class="container about-prologue__inner">
-        <p class="about-prologue__eyebrow" data-reveal><span class="chapter__num">✦</span><span class="chapter__rule"></span><span class="chapter__tag">The Story</span></p>
-        <h1 class="about-prologue__title">
-          <span class="about-prologue__line about-prologue__word"><span class="about-prologue__word-in">{$l1}</span></span>
-          <span class="about-prologue__line about-prologue__line--outline about-prologue__word"><span class="about-prologue__word-in">{$l2}</span></span>
-        </h1>
-        <p class="about-prologue__role" data-reveal style="--d:.5s">{$role}</p>
-        <p class="about-prologue__roles" data-reveal style="--d:.6s">{$roles}</p>
-        <p class="about-prologue__skip" data-reveal style="--d:.7s"><a href="#act-01">Jump to the story ↓</a></p>
+        <div class="about-prologue__meta" data-reveal>
+          <span>About / The first frame</span>
+          <span>2014 — Now</span>
+        </div>
+        <div class="about-prologue__composition">
+          <div class="about-prologue__frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <h1 class="about-prologue__title">
+            <span class="about-prologue__line about-prologue__word"><span class="about-prologue__word-in">{$l1}</span></span>
+            <span class="about-prologue__line about-prologue__line--shift about-prologue__word"><span class="about-prologue__word-in">{$l2}</span></span>
+            <span class="about-prologue__line about-prologue__line--outline about-prologue__word"><span class="about-prologue__word-in">{$l3}</span></span>
+          </h1>
+          <p class="about-prologue__lede" data-reveal style="--d:.42s">{$lede}</p>
+        </div>
+        <div class="about-prologue__footer">
+          <p class="about-prologue__roles" data-reveal style="--d:.5s">{$roles}</p>
+          <p class="about-prologue__skip" data-reveal style="--d:.65s"><a href="#act-01"><span>Enter the story</span><svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M9 3v11M4.5 10 9 14.5 13.5 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a></p>
+        </div>
       </div>
       <div class="about-prologue__mq" aria-hidden="true"><div class="about-prologue__mq-track">{$mq}{$mq}</div></div>
     </section>
@@ -1267,8 +1621,6 @@ HTML;
             $portraitAlt = (string)($portraitBlock['content']['alt'] ?? $portraitAlt);
         }
         $portrait = $this->media($portraitSrc);
-        $logo = $this->media($this->v($s = $this->site['settings'] ?? [], 'logo', 'media/logo.png'));
-        $siteName = $this->v($s, 'siteName', 'Abhijeet Varghese');
         // identity + manifesto copy (spec, concise — the Summary is the substance)
         $courses = [
             'What Is the Metaverse — Meta',
@@ -1282,14 +1634,15 @@ HTML;
         foreach ($territories as $t) $terrHtml .= '<li>' . $this->esc($t) . '</li>';
         // kinetic band — the chain/zoom paragraphs stay in the summary
         $zoomImg = $this->media('media/about/about-environment.webp');
+        $zoomDims = $this->imageSizeAttrs($zoomImg);
         $zoomHtml = <<<HTML
         <div class="about-zoomstage" id="aboutZoomStage" aria-hidden="true">
           <p class="about-zoomstage__eyebrow" data-reveal><span class="chapter__rule"></span><span class="chapter__tag">The zoom-out</span></p>
           <div class="about-zoomstage__viewport">
-            <div class="about-zoomstage__ghost" id="aboutZoomGhost1" aria-hidden="true"><img src="{$zoomImg}" alt="" loading="lazy" decoding="async"></div>
-            <div class="about-zoomstage__ghost" id="aboutZoomGhost2" aria-hidden="true"><img src="{$zoomImg}" alt="" loading="lazy" decoding="async"></div>
+            <div class="about-zoomstage__ghost" id="aboutZoomGhost1" aria-hidden="true"><img src="{$zoomImg}" alt=""{$zoomDims} loading="lazy" decoding="async"></div>
+            <div class="about-zoomstage__ghost" id="aboutZoomGhost2" aria-hidden="true"><img src="{$zoomImg}" alt=""{$zoomDims} loading="lazy" decoding="async"></div>
             <div class="about-zoomstage__frame" id="aboutZoomFrame">
-              <img src="{$zoomImg}" alt="" loading="lazy" decoding="async">
+              <img src="{$zoomImg}" alt=""{$zoomDims} loading="lazy" decoding="async">
             </div>
           </div>
           <ol class="about-zoomstage__labels" id="aboutZoomLabels">
@@ -1304,18 +1657,11 @@ HTML;
     <section class="about-frame t-light" id="act-01" data-act="01" aria-label="About — identity">
       <div class="container">
         <!-- identity column — logo · name · role · positioning -->
-        <aside class="about-frame__identity">
-          <img class="about-frame__logo" src="{$this->esc($logo)}" alt="{$this->esc($siteName)} logo" width="96" height="96" loading="lazy" decoding="async">
-          <p class="about-frame__name">{$this->esc($siteName)}</p>
-          <p class="about-frame__role">Creative Director<br>Experience Designer</p>
-          <p class="about-frame__positioning">Creative Direction · Experience Design · Immersive Technology · Visual Storytelling</p>
-        </aside>
         <!-- identity + manifesto + portrait — one asymmetric editorial spread:
              the manifesto leads at giant scale, the portrait bleeds off the
              right edge like a film still leaving the frame -->
         <div class="about-frame__spread">
           <div class="about-frame__manifesto">
-            <p class="about-frame__eyebrow" data-reveal><span class="chapter__rule"></span><span class="chapter__tag">A little context</span></p>
             <h2 class="about-frame__statement" data-reveal>I design experiences<br><em>by thinking beyond the frame.</em></h2>
             <div class="about-frame__bio" data-reveal-group data-dbase=".12">
               <div class="about-frame__beat" data-reveal>
@@ -1334,10 +1680,9 @@ HTML;
             <p class="about-frame__question" data-reveal>How should this be <em>experienced?</em></p>
           </div>
           <!-- portrait — the visual object, bleeding off the right edge -->
-          <figure class="about-frame__portrait" data-reveal="portrait" data-cur="EXPLORE">
+          <figure class="about-frame__portrait" data-reveal="portrait">
             <span class="about-frame__portrait-frame" aria-hidden="true"></span>
             <img src="{$this->esc($portrait)}" alt="{$this->esc($portraitAlt)}" width="1024" height="1024" loading="lazy" decoding="async">
-            <figcaption>{$this->esc($portraitCap)}</figcaption>
           </figure>
         </div>
         <!-- the numbers — editorial, not cards -->
@@ -1384,127 +1729,173 @@ HTML;
         frame. Interludes remain as title cards. */
     private function aboutAccordion(array $acts, array $roles = []): string
     {
-        $rows = [];
-        $total = count($acts);
-        $totalStr = str_pad((string)$total, 2, '0', STR_PAD_LEFT);
-        // pre-collect the epic statements (they may live in any chapter)
-        $epicsAll = [];
+        // Latest About treatment: a scroll-choreographed 3D film stack.
+        // The first six cards are generated from the CMS act blocks; the two
+        // epic quotes become cards 07–08. This keeps publish output aligned
+        // with the approved design source instead of reverting to old scenes.
+        $cards = [];
+        $epics = [];
         foreach ($acts as $scan) {
-            foreach ($scan['blocks'] as $sb) {
-                if (($sb['type'] ?? '') === 'quote' && (($sb['content']['variant'] ?? '') === 'epic')) {
-                    $epicsAll[] = $sb;
+            foreach (($scan['blocks'] ?? []) as $b) {
+                if (($b['type'] ?? '') === 'quote' && (($b['content']['variant'] ?? '') === 'epic')) {
+                    $epics[] = trim((string)($b['content']['text'] ?? ''));
                 }
             }
         }
-        // each chapter is its own visual world (no dark/light alternation)
-        $worlds = [1=>'motion', 2=>'interaction', 3=>'environment', 4=>'experience', 5=>'people', 6=>'leadership'];
-        foreach ($acts as $i => $act) {
-            $rawt = (string)($act['act']['content']['text'] ?? '');
-            $idx = 0;
-            if (preg_match('/^(\d+)\s*·/', $rawt, $mm)) $idx = (int)$mm[1];
-            if ($idx < 1 || $idx > 6) $idx = $i + 1;
-            $world = $worlds[$idx] ?? 'motion';
-            // the bridge — what comes next (spatial continuity)
-            $nextName = 'Credits';
-            if (isset($acts[$i + 1])) {
-                $nt = (string)($acts[$i + 1]['act']['content']['text'] ?? '');
-                if (preg_match('/^\d+\s*·\s*(.+)$/u', $nt, $m)) $nextName = trim($m[1]);
+
+        $worlds = [
+            1 => 'motion', 2 => 'interaction', 3 => 'environment',
+            4 => 'experience', 5 => 'people', 6 => 'leadership',
+        ];
+        $images = [
+            1 => 'media/about/about-motion.webp',
+            2 => 'media/about/about-experience.webp',
+            3 => 'media/about/about-environment.webp',
+            4 => 'media/about/about-experience.webp',
+            5 => 'media/about/about-people.webp',
+            6 => 'media/about/about-leadership.webp',
+        ];
+        // Optical line breaks for the six approved headlines. The words still
+        // come from CMS content, so copy edits remain publishable.
+        $cuts = [
+            1 => [2, 2], 2 => [2, 2], 3 => [2, 2],
+            4 => [2, 2], 5 => [2, 2], 6 => [3, 3],
+        ];
+        $splitTitle = function (string $text, array $breaks): string {
+            $plain = trim(preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags($text), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+            $words = preg_split('/\s+/u', $plain) ?: [];
+            $lines = [];
+            $offset = 0;
+            foreach ($breaks as $take) {
+                if ($offset >= count($words)) break;
+                $lines[] = implode(' ', array_slice($words, $offset, $take));
+                $offset += $take;
             }
-            $txt = (string)($act['act']['content']['text'] ?? '');
+            if ($offset < count($words)) $lines[] = implode(' ', array_slice($words, $offset));
+            while (count($lines) < 3) $lines[] = '';
+            return implode('', array_map(fn($line) => '<span>' . $this->esc($line) . ' </span>', array_slice($lines, 0, 3)));
+        };
+
+        foreach (array_slice($acts, 0, 6) as $i => $act) {
+            $idx = $i + 1;
+            $raw = trim((string)($act['act']['content']['text'] ?? ''));
+            if (preg_match('/^(\d+)\s*·/', $raw, $m)) $idx = max(1, min(6, (int)$m[1]));
             $num = str_pad((string)$idx, 2, '0', STR_PAD_LEFT);
-            $name = $txt;
-            if (preg_match('/^\d+\s*·\s*(.+)$/u', $txt, $m)) $name = trim($m[1]);
-            $note = (string)($act['act']['content']['note'] ?? '');
-            $inner = [];
-            $figures = [];
-            $hasFigure = false;
-            // the micro-label (e.g. "FRAME · TIMING · MOVEMENT")
-            $labelHtml = '';
-            foreach ($act['blocks'] as $b) {
-                if (($b['type'] ?? '') === 'prose' && !empty($b['content']['label'])) {
-                    $labelHtml = '<p class="about-act__label" data-reveal>' . $this->esc((string)$b['content']['label']) . '</p>';
-                    break;
-                }
-            }
-            foreach ($act['blocks'] as $b) {
-                $t = $b['type'] ?? '';
-                $v = $b['content']['variant'] ?? '';
-                if ($t === 'cta' || ($t === 'quote' && $v === 'finale')) continue;
-                // epic statements break out as full-bleed interludes (placed by the spec)
-                if ($t === 'quote' && $v === 'epic') { continue; }
-                if ($t === 'image') {
-                    $hasFigure = true;
-                }
-                // leadership climax: the disciplines converge before the
-                // positioning statement (existing role words — a visual event)
-                if ($t === 'quote' && $v === 'statement' && $idx === 6 && $roles) {
-                    $con = [];
-                    foreach (array_slice($roles, 0, 4) as $ri => $rr) {
-                        $con[] = '<span class="about-converge__word" style="--ci:' . $ri . '">' . $this->esc($rr) . '</span>';
+            $name = $raw;
+            if (preg_match('/^\d+\s*·\s*(.+)$/u', $raw, $m)) $name = trim($m[1]);
+            $note = trim((string)($act['act']['content']['note'] ?? ''));
+            $world = $worlds[$idx] ?? 'motion';
+
+            $label = '';
+            $headline = '';
+            $description = '';
+            $statement = '';
+            $hasDuo = false;
+            $systemItems = [];
+
+            foreach (($act['blocks'] ?? []) as $b) {
+                $type = $b['type'] ?? '';
+                $variant = $b['content']['variant'] ?? '';
+                if ($type === 'prose') {
+                    if ($label === '' && !empty($b['content']['label'])) {
+                        $label = trim((string)$b['content']['label']);
                     }
-                    $inner[] = '<p class="about-converge" data-reveal aria-hidden="true">' . $this->join($con) . '</p>';
-                }
-                $fig = match ($t) {
-                    'image' => $this->aboutFigure($b),
-                    'prose' => $this->aboutProse($b),
-                    'quote' => $this->aboutQuote($b),
-                    'list' => $this->aboutList($b),
-                    'logowall' => $this->aboutClients($b),
-                    default => '',
-                };
-                if ($t === 'image' && $fig !== '') $figures[] = $fig;
-                else $inner[] = $fig;
-            }
-            // the leadership chapter ends quietly — the final paragraphs
-            // (still curious) get a softer, quieter typographic treatment
-            if ($idx === 6) {
-                for ($q = count($inner) - 1; $q >= 0; $q--) {
-                    if (str_contains($inner[$q], 'class="about-prose')) {
-                        $inner[$q] = str_replace('class="about-prose', 'class="about-prose is-quiet', $inner[$q], $count);
-                        break;
+                    foreach ((array)($b['content']['paragraphs'] ?? []) as $paragraph) {
+                        $rawParagraph = (string)$paragraph;
+                        $plain = trim(preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags($rawParagraph), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+                        if (str_contains($rawParagraph, 'about-duo') || (str_contains($plain, 'Does it look good?') && str_contains($plain, 'Does it work?'))) {
+                            $hasDuo = true;
+                            continue;
+                        }
+                        if ($headline === '') $headline = $plain;
+                        elseif ($description === '') $description = $plain;
                     }
+                } elseif ($type === 'quote' && $variant === 'statement' && $idx !== 6 && $statement === '') {
+                    $statement = trim((string)($b['content']['text'] ?? ''));
+                } elseif ($type === 'list' && (($b['content']['style'] ?? '') === 'system')) {
+                    $systemItems = array_values(array_filter(array_map('strval', (array)($b['content']['items'] ?? []))));
                 }
             }
-            // each chapter's dedicated About image — inserted as the scene's
-            // backdrop (the About page's own image system, no recycling)
-            $aboutImgs = [1=>'media/about/about-motion.webp', 2=>'media/about/about-experience.webp', 3=>'media/about/about-environment.webp', 4=>'media/about/about-experience.webp', 5=>'media/about/about-people.webp', 6=>'media/about/about-leadership.webp'];
-            if (isset($aboutImgs[$idx]) && !$hasFigure) {
-                $figures[] = '<figure class="about-figure" data-reveal="img" data-cur="EXPLORE"><img src="' . $this->esc($this->media($aboutImgs[$idx])) . '" alt="' . $this->esc($name) . ' — dedicated About visual" width="1312" height="816" loading="lazy" decoding="async"><figcaption>' . $this->esc($name) . '</figcaption></figure>';
+
+            $titleHtml = $splitTitle($headline, $cuts[$idx] ?? [2, 2]);
+            $image = $this->media($images[$idx] ?? $images[1]);
+            $extras = '';
+            if ($statement !== '') {
+                $extras .= '<p class="about-evo3d__stmt">' . $this->esc($statement) . '</p>';
             }
-            // interludes — after Experience (04) and after Leadership (06)
-            if ($idx === 4 && isset($epicsAll[0])) $rows[] = $this->aboutInterlude($epicsAll[0]);
-            if ($idx === 6 && isset($epicsAll[1])) $rows[] = $this->aboutInterlude($epicsAll[1]);
-            // the scene alternates its numeral side (camera pan)
-            $side = ($idx % 2 === 1) ? 'right' : 'left';
-            $reelNo = str_pad((string)($idx + 1), 3, '0', STR_PAD_LEFT);
-            $rows[] = <<<HTML
-      <div class="about-act" data-act="{$num}" data-world="{$world}">
-        <div class="about-act__scene" data-world="{$world}" data-side="{$side}" data-num="{$num}">
-          <span class="about-act__reel" aria-hidden="true">REEL {$reelNo} — {$this->esc($name)}</span>
-          <span class="about-act__ghost" aria-hidden="true">{$num}</span>
-          {$this->join($figures)}
-          <div class="about-act__sheet">
-            <p class="about-act__eyebrow"><span class="chapter__num">{$num}</span><span class="chapter__rule"></span><span class="chapter__tag">{$this->esc($name)}</span></p>
-            <div class="about-act__body">
-{$labelHtml}
-{$this->join($inner)}
-            </div>
-            <p class="about-act__next" aria-hidden="true">Next — <em>{$this->esc($nextName)}</em></p>
+            if ($systemItems) {
+                $lis = '';
+                foreach ($systemItems as $item) $lis .= '<li>' . $this->esc($item) . '</li>';
+                $extras .= '<ol class="about-evo3d__system">' . $lis . '</ol>';
+            }
+            if ($idx === 6 && $hasDuo) {
+                $extras .= '<p class="about-evo3d__duo"><span>Does it look good?</span><strong>Does it <em>work?</em></strong></p>';
+            }
+            $extrasLine = $extras !== '' ? "\n            " . $extras : '';
+
+            $cards[] = <<<HTML
+        <article class="about-evo3d__card about-act" data-act="{$num}" data-world="{$world}">
+          <img class="about-evo3d__image" src="{$this->esc($image)}" alt="{$this->esc($name)} — dedicated About visual" width="1312" height="816" loading="lazy" decoding="async">
+          <div class="about-evo3d__overlay" aria-hidden="true"></div>
+          <div class="about-evo3d__gradient" aria-hidden="true"></div>
+          <div class="about-evo3d__edge" aria-hidden="true"></div>
+          <div class="about-evo3d__shadow" aria-hidden="true"></div>
+          <div class="about-evo3d__hinge" aria-hidden="true"></div>
+          <div class="about-evo3d__meta" aria-hidden="true"><span class="about-evo3d__meta-line"></span><span>{$this->esc($name)}</span></div>
+          <div class="about-evo3d__category">{$this->esc($label)}</div>
+          <div class="about-evo3d__content">
+            <p class="about-evo3d__note">{$this->esc($note)}</p>
+            <h3 class="about-evo3d__title">{$titleHtml}</h3>
+            <p class="about-evo3d__desc">{$this->esc($description)}</p>{$extrasLine}
           </div>
-        </div>
-      </div>
+        </article>
 HTML;
         }
+
+        $epicDefaults = [
+            'THE DISTANCE BETWEEN THE IDEA AND REALITY.',
+            'GOOD IDEAS HAVE TO SURVIVE REALITY.',
+        ];
+        $epicNotes = ['The distance', 'The survival'];
+        $epicCuts = [[3, 3], [2, 2]];
+        for ($i = 0; $i < 2; $i++) {
+            $num = str_pad((string)($i + 7), 2, '0', STR_PAD_LEFT);
+            $text = $epics[$i] ?? $epicDefaults[$i];
+            $titleHtml = $splitTitle($text, $epicCuts[$i]);
+            $cards[] = <<<HTML
+        <article class="about-evo3d__card about-evo3d__card--interlude" data-act="{$num}" data-world="interlude">
+          <div class="about-evo3d__gradient" aria-hidden="true"></div>
+          <div class="about-evo3d__edge" aria-hidden="true"></div>
+          <div class="about-evo3d__shadow" aria-hidden="true"></div>
+          <div class="about-evo3d__hinge" aria-hidden="true"></div>
+          <div class="about-evo3d__meta" aria-hidden="true"><span class="about-evo3d__meta-line"></span><span>Interlude</span></div>
+          <div class="about-evo3d__content">
+            <p class="about-evo3d__note">{$epicNotes[$i]}</p>
+            <h3 class="about-evo3d__title about-evo3d__title--serif">{$titleHtml}</h3>
+            <p class="about-evo3d__mark" aria-hidden="true">✦ ✦ ✦</p>
+          </div>
+        </article>
+HTML;
+        }
+
         return <<<HTML
-    <section class="about-acts t-dark" id="acts" aria-label="The evolution">
-      <div class="container">
+    <section class="about-acts about-evo3d t-dark" id="acts" aria-label="The evolution">
+      <div class="container about-evo3d__head">
         <header class="about-acts__head">
           <div class="chapter__meta" data-reveal><span class="chapter__num">✦</span><span class="chapter__rule"></span><span class="chapter__tag">The Evolution</span></div>
           <h2 class="chapter__title" data-reveal>The frame<br><em>kept getting bigger.</em></h2>
           <p class="about-acts__hint" data-reveal>What started with images gradually became a way of thinking about interactions, spaces, systems and people.</p>
         </header>
-        <p class="about-acts__meta" aria-hidden="true">{$totalStr} Chapters</p>
-{$this->join($rows)}
+        <p class="about-acts__meta" aria-hidden="true">08 Frames</p>
+      </div>
+      <div class="about-evo3d__scroll">
+        <div class="about-evo3d__stage">
+          <div class="about-evo3d__camera">
+            <div class="about-evo3d__world">
+{$this->join($cards)}
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 HTML;
@@ -1531,36 +1922,28 @@ HTML;
     private function aboutCredits(?array $ctaBlock, ?array $finaleQuote, ?array $portrait, array $roles = []): string
     {
         $arrow = self::ARROW;
-        // philosophy — three quiet cinematic statements
-        $philosophy = '<section class="about-philosophy" aria-label="Philosophy"><div class="container">'
-            . '<p class="about-philosophy__line" data-reveal>The problem comes first.</p>'
-            . '<p class="about-philosophy__line" data-reveal style="--d:.12s">Space has a narrative too.</p>'
-            . '<p class="about-philosophy__line" data-reveal style="--d:.24s">Good ideas have to survive reality.</p>'
-            . '</div></section>';
-        // what I actually do — a filmography: the six disciplines as a
-        // numbered index, one ruled row each (the copy, recomposed)
+
+        // What I actually do — deliberately unnumbered, minimal directory.
         $whatItems = ['Films', 'Interactive Experiences', 'VR/XR', 'Experience Centres', 'Physical Installations', 'Brand Systems'];
         $whatList = '';
         foreach ($whatItems as $wi => $item) {
             $whatList .= '<li data-reveal style="--d:' . ($wi * 0.07) . 's">'
-                . '<span class="about-what__num" aria-hidden="true">' . str_pad((string)($wi + 1), 2, '0', STR_PAD_LEFT) . '</span>'
-                . '<span class="about-what__item">' . $this->esc($item) . '</span>'
-                . '<span class="about-what__arrow" aria-hidden="true">→</span></li>';
+                . '<span class="about-what__item">' . $this->esc($item) . '</span></li>';
         }
         $what = '<section class="about-what t-light" aria-label="What I actually do"><div class="container about-what__grid">'
             . '<div class="about-what__head">'
             . '<p class="about-what__eyebrow" data-reveal><span class="chapter__rule"></span><span class="chapter__tag">What I actually do</span></p>'
             . '<h2 class="about-what__title" data-reveal>I take complicated things<br><em>and figure out how people should experience them.</em></h2>'
-            . '</div>'
-            . '<ol class="about-what__list">' . $whatList . '</ol>'
-            . '</div></section>';
-        // now
-        $now = '<section class="about-now t-dark" aria-label="Now"><div class="container">'
+            . '</div><ol class="about-what__list">' . $whatList . '</ol></div></section>';
+
+        // Now — editorial split: statement left, quiet ruled copy right.
+        $now = '<section class="about-now t-dark" aria-label="Now"><div class="container about-now__grid">'
+            . '<div class="about-now__head">'
             . '<p class="about-now__eyebrow" data-reveal><span class="chapter__rule"></span><span class="chapter__tag">Now</span></p>'
             . '<h2 class="about-now__title" data-reveal>Hard problems.<br>Ambitious ideas.<br><em>Experiences with a reason to exist.</em></h2>'
-            . '<p class="about-now__copy" data-reveal>I\'m interested in work where design, technology, story and people have to come together — and where the idea matters as much as the execution.</p>'
+            . '</div><p class="about-now__copy" data-reveal>I\'m interested in work where design, technology, story and people have to come together — and where the idea matters as much as the execution.</p>'
             . '</div></section>';
-        // still curious
+
         $curious = '<section class="about-curious t-light" aria-label="Still curious"><div class="container">'
             . '<h2 class="about-curious__title" data-reveal>Still curious.</h2>'
             . '<ul class="about-curious__list" data-reveal-group data-dbase=".1">'
@@ -1572,47 +1955,27 @@ HTML;
             . '</ul>'
             . '<p class="about-curious__note" data-reveal>That\'s probably what hasn\'t changed.</p>'
             . '</div></section>';
+
         $quote = $finaleQuote !== null ? $this->v($finaleQuote, 'content', 'text', "That's the work I'm interested in.") : "That's the work I'm interested in.";
         $sig = $ctaBlock !== null ? $this->v($ctaBlock, 'content', 'title', '— Abhijeet Varghese') : '— Abhijeet Varghese';
         $role = $ctaBlock !== null ? $this->v($ctaBlock, 'content', 'role', '') : '';
         $text = $ctaBlock !== null ? $this->v($ctaBlock, 'content', 'text', '') : '';
-        $portraitHtml = '';
-        if ($portrait !== null) {
-            $src = $this->media($portrait['content']['src'] ?? 'media/hero-portrait.webp');
-            $cap = $this->v($portrait, 'content', 'caption', '');
-            $alt = $this->v($portrait, 'content', 'alt', 'Editorial portrait of Abhijeet Varghese');
-            $portraitHtml = '<figure class="about-credits__portrait" data-reveal="portrait">
-              <img src="' . $this->esc($src) . '" alt="' . $this->esc($alt) . '" width="1024" height="1024" loading="lazy" decoding="async">
-              ' . ($cap !== '' ? '<figcaption>' . $this->esc($cap) . '</figcaption>' : '') . '
-            </figure>';
-        }
         $roleHtml = $role !== '' ? '<p class="about-credits__role" data-reveal>' . $this->esc($role) . '</p>' : '';
         $textHtml = $text !== '' ? '<p class="about-credits__text" data-reveal>' . $this->esc($text) . '</p>' : '';
         $btn = ($ctaBlock !== null && !empty($ctaBlock['content']['button']))
             ? '<a class="btn btn--accent" href="' . $this->esc($ctaBlock['content']['href'] ?? 'contact.html') . '">' . $this->esc($ctaBlock['content']['button']) . ' ' . $arrow . '</a>'
             : '';
-        // the closing marquee — a slow reverse crawl that bookends the opening one
-        $mq = '';
-        foreach ($roles as $r) {
-            $mq .= '<span>' . $this->esc($r) . '</span><span class="about-credits__mq-dot" aria-hidden="true">✦</span>';
-        }
-        $mqHtml = $mq !== '' ? '<div class="about-credits__mq" aria-hidden="true"><div class="about-credits__mq-track">' . $mq . $mq . '</div></div>' : '';
-        $bands = $philosophy . $what . $now . $curious;
-        $creditsImg = $this->media('media/about/about-credits.webp');
-        return $bands . <<<HTML
+
+        return $what . $now . $curious . <<<HTML
     <section class="about-credits t-light" id="credits" aria-label="Credits">
-      <span class="about-credits__bg" aria-hidden="true"><img src="{$creditsImg}" alt="" loading="lazy" decoding="async"></span>
       <div class="container about-credits__inner">
-        {$portraitHtml}
         <span class="about-credits__rule" aria-hidden="true" data-reveal></span>
         <p class="about-credits__quote" data-reveal>{$this->esc($quote)}</p>
         {$roleHtml}
         {$textHtml}
         <p class="about-credits__sig" data-reveal>{$this->esc($sig)}</p>
         <p class="about-credits__cta" data-reveal>{$btn}</p>
-        <p class="about-credits__fin" aria-hidden="true">fin.</p>
       </div>
-      {$mqHtml}
     </section>
 HTML;
     }
@@ -1639,7 +2002,7 @@ HTML;
         $src = $this->media($b['content']['src'] ?? '');
         $mode = (string)($b['content']['mode'] ?? 'wide');
         if (!in_array($mode, ['wide', 'bleed', 'tall'], true)) $mode = 'wide';
-        return '<figure class="about-figure about-figure--' . $mode . '" data-parallax="0.04" data-reveal="img" data-cur="EXPLORE"><img src="' . $this->esc($src) . '" alt="' . $this->esc($this->v($b, 'content', 'alt', '')) . '" width="1536" height="1024" loading="lazy" decoding="async"><figcaption>' . $this->esc($this->v($b, 'content', 'caption', '')) . '</figcaption></figure>';
+        return '<figure class="about-figure about-figure--' . $mode . '" data-parallax="0.04" data-reveal="img"><img src="' . $this->esc($src) . '" alt="' . $this->esc($this->v($b, 'content', 'alt', '')) . '" width="1536" height="1024" loading="lazy" decoding="async"><figcaption>' . $this->esc($this->v($b, 'content', 'caption', '')) . '</figcaption></figure>';
     }
 
     /** Statements — theme-aware typographic moments (epic breaks out as a band). */
@@ -1812,8 +2175,9 @@ HTML;
         $roleSub = $roleSub !== ''
             ? '<p class="exp-job__role-sub">' . $this->esc($roleSub) . '</p>'
             : '';
-        $img = $image !== ''
-            ? '<figure class="exp-job__img" data-reveal="img"><img src="' . $this->esc($this->media($image)) . '" alt="' . $this->esc($c['alt'] ?? $company . ' — ' . $role) . '" loading="lazy" decoding="async"></figure>'
+        $imageSrc = $image !== '' ? $this->media($image) : '';
+        $img = $imageSrc !== ''
+            ? '<figure class="exp-job__img" data-reveal="img"><img src="' . $this->esc($imageSrc) . '" alt="' . $this->esc($c['alt'] ?? $company . ' — ' . $role) . '"' . $this->imageSizeAttrs($imageSrc) . ' loading="lazy" decoding="async"></figure>'
             : '';
 
         $isFirst = $i === 0;
@@ -1868,7 +2232,7 @@ HTML;
         $backLabel = ($a['type'] ?? 'essay') === 'essay' ? 'All insights' : 'All journal entries';
         $body = <<<HTML
     <section class="article-hero">
-      <img class="article-hero__img" src="{$this->esc($img)}" alt="Artwork for “{$this->esc($this->v($a, 'title', ''))}”" width="1376" height="768" fetchpriority="high">
+      <img class="article-hero__img" src="{$this->esc($img)}" alt="Artwork for “{$this->esc($this->v($a, 'title', ''))}”" width="1376" height="768" fetchpriority="high" decoding="async">
       <div class="article-hero__veil" aria-hidden="true"></div>
       <div class="container article-hero__inner">
         <div class="chapter__meta" data-reveal>
@@ -1895,7 +2259,9 @@ HTML;
     </section>
 HTML;
         $body .= $this->relatedSection($a, 'article', (string)($a['id'] ?? ''));
-        $title = preg_replace('/<[^>]+>/', '', $a['title'] ?? '') . ' — ' . ($s['siteName'] ?? '');
+        $seo = $a['seo'] ?? [];
+        $title = $seo['title'] ?? (preg_replace('/<[^>]+>/', '', $a['title'] ?? '') . ' — ' . ($s['siteName'] ?? ''));
+        $description = $seo['desc'] ?? ($a['excerpt'] ?? '');
         $ld = json_encode([
             '@context' => 'https://schema.org', '@type' => 'Article',
             'headline' => preg_replace('/<[^>]+>/', '', $a['title'] ?? ''),
@@ -1903,7 +2269,7 @@ HTML;
             'datePublished' => $a['date'] ?? '', 'image' => $siteUrl . '/' . $img,
             'url' => $siteUrl . '/' . $file, 'inLanguage' => 'en',
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        return $this->shell($s, $nav, $title, $a['excerpt'] ?? '', $file, $body, ($a['type'] ?? 'essay') === 'essay' ? 'insights' : 'journal', 'article', $img, $ld);
+        return $this->shell($s, $nav, $title, $description, $file, $body, ($a['type'] ?? 'essay') === 'essay' ? 'insights' : 'journal', 'article', $img, $ld);
     }
 
     /* ---------- site search: index + page ---------- */
@@ -1955,15 +2321,15 @@ HTML;
       var box = document.getElementById("searchResults");
       var idx = [];
       fetch("search-index.json").then(function (r) { return r.json(); }).then(function (d) { idx = d.items || []; }).catch(function () {});
-      function esc(s) { return String(s || "").replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", """: "&quot;" }[c]; }); }
+      function esc(s) { return String(s || "").replace(/[&<>"]/g, function (c) { return c.charCodeAt(0) === 34 ? "&quot;" : { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }); }
       function render(q) {
         q = q.toLowerCase();
         if (q.length < 2) { box.innerHTML = ""; return; }
-        var hits = idx.filter(function (i) { return (i.title + " " + i.excerpt + " " + (i.tags || []).join(" ")).toLowerCase().indexOf(q) !== -1; }).slice(0, 10);
+        var hits = idx.filter(function (i) { var tags = Array.isArray(i.tags) ? i.tags.join(" ") : String(i.tags || ""); return (i.title + " " + i.excerpt + " " + tags).toLowerCase().indexOf(q) !== -1; }).slice(0, 10);
         if (!hits.length) { box.innerHTML = "<p style=\"color:var(--ink-3);font-size:14px\">No results for \"" + esc(q) + "\". Try another term, or <a href=\"contact.html\">ask me directly</a>.</p>"; return; }
         box.innerHTML = hits.map(function (i) {
           return "<a href=\"" + esc(i.url) + "\" style=\"display:block;text-decoration:none;border-bottom:1px solid var(--cl);padding:14px 4px\">" +
-            "<span style=\"font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)\" + ">" + esc(i.type) + "</span>" +
+            "<span style=\"font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)\">" + esc(i.type) + "</span>" +
             "<strong style=\"display:block;font-size:16px;margin:3px 0\">" + esc(i.title) + "</strong>" +
             "<span style=\"font-size:13px;color:var(--ink-3);line-height:1.5\">" + esc(i.excerpt) + "</span></a>";
         }).join("");
@@ -2150,7 +2516,20 @@ HTML;
         foreach (($site['projects'] ?? []) as $p) {
             if (!$this->isDue($p)) continue;
             if (($p['status'] ?? 'published') !== 'published') continue;
-            file_put_contents($dir . '/' . $this->caseStudyFile($p), $this->renderCaseStudy($p, $s, $nav));
+            $outputFile = $this->caseStudyOutputFile($p);
+            @mkdir(dirname($dir . '/' . $outputFile), 0775, true);
+            file_put_contents($dir . '/' . $outputFile, $this->renderCaseStudy($p, $s, $nav));
+            $legacyPaths = $p['legacyPaths'] ?? [];
+            if (($p['id'] ?? '') === 'prj-1' && !$legacyPaths) {
+                $legacyPaths = ['case-study-enterprise-technology-made-understandable.html'];
+            }
+            foreach ((array)$legacyPaths as $legacy) {
+                $legacy = ltrim(trim((string)$legacy), '/');
+                if ($legacy === '' || str_contains($legacy, '..') || $legacy === $outputFile) continue;
+                $legacyFile = str_ends_with($legacy, '/') ? $legacy . 'index.html' : $legacy;
+                @mkdir(dirname($dir . '/' . $legacyFile), 0775, true);
+                file_put_contents($dir . '/' . $legacyFile, $this->renderCaseStudyRedirect($this->caseStudyFile($p)));
+            }
             $cases++;
         }
         file_put_contents($dir . '/sitemap.xml', $this->sitemapXml());
@@ -2211,21 +2590,59 @@ HTML;
         }
     }
 
-    /** Internal-link check: every .html href in the build must resolve to a file in the build. */
+    /** Every generated HTML document, including clean-URL nested pages. */
+    private function htmlFiles(string $dir): array
+    {
+        $files = [];
+        if (!is_dir($dir)) return $files;
+        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS));
+        foreach ($it as $file) {
+            if ($file->isFile() && strtolower($file->getExtension()) === 'html') {
+                $files[] = $file->getPathname();
+            }
+        }
+        sort($files, SORT_STRING);
+        return $files;
+    }
+
+    /** Resolve a root- or document-relative public path without allowing traversal. */
+    private function resolveBuildPath(string $dir, string $document, string $href): ?string
+    {
+        $href = html_entity_decode(trim($href), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        if ($href === '' || str_starts_with($href, '#') || str_starts_with($href, '//')) return null;
+        if (preg_match('#^[a-z][a-z0-9+.-]*:#i', $href)) return null;
+        $path = parse_url($href, PHP_URL_PATH);
+        if ($path === null || $path === '') return null;
+        $rootRelative = str_starts_with($path, '/');
+        $documentRel = str_replace(chr(92), '/', substr($document, strlen(rtrim($dir, '/')) + 1));
+        $combined = $rootRelative ? ltrim($path, '/') : dirname($documentRel) . '/' . $path;
+        $parts = [];
+        foreach (explode('/', str_replace(chr(92), '/', $combined)) as $part) {
+            if ($part === '' || $part === '.') continue;
+            if ($part === '..') {
+                if (!$parts) return '__TRAVERSAL__';
+                array_pop($parts);
+                continue;
+            }
+            $parts[] = rawurldecode($part);
+        }
+        $relative = implode('/', $parts);
+        if ($relative === '' || str_ends_with($path, '/')) $relative = rtrim($relative, '/') . '/index.html';
+        return ltrim($relative, '/');
+    }
+
+    /** Internal-link check: every local href in the build must resolve inside the build. */
     private function internalLinkCheck(string $dir): array
     {
         $broken = [];
-        $files = [];
-        foreach (glob($dir . '/*.html') ?: [] as $f) $files[basename($f)] = true;
-        foreach (glob($dir . '/*.html') ?: [] as $htmlFile) {
+        foreach ($this->htmlFiles($dir) as $htmlFile) {
             $content = (string)file_get_contents($htmlFile);
-            if (preg_match_all('/href="([^"#]+\.html)"/i', $content, $m)) {
-                foreach ($m[1] as $href) {
-                    if (str_starts_with($href, 'http')) continue;
-                    $target = basename(parse_url($href, PHP_URL_PATH) ?: '');
-                    if ($target === '') continue;
-                    if (!isset($files[$target])) $broken[] = basename($htmlFile) . ' -> ' . $href;
-                }
+            if (!preg_match_all('/href="([^"#]*)"/i', $content, $matches)) continue;
+            foreach ($matches[1] as $href) {
+                $target = $this->resolveBuildPath($dir, $htmlFile, $href);
+                if ($target === null) continue;
+                $label = str_replace(rtrim($dir, '/') . '/', '', $htmlFile) . ' -> ' . $href;
+                if ($target === '__TRAVERSAL__' || !is_file($dir . '/' . $target)) $broken[] = $label;
             }
         }
         return array_values(array_unique($broken));
@@ -2239,7 +2656,11 @@ HTML;
     private function verifyPublishedSite(array $counts): array
     {
         $problems = [];
-        $critical = ['index.html', 'css/styles.css', 'js/main.js', 'sitemap.xml', 'robots.txt', '404.html'];
+        $critical = [
+            'index.html', 'css/styles.css', 'js/main.js', 'sitemap.xml', 'robots.txt', '404.html',
+            'css/orange-business-case-study.css', 'js/orange-business-case-study.js',
+            'experience-design/orange-business-executive-briefing-center/index.html',
+        ];
         foreach (array_merge($critical, ['story.html', 'experience.html', 'case-studies.html', 'contact.html']) as $f) {
             $p = $this->out . '/' . $f;
             if (!is_file($p)) { $problems[] = "missing $f"; continue; }
@@ -2259,6 +2680,7 @@ HTML;
                         continue;
                     }
                     $rel = ltrim($path, '/');
+                    if ($rel !== '' && str_ends_with($path, '/')) $rel .= 'index.html';
                     if ($rel !== '' && !is_file($this->out . '/' . $rel)) $problems[] = "sitemap URL missing file: $path";
                 }
             } elseif (!str_contains($content, '<urlset')) {
@@ -2351,28 +2773,74 @@ HTML;
             'Options -Indexes',
             'ErrorDocument 404 /404.html',
             '',
+            '# Compress text at the edge; already-compressed media/fonts pass through.',
+            '<IfModule mod_brotli.c>',
+            '  AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css text/javascript application/javascript application/json application/xml image/svg+xml',
+            '</IfModule>',
+            '<IfModule mod_deflate.c>',
+            '  AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json application/xml image/svg+xml',
+            '</IfModule>',
+            '',
+            '<IfModule mod_expires.c>',
+            '  ExpiresActive On',
+            '  ExpiresByType text/html "access plus 0 seconds"',
+            '  ExpiresByType text/css "access plus 1 year"',
+            '  ExpiresByType text/javascript "access plus 1 year"',
+            '  ExpiresByType application/javascript "access plus 1 year"',
+            '  ExpiresByType font/woff2 "access plus 30 days"',
+            '  ExpiresByType image/webp "access plus 30 days"',
+            '  ExpiresByType image/avif "access plus 30 days"',
+            '  ExpiresByType image/jpeg "access plus 30 days"',
+            '  ExpiresByType image/png "access plus 30 days"',
+            '  ExpiresByType image/svg+xml "access plus 30 days"',
+            '  ExpiresByType video/mp4 "access plus 30 days"',
+            '</IfModule>',
+            '',
             '<IfModule mod_headers.c>',
             '  Header set X-Content-Type-Options "nosniff"',
             '  Header set X-Frame-Options "SAMEORIGIN"',
             '  Header set Referrer-Policy "strict-origin-when-cross-origin"',
             '  Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"',
+            '  Header merge Vary "Accept-Encoding"',
+            '  <FilesMatch "\\.html$">',
+            '    Header set Cache-Control "no-cache, must-revalidate"',
+            '  </FilesMatch>',
+            '  <FilesMatch "\\.(?:css|js)$">',
+            '    Header set Cache-Control "public, max-age=31536000, immutable"',
+            '  </FilesMatch>',
+            '  <FilesMatch "\\.(?:woff2|avif|webp|jpe?g|png|svg|mp4)$">',
+            '    Header set Cache-Control "public, max-age=2592000"',
+            '  </FilesMatch>',
             '</IfModule>',
             '',
         ];
-        try {
-            $redirects = Database::all("SELECT old_url, new_url, status_code FROM redirects WHERE enabled=1 ORDER BY id");
-            if ($redirects) {
-                $lines[] = '<IfModule mod_rewrite.c>';
-                $lines[] = '  RewriteEngine On';
-                foreach ($redirects as $r) {
-                    $old = trim($r['old_url'], '/');
-                    $new = trim($r['new_url'], '/');
-                    if ($old === '') continue;
-                    $lines[] = '  RewriteRule ^' . preg_quote($old, '/') . '/?$ /' . $new . ' [R=' . $r['status_code'] . ',L]';
-                }
-                $lines[] = '</IfModule>';
+        $rules = [];
+        foreach (($this->site['projects'] ?? []) as $project) {
+            $legacyPaths = $project['legacyPaths'] ?? [];
+            if (($project['id'] ?? '') === 'prj-1' && !$legacyPaths) {
+                $legacyPaths = ['case-study-enterprise-technology-made-understandable.html'];
             }
-        } catch (Throwable $e) { /* redirects are optional */ }
+            foreach ((array)$legacyPaths as $legacy) {
+                $old = trim((string)$legacy, '/');
+                if ($old === '' || str_contains($old, '..')) continue;
+                $rules[$old] = ['/' . ltrim($this->caseStudyFile($project), '/'), 301];
+            }
+        }
+        try {
+            foreach (Database::all("SELECT old_url, new_url, status_code FROM redirects WHERE enabled=1 ORDER BY id") as $r) {
+                $old = trim((string)$r['old_url'], '/');
+                if ($old === '') continue;
+                $rules[$old] = ['/' . ltrim((string)$r['new_url'], '/'), (int)$r['status_code']];
+            }
+        } catch (Throwable $e) { /* database redirects are optional */ }
+        if ($rules) {
+            $lines[] = '<IfModule mod_rewrite.c>';
+            $lines[] = '  RewriteEngine On';
+            foreach ($rules as $old => [$new, $status]) {
+                $lines[] = '  RewriteRule ^' . preg_quote($old, '/') . '/?$ ' . $new . ' [R=' . $status . ',L]';
+            }
+            $lines[] = '</IfModule>';
+        }
         file_put_contents($dir . '/.htaccess', implode("
 ", $lines) . "
 ");
@@ -2395,7 +2863,7 @@ HTML;
         @mkdir($cssDir, 0775, true);
         file_put_contents($cssDir . '/tokens.css', $css);
         // ensure tokens.css is loaded after styles.css in generated HTML
-        foreach (glob($dir . '/*.html') ?: [] as $idx) {
+        foreach ($this->htmlFiles($dir) as $idx) {
             $html = (string)file_get_contents($idx);
             if (!str_contains($html, 'tokens.css')) {
                 $html = preg_replace('/(<link rel="stylesheet" href="css\/styles\.css(?:\?v=[^"]*)?"\s*>)/', '$1' . "\n" . '<link rel="stylesheet" href="css/tokens.css">', $html, 1);
@@ -2449,7 +2917,7 @@ HTML;
 HTML;
         }
         $block = implode("\n", $snippets);
-        foreach (glob($dir . '/*.html') ?: [] as $f) {
+        foreach ($this->htmlFiles($dir) as $f) {
             $html = (string)file_get_contents($f);
             if (str_contains($html, 'googletagmanager.com/gtag')) continue;
             $html = str_replace('</body>', $block . "\n</body>", $html);
@@ -2520,7 +2988,7 @@ HTML;
     var m = null;
     if ((m = p.match(/\/essay-[^\/]+\.html/))) { avTrack({ event_type: "essay_view", path: p, content: m[0] }); }
     else if ((m = p.match(/\/journal-[^\/]+\.html/))) { avTrack({ event_type: "journal_view", path: p, content: m[0] }); }
-    else if ((m = p.match(/\/case-studies\.html/)) || (m = p.match(/\/case-study-[^\/]+\.html/))) { avTrack({ event_type: "case_study_view", path: p, content: m[0] }); }
+    else if ((m = p.match(/\/case-studies\.html/)) || (m = p.match(/\/case-study-[^\/]+\.html/)) || (m = p.match(/\/experience-design\/[^\/]+\/?/))) { avTrack({ event_type: "case_study_view", path: p, content: m[0] }); }
     else if (p.indexOf("experience") !== -1) { avTrack({ event_type: "project_view", path: p }); }
     // contact intent (form page focus)
     var cf = document.getElementById("contactForm") || document.getElementById("bookForm");
@@ -2529,7 +2997,7 @@ HTML;
 })();
 </script>
 JS;
-        foreach (glob($dir . '/*.html') ?: [] as $f) {
+        foreach ($this->htmlFiles($dir) as $f) {
             $html = (string)file_get_contents($f);
             if (str_contains($html, 'api/analytics/track')) continue;
             $html = str_replace('</body>', $snippet . "
@@ -2557,11 +3025,16 @@ JS;
             $f = (($a['type'] ?? 'essay') === 'essay' ? 'essay-' : 'journal-') . $slug . '.html';
             if (!is_file($dir . '/' . $f)) $fail[] = "missing article $f";
         }
+        foreach (($site['projects'] ?? []) as $project) {
+            if (!$this->isDue($project) || ($project['status'] ?? 'published') !== 'published') continue;
+            $f = $this->caseStudyOutputFile($project);
+            if (!is_file($dir . '/' . $f)) $fail[] = "missing case study $f";
+        }
         // no unresolved template variables or PHP tags leaked into HTML
-        foreach (glob($dir . '/*.html') ?: [] as $htmlFile) {
+        foreach ($this->htmlFiles($dir) as $htmlFile) {
             $content = (string)file_get_contents($htmlFile);
-            if (str_contains($content, '<?php') || str_contains($content, '{$this->') || preg_match('/\$\{[a-zA-Z_]/', $content)) {
-                $fail[] = 'template leakage in ' . basename($htmlFile);
+            if (str_contains($content, '<?php') || str_contains($content, '{$this->') || str_contains($content, '{{') || preg_match('/\$\{[a-zA-Z_]/', $content)) {
+                $fail[] = 'template leakage in ' . str_replace(rtrim($dir, '/') . '/', '', $htmlFile);
             }
         }
         // no PHP source files in the public output

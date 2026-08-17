@@ -9,9 +9,9 @@
  *
  * Ownership rules:
  *   FRONTEND SOURCE OWNS: css · js · images · videos · fonts · icons ·
- *                         static assets · favicon · robots/sitemap source
- *   CMS OWNS:             page/project/article content · navigation · SEO ·
- *                         settings · generated HTML
+ *                         static assets · favicon
+ *   CMS/PUBLISHER OWNS:   page/project/article content · navigation · SEO ·
+ *                         settings · generated HTML · robots.txt · sitemap.xml
  *
  * Safety:
  *   - SHA-256 per-file hashes (not mtime) — only real content changes sync
@@ -61,7 +61,7 @@ function collectFiles(string $dir): array {
 }
 
 /* ---------- allowed top-level parts (frontend owns these) ---------- */
-const SYNC_PARTS = ['css', 'js', 'assets', 'fonts', 'favicon.ico', 'favicon.png', 'robots.txt', 'sitemap.xml'];
+const SYNC_PARTS = ['css', 'js', 'assets', 'favicon.ico', 'favicon.png'];
 
 $prev = is_file($manifestFile) ? (json_decode((string)file_get_contents($manifestFile), true) ?: []) : [];
 $prevFiles = $prev['files'] ?? [];

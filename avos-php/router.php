@@ -28,7 +28,7 @@ if ($path === '/' || $path === '') {
 if (!is_file($file) && !str_starts_with($path, '/api/') && !str_starts_with($path, '/admin/')
     && !str_starts_with($path, '/media/') && !str_starts_with($path, '/install/')) {
     $cand = $root . '/site/' . $rel;
-    if (is_file($cand)) $file = $cand;
+    if (is_file($cand) || is_dir($cand)) $file = $cand;
 }
 
 // safety: no traversal
@@ -66,6 +66,15 @@ $types = [
     'xml' => 'application/xml', 'mp4' => 'video/mp4',
 ];
 header('Content-Type: ' . ($types[$ext] ?? 'application/octet-stream'));
-header('Cache-Control: ' . ($ext === 'html' ? 'no-cache' : 'public, max-age=86400'));
+if ($ext === 'html') {
+    header('Cache-Control: no-cache, must-revalidate');
+} elseif (in_array($ext, ['css', 'js'], true)) {
+    // Published HTML content-hashes CSS/JS URLs.
+    header('Cache-Control: public, max-age=31536000, immutable');
+} elseif (in_array($ext, ['woff', 'woff2', 'ttf', 'otf', 'avif', 'webp', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'mp4'], true)) {
+    header('Cache-Control: public, max-age=2592000');
+} else {
+    header('Cache-Control: public, max-age=86400');
+}
 readfile($real);
 return true;

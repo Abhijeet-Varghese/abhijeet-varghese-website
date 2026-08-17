@@ -66,6 +66,7 @@ AV.seed = {
     { id: "p-story", title: "Story", slug: "/story", template: "Page", status: "published", seo: 96, updated: "2d ago" },
     { id: "p-experience", title: "Experience", slug: "/experience", template: "Page", status: "published", seo: 97, updated: "2d ago" },
     { id: "p-cases", title: "Case Studies", slug: "/case-studies", template: "Page", status: "published", seo: 95, updated: "4d ago" },
+    { id: "p-portfolio", title: "Portfolio", slug: "/portfolio", template: "Portfolio", status: "published", seo: 96, updated: "just now" },
     { id: "p-contact", title: "Contact", slug: "/contact", template: "Contact", status: "published", seo: 93, updated: "3h ago" },
     { id: "p-insights", title: "Insights", slug: "/insights", template: "Blog Index", status: "published", seo: 97, updated: "1d ago" },
     { id: "p-journal", title: "Journal", slug: "/journal", template: "Blog Index", status: "published", seo: 96, updated: "1d ago" },
@@ -95,12 +96,15 @@ AV.seed = {
   ],
   projects: [
     {
-      id: "prj-1", title: "Enterprise Technology, Made Understandable", client: "Orange Business", industry: "Enterprise Technology",
-      status: "published", year: "2025", featured: true, image: "media/case-orange.webp",
-      summary: "Helping enterprise technology become understandable.", views: "8,421",
-      role: "Creative Direction & Experience Strategy", challenge: "Genuinely complex platforms had let complexity become the experience. Powerful capability, buried under jargon.",
-      approach: "Translate system architecture into human narratives — experience films, interactive demos and centre experiences that make capability legible.",
-      outcome: "Enterprise technology buyers can finally see, understand — and remember.", updated: "3d ago"
+      id: "prj-1", title: "Orange Business New Executive Briefing Center", slug: "orange-business-executive-briefing-center", client: "Orange Business", industry: "Experience Design & Creative Technology",
+      status: "published", year: "2025", featured: true, image: "media/case-orange-experience-in-action.webp",
+      imageAlt: "Orange Business Executive Briefing Center — Experience in Action case-study thumbnail", preserveFrame: true,
+      summary: "A strategy-led physical-digital experience created for executive engagement, product storytelling, immersive demonstration and collaboration.", views: "8,421",
+      role: "Experience Strategy & Creative Technology Lead", challenge: "Transform executive briefing into an experiential environment.",
+      approach: "Connect business objectives, brand, visitor journey, content, technology and physical environment.",
+      outcome: "A connected executive experience supporting engagement, demonstration, collaboration and evolving digital content.",
+      caseStudyPath: "experience-design/orange-business-executive-briefing-center/", caseStudyTemplate: "orange-business-ebc",
+      legacyPaths: ["case-study-enterprise-technology-made-understandable.html"], updated: "just now"
     },
     {
       id: "prj-2", title: "Intuitive Experiences for Industrial Environments", client: "BPCL", industry: "Energy & Industrial",
@@ -197,7 +201,7 @@ AV.seed = {
   ],
   media: [
     { id: "med-1", name: "hero-portrait.webp", folder: "Hero", size: "38 KB", w: 512, h: 512, src: "media/hero-portrait.webp", alt: "Editorial portrait of Abhijeet Varghese", tags: ["hero", "portrait"] },
-    { id: "med-2", name: "case-orange.webp", folder: "Case Studies", size: "52 KB", w: 640, h: 427, src: "media/case-orange.webp", alt: "Enterprise technology briefing room", tags: ["work", "enterprise"] },
+    { id: "med-2", name: "case-orange-experience-in-action.webp", folder: "Case Studies", size: "178 KB", w: 1536, h: 1024, src: "media/case-orange-experience-in-action.webp", alt: "Orange Business Executive Briefing Center — Experience in Action", tags: ["work", "enterprise", "experience centre", "Orange Business"] },
     { id: "med-3", name: "case-bpcl.webp", folder: "Case Studies", size: "48 KB", w: 640, h: 427, src: "media/case-bpcl.webp", alt: "Engineers at a process touchscreen", tags: ["work", "industrial"] },
     { id: "med-4", name: "case-army.webp", folder: "Case Studies", size: "61 KB", w: 640, h: 427, src: "media/case-army.webp", alt: "Immersive training theatre", tags: ["work", "defence"] },
     { id: "med-5", name: "working-session.webp", folder: "Thinking", size: "44 KB", w: 640, h: 427, src: "media/working-session.webp", alt: "Working session over journey maps", tags: ["process"] },

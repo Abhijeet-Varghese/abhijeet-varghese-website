@@ -4,8 +4,8 @@ const { chromium } = require('playwright');
   const page = await browser.newPage();
   const results = [];
   const ok = (n, c, x = '') => results.push(`${c ? 'PASS' : 'FAIL'}  ${n}${c ? '' : '  ' + x}`);
-  // 1. nav → dedicated pages (nav = Story/Experience/Case Studies by design; contact lives in the CTA button)
-  for (const [label, href] of [['Story', 'story.html'], ['Experience', 'experience.html'], ['Case Studies', 'case-studies.html']]) {
+  // 1. nav → dedicated pages (Portfolio and Case Studies are intentionally separate)
+  for (const [label, href] of [['Story', 'story.html'], ['Experience', 'experience.html'], ['Case Studies', 'case-studies.html'], ['Portfolio', 'portfolio.html']]) {
     await page.goto('http://127.0.0.1:8092/', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(400);
     const clicked = await page.evaluate(({ label, href }) => {
@@ -29,7 +29,7 @@ const { chromium } = require('playwright');
   });
   await page.waitForTimeout(900);
   ok('nav CTA button → contact page', ctaNav === 'contact.html' && page.url().endsWith('contact.html'), ctaNav + ' → ' + page.url());
-  // 2. View case study (in-card CTA) → dedicated page
+  // 2. Orange Business card → supplied long-form canonical case study
   await page.goto('http://127.0.0.1:8092/', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(500);
   const cta = await page.evaluate(() => {
@@ -40,14 +40,16 @@ const { chromium } = require('playwright');
     return href;
   });
   await page.waitForTimeout(1000);
-  ok('View case study → dedicated page', cta && cta.startsWith('case-study-') && page.url().endsWith(cta), cta + ' → ' + page.url());
+  const orangeRoute = 'experience-design/orange-business-executive-briefing-center/';
+  ok('Orange Business card → canonical long-form page', cta === orangeRoute && page.url().includes('/' + orangeRoute), cta + ' → ' + page.url());
   const detail = await page.evaluate(() => ({
-    h1: (document.querySelector('h1') || {}).textContent || '',
-    meta: document.querySelectorAll('.case-detail__meta dd').length,
-    back: !!document.querySelector('a[href="case-studies.html"]'),
-    cta: !!document.querySelector('a[href="contact.html"]')
+    h1: (document.querySelector('h1') || {}).textContent.trim() || '',
+    sections: document.querySelectorAll('main article > section').length,
+    caseNav: !!document.querySelector('.site-nav a[href="../../case-studies.html"]'),
+    portfolioNav: !!document.querySelector('.site-nav a[href="../../portfolio.html"]'),
+    portfolioFooter: !!document.querySelector('.footer a[href="../../portfolio.html"]')
   }));
-  ok('dedicated page renders full detail', detail.h1 !== '' && detail.meta >= 4 && detail.back && detail.cta, JSON.stringify(detail));
+  ok('long-form page renders full narrative and onward navigation', /EXECUTIVE/.test(detail.h1) && detail.sections >= 10 && detail.caseNav && detail.portfolioNav && detail.portfolioFooter, JSON.stringify(detail));
   // 3. duplicate CTA gone
   await page.goto('http://127.0.0.1:8092/', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(400);

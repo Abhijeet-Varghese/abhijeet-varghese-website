@@ -4,7 +4,6 @@
    ============================================================ */
 (() => {
   const { icon, toast, modal, confirmDlg, esc, $, $$ } = AV.ui;
-  const S = AV.store;
   const R = AV.router;
 
   /* ============ CRM — pipeline / contacts / companies / meetings / tasks ============ */
@@ -974,9 +973,6 @@
         ["Public site", !!s.data?.public_site, "Generated static site exists"],
         ["Auth", !!s.data?.authed, "Session active"],
         ["Version", true, "v" + (s.data?.version || "?") + " · " + (s.data?.environment || "?")],
-      ];
-      const extra = [
-        ["Backups", "storage/backups", () => fetch("/api/backup").then(r => r.json()).then(d => d.ok).catch(() => false)],
       ];
       const b = await fetch("/api/backup", { method: "POST", headers: { "X-CSRF-Token": AV.api.csrf } }).then(r => r.json()).then(d => d.ok).catch(() => false);
       checks.push(["Backup engine", b, "Create backup works"]);

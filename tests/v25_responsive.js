@@ -1,6 +1,6 @@
 const { chromium } = require('playwright');
 const WIDTHS = [320, 360, 375, 390, 430, 768, 820, 1024, 1280, 1440, 1920];
-const PAGES = ['/', '/story.html', '/experience.html', '/case-studies.html', '/contact.html', '/journal.html', '/case-study-enterprise-technology-made-understandable.html'];
+const PAGES = ['/', '/story.html', '/experience.html', '/case-studies.html', '/contact.html', '/journal.html', '/experience-design/orange-business-executive-briefing-center/'];
 (async () => {
   const browser = await chromium.launch();
   const page = await browser.newPage();

@@ -505,24 +505,29 @@
   });
 
   /* ---------- Reveal on scroll ---------- */
-  const revealIO = new IntersectionObserver(entries => {
-    for (const e of entries) {
-      if (e.isIntersecting) {
-        e.target.classList.add("in-view");
-        revealIO.unobserve(e.target);
+  const revealEls = $$("[data-reveal]");
+  if (prefersReduced || !("IntersectionObserver" in window)) {
+    revealEls.forEach(el => el.classList.add("in-view"));
+  } else {
+    const revealIO = new IntersectionObserver(entries => {
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          e.target.classList.add("in-view");
+          revealIO.unobserve(e.target);
+        }
       }
-    }
-  }, { threshold: 0.15, rootMargin: "0px 0px -6% 0px" });
-  $$("[data-reveal]").forEach(el => revealIO.observe(el));
+    }, { threshold: 0.15, rootMargin: "0px 0px -6% 0px" });
+    revealEls.forEach(el => revealIO.observe(el));
 
-  /* watchdog — anything visible that IO hasn't caught within a beat is revealed anyway */
-  setTimeout(() => {
-    const vh = window.innerHeight;
-    $$("[data-reveal]:not(.in-view)").forEach(el => {
-      const r = el.getBoundingClientRect();
-      if (r.top < vh * 0.94 && r.bottom > 0) el.classList.add("in-view");
-    });
-  }, 1400);
+    /* watchdog — anything visible that IO hasn't caught within a beat is revealed anyway */
+    setTimeout(() => {
+      const vh = window.innerHeight;
+      revealEls.filter(el => !el.classList.contains("in-view")).forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.top < vh * 0.94 && r.bottom > 0) el.classList.add("in-view");
+      });
+    }, 1400);
+  }
 
   /* ---------- Nav + progress + parallax (single rAF loop) ---------- */
   const nav = $("#siteNav");
@@ -531,9 +536,17 @@
 
   const parallaxEls = $$("[data-parallax]").map(el => {
     const img = el.querySelector("img");
+    const requested = Number.parseFloat(el.dataset.parallax);
+    const speed = Number.isFinite(requested) ? requested : 0.05;
+    // A value of zero preserves authored edge-to-edge artwork without zooming
+    // or translating it; all other project media keeps the existing parallax.
+    if (speed === 0) {
+      if (img) { img.style.willChange = "auto"; img.style.scale = "1"; img.style.transform = "none"; }
+      return null;
+    }
     if (img) { img.style.willChange = "transform"; img.style.scale = "1.13"; }
-    return { el, target: img || el, speed: parseFloat(el.dataset.parallax) || 0.05 };
-  });
+    return { el, target: img || el, speed };
+  }).filter(Boolean);
 
   /* journey horizontal scrub refs */
   const journeySec  = $("#journey");
@@ -608,42 +621,23 @@
       document.addEventListener(ev, pressClear, { passive: true }));
   }
 
-  /* ============================================================
-     ABOUT STORY — "THE LONG TAKE" (v2.4.20-r3 · from scratch)
-     count-up · interruptible spring accordion · zoom-out scrub ·
-     continuous world light · reel advance · filmstrip · signal
-     chain · theater aperture · compass · press feedback
-     ============================================================ */
-  if (document.body.classList.contains("about-page")) {
     const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
 
-    /* --- press feedback lives on pointer-down, never on release --- */
-    $$("button", document.body).forEach(btn => {
-      btn.addEventListener("pointerdown", () => btn.classList.add("is-pressing"), { passive: true });
-      const clear = () => btn.classList.remove("is-pressing");
-      btn.addEventListener("pointerup", clear, { passive: true });
-      btn.addEventListener("pointerleave", clear, { passive: true });
-      btn.addEventListener("pointercancel", clear, { passive: true });
-    });
-
-    /* --- by-the-numbers — count up when the band enters the viewport --- */
-    const statNums = $$(".about-stats__item strong[data-count], .about-frame__num strong[data-count]");
+    /* --- count-up — the by-the-numbers live in the identity hub --- */
+    const statNums = $$(".about-frame__num strong[data-count]");
     if (statNums.length) {
       const statsIO = new IntersectionObserver(entries => {
         for (const e of entries) {
           if (!e.isIntersecting) continue;
           statsIO.unobserve(e.target);
           const target = parseInt(e.target.dataset.count, 10) || 0;
-          const suffix = e.target.dataset.suffix || "";
-          const numEl = e.target.querySelector(".about-stats__num, .about-frame__num-val") || e.target;
-          const fmt = v => String(v) + suffix;
+          const numEl = e.target.querySelector(".about-frame__num-val") || e.target;
           if (prefersReduced || target <= 0) { numEl.textContent = String(target); return; }
           const t0 = performance.now();
           const dur = 1100;
           const step = now => {
             const p = Math.min((now - t0) / dur, 1);
-            const eased = 1 - Math.pow(1 - p, 3);
-            numEl.textContent = String(Math.round(target * eased));
+            numEl.textContent = String(Math.round(target * (1 - Math.pow(1 - p, 3))));
             if (p < 1) requestAnimationFrame(step);
           };
           requestAnimationFrame(step);
@@ -652,8 +646,8 @@
       statNums.forEach(s => statsIO.observe(s));
     }
 
-    /* --- marquee gates — pause the crawls while offscreen --- */
-    const mqTracks = $$(".about-prologue__mq-track, .about-credits__mq-track");
+    /* --- marquee gate — pause the crawl while offscreen --- */
+    const mqTracks = $$(".about-prologue__mq-track");
     if (mqTracks.length) {
       const mqGate = new IntersectionObserver(es => {
         es.forEach(e => { e.target.style.animationPlayState = e.isIntersecting ? "running" : "paused"; });
@@ -661,85 +655,63 @@
       mqTracks.forEach(t => mqGate.observe(t));
     }
 
-    /* --- the title card: the two title lines drift at different
-       speeds as the visitor scrolls into the page --- */
+    /* --- the three title beats separate at increasing depth as the
+       opening frame gives way to the identity spread --- */
     const pl = document.getElementById("prologue");
     const plLines = pl ? $$(".about-prologue__line", pl) : [];
+    const heroDepth = [-0.055, -0.095, -0.14];
     const onTheater = () => {
       const y = window.scrollY, vh = window.innerHeight;
       if (y < vh * 1.3 && !prefersReduced) {
-        plLines.forEach((ln, i) => ln.style.transform = `translate3d(0, ${(y * (i === 0 ? -0.08 : -0.16)).toFixed(1)}px, 0)`);
+        plLines.forEach((ln, i) => ln.style.transform = `translate3d(0, ${(y * (heroDepth[i] ?? -0.14)).toFixed(1)}px, 0)`);
       } else if (!prefersReduced) {
         plLines.forEach(ln => ln.style.transform = "");
       }
     };
 
-    /* --- cursor spotlight over the evolution --- */
-    const actsSec = $(".about-acts");
-    if (actsSec && !prefersReduced && window.matchMedia("(pointer: fine)").matches) {
-      const onSpot = e => {
-        const r = actsSec.getBoundingClientRect();
-        actsSec.style.setProperty("--sx", (e.clientX - r.left).toFixed(1) + "px");
-        actsSec.style.setProperty("--sy", (e.clientY - r.top).toFixed(1) + "px");
+    /* --- portrait parallax — a quiet editorial drift as the visitor
+       scrolls through the identity spread --- */
+    const portrait = document.querySelector('.about-frame__portrait img');
+    if (portrait && !prefersReduced) {
+      const onPortrait = () => {
+        const r = portrait.getBoundingClientRect();
+        const vh = window.innerHeight;
+        if (r.bottom < 0 || r.top > vh) return;
+        const p = clamp((vh * 0.6 - r.top) / (r.height + vh * 0.6), 0, 1);
+        portrait.style.transform = `scale(1.06) translate3d(0, ${(-5 + p * 10).toFixed(1)}px, 0)`;
       };
-      actsSec.addEventListener("pointermove", onSpot, { passive: true });
-      actsSec.addEventListener("pointerenter", () => actsSec.classList.add("spot-on"));
-      actsSec.addEventListener("pointerleave", () => actsSec.classList.remove("spot-on"));
+      window.addEventListener("scroll", () => requestAnimationFrame(onPortrait), { passive: true });
+      window.addEventListener("resize", onPortrait, { passive: true });
+      onPortrait();
     }
 
     /* --- zoom-out stage: frame expands as the visitor scrolls --- */
     const zoomStage = document.getElementById("aboutZoomStage");
     const zoomFrame = document.getElementById("aboutZoomFrame");
     const zoomLabels = $$("#aboutZoomLabels li");
-    let zoomVisible = false;
     if (zoomStage && zoomFrame) {
-      new IntersectionObserver(es => { zoomVisible = es[0].isIntersecting; }, { threshold: 0.02 }).observe(zoomStage);
-      const zoomGhost1 = document.getElementById("aboutZoomGhost1");
-      const zoomGhost2 = document.getElementById("aboutZoomGhost2");
       const onZoom = () => {
-        if (!zoomVisible || prefersReduced) return;
+        if (prefersReduced) return;
         const r = zoomStage.getBoundingClientRect();
         const vh = window.innerHeight;
         const p = clamp((vh * 0.62 - r.top) / (r.height * 0.9 + vh * 0.4), 0, 1);
         zoomFrame.style.setProperty("--zp", p.toFixed(3));
         const stage = Math.min(Math.floor(p * 4) + 1, 4);
         zoomLabels.forEach((l, i) => l.classList.toggle("is-on", i + 1 <= stage));
-        if (zoomGhost1) {
-          zoomGhost1.style.opacity = Math.max(0, (p - 0.4) * 0.5).toFixed(3);
-          zoomGhost1.style.transform = `scale(${(1.06 + p * 0.12).toFixed(3)})`;
-        }
-        if (zoomGhost2) {
-          zoomGhost2.style.opacity = Math.max(0, (p - 0.72) * 0.5).toFixed(3);
-          zoomGhost2.style.transform = `scale(${(1.02 + p * 0.2).toFixed(3)})`;
-        }
+        const g1 = document.getElementById("aboutZoomGhost1");
+        const g2 = document.getElementById("aboutZoomGhost2");
+        if (g1) { g1.style.opacity = Math.max(0, (p - 0.4) * 0.5).toFixed(3); g1.style.transform = `scale(${(1.06 + p * 0.12).toFixed(3)})`; }
+        if (g2) { g2.style.opacity = Math.max(0, (p - 0.72) * 0.5).toFixed(3); g2.style.transform = `scale(${(1.02 + p * 0.2).toFixed(3)})`; }
       };
       window.addEventListener("scroll", () => requestAnimationFrame(onZoom), { passive: true });
       window.addEventListener("resize", onZoom, { passive: true });
       onZoom();
     }
 
-    /* --- the master reel: the whole story as a strip of film --- */
-    const reelTrack = document.getElementById("aboutReelTrack");
-    if (reelTrack) {
-      const onReel = () => {
-        if (prefersReduced) return;
-        const doc = document.documentElement;
-        const maxScroll = Math.max(doc.scrollHeight - window.innerHeight, 1);
-        const p = clamp(window.scrollY / maxScroll, 0, 1);
-        const maxX = Math.max(reelTrack.scrollWidth - window.innerWidth, 0);
-        reelTrack.style.transform = `translate3d(${(-p * maxX).toFixed(1)}px, 0, 0)`;
-      };
-      window.addEventListener("scroll", () => requestAnimationFrame(onReel), { passive: true });
-      window.addEventListener("resize", onReel, { passive: true });
-      onReel();
-    }
-
     /* --- env: light/dark world → nav adaptation --- */
     const envSections = [
-      [".about-frame", "light"], [".about-credits", "light"],
-      [".about-acts", "dark"], [".about-interlude", "dark"],
-      [".about-philosophy", "dark"], [".about-what", "light"],
-      [".about-now", "dark"], [".about-curious", "light"],
+      [".about-frame", "light"], [".about-acts", "dark"], [".about-interlude", "dark"],
+      [".about-what", "light"], [".about-now", "dark"], [".about-curious", "light"], [".about-credits", "light"],
     ].map(([sel, env]) => ({ el: document.querySelector(sel), env })).filter(x => x.el);
     const computeEnv = () => {
       const vh = window.innerHeight, vw = window.innerWidth;
@@ -757,149 +729,56 @@
     window.addEventListener("resize", computeEnv, { passive: true });
     computeEnv();
 
-    /* --- dominance: current chapter leads + CONTINUOUS world light --- */
-    const actRows = $$(".about-act[data-act]");
+    /* ============================================================
+       THE EVOLUTION — 3D FILM STACK (scroll-choreographed)
+       Eight cards (six chapters + two interludes) hinge open as the
+       visitor scrolls; the fine-pointer camera drifts subtly; the
+       world-light and compass follow the active card. A gated, time-based
+       rAF loop stays interruptible and sleeps offscreen; reduced motion
+       renders static sequential frames.
+       ============================================================ */
     const atmo = document.getElementById("aboutAtmo");
     const worldRGB = {
       motion: [77, 141, 255], interaction: [0, 183, 212], environment: [139, 124, 246],
       experience: [230, 170, 60], people: [232, 112, 90], leadership: [140, 134, 168],
+      interlude: [110, 168, 255],
     };
     let lastAtmo = "";
-    const mixAtmo = () => {
-      if (!atmo || prefersReduced) return;
-      const vh = window.innerHeight;
-      let r = 0, g = 0, b = 0, r2 = 0, g2 = 0, b2 = 0, total = 0;
-      for (const row of actRows) {
-        const rc = row.getBoundingClientRect();
-        const vis = Math.max(0, Math.min(rc.bottom, vh) - Math.max(rc.top, 0));
-        if (vis <= 0) continue;
-        const w = worldRGB[row.dataset.world] || worldRGB.motion;
-        const f = vis / vh;
-        r += w[0] * f; g += w[1] * f; b += w[2] * f;
-        r2 += w[0] * f * 0.5; g2 += w[1] * f * 0.5; b2 += w[2] * f * 0.5;
-        total += f;
+    const setAtmo = world => {
+      if (!atmo) return;
+      let css;
+      if (!world) {
+        css = "radial-gradient(900px 620px at 50% 4%, rgba(77,141,255,0.13), transparent 62%), radial-gradient(700px 480px at 12% 94%, rgba(77,141,255,0.07), transparent 60%)";
+      } else {
+        const w = worldRGB[world] || worldRGB.motion;
+        css = `radial-gradient(900px 620px at 50% 4%, rgba(${w[0]},${w[1]},${w[2]},0.16), transparent 62%), radial-gradient(700px 480px at 12% 94%, rgba(${Math.round(w[0] * 0.6)},${Math.round(w[1] * 0.6)},${Math.round(w[2] * 0.6)},0.09), transparent 60%)`;
       }
-      if (total < 0.03) return; // keep the previous light (prologue / closing)
-      const css = `radial-gradient(900px 620px at 50% 4%, rgba(${Math.round(r / total)},${Math.round(g / total)},${Math.round(b / total)},0.15), transparent 62%), radial-gradient(700px 480px at 12% 94%, rgba(${Math.round(r2 / total)},${Math.round(g2 / total)},${Math.round(b2 / total)},0.08), transparent 60%)`;
       if (css !== lastAtmo) { atmo.style.background = css; lastAtmo = css; }
     };
-    const domIO = new IntersectionObserver(entries => {
-      for (const e of entries) {
-        if (!e.isIntersecting) continue;
-        actRows.forEach(r => r.classList.toggle("is-current", r === e.target));
-      }
-    }, { threshold: 0.55, rootMargin: "0px 0px -18% 0px" });
-    actRows.forEach(r => domIO.observe(r));
 
-    /* --- direct manipulation: every chapter's still leans toward the
-       pointer — velocity-smoothed, springs home on leave (Apple §2) --- */
-    if (!prefersReduced && window.matchMedia("(pointer: fine)").matches) {
-      $$(".about-act__scene").forEach(scene => {
-        const fig = $(".about-figure", scene);
-        if (!fig) return;
-        let lx = 0, ly = 0, tx = 0, ty = 0, lTicking = false;
-        const leanTick = () => {
-          lx += (tx - lx) * 0.09; ly += (ty - ly) * 0.09;
-          if (Math.abs(tx - lx) < 0.05 && Math.abs(ty - ly) < 0.05) { lx = tx; ly = ty; }
-          fig.style.transform = `translate3d(${lx.toFixed(2)}px, ${ly.toFixed(2)}px, 0)`;
-          lTicking = false;
-        };
-        scene.addEventListener("pointermove", e => {
-          const r = scene.getBoundingClientRect();
-          tx = ((e.clientX - r.left) / r.width - 0.5) * 9;
-          ty = ((e.clientY - r.top) / r.height - 0.5) * 6;
-          if (!lTicking) { lTicking = true; requestAnimationFrame(leanTick); }
-        }, { passive: true });
-        scene.addEventListener("pointerleave", () => { tx = 0; ty = 0; if (!lTicking) { lTicking = true; requestAnimationFrame(leanTick); } }, { passive: true });
-      });
-    }
-
-    /* --- experience system: nodes read + the signal travels with scroll --- */
-    const sysList = $(".about-system");
-    if (sysList) {
-      const sysIO = new IntersectionObserver(entries => {
-        for (const e of entries) {
-          if (e.isIntersecting) { e.target.classList.add("is-read"); sysIO.unobserve(e.target); }
-        }
-      }, { threshold: 0.7 });
-      sysList.querySelectorAll("li").forEach(li => sysIO.observe(li));
-      const onSys = () => {
-        if (prefersReduced) return;
-        const r = sysList.getBoundingClientRect();
-        const vh = window.innerHeight;
-        const p = clamp((vh * 0.85 - r.top) / (r.height + vh * 0.4), 0, 1);
-        sysList.style.setProperty("--sysdone", p.toFixed(3));
-      };
-      window.addEventListener("scroll", () => requestAnimationFrame(onSys), { passive: true });
-      window.addEventListener("resize", onSys, { passive: true });
-      onSys();
-    }
-
-    /* --- leadership duo: two visual states --- */
-    const duo = $('.about-act__scene[data-world="leadership"] .about-duo');
-    const leadState = $('.about-act__scene[data-world="leadership"] .about-statement');
-    if (duo) {
-      const duoIO = new IntersectionObserver(entries => {
-        for (const e of entries) {
-          if (e.isIntersecting) { duo.classList.add("is-live"); duoIO.disconnect(); }
-        }
-      }, { threshold: 0.55 });
-      duoIO.observe(duo);
-      if (leadState) {
-        const stIO = new IntersectionObserver(entries => {
-          for (const e of entries) {
-            if (e.isIntersecting) { duo.classList.add("is-state-b"); stIO.disconnect(); }
-          }
-        }, { threshold: 0.45 });
-        stIO.observe(leadState);
-      }
-    }
-
-    /* --- leadership climax: the disciplines converge --- */
-    const converge = $(".about-converge");
-    if (converge) {
-      const cvIO = new IntersectionObserver(entries => {
-        for (const e of entries) {
-          if (e.isIntersecting) { converge.classList.add("is-live"); cvIO.disconnect(); }
-        }
-      }, { threshold: 0.5 });
-      cvIO.observe(converge);
-    }
-
-    /* --- one rAF loop for the remaining scroll scrubbers --- */
-    let aboutTicking = false;
-    const onAboutScroll = () => {
-      onTheater();
-      mixAtmo();
-      aboutTicking = false;
-    };
-    window.addEventListener("scroll", () => {
-      if (aboutTicking) return;
-      aboutTicking = true;
-      requestAnimationFrame(onAboutScroll);
-    }, { passive: true });
-    window.addEventListener("resize", onAboutScroll, { passive: true });
-    onAboutScroll();
-
-    /* --- story compass: number · name · progress · direct navigation --- */
     const compass = document.getElementById("aboutCompass");
     const compassBtn = document.getElementById("aboutCompassBtn");
     const compassList = document.getElementById("aboutCompassList");
     const compassNum = document.getElementById("aboutCompassNum");
     const compassName = document.getElementById("aboutCompassName");
-    const compassFill = document.getElementById("aboutCompassFill");
     const prologue = document.getElementById("prologue");
     const compassIO = new IntersectionObserver(entries => {
       for (const e of entries) {
         if (!compass) continue;
-        compass.hidden = false;
-        compass.classList.toggle("is-show", !e.isIntersecting);
+        if (e.isIntersecting) {
+          compass.classList.remove("is-show");
+          compass.hidden = true;
+        } else {
+          compass.hidden = false;
+          requestAnimationFrame(() => compass.classList.add("is-show"));
+        }
       }
     }, { threshold: 0 });
     if (compass && prologue) compassIO.observe(prologue);
+
+    /* the sheet materializes from its trigger and mirrors the same
+       path on the way out (Apple §7 spatial consistency) */
     if (compassBtn && compassList) {
-      /* the sheet materializes from its trigger and mirrors the same
-         path on the way out (Apple §7 spatial consistency) */
       const openList = () => {
         compassBtn.setAttribute("aria-expanded", "true");
         compassList.hidden = false;
@@ -919,11 +798,6 @@
         if (compassBtn.getAttribute("aria-expanded") === "true") closeList();
         else openList();
       });
-      $$("button[data-act]", compassList).forEach(b => b.addEventListener("click", () => {
-        const act = document.querySelector('.about-act[data-act="' + b.dataset.act + '"]');
-        if (act) act.scrollIntoView({ behavior: prefersReduced ? "auto" : "smooth", block: "start" });
-        closeList();
-      }));
       document.addEventListener("keydown", e => {
         if (e.key === "Escape" && !compassList.hidden) {
           closeList();
@@ -931,42 +805,202 @@
         }
       });
     }
-    const actIO2 = new IntersectionObserver(entries => {
-      for (const e of entries) {
-        if (!e.isIntersecting || !compass) continue;
-        const n = parseInt(e.target.dataset.act, 10) || 1;
-        const num = String(n).padStart(2, "0");
-        compassNum.textContent = num;
-        const nameEl = e.target.querySelector(".about-act__name");
-        compassName.textContent = nameEl ? nameEl.textContent.trim() : num;
-        compassFill.style.transform = `scaleX(${(n / actRows.length).toFixed(3)})`;
+
+    const evo3d = $(".about-evo3d");
+    const evo3dScroll = $(".about-evo3d__scroll");
+    const evo3dCards = $$(".about-evo3d__card");
+    const evo3dImages = $$(".about-evo3d__card .about-evo3d__image");
+    const evo3dShadows = $$(".about-evo3d__shadow");
+    const evo3dCamera = $(".about-evo3d__camera");
+
+    /* compass navigation — seek into the stack */
+    if (compassList) {
+      $$("button[data-act]", compassList).forEach(b => b.addEventListener("click", () => {
+        const idx = parseInt(b.dataset.act, 10) || 1;
+        if (evo3dScroll && evo3dCards.length) {
+          const scrollable = Math.max(evo3dScroll.offsetHeight - window.innerHeight, 1);
+          const top = evo3dScroll.getBoundingClientRect().top + window.scrollY;
+          const cardPoint = idx === 1 ? 0 : (idx - 1) + 0.12;
+          const targetY = Math.max(top + scrollable * (cardPoint / (evo3dCards.length + 1.2)), 0);
+          window.scrollTo({ top: targetY, behavior: prefersReduced ? "auto" : "smooth" });
+        } else {
+          const act = document.querySelector('.about-evo3d__card[data-act="' + b.dataset.act + '"]');
+          if (act) act.scrollIntoView({ behavior: prefersReduced ? "auto" : "smooth", block: "center" });
+        }
+        compassBtn.setAttribute("aria-expanded", "false");
+        compassList.hidden = true;
+      }));
+    }
+
+    if (evo3d && evo3dCards.length && !prefersReduced) {
+      const TOTAL = evo3dCards.length;
+      const CARD_DEPTH = 220, STACK_Y = 26, OPEN_ANGLE = 82, EXIT_Y = 125, EXIT_Z = 460, SCALE_STEP = 0.034;
+      const cN = (v, a, b) => Math.max(a, Math.min(b, v));
+      const easeInOut = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      const easeOut = t => 1 - Math.pow(1 - t, 3);
+      const getProgress = () => {
+        const runway = evo3dScroll || evo3d;
+        const r = runway.getBoundingClientRect();
+        const scrollable = Math.max(runway.offsetHeight - window.innerHeight, 1);
+        return cN(-r.top / scrollable, 0, 1);
+      };
+      const syncCompass = active => {
+        if (!compassNum) return;
+        compassNum.textContent = String(active).padStart(2, "0");
+        const meta = evo3dCards[active - 1].querySelector(".about-evo3d__meta span:last-child");
+        if (compassName) compassName.textContent = meta ? meta.textContent.trim() : String(active).padStart(2, "0");
+      };
+
+      let targetProgress = 0, currentProgress = 0;
+      let stackVisible = false, stackRunning = false;
+      let lastFrame = performance.now();
+      let mouseX = 0, mouseY = 0, cameraX = 0, cameraY = 0;
+      const finePointer = window.matchMedia("(pointer: fine)").matches;
+      if (finePointer) {
+        window.addEventListener("pointermove", e => {
+          mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+          mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+        }, { passive: true });
       }
-    }, { threshold: 0.35, rootMargin: "0px 0px -30% 0px" });
-    actRows.forEach(r => actIO2.observe(r));
-  }
+
+      const animate = now => {
+        if (!stackVisible || document.hidden) {
+          stackRunning = false;
+          return;
+        }
+        const dt = Math.min(Math.max((now - lastFrame) / 1000, 1 / 240), 0.25);
+        lastFrame = now;
+        targetProgress = getProgress();
+        const progressBlend = 1 - Math.exp(-8 * dt);
+        currentProgress += (targetProgress - currentProgress) * progressBlend;
+        const cardProgress = Math.min(currentProgress * (TOTAL + 1.2), TOTAL - 1);
+        const inView = targetProgress > 0.001 && targetProgress < 0.999;
+        const active = cN(Math.floor(cardProgress) + 1, 1, TOTAL);
+        setAtmo(inView ? (evo3dCards[active - 1].dataset.world || null) : null);
+        syncCompass(active);
+
+        evo3dCards.forEach((card, index) => {
+          card.classList.toggle("is-front", index === active - 1);
+          const relative = index - cardProgress;
+          if (relative < -1) {
+            card.style.transform = `translate3d(0, ${-EXIT_Y}vh, ${EXIT_Z}px) rotateX(-${OPEN_ANGLE}deg) rotateY(-6deg) scale(.86)`;
+            card.style.opacity = 0;
+            card.style.filter = "blur(3px)";
+            card.style.zIndex = 0;
+            return;
+          }
+          if (relative >= -1 && relative <= 0) {
+            const raw = Math.abs(relative);
+            const t = easeInOut(raw);
+            card.style.transform = `translate3d(0, ${(-t * EXIT_Y).toFixed(2)}vh, ${(t * EXIT_Z).toFixed(2)}px) rotateX(${(-t * OPEN_ANGLE).toFixed(2)}deg) rotateY(${(-t * 6).toFixed(2)}deg) rotateZ(${(t * 1.5).toFixed(2)}deg) scale(${(1 - t * 0.07).toFixed(4)})`;
+            card.style.opacity = (1 - Math.max(0, t - 0.9) * 10).toFixed(3);
+            card.style.filter = `blur(${Math.max(0, t - 0.8) * 4}px)`;
+            card.style.zIndex = 1000;
+            if (evo3dImages[index]) evo3dImages[index].style.transform = `translateZ(35px) scale(${(1.12 + t * 0.2).toFixed(4)}) translateY(${(t * 7).toFixed(2)}%)`;
+            if (evo3dShadows[index]) {
+              evo3dShadows[index].style.transform = `translateZ(${(-300 + t * 220).toFixed(1)}px) rotateX(72deg) scale(${(1 + t * 0.5).toFixed(4)})`;
+              evo3dShadows[index].style.opacity = (0.72 - t * 0.58).toFixed(3);
+            }
+            return;
+          }
+          if (relative > 0 && relative < 1.5) {
+            const reveal = cN(1 - (relative - 1), 0, 1);
+            const t = easeOut(reveal);
+            card.style.transform = `translate3d(0, ${(STACK_Y - t * STACK_Y).toFixed(2)}px, ${(-CARD_DEPTH + t * CARD_DEPTH).toFixed(2)}px) rotateX(${(0.65 - t * 0.65).toFixed(3)}deg) rotateY(${(-0.35 + t * 0.35).toFixed(3)}deg) scale(${(0.966 + t * 0.034).toFixed(4)})`;
+            card.style.opacity = (0.9 + t * 0.1).toFixed(3);
+            card.style.filter = `blur(${((1 - t) * 1.2).toFixed(2)}px)`;
+            card.style.zIndex = 999;
+            if (evo3dImages[index]) evo3dImages[index].style.transform = `translateZ(35px) scale(${(1.14 - t * 0.02).toFixed(4)})`;
+            return;
+          }
+          const depth = Math.min(relative, 6);
+          card.style.transform = `translate3d(0, ${(depth * STACK_Y).toFixed(2)}px, ${(-depth * CARD_DEPTH).toFixed(2)}px) rotateX(${(depth * 0.65).toFixed(2)}deg) rotateY(${(-depth * 0.35).toFixed(2)}deg) scale(${(1 - depth * SCALE_STEP).toFixed(4)})`;
+          card.style.opacity = Math.max(0, 1 - depth * 0.11).toFixed(3);
+          card.style.filter = `blur(${Math.max(0, depth - 2) * 0.7}px)`;
+          card.style.zIndex = 900 - index;
+          if (evo3dImages[index]) evo3dImages[index].style.transform = "translateZ(35px) scale(1.12)";
+        });
+
+        const cameraBlend = 1 - Math.exp(-3 * dt);
+        cameraX += ((finePointer ? mouseX * 3 : 0) - cameraX) * cameraBlend;
+        cameraY += ((finePointer ? mouseY * -2 : 0) - cameraY) * cameraBlend;
+        if (evo3dCamera) evo3dCamera.style.transform = `rotateX(${cameraY.toFixed(3)}deg) rotateY(${cameraX.toFixed(3)}deg)`;
+        requestAnimationFrame(animate);
+      };
+
+      const startStack = () => {
+        if (stackRunning || !stackVisible || document.hidden) return;
+        targetProgress = getProgress();
+        currentProgress = targetProgress;
+        lastFrame = performance.now();
+        stackRunning = true;
+        requestAnimationFrame(animate);
+      };
+      const stackObserver = new IntersectionObserver(entries => {
+        stackVisible = !!entries[0]?.isIntersecting;
+        if (stackVisible) startStack();
+      }, { rootMargin: "20% 0px", threshold: 0 });
+      stackObserver.observe(evo3dScroll || evo3d);
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) startStack();
+      });
+
+      /* one rAF loop for the remaining scroll scrubbers */
+      let aboutTicking = false;
+      const onAboutScroll = () => {
+        onTheater();
+        aboutTicking = false;
+      };
+      window.addEventListener("scroll", () => {
+        if (aboutTicking) return;
+        aboutTicking = true;
+        requestAnimationFrame(onAboutScroll);
+      }, { passive: true });
+      window.addEventListener("resize", () => { onAboutScroll(); startStack(); }, { passive: true });
+      onAboutScroll();
+    } else {
+      /* no 3D (reduced motion / missing) — quiet scroll scrubbers only */
+      let aboutTicking = false;
+      const onAboutScroll = () => {
+        onTheater();
+        aboutTicking = false;
+      };
+      window.addEventListener("scroll", () => {
+        if (aboutTicking) return;
+        aboutTicking = true;
+        requestAnimationFrame(onAboutScroll);
+      }, { passive: true });
+      window.addEventListener("resize", onAboutScroll, { passive: true });
+      onAboutScroll();
+    }
 
   /* ============================================================
-     MOBILE MENU (≤700px)
+     COMPACT / MOBILE MENU (≤900px)
      ============================================================ */
   const navToggle = $("#navToggle");
   const mobileMenu = $("#mobileMenu");
-  const mobileMQ = window.matchMedia("(max-width: 700px)");
+  const mobileMQ = window.matchMedia("(max-width: 900px)");
   if (navToggle && mobileMenu) {
+    let menuReturnFocus = null;
+    const menuFocusable = () => $$("a[href],button:not([disabled]),[tabindex]:not([tabindex='-1'])", mobileMenu)
+      .filter(el => !el.hidden && el.getClientRects().length);
     const setMenu = open => {
       const isOpen = navToggle.getAttribute("aria-expanded") === "true";
       if (open === isOpen) return;
       navToggle.setAttribute("aria-expanded", String(open));
       navToggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
       if (open) {
+        menuReturnFocus = document.activeElement;
         mobileMenu.hidden = false;
         document.body.style.overflow = "hidden";
         requestAnimationFrame(() => requestAnimationFrame(() => mobileMenu.classList.add("is-open")));
-        const firstLink = $("a", mobileMenu);
-        if (firstLink) firstLink.focus({ preventScroll: true });
+        const first = menuFocusable()[0];
+        if (first) first.focus({ preventScroll: true });
       } else {
         mobileMenu.classList.remove("is-open");
         document.body.style.overflow = "";
         setTimeout(() => { if (!mobileMenu.classList.contains("is-open")) mobileMenu.hidden = true; }, 450);
+        if (menuReturnFocus && typeof menuReturnFocus.focus === "function") menuReturnFocus.focus({ preventScroll: true });
       }
     };
     navToggle.addEventListener("click", () => setMenu(navToggle.getAttribute("aria-expanded") !== "true"));
@@ -974,7 +1008,14 @@
     if (mobileClose) mobileClose.addEventListener("click", () => setMenu(false));
     $$("a", mobileMenu).forEach(a => a.addEventListener("click", () => setMenu(false)));
     document.addEventListener("keydown", e => {
-      if (e.key === "Escape") setMenu(false);
+      if (e.key === "Escape") { setMenu(false); return; }
+      if (e.key === "Tab" && navToggle.getAttribute("aria-expanded") === "true") {
+        const items = menuFocusable();
+        if (!items.length) return;
+        const first = items[0], last = items[items.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
     });
     /* leaving the mobile breakpoint closes the menu */
     mobileMQ.addEventListener?.("change", () => { if (!mobileMQ.matches) setMenu(false); });
@@ -1030,36 +1071,6 @@
     window.addEventListener("resize", arenaHeroPast, { passive: true });
     arenaHeroPast();
 
-    /* custom cursor (fine pointers, no reduced motion) */
-    if (window.matchMedia("(pointer: fine)").matches && !reduced) {
-      const dot = document.createElement("div");
-      dot.className = "arena-cur-dot";
-      const ring = document.createElement("div");
-      ring.className = "arena-cur-ring";
-      const label = document.createElement("div");
-      label.className = "arena-cur-label";
-      document.body.append(dot, ring, label);
-      if (aboutRoot) document.body.classList.add("about-cur");
-      let mx = innerWidth / 2, my = innerHeight / 2, rx = mx, ry = my;
-      document.addEventListener("pointermove", e => {
-        mx = e.clientX; my = e.clientY;
-        const t = e.target.closest("[data-cur]");
-        if (t) {
-          ring.classList.add("is-label");
-          label.textContent = t.dataset.cur;
-        } else ring.classList.remove("is-label");
-        const hot = e.target.closest("a, button, [role='button'], input, select, textarea");
-        ring.classList.toggle("is-hover", !!hot && !ring.classList.contains("is-label"));
-      }, { passive: true });
-      (function curLoop() {
-        rx += (mx - rx) * 0.18;
-        ry += (my - ry) * 0.18;
-        dot.style.transform = "translate(" + mx + "px," + my + "px) translate(-50%,-50%)";
-        ring.style.transform = "translate(" + rx + "px," + ry + "px) translate(-50%,-50%)";
-        label.style.transform = "translate(" + rx + "px," + ry + "px) translate(-50%,-50%)";
-        requestAnimationFrame(curLoop);
-      })();
-    }
   }
 
 })();

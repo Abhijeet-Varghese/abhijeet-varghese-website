@@ -1,8 +1,8 @@
 /* ============================================================
-   AV OS — live editing views (loaded last, overrides shells)
-   Navigation (menu + footer + copyright), Page layout editor
-   (blocks), Settings (favicon/logo upload + save), real publish.
-   Every change flows: store → API → site.json → publish → live site.
+   AV OS — canonical live editing views
+   Navigation (menu + footer + copyright), page layout editor,
+   settings/media uploads and real publishing.
+   Every change flows: store → API → MySQL → publish → live site.
    ============================================================ */
 (() => {
   const { icon, toast, modal, confirmDlg, esc, $, $$ } = AV.ui;

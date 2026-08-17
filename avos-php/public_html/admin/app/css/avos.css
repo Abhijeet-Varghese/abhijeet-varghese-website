@@ -433,9 +433,6 @@ a {
 .card__body {
  padding: 16px 18px; 
 }
-.card__foot {
- padding: 12px 18px; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 10px; 
-}
 /* ---------- Stat card ---------- */
 .stat {
 
@@ -455,18 +452,6 @@ a {
 }
 .stat__icon svg {
  width: 17px; height: 17px; 
-}
-.stat__trend {
-
-  display: inline-flex; align-items: center; gap: 4px;
-  font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
-
-}
-.stat__trend.up {
- color: var(--ok); background: var(--ok-soft); 
-}
-.stat__trend.down {
- color: var(--danger); background: var(--danger-soft); 
 }
 .stat__value {
  font-size: clamp(1.6rem, 1.3rem + 1vw, 2.1rem); font-weight: 600; letter-spacing: -0.03em; line-height: 1; 
@@ -1073,10 +1058,6 @@ a {
 }
 .rich__toolbar svg {
  width: 15px; height: 15px; 
-}
-/* analytics */
-.chart-svg {
- width: 100%; height: auto; 
 }
 /* AI studio */
 .ai-chat {

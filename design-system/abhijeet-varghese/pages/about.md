@@ -1,100 +1,148 @@
-# ABOUT / STORY — Page-Specific Design System Overrides
+# ABOUT / STORY — Page-Specific Design System Override
 
-> Source: ui-ux-pro-max-skill design-system workflow · page override for MASTER.md
 > Project: Abhijeet Varghese — experience-led digital portrait
-> Rev: r3 — "THE LONG TAKE" (2026-08-14) — full from-scratch rebuild
+> Live line: v2.4.20 · “The Long Take”
+> Updated: 2026-08-16 — First Frame hero redesign
 
-## Tuning
-- **Variance:** 10/10 · **Motion:** 10/10 · **Density:** 3/10
-- Intent: one continuous cinematic canvas. The page is a single film —
-  never a stack of sections. Highly art-directed, spacious, editorial,
-  premium; zero template aesthetics.
+## Creative intent
 
-## The Concept — the layout enacts the story
-"The frame kept getting bigger" is PHYSICAL: the page opens inside a film
-aperture (corner ticks, reel tag, letterbox bars) → expands into an
-asymmetric editorial spread (portrait bleeding off the right edge) → six
-full-bleed reel chapters whose stills bleed alternately left/right → house
-lights up for the credits. Composition = narrative.
+- **Variance:** 10/10
+- **Motion:** 10/10 with complete reduced-motion fallbacks
+- **Density:** 3/10
+- The page is one cinematic canvas: premium, spacious, editorial and authored—not a stack of portfolio templates.
 
-## Continuous Canvas (fixed layers, in z-order)
+## Dual-skill synthesis
+
+Applied `ui-ux-pro-max` and `apple-design` together:
+
+- UI/UX Pro Max supplied the scroll-storytelling pattern, high variance/high motion/low density dials, responsive edge matrix, focus-not-obscured checks and natural text-layout requirements.
+- The generated Brutalism/pink recommendation was rejected as off-brand; recommendations are evidence, not commands. The approved navy/paper/azure identity remains authoritative.
+- Apple principles guide purpose, agency, familiarity, simplicity, craft and delight.
+- Liquid Glass is limited to functional chrome (navigation and compass); card copy uses a denser standard content material.
+- Motion is interruptible, time-based, reduced-motion safe, offscreen-gated and frame-rate independent.
+- Fixed chrome is compensated by scroll padding; focus remains visible and mobile navigation traps/restores focus.
+
+## The concept
+
+“The frame kept getting bigger” is physical:
+
+1. **The First Frame** opens as an editorial film title: nested blueprint frames, three typographic beats, concise context, discipline rail and an invitation into the story.
+2. The identity spread moves from biography to proof.
+3. The zoom-out expands frame → interaction → environment → experience.
+4. Eight 3D film cards turn six career chapters and two interludes into one scroll sequence.
+5. Quiet paper/dark editorial movements resolve the story into practice, current focus and contact.
+
+## Hero — The First Frame
+
+### Composition
+
+- Deep ink projection field with restrained electric-blue/violet light.
+- Fine technical grid and three nested frames establish scale without adding imagery.
+- Metadata rail: `About / The First Frame` and `2014 — Now`.
+- H1 is three beats:
+  - `I DIDN'T`
+  - `START OUT`
+  - `DESIGNING EXPERIENCES.` in outlined Instrument Serif.
+- A concise authored line explains the VFX/animation origin and the eventual zoom-out.
+- Four disciplines form a quiet dotted rail rather than decorative pills.
+- `Enter the story` is the single directional action.
+- The role crawl remains a low-volume cinematic baseline.
+
+### Behaviour
+
+- Three title lines separate at progressively deeper scroll rates.
+- Blueprint/frame breathing is ambient only and disabled under reduced motion.
+- The Story compass remains hidden for the entire hero and appears only after it leaves the viewport.
+- No image is used in the hero; the identity portrait remains exclusive to the following spread.
+- No custom cursor. Native system cursors remain visible everywhere.
+
+### Responsive rules
+
+- Desktop: full-height composition, asymmetric context at upper right and discipline rail at the base.
+- Tablet: context drops below the title and the frame expands beyond the container.
+- Phone portrait: metadata simplifies, title remains three beats, disciplines become a two-column rail.
+- Phone landscape (≤700×480): metadata, disciplines and crawl are removed; title, context and CTA fit within exactly one viewport.
+- Short tablet/desktop landscape: disciplines and crawl are removed; context stays right and CTA stays lower left.
+
+## Continuous canvas
+
 | Layer | Behaviour |
 |---|---|
-| `.about-atmo` (z0) | world-light, **continuously mixed** per viewport overlap — never hard-switched |
-| `.about-reel` (z0) | 12 chapter stills (grayscale, 0.11) advancing with scroll progress |
-| `.about-grain` (z45) | SVG fractal-noise film grain, opacity .05 |
-| sections (z1) | dark = transparent (canvas shows); light = paper at .965 |
-| nav / compass / cursor | 100 / 90 / 9990 |
+| `.about-atmo` | Fixed world light; colour follows the active chapter |
+| `.about-reel` | Decorative fixed reel using six dedicated About stills twice |
+| `.about-grain` | Low-opacity film grain; pointer-events disabled |
+| content sections | Dark projection surfaces alternate with warm paper |
+| navigation / compass | Site chrome above the canvas; no cursor overlay |
 
-## Experience Arc (emotional sequence)
-ARRIVAL (theater) → CURIOSITY (aperture) → IDENTITY (spread) →
-UNDERSTANDING (stats bridge) → DISCOVERY (six reel chapters) →
-REALIZATION (intertitles) → POSITIONING (converge) → FUTURE (now) →
-CONNECTION (credits) → fin.
+## Visual worlds
 
-## Visual Worlds (light enters the room — scroll-interpolated)
-| Scene | World | RGB |
+| Card | World | Accent |
 |---|---|---|
-| Prologue | deep ink | — |
-| 01 Motion | electric blue | 77,141,255 |
-| 02 Interaction | cyan | 0,183,212 |
-| 03 Environment | indigo/violet | 139,124,246 |
-| 04 Experience | amber | 230,170,60 |
-| 05 People | coral | 232,112,90 |
-| 06 Leadership | graphite-lavender | 140,134,168 |
-| Credits | paper (house lights) | — |
+| 01 Motion | electric blue | `#4D8DFF` |
+| 02 Interaction | cyan | `#00B7D4` |
+| 03 Environment | violet | `#8B7CF6` |
+| 04 Experience | amber | `#E6AA3C` |
+| 05 People | coral | `#E8705A` |
+| 06 Creative Leadership | graphite lavender | `#9A93B8` |
+| 07–08 Interludes | projection blue | `#6EA8FF` |
+| Credits | warm paper | — |
 
-## Spatial System
-- `--edge`: container→viewport offset (auto-computed) — stills bleed
-  EXACTLY to the screen edge, alternating sides per chapter (odd right,
-  even left).
-- Sticky chapter rail (top 106px) inside scenes — the sheet is a CSS
-  **subgrid** spanning both scene tracks so the head is a true 250px
-  side rail beside the body (never a full-width banner); the spring
-  panel uses `overflow-y: clip; overflow-x: visible` so vertical clip
-  never cuts the horizontal still bleeds nor kills sticky.
-- Layout integrity is machine-checked: layout_audit.js opens all six
-  chapters at 390/768/1024/1281/1440/1920 and asserts 0 overflow,
-  6/6 rails, flush+ painted bleeds (hit-test), title/content inside the
-  aperture, compass clear of the nav (drops below nav on tablets, docks
-  at the bottom on phones).
-- Ghost numerals: scene-painted via `::before { content: attr(data-num) }`
-  so the `.about-act__ghost` span stays inert (0×0, z0, display none).
+## 3D stack
 
-## Signature Interactions
-1. THEATER: letterbox bars lift, aperture breathes + fades, title lines
-   drift at different speeds (rAF).
-2. THE ZOOM-OUT: 1.08 overscan → pull-back scrub with depth-memory ghosts,
-   labels 01 Frame → 04 Experience.
-3. SPRING ACCORDION: critically damped height spring (response .52s,
-   damping 1.0), interruptible, velocity handoff; single-open; auto-unfold
-   on scroll pause (desktop only, manual exploration wins).
-4. SIGNAL CHAIN: STORY→REALITY line travels with scroll (--sysdone),
-   nodes light `is-read`.
-5. FILMSTRIP: scroll-advanced reel with sprocket strips (no CSS loop).
-6. COMPASS: museum pill, materialArrive, chapter num/name/progress.
-7. CURSOR: reticle with EXPLORE/OPEN labels (fine pointers only).
+- Full-viewport sticky stage; world capped at 1250×720px.
+- Cards hinge from the lower edge.
+- Chapter content sits in a bottom glass plate.
+- Interludes remain glass-free and vertically centred.
+- Card 08 receives a final hold.
+- Compact landscape receives a taller world and tighter internal spacing.
+- Reduced motion converts all eight cards into static sequential frames.
+- The animation loop sleeps offscreen and while the document is hidden.
 
-## Tokens (about-page scoped)
-- `--track-display -0.055em · --track-head -0.04em · --track-body 0`
-- `--lead-display .94 · --lead-head 1.02 · --lead-body 1.75`
-- `--ease-out cubic-bezier(.16,1,.3,1)` · press feedback 100ms on
-  pointer-down (never on release)
-- Type: Inter Tight 700 display / Instrument Serif italic statements /
-  Inter Tight body 16.5px/1.75
-- Radii 4–14px · hairlines · one accent per world (--world)
+## Typography
 
-## Image System
-- Dedicated namespace: /assets/about/ (about-motion, about-experience,
-  about-environment, about-people, about-leadership, about-credits) —
-  NO recycling from any other page; only hero-portrait.webp (approved
-  identity asset) is reused.
-- The reel reuses the same six stills as background-image (decorative,
-  grayscale, 0.11).
+- Display/body: **Inter Tight**
+- Editorial statements: **Instrument Serif**
+- Brand/chrome: **Poppins**
+- Pondar must not appear in runtime output.
+- Display tracking: approximately `-0.055em` to `-0.062em`.
+- Body copy maintains a readable measure and at least 1.6 line-height.
+
+## Image system
+
+- Dedicated namespace: `/assets/about/`.
+- Approved chapter stills: motion, experience, environment, people, leadership and credits.
+- The identity portrait may reuse `hero-portrait.webp` in the identity spread only.
+- No case-study, essay, journal or working-session imagery is recycled into the About narrative.
+
+## Accessibility and interaction
+
+- One H1 with a logical H2/H3 hierarchy.
+- Native scrolling; no scroll hijack.
+- Native cursor only; no `cursor:none` or cursor overlays.
+- Visible focus states and keyboard-operable compass/mobile navigation.
+- Minimum 44px primary touch targets.
+- WCAG AA contrast target.
+- `prefers-reduced-motion`, `prefers-reduced-transparency` and `prefers-contrast` respected.
+- Page remains readable without JavaScript.
+
+## Certification matrix
+
+Verify at minimum:
+
+- 280×653, 320×480, 320×568, 360×640, 390×844
+- 568×320, 667×375, 844×390, 1024×600, 1366×640
+- 768×1024, 834×1112, 1024×768
+- 1280, 1366, 1440, 1536, 1680, 1920 and 2560 widths
+- 3440×1440 and 3840×2160
+
+For every size: zero horizontal overflow, complete H1, context inside the hero, CTA reachable, hero compass hidden, all eight evolution cards present and closing sections contained.
 
 ## Non-negotiables
-- Native scroll (no hijack) · reduced-motion = final states visible ·
-  content readable without JS · contrast 4.5:1 (marquee crawl, labels) ·
-  visible focus · keyboard nav · no horizontal overflow (390px checked) ·
-  menu + footer identical to homepage · compass museum-like · cursor
-  desktop-only · axe 0 violations on the open scene.
+
+- No custom cursor or `data-cur` remnants.
+- No Pondar font references.
+- Portfolio remains in desktop navigation, mobile navigation and footer.
+- Navigation and footer remain identical to the homepage.
+- No fabricated clients, outcomes, awards or statistics.
+- Source, template and published output remain synchronised.
+- About QA, responsive, axe and link audits remain green.

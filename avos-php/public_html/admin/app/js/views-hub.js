@@ -2,12 +2,10 @@
    AV OS v2.4 — INTEGRATION HUB + DATA INTELLIGENCE VIEWS
    Integration Command Center · Research engine · Knowledge
    graph + truth layer · Social hub + trackable links.
-   Loaded last (after views-live.js) — replaces the legacy
-   "integrations" view with the full command center.
+   Loaded after the core views and owns the integrations command center.
    ============================================================ */
 (() => {
   const { icon, toast, modal, confirmDlg, esc, $, $$ } = AV.ui;
-  const S = AV.store;
   const R = AV.router;
   const api = AV.api;
 

@@ -24,16 +24,6 @@
         stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${off}"/>
     </svg>`;
   };
-  const areaChart = (data, w = 520, h = 150) => {
-    const max = Math.max(...data);
-    const pts = data.map((v, i) => `${(i / (data.length - 1)) * w},${h - (v / max) * (h - 10) - 5}`).join(" ");
-    return `<svg class="chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="height:150px;width:100%" aria-hidden="true">
-      <defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.25"/><stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>
-      <polygon points="0,${h} ${pts} ${w},${h}" fill="url(#ag)"/>
-      <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>`;
-  };
   const statusChip = s => {
     const map = { published: ["ok", "Published"], draft: ["warn", "Draft"], hidden: ["muted", "Hidden"], scheduled: ["accent", "Scheduled"], review: ["warn", "In review"], archived: ["muted", "Archived"], contacted: ["accent", "Contacted"], qualified: ["warn", "Qualified"], meeting: ["ok", "Meeting"], new: ["accent", "New"] };
     const [cls, label] = map[s] || ["muted", s];
@@ -552,123 +542,6 @@
     render();
   });
 
-  /* ============ PAGES ============ */
-  R.register("pages", () => `
-    <div class="view__head">
-      <div><h1 class="view__title">Pages</h1>
-      <p class="view__desc">Every page of the site — templates, SEO health and publishing state.</p></div>
-      <div class="view__head-actions"><button class="btn btn--primary" data-new-page>${icon("plus")} New page</button></div>
-    </div>
-    <div class="card" style="overflow:auto">
-      <table class="table">
-        <thead><tr><th>Page</th><th>Slug</th><th>Template</th><th>SEO</th><th>Status</th><th>Updated</th><th></th></tr></thead>
-        <tbody id="pagesBody"></tbody>
-      </table>
-    </div>`);
-  R.after("pages", view => {
-    const render = () => {
-      $("#pagesBody", view).innerHTML = S.get("pages").map(pg => `
-        <tr>
-          <td><p class="cell-main">${esc(pg.title)}</p></td>
-          <td style="font-family:ui-monospace,monospace;font-size:12px;color:var(--ink-3)">${esc(pg.slug)}</td>
-          <td><span class="chip chip--muted">${esc(pg.template)}</span></td>
-          <td><span style="font-weight:700;color:${pg.seo >= 90 ? "var(--ok)" : "var(--warn)"}">${pg.seo}</span></td>
-          <td>${statusChip(pg.status)}</td>
-          <td style="color:var(--ink-3);font-size:12px">${esc(pg.updated)}</td>
-          <td><div style="display:flex;gap:4px">
-            <button class="icon-btn" style="width:30px;height:30px" data-edit="${pg.id}" title="Edit">${icon("pen", 14)}</button>
-            <button class="icon-btn" style="width:30px;height:30px" data-del="${pg.id}" title="Delete">${icon("trash", 14)}</button>
-          </div></td>
-        </tr>`).join("");
-      $$("[data-edit]", $("#pagesBody", view)).forEach(b => b.addEventListener("click", () => editPage(S.get("pages").find(x => x.id === b.dataset.edit), render)));
-      $$("[data-del]", $("#pagesBody", view)).forEach(b => b.addEventListener("click", () => confirmDlg("Delete page?", "The page and its URL will be removed.", () => {
-        S.set("pages", S.get("pages").filter(x => x.id !== b.dataset.del));
-        toast("Page deleted"); render();
-      })));
-    };
-    const editPage = (pg, rerender) => {
-      const m = modal({
-        title: "Edit page",
-        body: `
-          <div class="field"><label>Title</label><input class="f-t" value="${esc(pg.title)}"></div>
-          <div class="field" style="margin-top:12px"><label>Slug</label><input class="f-s" value="${esc(pg.slug)}"></div>
-          <div class="field-row" style="margin-top:12px">
-            <div class="field"><label>Template</label><select class="f-tpl">${["Home", "Page", "Contact", "Blog Index"].map(t => `<option ${pg.template === t ? "selected" : ""}>${t}</option>`).join("")}</select></div>
-            <div class="field"><label>Status</label><select class="f-st">${["published", "draft", "scheduled", "hidden"].map(t => `<option ${pg.status === t ? "selected" : ""}>${t}</option>`).join("")}</select></div>
-          </div>`,
-        actions: `<button class="btn btn--ghost" data-c>Cancel</button><button class="btn btn--primary" data-save>Save</button>`
-      });
-      $("[data-c]", m.el).addEventListener("click", m.close);
-      $("[data-save]", m.el).addEventListener("click", () => {
-        Object.assign(pg, { title: $(".f-t", m.el).value, slug: $(".f-s", m.el).value, template: $(".f-tpl", m.el).value, status: $(".f-st", m.el).value });
-        S.save(); toast("Page saved"); m.close(); rerender();
-      });
-    };
-    $("[data-new-page]", view).addEventListener("click", () => {
-      const m = modal({
-        title: "New page",
-        body: `
-          <div class="field"><label>Title</label><input class="f-t" placeholder="e.g. Speaking"></div>
-          <div class="field" style="margin-top:12px"><label>Slug</label><input class="f-s" placeholder="/speaking"></div>
-          <div class="field" style="margin-top:12px"><label>Template</label><select class="f-tpl"><option>Page</option><option>Home</option><option>Contact</option><option>Blog Index</option></select></div>`,
-        actions: `<button class="btn btn--ghost" data-c>Cancel</button><button class="btn btn--primary" data-s>Create page</button>`
-      });
-      $("[data-c]", m.el).addEventListener("click", m.close);
-      $("[data-s]", m.el).addEventListener("click", () => {
-        S.set("pages", [...S.get("pages"), { id: "p-" + Date.now(), title: $(".f-t", m.el).value, slug: $(".f-s", m.el).value, template: $(".f-tpl", m.el).value, status: "draft", seo: 70, updated: "Just now" }]);
-        toast("Page created"); m.close(); render();
-      });
-    });
-    render();
-  });
-
-  /* ============ NAVIGATION ============ */
-  R.register("navigation", () => `
-    <div class="view__head">
-      <div><h1 class="view__title">Navigation</h1>
-      <p class="view__desc">Primary menu, footer columns and mobile menu — order and labels update the live site.</p></div>
-      <div class="view__head-actions"><button class="btn btn--primary" data-add-nav>${icon("plus")} Add link</button></div>
-    </div>
-    <div class="grid grid-2">
-      <div class="card">
-        <div class="card__head"><p class="card__title">Primary menu</p><span class="chip chip--muted">4 items</span></div>
-        <div class="card__body" id="navPrimary"></div>
-      </div>
-      <div class="card">
-        <div class="card__head"><p class="card__title">Footer columns</p><span class="chip chip--muted">4 columns</span></div>
-        <div class="card__body" id="navFooter"></div>
-      </div>
-    </div>`);
-  R.after("navigation", view => {
-    const primary = [
-      { id: "n1", label: "Story", href: "/story" }, { id: "n2", label: "Experience", href: "/experience" },
-      { id: "n3", label: "Case Studies", href: "/case-studies" }, { id: "n4", label: "Start a conversation", href: "/contact", cta: true }
-    ];
-    const footer = [
-      { col: "Menu", items: ["Story", "Experience", "Case Studies", "Start a conversation", "Download résumé"] },
-      { col: "Resources", items: ["Insights", "Journal", "Sitemap", "For Recruiters", "Consulting"] },
-      { col: "Social", items: ["LinkedIn", "Instagram", "WhatsApp", "YouTube", "Behance"] },
-      { col: "Legal", items: ["Privacy Policy", "Terms"] }
-    ];
-    $("#navPrimary", view).innerHTML = primary.map(n => `
-      <div class="section-row" style="margin-bottom:8px">
-        <span class="section-row__grip">${icon("grip")}</span>
-        <div style="min-width:0"><p class="section-row__name">${esc(n.label)}</p><p class="section-row__id">${esc(n.href)}</p></div>
-        ${n.cta ? `<span class="chip chip--accent">CTA</span>` : ""}
-        <div class="section-row__actions">
-          <button data-move="up">${icon("up")}</button><button data-move="down">${icon("down")}</button>
-          <button class="danger" data-del>${icon("trash")}</button>
-        </div>
-      </div>`).join("");
-    $("#navFooter", view).innerHTML = footer.map(f => `
-      <div style="border-bottom:1px solid var(--line);padding:10px 0">
-        <p style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-4);margin-bottom:6px">${esc(f.col)}</p>
-        ${f.items.map(it => `<p style="font-size:13px;color:var(--ink-2);padding:3px 0">${esc(it)}</p>`).join("")}
-      </div>`).join("");
-    $("[data-add-nav]", view).addEventListener("click", () => toast("Link added to draft — publish to go live", "accent"));
-    $$("[data-del]", $("#navPrimary", view)).forEach(b => b.addEventListener("click", () => toast("Link removed — publish to apply")));
-  });
-
   /* ============ PROJECTS ============ */
   R.register("projects", (p) => p?.id || p?.action === "new" ? projectEditorHTML(p?.id ? S.get("projects").find(x => x.id === p.id) : null) : `
     <div class="view__head">
@@ -739,7 +612,7 @@
     <div class="editor">
       <div class="editor__main">
         <div class="card" style="padding:20px">
-          <div class="field"><label>Title <span class="req">*</span></label><input class="f-title" value="${esc(proj.title)}" placeholder="e.g. Enterprise Technology, Made Understandable"></div>
+          <div class="field"><label>Title <span class="req">*</span></label><input class="f-title" value="${esc(proj.title)}" placeholder="e.g. Orange Business New Executive Briefing Center"></div>
           <div class="field-row" style="margin-top:14px">
             <div class="field"><label>Client</label><input class="f-client" value="${esc(proj.client)}"></div>
             <div class="field"><label>Industry</label><input class="f-industry" value="${esc(proj.industry)}"></div>

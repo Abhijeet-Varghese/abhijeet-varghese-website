@@ -53,13 +53,17 @@ const WIDTHS = [390, 768, 1024, 1281, 1440, 1920];
           noRail: !document.querySelector('.about-evo3d__rail'),
         };
       }
-      // compass vs nav (two-axis)
+      // compass vs the actual shared nav material (after the hero reveals it)
+      window.scrollTo(0, Math.min(window.innerHeight * 1.2, document.documentElement.scrollHeight - window.innerHeight));
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       const comp = document.querySelector('.about-compass');
-      const navLinks = document.querySelector('.site-nav__inner .nav-links');
-      if (comp && navLinks) {
-        const cr = R(comp), nr = R(navLinks);
-        const overlap = !(cr.right < nr.left || cr.left > nr.right) && !(cr.bottom < nr.top || cr.top > nr.bottom) && vw > 700;
-        out.compass = { withinViewport: cr.right <= vw + 1 && cr.left >= 0, overlapsNav: overlap && vw >= 701 && vw <= 1100 };
+      const navBar = document.querySelector('.site-nav__inner');
+      if (comp && navBar && !comp.hidden && getComputedStyle(comp).display !== 'none') {
+        const cr = R(comp), nr = R(navBar);
+        const overlap = !(cr.right < nr.left || cr.left > nr.right) && !(cr.bottom < nr.top || cr.top > nr.bottom);
+        out.compass = { withinViewport: cr.right <= vw + 1 && cr.left >= 0, overlapsNav: overlap };
+      } else {
+        out.compass = { withinViewport: true, overlapsNav: false };
       }
       // credits centered
       const ci = document.querySelector('.about-credits__inner');
@@ -93,4 +97,5 @@ const WIDTHS = [390, 768, 1024, 1281, 1440, 1920];
   }
   console.log(issues.length ? 'LAYOUT ISSUES:\n' + issues.join('\n') : 'LAYOUT AUDIT: ALL CLEAN');
   await browser.close();
+  process.exit(issues.length ? 1 : 0);
 })();

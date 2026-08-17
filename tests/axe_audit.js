@@ -5,8 +5,9 @@ const axe = require('axe-core');
 const fs = require('fs');
 
 const BASE = process.argv[2] || 'http://127.0.0.1:8092';
-const PAGES = ['/', '/story.html', '/experience.html', '/case-studies.html', '/insights.html',
-  '/journal.html', '/consulting.html', '/contact.html', '/for-recruiters.html', '/privacy-policy.html', '/terms.html', '/search.html'];
+const PAGES = ['/', '/story.html', '/experience.html', '/case-studies.html', '/portfolio.html', '/insights.html',
+  '/journal.html', '/consulting.html', '/contact.html', '/for-recruiters.html', '/privacy-policy.html', '/terms.html', '/search.html',
+  '/experience-design/orange-business-executive-briefing-center/'];
 
 (async () => {
   const browser = await chromium.launch();

@@ -275,7 +275,7 @@
   R.after("knowledge", view => {
     const resultsBox = $("#kbResults", view);
     const kb = [
-      { type: "Project", title: "Enterprise Technology, Made Understandable", excerpt: "Orange Business — creative direction and experience strategy for enterprise technology platforms.", tags: "enterprise technology creative direction" },
+      { type: "Project", title: "Orange Business New Executive Briefing Center", excerpt: "Orange Business — experience strategy and creative technology for a connected physical-digital executive environment.", tags: "experience strategy creative technology executive briefing center" },
       { type: "Project", title: "Intuitive Experiences for Industrial Environments", excerpt: "BPCL — design strategy for safety-critical industrial operations.", tags: "enterprise industrial safety" },
       { type: "Project", title: "Immersive Solutions for the Indian Army", excerpt: "Immersive storytelling and visualization pipelines for defence.", tags: "defence immersive leadership" },
       { type: "Project", title: "The Virtual Life", excerpt: "An AI-crafted narrative world exploring emotional weight in generated media.", tags: "ai narrative future" },
@@ -679,113 +679,6 @@
     load();
   });
 
-  R.register("integrations", () => `
-    <div class="view__head">
-      <div><h1 class="view__title">Integrations</h1>
-      <p class="view__desc">Real connection status — AI providers (keys encrypted at rest), Calendly inbound, SMTP delivery, webhooks.</p></div>
-    </div>
-    <div class="card" style="margin-bottom:14px">
-      <div class="card__head"><p class="card__title">AI providers</p><span class="chip chip--muted">keys encrypted at rest · never shown again</span></div>
-      <div class="card__body" id="aiProvList"></div>
-    </div>
-    <div class="card" style="margin-bottom:14px">
-      <div class="card__head"><p class="card__title">Calendly</p></div>
-      <div class="card__body">
-        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-          <span class="chip" id="calStatus">…</span>
-          <code id="calUrl" style="font-size:11.5px;background:var(--surface-3);padding:6px 10px;border-radius:7px"></code>
-          <a class="btn btn--sm btn--soft" data-go-platform>Manage signing key →</a>
-        </div>
-      </div>
-    </div>
-    <div class="card" style="margin-bottom:14px">
-      <div class="card__head"><p class="card__title">SMTP email delivery</p><span class="chip chip--muted" id="smtpStatus">—</span></div>
-      <div class="card__body">
-        <div class="grid grid-2" style="gap:10px">
-          <div class="field"><label>Host</label><input id="smHost" placeholder="smtp.example.com"></div>
-          <div class="field"><label>Port</label><input id="smPort" type="number" value="587"></div>
-        </div>
-        <div class="grid grid-2" style="gap:10px;margin-top:10px">
-          <div class="field"><label>Encryption</label><select id="smEnc"><option value="tls">STARTTLS (587)</option><option value="ssl">SSL (465)</option><option value="none">None (test)</option></select></div>
-          <div class="field"><label>Username</label><input id="smUser" autocomplete="off"></div>
-        </div>
-        <div class="grid grid-2" style="gap:10px;margin-top:10px">
-          <div class="field"><label>Password <span class="hint">(blank keeps existing)</span></label><input id="smPass" type="password" autocomplete="new-password"></div>
-          <div class="field"><label>From address</label><input id="smFrom" placeholder="no-reply@abhijeetvarghese.com"></div>
-        </div>
-        <div class="field" style="margin-top:10px"><label>Reply-To (optional)</label><input id="smReply" placeholder="hi@abhijeetvarghese.com"></div>
-        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-          <button class="btn btn--primary" data-sm-save>${icon("save", 13)} Save</button>
-          <button class="btn btn--soft" data-sm-test>${icon("send", 13)} Send test email</button>
-        </div>
-      </div>
-    </div>`);
-  R.after("integrations", view => {
-    const loadProviders = async () => {
-      const r = await AV.api.get("/api/ai/providers");
-      if (!r.ok) return;
-      const cfg = (r.data && r.data.configured) || [];
-      $("#aiProvList", view).innerHTML = cfg.map(p => `
-        <div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)">
-          <span style="font-weight:600;width:110px;font-size:13.5px">${esc(p.label)}</span>
-          <code style="font-size:11.5px;color:var(--ink-4);flex:1">${esc(p.model)}</code>
-          <span class="chip ${p.has_key ? "chip--ok" : "chip--warn"}">${p.has_key ? "key set ✓" : "no key"}</span>
-          <button class="btn btn--sm btn--soft" data-ai-key="${esc(p.code)}" data-ai-label="${esc(p.label)}">${icon("key", 12)} Configure</button>
-        </div>`).join("");
-      $$("[data-ai-key]", view).forEach(b => b.addEventListener("click", () => {
-        const m = modal({
-          title: `API key — ${esc(b.dataset.aiLabel)}`,
-          body: `<p style="font-size:12px;color:var(--ink-3);margin-bottom:10px">The key is encrypted at rest and never shown again after saving.</p>
-                 <div class="field"><label>API key</label><input type="password" class="f-key" autocomplete="off"></div>
-                 <div class="field" style="margin-top:10px"><label>Model (optional)</label><input class="f-model" placeholder="leave blank to keep default"></div>`,
-          actions: `<button class="btn btn--ghost" data-c>Cancel</button><button class="btn btn--primary" data-s>Save key</button>`
-        });
-        $("[data-c]", m.el).addEventListener("click", m.close);
-        $("[data-s]", m.el).addEventListener("click", async () => {
-          const r = await AV.api.send("/api/ai/providers/" + b.dataset.aiKey, "PUT", { api_key: $(".f-key", m.el).value.trim(), model: $(".f-model", m.el).value.trim() });
-          if (r.ok) { toast("Key saved (encrypted)"); m.close(); loadProviders(); }
-          else toast("Save failed", "error");
-        });
-      }));
-    };
-    const loadCal = async () => {
-      const r = await AV.api.get("/api/webhooks/inbound");
-      if (!r.ok) return;
-      $("#calStatus", view).textContent = r.data.has_key ? "signing key set ✓" : "no signing key";
-      $("#calStatus", view).className = "chip " + (r.data.has_key ? "chip--ok" : "chip--warn");
-      $("#calUrl", view).textContent = r.data.url;
-    };
-    const loadSmtp = async () => {
-      const r = await AV.api.get("/api/smtp");
-      if (!r.ok) return;
-      const c = r.data || {};
-      $("#smtpStatus", view).textContent = c.host ? `configured (${esc(c.host)}:${c.port} ${esc(c.encryption)})` : "not configured";
-      $("#smtpStatus", view).className = "chip " + (c.host ? "chip--ok" : "chip--muted");
-      $("#smHost", view).value = c.host || "";
-      $("#smPort", view).value = c.port || 587;
-      $("#smEnc", view).value = c.encryption || "tls";
-      $("#smUser", view).value = c.username || "";
-      $("#smFrom", view).value = c.from || "";
-      $("#smReply", view).value = c.reply_to || "";
-    };
-    $("[data-sm-save]", view).addEventListener("click", async () => {
-      const r = await AV.api.send("/api/smtp", "PUT", {
-        host: $("#smHost", view).value.trim(), port: $("#smPort", view).value, encryption: $("#smEnc", view).value,
-        username: $("#smUser", view).value.trim(), password: $("#smPass", view).value, from: $("#smFrom", view).value.trim(), reply_to: $("#smReply", view).value.trim()
-      });
-      if (r.ok) { toast("SMTP config saved (credentials encrypted server-side)"); loadSmtp(); }
-      else toast("Save failed", "error");
-    });
-    $("[data-sm-test]", view).addEventListener("click", async () => {
-      const r = await AV.api.send("/api/smtp/test", "POST", {});
-      toast(r.ok && r.data && r.data.ok ? "SMTP test sent — check your inbox + email log" : "SMTP test failed: " + ((r.data && r.data.error) || "error"), r.ok && r.data && r.data.ok ? "ok" : "error");
-    });
-    $("[data-go-platform]", view).addEventListener("click", () => R.go("platform", { tab: "webhooks" }));
-    loadProviders();
-    loadCal();
-    loadSmtp();
-  });
-
   /* ============ LOGS ============ */
   R.register("logs", () => `
     <div class="view__head">
@@ -827,33 +720,4 @@
     loadLogs();
   });
 
-  /* ============ NOTIFICATIONS ============ */
-  R.register("notifications", () => `
-    <div class="view__head">
-      <div><h1 class="view__title">Notifications</h1>
-      <p class="view__desc">Website updates, leads, bookings and AI recommendations — nothing urgent gets lost.</p></div>
-      <div class="view__head-actions"><button class="btn btn--primary" data-allread>${icon("check")} Mark all read</button></div>
-    </div>
-    <div class="card">
-      <div class="card__body" id="notifList"></div>
-    </div>`);
-  R.after("notifications", view => {
-    const render = () => {
-      $("#notifList", view).innerHTML = S.get("notifications").map(n => `
-        <div class="pop-item" style="border-bottom:1px solid var(--line);${n.unread ? "background:var(--accent-soft)" : ""}">
-          <div class="pop-item__icon">${icon(n.icon === "lead" ? "target" : n.icon === "book" ? "calendar" : n.icon === "seo" ? "search" : n.icon === "ai" ? "ai" : n.icon === "backup" ? "db" : "chart")}</div>
-          <div style="flex:1"><p class="pop-item__text">${n.text}</p><p class="pop-item__time">${n.time}</p></div>
-          ${n.unread ? `<button class="btn btn--sm btn--ghost" data-read="${n.id}">Mark read</button>` : ""}
-        </div>`).join("");
-      $$("[data-read]", view).forEach(b => b.addEventListener("click", () => {
-        const n = S.get("notifications").find(x => x.id === b.dataset.read);
-        n.unread = false; S.save(); render();
-      }));
-    };
-    $("[data-allread]", view).addEventListener("click", () => {
-      S.set("notifications", S.get("notifications").map(n => ({ ...n, unread: false })));
-      toast("All notifications read"); render();
-    });
-    render();
-  });
 })();

@@ -505,24 +505,29 @@
   });
 
   /* ---------- Reveal on scroll ---------- */
-  const revealIO = new IntersectionObserver(entries => {
-    for (const e of entries) {
-      if (e.isIntersecting) {
-        e.target.classList.add("in-view");
-        revealIO.unobserve(e.target);
+  const revealEls = $$("[data-reveal]");
+  if (prefersReduced || !("IntersectionObserver" in window)) {
+    revealEls.forEach(el => el.classList.add("in-view"));
+  } else {
+    const revealIO = new IntersectionObserver(entries => {
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          e.target.classList.add("in-view");
+          revealIO.unobserve(e.target);
+        }
       }
-    }
-  }, { threshold: 0.15, rootMargin: "0px 0px -6% 0px" });
-  $$("[data-reveal]").forEach(el => revealIO.observe(el));
+    }, { threshold: 0.15, rootMargin: "0px 0px -6% 0px" });
+    revealEls.forEach(el => revealIO.observe(el));
 
-  /* watchdog — anything visible that IO hasn't caught within a beat is revealed anyway */
-  setTimeout(() => {
-    const vh = window.innerHeight;
-    $$("[data-reveal]:not(.in-view)").forEach(el => {
-      const r = el.getBoundingClientRect();
-      if (r.top < vh * 0.94 && r.bottom > 0) el.classList.add("in-view");
-    });
-  }, 1400);
+    /* watchdog — anything visible that IO hasn't caught within a beat is revealed anyway */
+    setTimeout(() => {
+      const vh = window.innerHeight;
+      revealEls.filter(el => !el.classList.contains("in-view")).forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.top < vh * 0.94 && r.bottom > 0) el.classList.add("in-view");
+      });
+    }, 1400);
+  }
 
   /* ---------- Nav + progress + parallax (single rAF loop) ---------- */
   const nav = $("#siteNav");
@@ -531,9 +536,17 @@
 
   const parallaxEls = $$("[data-parallax]").map(el => {
     const img = el.querySelector("img");
+    const requested = Number.parseFloat(el.dataset.parallax);
+    const speed = Number.isFinite(requested) ? requested : 0.05;
+    // A value of zero preserves authored edge-to-edge artwork without zooming
+    // or translating it; all other project media keeps the existing parallax.
+    if (speed === 0) {
+      if (img) { img.style.willChange = "auto"; img.style.scale = "1"; img.style.transform = "none"; }
+      return null;
+    }
     if (img) { img.style.willChange = "transform"; img.style.scale = "1.13"; }
-    return { el, target: img || el, speed: parseFloat(el.dataset.parallax) || 0.05 };
-  });
+    return { el, target: img || el, speed };
+  }).filter(Boolean);
 
   /* journey horizontal scrub refs */
   const journeySec  = $("#journey");
@@ -642,14 +655,15 @@
       mqTracks.forEach(t => mqGate.observe(t));
     }
 
-    /* --- the title card: the two title lines drift at different
-       speeds as the visitor scrolls into the page --- */
+    /* --- the three title beats separate at increasing depth as the
+       opening frame gives way to the identity spread --- */
     const pl = document.getElementById("prologue");
     const plLines = pl ? $$(".about-prologue__line", pl) : [];
+    const heroDepth = [-0.055, -0.095, -0.14];
     const onTheater = () => {
       const y = window.scrollY, vh = window.innerHeight;
       if (y < vh * 1.3 && !prefersReduced) {
-        plLines.forEach((ln, i) => ln.style.transform = `translate3d(0, ${(y * (i === 0 ? -0.08 : -0.16)).toFixed(1)}px, 0)`);
+        plLines.forEach((ln, i) => ln.style.transform = `translate3d(0, ${(y * (heroDepth[i] ?? -0.14)).toFixed(1)}px, 0)`);
       } else if (!prefersReduced) {
         plLines.forEach(ln => ln.style.transform = "");
       }
@@ -718,10 +732,10 @@
     /* ============================================================
        THE EVOLUTION — 3D FILM STACK (scroll-choreographed)
        Eight cards (six chapters + two interludes) hinge open as the
-       visitor scrolls; the camera drifts with the pointer; the
-       world-light follows the active card; the progress rail and the
-       compass stay in sync. (Apple: rAF loop, lerped progress —
-       interruptible, velocity-aware; reduced motion = static frames.)
+       visitor scrolls; the fine-pointer camera drifts subtly; the
+       world-light and compass follow the active card. A gated, time-based
+       rAF loop stays interruptible and sleeps offscreen; reduced motion
+       renders static sequential frames.
        ============================================================ */
     const atmo = document.getElementById("aboutAtmo");
     const worldRGB = {
@@ -751,8 +765,13 @@
     const compassIO = new IntersectionObserver(entries => {
       for (const e of entries) {
         if (!compass) continue;
-        compass.hidden = false;
-        compass.classList.toggle("is-show", !e.isIntersecting);
+        if (e.isIntersecting) {
+          compass.classList.remove("is-show");
+          compass.hidden = true;
+        } else {
+          compass.hidden = false;
+          requestAnimationFrame(() => compass.classList.add("is-show"));
+        }
       }
     }, { threshold: 0 });
     if (compass && prologue) compassIO.observe(prologue);
@@ -788,6 +807,7 @@
     }
 
     const evo3d = $(".about-evo3d");
+    const evo3dScroll = $(".about-evo3d__scroll");
     const evo3dCards = $$(".about-evo3d__card");
     const evo3dImages = $$(".about-evo3d__card .about-evo3d__image");
     const evo3dShadows = $$(".about-evo3d__shadow");
@@ -797,10 +817,11 @@
     if (compassList) {
       $$("button[data-act]", compassList).forEach(b => b.addEventListener("click", () => {
         const idx = parseInt(b.dataset.act, 10) || 1;
-        if (evo3d && evo3dCards.length) {
-          const scrollable = Math.max(evo3d.offsetHeight - window.innerHeight, 1);
-          const top = evo3d.getBoundingClientRect().top + window.scrollY;
-          const targetY = Math.max(top + scrollable * ((idx - 1) / (evo3dCards.length - 1)), 0);
+        if (evo3dScroll && evo3dCards.length) {
+          const scrollable = Math.max(evo3dScroll.offsetHeight - window.innerHeight, 1);
+          const top = evo3dScroll.getBoundingClientRect().top + window.scrollY;
+          const cardPoint = idx === 1 ? 0 : (idx - 1) + 0.12;
+          const targetY = Math.max(top + scrollable * (cardPoint / (evo3dCards.length + 1.2)), 0);
           window.scrollTo({ top: targetY, behavior: prefersReduced ? "auto" : "smooth" });
         } else {
           const act = document.querySelector('.about-evo3d__card[data-act="' + b.dataset.act + '"]');
@@ -818,8 +839,9 @@
       const easeInOut = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
       const easeOut = t => 1 - Math.pow(1 - t, 3);
       const getProgress = () => {
-        const r = evo3d.getBoundingClientRect();
-        const scrollable = Math.max(evo3d.offsetHeight - window.innerHeight, 1);
+        const runway = evo3dScroll || evo3d;
+        const r = runway.getBoundingClientRect();
+        const scrollable = Math.max(runway.offsetHeight - window.innerHeight, 1);
         return cN(-r.top / scrollable, 0, 1);
       };
       const syncCompass = active => {
@@ -830,9 +852,27 @@
       };
 
       let targetProgress = 0, currentProgress = 0;
-      const animate = () => {
+      let stackVisible = false, stackRunning = false;
+      let lastFrame = performance.now();
+      let mouseX = 0, mouseY = 0, cameraX = 0, cameraY = 0;
+      const finePointer = window.matchMedia("(pointer: fine)").matches;
+      if (finePointer) {
+        window.addEventListener("pointermove", e => {
+          mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+          mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+        }, { passive: true });
+      }
+
+      const animate = now => {
+        if (!stackVisible || document.hidden) {
+          stackRunning = false;
+          return;
+        }
+        const dt = Math.min(Math.max((now - lastFrame) / 1000, 1 / 240), 0.25);
+        lastFrame = now;
         targetProgress = getProgress();
-        currentProgress += (targetProgress - currentProgress) * 0.07;
+        const progressBlend = 1 - Math.exp(-8 * dt);
+        currentProgress += (targetProgress - currentProgress) * progressBlend;
         const cardProgress = Math.min(currentProgress * (TOTAL + 1.2), TOTAL - 1);
         const inView = targetProgress > 0.001 && targetProgress < 0.999;
         const active = cN(Math.floor(cardProgress) + 1, 1, TOTAL);
@@ -880,21 +920,30 @@
           card.style.zIndex = 900 - index;
           if (evo3dImages[index]) evo3dImages[index].style.transform = "translateZ(35px) scale(1.12)";
         });
+
+        const cameraBlend = 1 - Math.exp(-3 * dt);
+        cameraX += ((finePointer ? mouseX * 3 : 0) - cameraX) * cameraBlend;
+        cameraY += ((finePointer ? mouseY * -2 : 0) - cameraY) * cameraBlend;
+        if (evo3dCamera) evo3dCamera.style.transform = `rotateX(${cameraY.toFixed(3)}deg) rotateY(${cameraX.toFixed(3)}deg)`;
         requestAnimationFrame(animate);
       };
 
-      /* the pointer camera — the stage drifts with the cursor */
-      let mouseX = 0, mouseY = 0, cameraX = 0, cameraY = 0;
-      window.addEventListener("pointermove", e => {
-        mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
-        mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
-      }, { passive: true });
-      (function camLoop() {
-        cameraX += (mouseX * 3 - cameraX) * 0.035;
-        cameraY += (mouseY * -2 - cameraY) * 0.035;
-        if (evo3dCamera) evo3dCamera.style.transform = `rotateX(${cameraY.toFixed(3)}deg) rotateY(${cameraX.toFixed(3)}deg)`;
-        requestAnimationFrame(camLoop);
-      })();
+      const startStack = () => {
+        if (stackRunning || !stackVisible || document.hidden) return;
+        targetProgress = getProgress();
+        currentProgress = targetProgress;
+        lastFrame = performance.now();
+        stackRunning = true;
+        requestAnimationFrame(animate);
+      };
+      const stackObserver = new IntersectionObserver(entries => {
+        stackVisible = !!entries[0]?.isIntersecting;
+        if (stackVisible) startStack();
+      }, { rootMargin: "20% 0px", threshold: 0 });
+      stackObserver.observe(evo3dScroll || evo3d);
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) startStack();
+      });
 
       /* one rAF loop for the remaining scroll scrubbers */
       let aboutTicking = false;
@@ -907,10 +956,8 @@
         aboutTicking = true;
         requestAnimationFrame(onAboutScroll);
       }, { passive: true });
-      window.addEventListener("resize", onAboutScroll, { passive: true });
+      window.addEventListener("resize", () => { onAboutScroll(); startStack(); }, { passive: true });
       onAboutScroll();
-
-      requestAnimationFrame(animate);
     } else {
       /* no 3D (reduced motion / missing) — quiet scroll scrubbers only */
       let aboutTicking = false;
@@ -928,27 +975,32 @@
     }
 
   /* ============================================================
-     MOBILE MENU (≤700px)
+     COMPACT / MOBILE MENU (≤900px)
      ============================================================ */
   const navToggle = $("#navToggle");
   const mobileMenu = $("#mobileMenu");
-  const mobileMQ = window.matchMedia("(max-width: 700px)");
+  const mobileMQ = window.matchMedia("(max-width: 900px)");
   if (navToggle && mobileMenu) {
+    let menuReturnFocus = null;
+    const menuFocusable = () => $$("a[href],button:not([disabled]),[tabindex]:not([tabindex='-1'])", mobileMenu)
+      .filter(el => !el.hidden && el.getClientRects().length);
     const setMenu = open => {
       const isOpen = navToggle.getAttribute("aria-expanded") === "true";
       if (open === isOpen) return;
       navToggle.setAttribute("aria-expanded", String(open));
       navToggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
       if (open) {
+        menuReturnFocus = document.activeElement;
         mobileMenu.hidden = false;
         document.body.style.overflow = "hidden";
         requestAnimationFrame(() => requestAnimationFrame(() => mobileMenu.classList.add("is-open")));
-        const firstLink = $("a", mobileMenu);
-        if (firstLink) firstLink.focus({ preventScroll: true });
+        const first = menuFocusable()[0];
+        if (first) first.focus({ preventScroll: true });
       } else {
         mobileMenu.classList.remove("is-open");
         document.body.style.overflow = "";
         setTimeout(() => { if (!mobileMenu.classList.contains("is-open")) mobileMenu.hidden = true; }, 450);
+        if (menuReturnFocus && typeof menuReturnFocus.focus === "function") menuReturnFocus.focus({ preventScroll: true });
       }
     };
     navToggle.addEventListener("click", () => setMenu(navToggle.getAttribute("aria-expanded") !== "true"));
@@ -956,7 +1008,14 @@
     if (mobileClose) mobileClose.addEventListener("click", () => setMenu(false));
     $$("a", mobileMenu).forEach(a => a.addEventListener("click", () => setMenu(false)));
     document.addEventListener("keydown", e => {
-      if (e.key === "Escape") setMenu(false);
+      if (e.key === "Escape") { setMenu(false); return; }
+      if (e.key === "Tab" && navToggle.getAttribute("aria-expanded") === "true") {
+        const items = menuFocusable();
+        if (!items.length) return;
+        const first = items[0], last = items[items.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
     });
     /* leaving the mobile breakpoint closes the menu */
     mobileMQ.addEventListener?.("change", () => { if (!mobileMQ.matches) setMenu(false); });

@@ -1,9 +1,33 @@
 ---
 name: apple-design
-description: Apple's approach to interface design and fluid, physical motion, translated for the web. Use when building or reviewing gesture-driven UI, spring animations, drag/swipe/sheet interactions, momentum and interruptible transitions, translucent materials and depth, typography (optical sizing, tracking, leading), reduced-motion, or the design foundations (feedback, spatial consistency, restraint) behind Apple-style interfaces.
+description: Apple Human Interface Guidelines and platform design systems for iOS, iPadOS, macOS, watchOS, tvOS, and visionOS, plus Liquid Glass, accessibility, SF Symbols, components, patterns, inputs, and fluid physical motion translated for native apps and the web. Use when designing, building, adapting, or reviewing Apple-platform experiences.
 ---
 
 # Apple Design
+
+## Installed design-system pack
+
+This skill includes current Apple HIG guidance for every Apple platform and the cross-platform systems that support them. Route work to the matching reference before designing:
+
+| Need | Reference |
+|---|---|
+| HIG map, principles, topic index | `references/hig-index.md` |
+| iPhone and iPad | `references/ios-ipados.md` |
+| Mac apps and windows | `references/macos.md` |
+| Apple Watch | `references/watchos.md` |
+| Apple TV and focus-driven UI | `references/tvos.md` |
+| Apple Vision Pro and spatial UI | `references/visionos.md` |
+| Color, layout, typography, materials, motion | `references/foundations.md` |
+| Liquid Glass and material hierarchy | `references/liquid-glass.md` |
+| Components, patterns, inputs, technologies | `references/components-patterns-inputs.md` |
+| Dynamic Type, contrast, VoiceOver, reduced motion | `references/accessibility.md` |
+| Official UI kits, fonts, SF Symbols, templates | `references/resources.md` |
+
+Use `data/platform-metrics.csv` for platform-specific text and target-size baselines. Official Apple documentation remains authoritative; links and resource versions are recorded in the references.
+
+### Platform selection rule
+
+Never apply “Apple style” generically. First identify the target platform, display distance, primary input, interaction duration, windowing model, and accessibility context. Then use system components and conventions for that platform. A watch glance, TV focus surface, Mac productivity window, iPhone touch flow, iPad multiwindow workspace, and visionOS volume are different systems.
 
 How Apple builds interfaces that stop feeling like a computer and start feeling like an extension of you. This knowledge comes from Apple's WWDC design talks — chiefly *Designing Fluid Interfaces* (WWDC 2018) — distilled and translated into the web platform (CSS, Pointer Events, `requestAnimationFrame`, spring libraries like Motion/Framer Motion).
 

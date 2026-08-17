@@ -114,7 +114,6 @@
   AV.nav = [
     { group: "Workspace", items: [
       { id: "dashboard", label: "Dashboard", icon: "grid" },
-      { id: "knowledge", label: "Knowledge Search", icon: "search" },
       { id: "notifications", label: "Notifications", icon: "bell" }
     ]},
     { group: "Build", items: [
@@ -158,20 +157,16 @@
       { id: "aiagents", label: "AI Agents", icon: "zap" },
       { id: "aistudio", label: "AI Studio", icon: "ai" },
       { id: "copilot", label: "AI Copilot", icon: "spark" },
-      { id: "analytics", label: "Analytics", icon: "chart" },
-      { id: "knowledge", label: "Knowledge", icon: "book" },
+      { id: "knowledge", label: "Knowledge", icon: "search" },
       { id: "designsystem", label: "Design System", icon: "sliders" },
       { id: "knowledgegraph", label: "Knowledge & Truth", icon: "layers" }
     ]},
     { group: "System", items: [
       { id: "publishing", label: "Publishing", icon: "send" },
       { id: "versions", label: "Versions", icon: "clock" },
-      { id: "notifications", label: "Notifications", icon: "bell" },
       { id: "platform", label: "Platform", icon: "zap" },
       { id: "health", label: "Health", icon: "shield" },
-      { id: "security", label: "Security", icon: "key" }
-    ]},
-    { group: "System", items: [
+      { id: "security", label: "Security", icon: "key" },
       { id: "users", label: "Users", icon: "users" },
       { id: "emailtemplates", label: "Email Templates", icon: "mail" },
       { id: "settings", label: "Settings", icon: "settings" },
