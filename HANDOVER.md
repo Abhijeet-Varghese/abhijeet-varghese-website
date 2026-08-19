@@ -86,7 +86,7 @@ One continuous cinematic canvas, rebuilt from scratch over the sessions:
 
 - Orange Business remains the complete long-form canonical case study.
 - BPCL and Indian Army retain their listing cards and stable URLs, while their inner routes now render responsive shared-chrome “Full case study coming soon” pages. Existing factual project records remain stored in the CMS.
-- Story Evolution pacing is now materially faster: 720vh desktop/tablet and 680vh phone runways, direct 1:1 scroll tracking, immediate stack wake-up on scroll/resize, and compositor hiding for exited cards.
+- Story Evolution pacing is now materially faster: 480vh desktop/tablet and 440vh phone runways, direct 1:1 scroll tracking, immediate stack wake-up on scroll/resize, and compositor hiding for exited cards.
 - Contact submissions stay entirely on-site: the selected date/time and context are saved to AV OS, an in-page confirmation is shown, and no Calendly script, iframe, popup or redirect is loaded.
 - Every inner-page close control uses same-origin browser history to restore the exact originating route and scroll position; direct/new-tab visits retain the homepage fallback.
 

@@ -4,7 +4,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8092';
 (async () => {
   const browser = await chromium.launch();
   const issues = [];
-  for (const viewport of [{width:1440,height:900,runway:720},{width:390,height:844,runway:680}]) {
+  for (const viewport of [{width:1440,height:900,runway:480},{width:390,height:844,runway:440}]) {
     const page = await browser.newPage({ viewport });
     await page.goto(BASE + '/story.html', { waitUntil: 'domcontentloaded' });
     await page.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; });
@@ -28,5 +28,5 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8092';
   }
   await browser.close();
   if (issues.length) { console.error('EVOLUTION SPEED QA: ISSUES\n' + issues.join('\n')); process.exit(1); }
-  console.log('EVOLUTION SPEED QA: ALL CLEAN — 720/680vh runway; direct scroll tracking; sampled cards settle correctly');
+  console.log('EVOLUTION SPEED QA: ALL CLEAN — 480/440vh runway; direct scroll tracking; sampled cards settle correctly');
 })();

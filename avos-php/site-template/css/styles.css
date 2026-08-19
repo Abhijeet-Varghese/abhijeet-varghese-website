@@ -3007,7 +3007,7 @@ body.about-page ::selection { background: rgba(110, 168, 255, 0.30); color: #EFF
 .about-evo3d__card[data-world="interlude"] { --world: #6EA8FF; }
 
 /* ---- the scroll runway (tall — the last card gets a full beat) ---- */
-.about-evo3d__scroll { position: relative; height: 720vh; }
+.about-evo3d__scroll { position: relative; height: 480vh; }
 /* ---- the sticky stage ---- */
 .about-evo3d__stage {
   position: sticky; top: 0;
@@ -3253,7 +3253,7 @@ body.about-page ::selection { background: rgba(110, 168, 255, 0.30); color: #EFF
   .about-evo3d__card--interlude .about-evo3d__title { font-size: clamp(26px, 7.4vw, 40px); }
 }
 @media (max-width: 480px) {
-  .about-evo3d__scroll { height: 680vh; }
+  .about-evo3d__scroll { height: 440vh; }
   .about-evo3d__world { height: 62vh; }
 }
 @media (max-width: 768px) and (max-height: 480px) and (orientation: landscape) {

@@ -34,7 +34,7 @@ for project_id, filename in expected.items():
 
 css = (ROOT / 'abhijeetvarghese/css/styles.css').read_text()
 js = (ROOT / 'abhijeetvarghese/js/main.js').read_text()
-if 'height: 720vh' not in css or 'height: 680vh' not in css:
+if 'height: 480vh' not in css or 'height: 440vh' not in css:
     issues.append('Evolution runway pacing not updated')
 if 'currentProgress = targetProgress' not in js:
     issues.append('Evolution direct scroll response missing')
@@ -45,4 +45,4 @@ if issues:
     print('COMING SOON / EVOLUTION QA: ISSUES')
     for issue in issues: print(' -', issue)
     sys.exit(1)
-print('COMING SOON / EVOLUTION QA: ALL CLEAN — 2 placeholders; 720/680vh pacing; direct scroll tracking')
+print('COMING SOON / EVOLUTION QA: ALL CLEAN — 2 placeholders; 480/440vh pacing; direct scroll tracking')
