@@ -20,11 +20,27 @@
   const yearEl = $("#year");
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
+  /* ---------- Inner-page close — return to the exact originating section ---------- */
+  const pageClose = $("[data-history-close]");
+  if (pageClose) {
+    pageClose.addEventListener("click", event => {
+      let sameSiteReferrer = false;
+      try {
+        const referrer = document.referrer ? new URL(document.referrer) : null;
+        sameSiteReferrer = !!referrer && referrer.origin === location.origin && referrer.href !== location.href;
+      } catch { sameSiteReferrer = false; }
+      if (sameSiteReferrer && history.length > 1) {
+        event.preventDefault();
+        history.back();
+      }
+      // Direct/new-tab visits retain the href fallback to the homepage.
+    });
+  }
+
   /* ---------- Booking — single screen, popover calendar, live availability ----------
      The calendar stays closed until the visitor clicks the date field (popover).
      Availability is fetched from the AV OS backend when available; otherwise the
      form falls back to the standard slot list. */
-  const CALENDLY_URL = "https://calendly.com/abhijeetvarghese/introduction";
   /* Live-availability via the AV OS backend (/api/availability) — empty =
      static slot list with graceful fallback messaging (no console noise). */
   const AVAIL_ENDPOINT = "";
@@ -266,7 +282,7 @@
   });
   const notesHref = f =>
     "mailto:hi@abhijeetvarghese.com" +
-    "?subject=" + encodeURIComponent(`Intro call booked — ${f.name}${f.org ? ` (${f.org})` : ""} · ${fmtLong(selectedDate)} ${chosenSlot} IST`) +
+    "?subject=" + encodeURIComponent(`Intro call request — ${f.name}${f.org ? ` (${f.org})` : ""} · ${fmtLong(selectedDate)} ${chosenSlot} IST`) +
     "&body=" + encodeURIComponent([
       `Name: ${f.name}`,
       `Email: ${f.email}`,
@@ -274,49 +290,7 @@
       `Requested slot: ${fmtLong(selectedDate)} at ${chosenSlot} IST`,
       f.msg ? `Context notes:\n${f.msg}` : ""
     ].filter(Boolean).join("\n"));
-  const schedulerUrl = f => {
-    const p = new URLSearchParams({ name: f.name, email: f.email });
-    if (selectedDate) {
-      p.set("date", iso(selectedDate));
-      p.set("month", monthKey(selectedDate));
-    }
-    return `${CALENDLY_URL}?${p.toString()}`;
-  };
-
-  const submitBtn   = $("#bookSubmit");
-  const fallbackBox = $("#bookFallback");
-
-  /* Load the scheduler widget only when the visitor actually books —
-     keeps ~200KB of third-party JS off the critical path. */
-  const ensureCalendly = () => new Promise(resolve => {
-    if (window.Calendly && typeof window.Calendly.initPopupWidget === "function") return resolve(true);
-    const s = document.createElement("script");
-    s.src = "https://assets.calendly.com/assets/external/widget.js";
-    s.async = true;
-    const guard = setTimeout(() => resolve(false), 6000);
-    s.onload = () => { clearTimeout(guard); resolve(!!(window.Calendly && window.Calendly.initPopupWidget)); };
-    s.onerror = () => { clearTimeout(guard); resolve(false); };
-    document.head.appendChild(s);
-  });
-  const fbScheduler = $("#fbScheduler");
-  const fbMail      = $("#fbMail");
-  let bookingTimer = null;
-
-  const showFallback = url => {
-    if (fbScheduler) fbScheduler.href = url;
-    if (fbMail) {
-      const f = readForm();
-      fbMail.href =
-        "mailto:hi@abhijeetvarghese.com" +
-        "?subject=" + encodeURIComponent("Booking link — please send me the scheduler link") +
-        "&body=" + encodeURIComponent(
-          `Name: ${f.name}\nEmail: ${f.email}\nOrganization: ${f.org || "—"}\n` +
-          `Requested slot: ${selectedDate ? fmtLong(selectedDate) : ""} ${chosenSlot ? chosenSlot + " IST" : ""}` +
-          (f.msg ? `\n\nContext notes:\n${f.msg}` : "")
-        );
-    }
-    if (fallbackBox) fallbackBox.hidden = false;
-  };
+  const submitBtn = $("#bookSubmit");
 
   bookForm.addEventListener("submit", async e => {
     e.preventDefault();
@@ -332,12 +306,11 @@
       return;
     }
 
-    /* — every submit path gives visible feedback, nothing can silently stall — */
-    const url = schedulerUrl(f);
+    /* — save the request in place; never navigate to a third-party scheduler — */
     if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.classList.add("is-loading");
-      submitBtn.innerHTML = "Booking your call…";
+      submitBtn.innerHTML = "Sending your request…";
     }
     if (cfNote) {
       cfNote.textContent = "Saving your details — one moment.";
@@ -350,8 +323,11 @@
       name: f.name,
       email: f.email,
       organization: f.org,
-      message: f.msg,
-      project_type: "intro call",
+      message: [
+        f.msg,
+        `Requested intro call: ${fmtLong(selectedDate)} at ${chosenSlot} IST`
+      ].filter(Boolean).join("\n\n"),
+      project_type: "intro call request",
       source: "website",
       page: location.pathname,
       referrer: document.referrer || "",
@@ -370,99 +346,39 @@
       });
       leadSaved = lr.ok;
     } catch { leadSaved = false; }
-    if (leadSaved && cfNote) {
-      cfNote.textContent = "Details saved — opening the scheduler.";
-      cfNote.classList.remove("is-set");
-    }
-
-    let popupOpened = false;
-    try {
-      const ready = await ensureCalendly();      // loads the widget on demand
-      if (ready) {
-        window.Calendly.initPopupWidget({ url });
-        popupOpened = true;
+    if (!leadSaved) {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove("is-loading");
+        submitBtn.innerHTML = "Send booking request";
       }
-    } catch { popupOpened = false; }
-
-    if (bookingTimer) clearTimeout(bookingTimer);
-    if (popupOpened) {
-      /* popup should be on screen — if we hear nothing within 4s, surface the
-         fallback links so the visitor is never left waiting on a blocked window */
-      bookingTimer = setTimeout(() => {
-        if (submitBtn) { submitBtn.disabled = false; submitBtn.classList.remove("is-loading"); submitBtn.innerHTML = "Confirm booking"; }
-        if (cfNote) { cfNote.textContent = "If the scheduling window didn't open, use the buttons below."; }
-        showFallback(url);
-      }, 4000);
-    } else {
-      /* widget unavailable (offline / blocked) — embed the scheduler IN this
-         page instead of popping a new tab (no popup-blocker dead ends) */
-      openEmbed(url);
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.classList.remove("is-loading"); submitBtn.innerHTML = "Confirm booking"; }
-      if (cfNote) { cfNote.textContent = "Calendar opened below — pick a time and confirm there."; }
+      if (cfNote) {
+        cfNote.textContent = "I couldn't save the request just now. Please email hi@abhijeetvarghese.com.";
+        cfNote.classList.remove("is-set");
+      }
+      return;
     }
-  });
 
-  /* ---- in-page scheduler embed (fallback when the popup widget is blocked) ---- */
-  const bookEmbed = $("#bookEmbed");
-  const bookEmbedFrame = $("#bookEmbedFrame");
-  const bookEmbedClose = $("#bookEmbedClose");
-  let embedTimer = null;
-  const openEmbed = url => {
-    if (!bookEmbed || !bookEmbedFrame) { showFallback(url); return; }
-    const embedUrl = url.split("?")[0] +
-      "?embed_domain=" + encodeURIComponent(location.hostname) +
-      "&embed_type=Inline" +
-      (url.includes("?") ? "&" + url.split("?")[1] : "");
-    bookEmbedFrame.src = embedUrl;
-    bookEmbed.hidden = false;
-    document.body.style.overflow = "hidden";
-    requestAnimationFrame(() => bookEmbed.classList.add("is-open"));
-    if (bookEmbedClose) bookEmbedClose.focus({ preventScroll: true });
-    /* if the embed itself fails to paint within 10s, show the manual links */
-    embedTimer = setTimeout(() => {
-      const doc = bookEmbedFrame.contentDocument;
-      const blank = !doc || !doc.body || doc.body.innerHTML.trim() === "";
-      if (blank) { closeEmbed(); showFallback(url); }
-    }, 10000);
-  };
-  const closeEmbed = () => {
-    if (embedTimer) { clearTimeout(embedTimer); embedTimer = null; }
-    if (!bookEmbed) return;
-    bookEmbed.classList.remove("is-open");
-    document.body.style.overflow = "";
-    if (bookEmbedFrame) { bookEmbedFrame.src = "about:blank"; }
-    setTimeout(() => { bookEmbed.hidden = true; }, 350);
-  };
-  if (bookEmbedClose) bookEmbedClose.addEventListener("click", closeEmbed);
-  document.addEventListener("keydown", e => { if (e.key === "Escape" && bookEmbed && !bookEmbed.hidden) closeEmbed(); });
-  /* booking completed inside the embed → celebrate on the page */
-  window.addEventListener("message", ev => {
-    if (!bookEmbed || bookEmbed.hidden) return;
-    const d = ev.data || {};
-    if (d.type === "CALENDLY_EVENT_SCHEDULED" || (d.event && d.event.indexOf("scheduled") !== -1)) {
-      closeEmbed();
-      window.dispatchEvent(new CustomEvent("calendly:event_scheduled"));
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.classList.remove("is-loading");
+      submitBtn.innerHTML = "Send booking request";
     }
-  });
-
-  /* fired by the scheduler when the booking completes */
-  window.addEventListener("calendly:event_scheduled", () => {
-    if (bookingTimer) { clearTimeout(bookingTimer); bookingTimer = null; }
-    if (fallbackBox) fallbackBox.hidden = true;
-    const f = readForm();
+    if (cfNote) {
+      cfNote.textContent = "Request saved — no external calendar opened.";
+      cfNote.classList.add("is-set");
+    }
     $("#doneSummary").textContent =
-      `Check your inbox${f.name ? `, ${f.name}` : ""} — the invite with your call details is on its way.`;
+      `Thanks${f.name ? `, ${f.name}` : ""}. Your request for ${fmtLong(selectedDate)} at ${chosenSlot} IST is saved.`;
     $("#doneMail").href = notesHref(f);
-    $("#doneMail").textContent = f.msg ? "Send context notes" : "Send a note by email";
+    $("#doneMail").textContent = f.msg ? "Send additional context" : "Send a note by email";
     bookView.hidden = true;
     bookDone.hidden = false;
     bookDone.scrollIntoView({ behavior: prefersReduced ? "auto" : "smooth", block: "center" });
   });
 
   $("#bookAgain").addEventListener("click", () => {
-    if (bookingTimer) { clearTimeout(bookingTimer); bookingTimer = null; }
-    if (fallbackBox) fallbackBox.hidden = true;
-    if (submitBtn) { submitBtn.disabled = false; submitBtn.classList.remove("is-loading"); submitBtn.innerHTML = "Confirm booking"; }
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.classList.remove("is-loading"); submitBtn.innerHTML = "Send booking request"; }
     bookForm.reset();
     chosenSlot = null; selectedDate = null;
     slotBtns.forEach((s, i) => {
@@ -478,7 +394,7 @@
     viewMonth = new Date(minMonth);
     renderCal(); applySlotAvailability(); updateSummary();
     if (cfNote) {
-      cfNote.textContent = "Instant confirmation — your calendar invite lands in your inbox.";
+      cfNote.textContent = "Your preferred time will be confirmed personally by email.";
       cfNote.classList.remove("is-set");
     }
     bookDone.hidden = true;
