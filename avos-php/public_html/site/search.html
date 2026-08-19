@@ -23,7 +23,7 @@
   <meta name="twitter:description" content="Search the portfolio: projects, case studies, essays and journal entries.">
   <meta name="twitter:image" content="https://abhijeetvarghese.com/assets/hero-portrait.webp">
   <link rel="icon" type="image/png" href="assets/logo.png">
-  <link rel="stylesheet" href="css/styles.css?v=2.4.20-7528cc827554">
+  <link rel="stylesheet" href="css/styles.css?v=2.4.20-skill02">
 <link rel="stylesheet" href="css/tokens.css">
   <script>
     document.documentElement.className += " js";
@@ -76,48 +76,49 @@
       </nav>
     </div>
   </header>
-  <a class="page-close" href="index.html" data-history-close aria-label="Back to previous page"><svg width="17" height="17" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="m3 3 12 12M15 3 3 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></a>
+  <a class="page-close" href="index.html" data-history-close aria-label="Close and return to previous section"><svg width="17" height="17" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="m3 3 12 12M15 3 3 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></a>
   <main id="main">
 
     <section class="page-hero" aria-label="Search">
       <div class="container">
         <div class="chapter__meta page-hero__meta" data-reveal>
-          <span class="chapter__index">S</span>
+          <span class="chapter__rule"></span>
           <span class="chapter__tag">Search</span>
         </div>
         <h1 class="page-hero__title" data-reveal>Find anything <em>on this site.</em></h1>
         <p class="page-hero__lede" data-reveal>Projects, case studies, essays and journal entries — search the whole portfolio instantly.</p>
-        <div class="container" style="max-width:640px;margin-top:28px" data-reveal>
-          <input type="search" id="siteSearch" placeholder="Try &ldquo;experience centre&rdquo; or &ldquo;AI&rdquo;&hellip;" aria-label="Search the site"
-            style="width:100%;min-height:56px;border-radius:14px;border:1px solid var(--cl);background:var(--bg);padding:0 20px;font:inherit;font-size:16px">
-          <div id="searchResults" style="margin-top:16px" aria-live="polite"></div>
-        </div>
+        <form class="site-search" id="siteSearchForm" role="search" data-reveal>
+          <label class="site-search__label" for="siteSearch">Search the site</label>
+          <input type="search" id="siteSearch" name="q" placeholder="Try “experience centre” or “AI”…" autocomplete="off">
+          <div id="searchResults" class="site-search__results" aria-live="polite"></div>
+        </form>
       </div>
     </section>
     <script>
     (function () {
       var input = document.getElementById("siteSearch");
+      var form = document.getElementById("siteSearchForm");
       var box = document.getElementById("searchResults");
+      if (!input || !box) return;
       var idx = [];
-      fetch("search-index.json").then(function (r) { return r.json(); }).then(function (d) { idx = d.items || []; }).catch(function () {});
-      function esc(s) { return String(s || "").replace(/[&<>"]/g, function (c) { return c.charCodeAt(0) === 34 ? "&quot;" : { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }); }
+      var ready = false;
+      fetch("search-index.json").then(function (r) { if (!r.ok) throw new Error("index"); return r.json(); }).then(function (d) { idx = d.items || []; ready = true; if (input.value) render(input.value); }).catch(function () { box.innerHTML = "<p class=\"site-search__empty\">Search is unavailable right now. Use the <a href=\"sitemap.html\">sitemap</a> or <a href=\"contact.html\">ask me directly</a>.</p>"; });
+      function esc(s) { return String(s || "").replace(/[&<>\"]/g, function (c) { return c.charCodeAt(0) === 34 ? "&quot;" : { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }); }
       function render(q) {
-        q = q.toLowerCase();
+        q = String(q || "").toLowerCase().trim();
         if (q.length < 2) { box.innerHTML = ""; return; }
+        if (!ready) { box.innerHTML = "<p class=\"site-search__empty\">Loading the index…</p>"; return; }
         var hits = idx.filter(function (i) { var tags = Array.isArray(i.tags) ? i.tags.join(" ") : String(i.tags || ""); return (i.title + " " + i.excerpt + " " + tags).toLowerCase().indexOf(q) !== -1; }).slice(0, 10);
-        if (!hits.length) { box.innerHTML = "<p style=\"color:var(--ink-3);font-size:14px\">No results for \"" + esc(q) + "\". Try another term, or <a href=\"contact.html\">ask me directly</a>.</p>"; return; }
+        if (!hits.length) { box.innerHTML = "<p class=\"site-search__empty\">No results for “" + esc(q) + "”. Try another term, or <a href=\"contact.html\">ask me directly</a>.</p>"; return; }
         box.innerHTML = hits.map(function (i) {
-          return "<a href=\"" + esc(i.url) + "\" style=\"display:block;text-decoration:none;border-bottom:1px solid var(--cl);padding:14px 4px\">" +
-            "<span style=\"font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)\">" + esc(i.type) + "</span>" +
-            "<strong style=\"display:block;font-size:16px;margin:3px 0\">" + esc(i.title) + "</strong>" +
-            "<span style=\"font-size:13px;color:var(--ink-3);line-height:1.5\">" + esc(i.excerpt) + "</span></a>";
+          return "<a class=\"site-search__hit\" href=\"" + esc(i.url) + "\">" +
+            "<span class=\"site-search__type\">" + esc(i.type) + "</span>" +
+            "<strong>" + esc(i.title) + "</strong>" +
+            "<span class=\"site-search__excerpt\">" + esc(i.excerpt) + "</span></a>";
         }).join("");
       }
+      if (form) form.addEventListener("submit", function (e) { e.preventDefault(); render(input.value); });
       input.addEventListener("input", function () { render(input.value); });
-      input.addEventListener("keydown", function (e) { if (e.key === "Enter") render(input.value); });
-      try {
-        if (window.avTrack) avTrack({ event_type: "site_search", path: location.pathname });
-      } catch (e) {}
     })();
     </script>
   </main>
@@ -152,6 +153,7 @@
           <li><a href="insights.html">Insights</a></li>
 <li><a href="journal.html">Journal</a></li>
 <li><a href="sitemap.html">Sitemap</a></li>
+<li><a href="search.html">Search</a></li>
 <li><a href="for-recruiters.html">For Recruiters</a></li>
 <li><a href="consulting.html">Consulting</a></li>
         </ul>
@@ -180,7 +182,7 @@
       </div>
     </div>
   </footer>
-  <script src="js/main.js?v=2.4.20-7528cc827554" defer></script>
+  <script src="js/main.js?v=2.4.20-skill02" defer></script>
 <script>
 /* AV OS first-party analytics — minimal, privacy-respecting */
 (function () {
