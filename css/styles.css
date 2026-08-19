@@ -1089,7 +1089,7 @@ html.js.reveal-failsafe:not(.js-ok) [data-reveal="img"] img { transform: scale(1
   width: 40px; height: 40px; border-radius: 10px;
   display: grid; place-items: center;
   border: 1px solid rgba(12, 19, 48, 0.14); color: #0C1330; background: #fff;
-  transition: all 0.25s var(--ease);
+  transition: border-color 0.25s var(--ease), color 0.25s var(--ease), transform 0.25s var(--ease), background 0.25s var(--ease);
 }
 .datepick__nav:hover:not(:disabled) { border-color: #2E5AAC; color: #2E5AAC; transform: translateY(-1px); }
 .datepick__nav:disabled { opacity: 0.35; cursor: default; }
@@ -1102,7 +1102,7 @@ html.js.reveal-failsafe:not(.js-ok) [data-reveal="img"] img { transform: scale(1
 .dp-day {
   aspect-ratio: 1; display: grid; place-items: center; border-radius: 10px;
   font-size: 13.5px; font-weight: 500; color: #0C1330; border: 1px solid transparent;
-  transition: all 0.22s var(--ease); position: relative;
+  transition: border-color 0.22s var(--ease), color 0.22s var(--ease), background 0.22s var(--ease); position: relative;
 }
 .dp-day:hover:not(:disabled) { border-color: #2E5AAC; color: #2E5AAC; background: #FBFAF6; }
 .dp-day:disabled { color: rgba(89, 97, 122, 0.35); cursor: default; }
@@ -1145,7 +1145,7 @@ html.js.reveal-failsafe:not(.js-ok) [data-reveal="img"] img { transform: scale(1
   margin: 20px 0 16px; padding: 13px 16px; border-radius: 12px;
   background: #F1EEE6; border: 1px dashed rgba(12, 19, 48, 0.2);
   font-size: 14px; font-weight: 500; color: #59617A;
-  transition: all 0.35s var(--ease);
+  transition: background 0.35s var(--ease), border-color 0.35s var(--ease), color 0.35s var(--ease);
 }
 .book__summary.is-set {
   background: rgba(46, 90, 172, 0.07); border: 1px solid rgba(46, 90, 172, 0.3); color: #1E4390;
@@ -2472,7 +2472,7 @@ body.about-page {
   --lead-body: 1.75;
   /* distance from the container edge to the viewport edge — lets stills
      bleed exactly to the screen edge regardless of container centering */
-  --edge: calc((100vw - min(1280px, 100vw - 2 * var(--pad-x))) / 2);
+  --edge: max(0px, calc((100% - min(1280px, 100% - 2 * var(--pad-x))) / 2));
   background: var(--ink); color: #EFF0EA;
   --cb: #05070D; --cs: #0A0E1A; --ct: #EFF0EA; --cm: #96A0BE;
   --cl: rgba(148, 170, 230, 0.14); --cls: rgba(148, 170, 230, 0.30);
@@ -3943,3 +3943,85 @@ body.about-page ::selection { background: rgba(110, 168, 255, 0.32); color: #EFF
   .case-coming__actions .btn,
   .case-coming__actions .link-arrow { width: 100%; justify-content: center; }
 }
+
+/* ============================================================
+   EXPERIENCE LAYER — performance, forms, contextual close
+   ============================================================ */
+html, body { max-width: 100%; }
+body { overflow-x: clip; }
+body.is-ready { animation: pageIn 0.55s var(--ease) both; }
+@keyframes pageIn { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  body.is-ready { animation: none; }
+}
+
+.page-close {
+  cursor: pointer;
+  min-width: 44px; min-height: 44px;
+}
+.page-close:focus-visible { outline-offset: 4px; }
+
+.site-search { max-width: 640px; margin-top: 28px; }
+.site-search__label {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+.site-search input[type="search"] {
+  width: 100%; min-height: 56px; border-radius: 14px;
+  border: 1px solid rgba(148, 170, 230, 0.28);
+  background: rgba(8, 15, 34, 0.55); color: #EFF0EA;
+  padding: 0 20px; font: inherit; font-size: 16px;
+}
+.site-search input[type="search"]:focus {
+  outline: 2px solid var(--azure); outline-offset: 3px;
+}
+.site-search__results { margin-top: 16px; }
+.site-search__empty { color: rgba(239, 240, 234, 0.72); font-size: 14px; line-height: 1.6; }
+.site-search__empty a { color: var(--azure-hi); border-bottom: 1px solid rgba(156, 194, 255, 0.4); }
+.site-search__hit {
+  display: block; text-decoration: none;
+  border-bottom: 1px solid rgba(148, 170, 230, 0.16);
+  padding: 14px 4px; color: #EFF0EA;
+}
+.site-search__type {
+  font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  color: rgba(156, 194, 255, 0.78);
+}
+.site-search__hit strong { display: block; font-size: 16px; margin: 3px 0; }
+.site-search__excerpt { font-size: 13px; color: rgba(239, 240, 234, 0.68); line-height: 1.5; }
+
+.cf-hp {
+  position: absolute !important; left: -9999px !important;
+  width: 1px; height: 1px; overflow: hidden;
+}
+.cf-error {
+  display: block; min-height: 1.1em;
+  font-size: 12px; font-weight: 500; color: #C23B3B; letter-spacing: 0;
+}
+.cf-note.is-error { color: #C23B3B; }
+.cf input, .cf textarea { min-height: 48px; }
+#bookSubmit { cursor: pointer; }
+
+.about-evo3d__card {
+  backface-visibility: hidden;
+}
+.about-evo3d__card:not(.is-front) .about-evo3d__content {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: rgba(7, 11, 22, 0.9);
+}
+.about-evo3d__shadow { display: none; }
+.about-evo3d__card { will-change: auto; }
+
+@media (max-width: 900px) {
+  .about-evo3d__scroll { height: 360vh; }
+}
+@media (max-width: 700px) {
+  .hp-hero, .about-prologue, .portfolio-hero { overflow-x: clip; }
+  .nav-links a, .btn, .page-close, .social-chip, .tslot {
+    min-height: 44px;
+  }
+}
+
+a, button, [role="button"], summary { cursor: pointer; }
+mmary { cursor: pointer; }
