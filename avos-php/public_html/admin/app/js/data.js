@@ -108,7 +108,7 @@ AV.seed = {
     },
     {
       id: "prj-2", title: "Intuitive Experiences for Industrial Environments", client: "BPCL", industry: "Energy & Industrial",
-      status: "published", year: "2025", featured: true, image: "media/case-bpcl.webp",
+      status: "published", year: "2025", featured: true, comingSoon: true, comingSoonLabel: "Full case study coming soon", image: "media/case-bpcl.webp",
       summary: "Designing intuitive experiences for complex industrial environments.", views: "6,740",
       role: "Design Strategy & Experience Lead", challenge: "Safety-critical operations ran on dense manuals and denser screens. Comprehension wasn't a nicety — it was risk management.",
       approach: "Intuitive interfaces and immersive walkthroughs of complex processes, designed to be understood under pressure.",
@@ -116,7 +116,7 @@ AV.seed = {
     },
     {
       id: "prj-3", title: "Immersive Solutions for the Indian Army", client: "Indian Army", industry: "Defence & Immersive",
-      status: "published", year: "2025", featured: true, image: "media/case-army.webp",
+      status: "published", year: "2025", featured: true, comingSoon: true, comingSoonLabel: "Full case study coming soon", image: "media/case-army.webp",
       summary: "Creating immersive solutions where clarity, precision and execution matter most.", views: "12,084",
       role: "Creative Lead — Immersive Solutions", challenge: "Communication at enormous scale, under the highest stakes, asking for absolute precision and discipline.",
       approach: "Immersive storytelling and visualization pipelines where every frame is verified — built with the discipline of the institution it served.",

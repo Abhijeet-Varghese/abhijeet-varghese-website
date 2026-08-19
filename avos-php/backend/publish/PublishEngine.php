@@ -1190,9 +1190,73 @@ HTML;
         ]);
     }
 
+    /** Published placeholder that preserves the project URL and factual metadata. */
+    private function renderComingSoonCaseStudy(array $p, array $s, array $nav): string
+    {
+        $siteUrl = rtrim(AV_SITE_URL, '/');
+        $file = $this->caseStudyFile($p);
+        $image = $this->media((string)($p['image'] ?? 'media/hero-portrait.webp'));
+        $title = strip_tags((string)($p['title'] ?? 'Case study'));
+        $client = (string)($p['client'] ?? '');
+        $industry = (string)($p['industry'] ?? '');
+        $year = (string)($p['year'] ?? '');
+        $role = (string)($p['role'] ?? '');
+        $summary = strip_tags((string)($p['summary'] ?? ''));
+        $status = (string)($p['comingSoonLabel'] ?? 'Full case study coming soon');
+        $arrow = self::ARROW;
+        $body = <<<HTML
+    <section class="page-hero case-coming__hero" aria-label="{$this->esc($client)} case study coming soon">
+      <div class="container">
+        <div class="chapter__meta page-hero__meta" data-reveal>
+          <span class="chapter__num">✦</span><span class="chapter__rule"></span>
+          <span class="chapter__tag">{$this->esc($client)} · Coming soon</span>
+        </div>
+        <h1 class="page-hero__title" data-reveal>{$this->esc($title)}</h1>
+        <p class="page-hero__lede" data-reveal style="--d:.15s">{$this->esc($status)}.</p>
+      </div>
+    </section>
+    <section class="case-coming t-light" aria-label="Case study preview">
+      <div class="container case-coming__grid">
+        <figure class="case-coming__media" data-reveal="img">
+          <img src="{$this->esc($image)}" alt="{$this->esc($title)} — {$this->esc($client)} preview" width="1536" height="1024" fetchpriority="high" decoding="async">
+          <figcaption>{$this->esc($client)} · {$this->esc($industry)}{$this->esc($year !== '' ? ' · ' . $year : '')}</figcaption>
+        </figure>
+        <div class="case-coming__copy" data-reveal style="--d:.12s">
+          <p class="case-coming__eyebrow">In development</p>
+          <h2>The complete story is <em>coming soon.</em></h2>
+          <p>{$this->esc($summary)}</p>
+          <dl>
+            <div><dt>Client</dt><dd>{$this->esc($client)}</dd></div>
+            <div><dt>Practice</dt><dd>{$this->esc($industry)}</dd></div>
+            <div><dt>Role</dt><dd>{$this->esc($role)}</dd></div>
+          </dl>
+          <div class="case-coming__actions">
+            <a class="btn btn--accent" href="case-studies.html">View all case studies {$arrow}</a>
+            <a class="link-arrow" href="portfolio.html">Explore the portfolio {$arrow}</a>
+          </div>
+        </div>
+      </div>
+    </section>
+HTML;
+        $seo = $p['seo'] ?? [];
+        $seoTitle = $seo['title'] ?? ($title . ' — ' . ($s['siteName'] ?? ''));
+        $seoDesc = $seo['desc'] ?? ($summary ?: $status);
+        $ld = json_encode([
+            '@context' => 'https://schema.org', '@type' => 'WebPage',
+            'name' => $title, 'description' => $seoDesc,
+            'url' => $siteUrl . '/' . ltrim($file, '/'),
+            'isPartOf' => ['@type' => 'CollectionPage', 'name' => 'Case Studies', 'url' => $siteUrl . '/case-studies.html'],
+            'inLanguage' => 'en',
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        return $this->shell($s, $nav, $seoTitle, $seoDesc, $file, $body, 'case-studies', 'website', $image, $ld, 'case-coming-page');
+    }
+
     /** Dedicated case-study page — every project gets its own URL (no more anchor-only). */
     private function renderCaseStudy(array $p, array $s, array $nav): string
     {
+        if (!empty($p['comingSoon'])) {
+            return $this->renderComingSoonCaseStudy($p, $s, $nav);
+        }
         if (($p['caseStudyTemplate'] ?? '') === 'orange-business-ebc' || ($p['id'] ?? '') === 'prj-1') {
             return $this->renderOrangeBusinessCaseStudy($p, $s, $nav);
         }

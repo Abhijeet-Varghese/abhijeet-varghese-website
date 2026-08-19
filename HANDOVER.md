@@ -82,6 +82,12 @@ One continuous cinematic canvas, rebuilt from scratch over the sessions:
 - The three MP4 files were not supplied. Publish therefore removes unavailable video sources/schema and serves the supplied posters without broken requests. Adding `rotoscope.mp4`, `videowall.mp4` and `VR.mp4` under `assets/media/video/` enables progressive video delivery on the next publish.
 - Source and generated output are byte-identical; deployment history is pruned to one current live snapshot.
 
+### Current project-detail state
+
+- Orange Business remains the complete long-form canonical case study.
+- BPCL and Indian Army retain their listing cards and stable URLs, while their inner routes now render responsive shared-chrome “Full case study coming soon” pages. Existing factual project records remain stored in the CMS.
+- Story Evolution pacing is now materially faster: 720vh desktop/tablet and 680vh phone runways, direct 1:1 scroll tracking, immediate stack wake-up on scroll/resize, and compositor hiding for exited cards.
+
 ### Whole-site responsive/performance hardening
 
 - Full implementation record: `FULL-SITE-OPTIMIZATION-REPORT.md`.
