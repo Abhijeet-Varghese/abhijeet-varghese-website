@@ -237,8 +237,7 @@
           fDate.value = iso(d);
           dateTriggerTx.textContent = fmtShort(d);
           dateTrigger.classList.add("is-set");
-          dateTrigger.classList.remove("is-flagged");
-          $(".datepick", bookForm).classList.remove("is-flagged");
+          unflagCf(dateTrigger); $(".datepick", bookForm).classList.remove("is-flagged");
           closeDate();
           renderCal();
           applySlotAvailability();
@@ -296,8 +295,7 @@
     s.classList.add("is-active");
     s.setAttribute("aria-checked", "true");
     s.tabIndex = 0;
-    slotBox.classList.remove("is-flagged");
-    chosenSlot = s.dataset.slot;
+    unflagCf(slotBox); chosenSlot = s.dataset.slot;
     updateSummary();
   };
   slotBtns.forEach((s, i) => {
@@ -326,8 +324,10 @@
   /* ---- submit — one screen, scheduler in the backend ---- */
   const flagCf = el => {
     el.classList.add("is-invalid");
-    el.addEventListener("input", () => el.classList.remove("is-invalid"), { once: true });
+    el.setAttribute("aria-invalid", "true");
+    el.addEventListener("input", () => { el.classList.remove("is-invalid"); el.removeAttribute("aria-invalid"); }, { once: true });
   };
+  const unflagCf = el => { el.classList.remove("is-invalid"); el.removeAttribute("aria-invalid"); };
   const readForm = () => ({
     name: $("#cfName").value.trim(),
     email: $("#cfEmail").value.trim(),
@@ -352,8 +352,8 @@
     let ok = true;
     if (!f.name) { flagCf($("#cfName")); ok = false; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) { flagCf($("#cfEmail")); ok = false; }
-    if (!selectedDate) { dateTrigger.classList.add("is-flagged"); openDate(); ok = false; }
-    if (!chosenSlot) { slotBox.classList.add("is-flagged"); ok = false; }
+    if (!selectedDate) { dateTrigger.classList.add("is-flagged"); dateTrigger.setAttribute("aria-invalid", "true"); openDate(); ok = false; }
+    if (!chosenSlot) { slotBox.classList.add("is-flagged"); slotBox.setAttribute("aria-invalid", "true"); ok = false; }
     if (!ok) {
       const bad = bookForm.querySelector(".is-invalid") || dateTrigger || slotBox;
       bad.scrollIntoView({ behavior: prefersReduced ? "auto" : "smooth", block: "center" });
@@ -445,7 +445,8 @@
     dateTrigger.classList.remove("is-set", "is-flagged");
     dateTriggerTx.textContent = "Choose a date";
     closeDate();
-    $$(".is-invalid", bookForm).forEach(el => el.classList.remove("is-invalid"));
+    $$(".is-invalid", bookForm).forEach(el => unflagCf(el));
+    unflagCf(dateTrigger); unflagCf(slotBox);
     viewMonth = new Date(minMonth);
     renderCal(); applySlotAvailability(); updateSummary();
     if (cfNote) {

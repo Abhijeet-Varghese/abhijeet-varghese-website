@@ -1,8 +1,11 @@
-
 /* ============================================================
    AV OS — design tokens (generated at publish — do not edit)
+   Layer 1 — primitives: scale facts (spacing, radius, type, z, motion)
+   Layer 2 — semantic: purpose aliases consumed by components
+   Layer 3 — component tokens live next to their rules in styles.css
    ============================================================ */
 :root {
+  /* ---- semantic (CMS-driven) ---- */
   --color-primary: #2E5AAC;
   --color-accent: #2E5AAC;
   --radius-card: 16px;
@@ -10,4 +13,39 @@
   --container-width: 1280px;
   --font-body: "Inter Tight";
   --font-accent: "Instrument Serif";
+
+  /* ---- spacing scale (4px base) ---- */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px;
+  --sp-12: 48px; --sp-16: 64px; --sp-24: 96px; --sp-32: 128px;
+
+  /* ---- radius scale (5 steps + pill) ---- */
+  --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px;
+  --radius-xl: 18px; --radius-2xl: 22px; --radius-pill: 999px;
+
+  /* ---- type scale (editorial: fluid display, fixed micro-labels) ---- */
+  --f-micro: 8.5px;   /* tracked uppercase eyebrows — decorative */
+  --f-micro-2: 9.5px; /* dense meta strips */
+  --f-label: 11.5px;  /* labels, card meta */
+  --f-small: 12.5px;  /* compact body */
+  --f-body-2: 13.5px; /* secondary body */
+  --f-body-px: 14px;  /* base body (light sections) */
+
+  /* ---- feedback ---- */
+  --color-success: #1F7A4D;
+  --color-warning: #9A6B12;
+  --color-error: #C23B3B;
+  --ring-focus: 0 0 0 3px rgba(46, 90, 172, 0.15);
+  --ring-error: 0 0 0 3px rgba(194, 59, 59, 0.12);
+
+  /* ---- elevation (2-step ladder) ---- */
+  --lift: 0 18px 50px -24px rgba(12, 19, 48, 0.35);
+  --lift-hi: 0 42px 90px -54px rgba(12, 19, 48, 0.55);
+
+  /* ---- z-scale ---- */
+  --z-base: 1; --z-content: 10; --z-sticky: 40; --z-nav: 60;
+  --z-overlay: 80; --z-toast: 90; --z-modal: 100;
+
+  /* ---- motion (durations only — choreography is Stage 04) ---- */
+  --t-fast: 160ms; --t-base: 240ms; --t-slow: 420ms;
 }

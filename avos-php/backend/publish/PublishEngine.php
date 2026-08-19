@@ -2588,10 +2588,10 @@ HTML;
             file_put_contents($dir . '/search-index.json', $this->searchIndex());
             file_put_contents($dir . '/search.html', $this->renderSearchPage($s, $nav));
         }
-        $this->writeDesignTokens($dir, $s);   // design system → CSS variables
         $this->injectExternalAnalytics($dir); // GA4 / GTM / Clarity (integration hub config)
         $this->injectAnalytics($dir);         // first-party analytics snippet
         $this->syncMedia($site);              // copies css/js/assets/media into staging
+        $this->writeDesignTokens($dir, $s);   // design system → CSS variables (after syncMedia, which would overwrite them)
         $this->writeSiteHtaccess($dir);       // security headers + redirects + ErrorDocument
         $this->out = $prevOut;
         return ['pages' => $pages, 'articles' => $articles];
@@ -2902,6 +2902,11 @@ HTML;
     {
         $tokens = $s['designTokens'] ?? [];
         $accent = $tokens['accent'] ?? '#2E5AAC';
+        $radius = $tokens['radius'] ?? 16;
+        $spacing = $tokens['spacing'] ?? 24;
+        $container = $tokens['container'] ?? 1280;
+        $bodyFont = $tokens['bodyFont'] ?? 'Inter Tight';
+        $accentFont = $tokens['accentFont'] ?? 'Instrument Serif';
         $css = <<<CSS
 /* ============================================================
    AV OS — design tokens (generated at publish — do not edit)
@@ -2913,11 +2918,11 @@ HTML;
   /* ---- semantic (CMS-driven) ---- */
   --color-primary: {$accent};
   --color-accent: {$accent};
-  --radius-card: {$tokens['radius'] ?? 16}px;
-  --space-section: {$tokens['spacing'] ?? 24}px;
-  --container-width: {$tokens['container'] ?? 1280}px;
-  --font-body: "{$tokens['bodyFont'] ?? 'Inter Tight'}";
-  --font-accent: "{$tokens['accentFont'] ?? 'Instrument Serif'}";
+  --radius-card: {$radius}px;
+  --space-section: {$spacing}px;
+  --container-width: {$container}px;
+  --font-body: "{$bodyFont}";
+  --font-accent: "{$accentFont}";
 
   /* ---- spacing scale (4px base) ---- */
   --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
