@@ -780,7 +780,7 @@ html.js.reveal-failsafe:not(.js-ok) [data-reveal="img"] img { transform: scale(1
   .cap__index { display: none; }
   .cap h3 { max-width: 100%; }
 
-  .case__panel { aspect-ratio: 16 / 10.5; }
+  .case__panel { aspect-ratio: 16 / 9.8; }
   .case__meta { grid-template-columns: repeat(2, 1fr); }
 
   .ai__grid, .focus__grid, .chapter__head--split, .contact__grid { grid-template-columns: 1fr; gap: 34px; }
@@ -882,7 +882,7 @@ html.js.reveal-failsafe:not(.js-ok) [data-reveal="img"] img { transform: scale(1
     radial-gradient(760px 480px at 18% 0%, rgba(110, 168, 255, 0.10), transparent 60%),
     linear-gradient(180deg, #050B1A 0%, #080F22 60%, #0B1430 100%);
   color: var(--ct);
-  padding: clamp(140px, 20vh, 210px) 0 clamp(70px, 9vh, 110px);
+  padding: clamp(148px, 21vh, 224px) 0 clamp(88px, 11.5vh, 134px);
 }
 .page-hero__title {
   font-size: clamp(2.7rem, 1.5rem + 4.6vw, 5.6rem);
