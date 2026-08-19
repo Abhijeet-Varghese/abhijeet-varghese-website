@@ -285,7 +285,7 @@ HTML;
         $cacheBust = $this->assetVersion();
         // close button on inner pages (fixed position, returns home); the homepage has no need for it
         $close = ($active !== null && $active !== 'home' && $active !== '')
-            ? "\n  <a class=\"page-close\" href=\"index.html\" aria-label=\"Back to home\"><svg width=\"17\" height=\"17\" viewBox=\"0 0 18 18\" fill=\"none\" aria-hidden=\"true\"><path d=\"m3 3 12 12M15 3 3 15\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\"/></svg></a>"
+            ? "\n  <a class=\"page-close\" href=\"index.html\" data-history-close aria-label=\"Back to previous page\"><svg width=\"17\" height=\"17\" viewBox=\"0 0 18 18\" fill=\"none\" aria-hidden=\"true\"><path d=\"m3 3 12 12M15 3 3 15\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\"/></svg></a>"
             : '';
         $bc = $bodyClass ? ' class="' . $this->esc($bodyClass) . '"' : '';
         return $this->head($s, $title, $desc, $file, $type, $image) . "\n  {$ld}\n</head>\n<body id=\"top\"{$bc}>\n  <a class=\"skip-link\" href=\"#main\">Skip to content</a>\n  <div class=\"progress\" id=\"progress\" aria-hidden=\"true\"></div>\n" . $this->chrome($s, $nav, $active) . $close . "\n  <main id=\"main\">\n{$body}\n  </main>\n" . $this->footer($s, $nav) . "\n  <script src=\"js/main.js?v={$cacheBust}\" defer></script>\n</body>\n</html>\n";
@@ -693,33 +693,18 @@ HTML;
                   <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 4.5V8l2.4 1.6" stroke="currentColor" stroke-width="1.3"/></svg>
                   <span id="bookSummaryText">Pick a day and a time</span>
                 </p>
-                <button class="btn btn--accent btn--block" type="submit" id="bookSubmit">Confirm booking {$arrow}</button>
-                <p class="cf-note" id="cfNote">Instant confirmation — your calendar invite lands in your inbox.</p>
-                <div class="book__fallback" id="bookFallback" hidden>
-                  <p class="book__fallback-title">Scheduling window not opening?</p>
-                  <div class="book__fallback-actions">
-                    <a class="btn btn--accent btn--block" id="fbScheduler" href="#" target="_blank" rel="noopener">Open the scheduler in a new tab</a>
-                    <a class="btn btn--ghost btn--block" id="fbMail" href="#">Email me the link</a>
-                  </div>
-                  <p class="book__fallback-note">Everything is pre-filled. Still stuck? <a href="mailto:hi@abhijeetvarghese.com">Write to me</a> — I'll sort it personally.</p>
-                </div>
+                <button class="btn btn--accent btn--block" type="submit" id="bookSubmit">Send booking request {$arrow}</button>
+                <p class="cf-note" id="cfNote">Your preferred time will be confirmed personally by email.</p>
               </form>
-            </div>
-            <div class="book__embed" id="bookEmbed" hidden role="dialog" aria-modal="true" aria-label="Pick a time on my calendar">
-              <div class="book__embed-bar">
-                <span class="book__embed-title">Pick a time on my calendar</span>
-                <button class="book__embed-close" type="button" id="bookEmbedClose" aria-label="Close scheduler">✕</button>
-              </div>
-              <iframe id="bookEmbedFrame" title="Schedule an introduction call" loading="lazy"></iframe>
             </div>
             <div class="book__done" id="bookDone" hidden>
               <div class="done__check" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 26 26" fill="none"><path d="m4 13.5 6 6L22 7" stroke="currentColor" stroke-width="2"/></svg></div>
-              <h3>You're booked.</h3>
+              <h3>Request received.</h3>
               <p id="doneSummary"></p>
-              <p class="book__done-note">Your calendar invite is on its way — I'll follow up personally within 24 hours.</p>
+              <p class="book__done-note">I'll confirm the requested time by email within 24 hours.</p>
               <div class="done__actions">
-                <a class="btn btn--ghost book__ghost" id="doneMail" href="#">Send context notes</a>
-                <button class="btn btn--accent" type="button" id="bookAgain">Book another slot</button>
+                <a class="btn btn--ghost book__ghost" id="doneMail" href="#">Send additional context</a>
+                <button class="btn btn--accent" type="button" id="bookAgain">Request another slot</button>
               </div>
             </div>
             <p class="book__fine">Prefer writing? <a class="book__fine-link" href="mailto:hi@abhijeetvarghese.com">hi@abhijeetvarghese.com</a> · <a class="book__fine-link" href="tel:+919694080706">+91-96940 80706</a></p>

@@ -29,29 +29,20 @@ const { chromium } = require('playwright');
   ok('time slot selectable', slotPicked);
   await page.waitForTimeout(400);
   await page.evaluate(() => document.querySelector('#contactForm').requestSubmit());
-  await page.waitForTimeout(9000);
+  await page.waitForTimeout(1800);
   const state = await page.evaluate(() => ({
-    embedVisible: !!document.querySelector('#bookEmbed') && !document.querySelector('#bookEmbed').hidden,
-    embedSrc: (document.querySelector('#bookEmbedFrame') || {}).src || '',
-    fallbackVisible: !!document.querySelector('#bookFallback') && !document.querySelector('#bookFallback').hidden,
-    calendlyPopup: !!document.querySelector('.calendly-overlay, .calendly-popup, iframe[src*="calendly"]'),
-    buttonEnabled: !(document.querySelector('#bookSubmit') || {}).disabled,
-    note: (document.querySelector('#cfNote') || {}).textContent || ''
+    path: location.pathname,
+    doneVisible: !!document.querySelector('#bookDone') && !document.querySelector('#bookDone').hidden,
+    formHidden: !!document.querySelector('#bookView') && document.querySelector('#bookView').hidden,
+    doneText: (document.querySelector('#doneSummary') || {}).textContent || '',
+    calendlyScript: !!document.querySelector('script[src*="calendly"]'),
+    calendlyFrame: !!document.querySelector('iframe[src*="calendly"]'),
+    buttonEnabled: !(document.querySelector('#bookSubmit') || {}).disabled
   }));
-  ok('submit re-enables button (no stuck state)', state.buttonEnabled, JSON.stringify(state));
-  const anyScheduler = state.embedVisible || state.calendlyPopup || state.fallbackVisible;
-  ok('scheduler surfaces in-page (embed/popup) or fallback links — never a dead end', anyScheduler, JSON.stringify(state));
-  if (state.embedVisible) ok('embed iframe points at calendly', state.embedSrc.includes('calendly.com'), state.embedSrc.slice(0, 90));
-  ok('no new-tab popup attempted (window.open path replaced)', !state.fallbackVisible || state.fallbackVisible, '');
-  // close the embed (dispatch directly — iframe sandbox can cover the bar)
-  await page.evaluate(() => {
-    const b = document.querySelector('#bookEmbedClose');
-    if (b) b.click();
-    else document.querySelector('#bookEmbed').hidden = true;
-  });
-  await page.waitForTimeout(700);
-  const closed = await page.evaluate(() => !!document.querySelector('#bookEmbed') && document.querySelector('#bookEmbed').hidden);
-  ok('embed modal closes cleanly', closed);
+  ok('request remains on contact page', state.path === '/contact.html', JSON.stringify(state));
+  ok('in-page success state shown', state.doneVisible && state.formHidden && /request/i.test(state.doneText), JSON.stringify(state));
+  ok('no Calendly script or iframe loaded', !state.calendlyScript && !state.calendlyFrame, JSON.stringify(state));
+  ok('submit button is not left disabled', state.buttonEnabled, JSON.stringify(state));
   console.log(results.join('\n'));
   await browser.close();
 })();

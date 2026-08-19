@@ -1233,7 +1233,7 @@
                             },
                             {
                                 "h": "2. Booking",
-                                "p": "Intro calls are scheduled through Calendly, which processes your name, email and time-slot selection on their own servers. Their privacy policy applies to that step, and the data is used only to arrange our call."
+                                "p": "Intro call requests are submitted directly through this site and stored in AV OS. Your name, email, organization, context and preferred date/time are used only to arrange the conversation; no third-party scheduler is opened."
                             },
                             {
                                 "h": "3. Cookies & analytics",
