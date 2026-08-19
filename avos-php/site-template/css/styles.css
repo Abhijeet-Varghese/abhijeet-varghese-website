@@ -141,8 +141,8 @@ section[id] { scroll-margin-top: 90px; }
 
 .btn {
   display: inline-flex; align-items: center; gap: 10px;
-  padding: 17px 30px; border-radius: var(--radius-pill);
-  font-size: 15px; font-weight: 500; letter-spacing: 0.01em;
+  padding: 16px 28px; border-radius: var(--radius-md);
+  font-size: var(--f-body-px); font-weight: 600; letter-spacing: 0.02em;
   border: 1px solid transparent;
   transition: background 0.35s var(--ease), color 0.35s var(--ease),
               border-color 0.35s var(--ease), transform 0.35s var(--ease),
@@ -151,7 +151,7 @@ section[id] { scroll-margin-top: 90px; }
 }
 .btn:active { transform: translateY(1px); }
 .btn--accent { background: var(--ca, var(--azure)); color: var(--con, var(--azure-ink)); font-weight: 600; }
-.btn--accent:hover { background: var(--cah, var(--azure-hi)); transform: translateY(-2px); box-shadow: 0 16px 40px -14px rgba(46, 90, 172, 0.5); }
+.btn--accent:hover { background: var(--cah, var(--azure-hi)); transform: translateY(-2px); box-shadow: var(--lift-hi); }
 .btn--ghost { border-color: var(--cls); color: var(--ct, var(--chrome-text)); background: transparent; }
 .btn--ghost:hover { border-color: var(--ca, var(--azure)); color: var(--cah, var(--azure-hi)); background: var(--chip-tint, rgba(110,168,255,.08)); transform: translateY(-2px); }
 .btn--small { padding: 12px 22px; font-size: var(--f-body-2); }
@@ -161,7 +161,7 @@ section[id] { scroll-margin-top: 90px; }
 
 .link-arrow {
   display: inline-flex; align-items: center; gap: 10px;
-  font-size: 15px; font-weight: 500; color: var(--ct, var(--chrome-text));
+  font-size: var(--f-body-px); font-weight: 600; color: var(--ct, var(--chrome-text));
   padding-bottom: 6px; border-bottom: 1px solid var(--cls, rgba(148,170,230,.3));
   transition: color 0.3s var(--ease), border-color 0.3s var(--ease);
 }
@@ -396,7 +396,7 @@ html.js.reveal-failsafe:not(.js-ok) [data-reveal="img"] img { transform: scale(1
   padding: clamp(30px, 4vh, 52px) clamp(26px, 3.5vw, 56px);
   min-height: clamp(220px, 30vh, 300px);
   background: var(--panel-grad), var(--cs);
-  border: 1px solid var(--cl); border-radius: var(--radius-xl);
+  border: 1px solid var(--cl); border-radius: var(--radius-lg);
   box-shadow: 0 -18px 50px -30px rgba(0, 0, 0, 0.6);
   transition: opacity 0.95s var(--ease), transform 0.95s var(--ease);
 }
@@ -416,7 +416,7 @@ html.js.reveal-failsafe:not(.js-ok) [data-reveal="img"] img { transform: scale(1
 
 .case__panel {
   position: relative; overflow: hidden;
-  border-radius: var(--radius-2xl); border: 1px solid var(--cl);
+  border-radius: var(--radius-lg); border: 1px solid var(--cl);
   background: #0B1430;
   aspect-ratio: 16 / 8.6;
 }
