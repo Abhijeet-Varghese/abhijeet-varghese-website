@@ -1,0 +1,126 @@
+/* ============================================================
+   AV OS — APPLE THEME (Stage 05 redesign layer)
+   Loaded last: redefines the token layer established in Stage 01.
+   The whole visual system flips — light-first Apple world, frosted
+   chrome, larger display type, flattened editorial surfaces, ink
+   closing chapter. Content, layout logic, motion and functionality
+   from Stages 01–04 are untouched beneath it.
+   ============================================================ */
+
+/* ---------- the new world: chrome + chapter themes ---------- */
+:root {
+  --nav-bg: rgba(251, 251, 253, 0.72);
+  --chrome-text: #1d1d1f;
+  --chrome-muted: #6e6e73;
+  --azure: #2E5AAC;
+  --azure-hi: #1E4390;
+  --azure-ink: #FFFFFF;
+  --nav-hairline: rgba(0, 0, 0, 0.08);
+}
+.t-light {
+  --cb: #fbfbfd; --cs: #ffffff; --ct: #1d1d1f; --cm: #6e6e73;
+  --cl: rgba(0, 0, 0, 0.10); --cls: rgba(0, 0, 0, 0.22);
+  --ca: #2E5AAC; --cah: #1E4390; --con: #ffffff;
+  --panel-grad: none;
+}
+.t-dark {
+  --cb: #000000; --cs: #121214; --ct: #f5f5f7; --cm: #86868b;
+  --cl: rgba(255, 255, 255, 0.12); --cls: rgba(255, 255, 255, 0.26);
+  --ca: #6EA8FF; --cah: #9CC2FF; --con: #051129;
+  --panel-grad: none;
+}
+body { background: #fbfbfd; }
+
+/* ---------- typography: bigger, quieter, more confident ---------- */
+:root {
+  --f-h2: clamp(2.6rem, 1.5rem + 5.2vw, 5.4rem);
+  --f-quote: clamp(2.6rem, 1.6rem + 5.6vw, 6rem);
+  --f-lede: clamp(1.15rem, 1.03rem + 0.55vw, 1.5rem);
+}
+.page-hero__title {
+  font-size: clamp(3rem, 1.4rem + 6.4vw, 6.8rem);
+  font-weight: 700; letter-spacing: -0.042em; line-height: 1.0;
+  max-width: 16ch;
+}
+.page-hero__lede { line-height: 1.55; }
+.page-section { padding: clamp(120px, 16vh, 200px) 0; }
+
+/* ---------- hero: pure black product-stage ---------- */
+.page-hero {
+  background: #000;
+  padding: clamp(160px, 22vh, 240px) 0 clamp(96px, 12vh, 150px);
+}
+.page-hero__title { color: #f5f5f7; }
+.page-hero__lede { color: #86868b; }
+.page-hero__meta .chapter__tag, .page-hero .chapter__tag { color: #86868b; }
+
+/* ---------- navigation: frosted light bar ---------- */
+.site-nav {
+  background: rgba(251, 251, 253, 0.72);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--nav-hairline);
+}
+.site-nav .nav-logo, .site-nav a { color: #1d1d1f; }
+.site-nav a::after { background: #1d1d1f; }
+.site-nav a[aria-current="page"] { color: #1d1d1f; }
+.nav-burger span { background: #1d1d1f; }
+#progress { background: #2E5AAC; }
+
+/* ---------- controls: quiet, tactile, filled ---------- */
+.btn { font-weight: 550; }
+.btn--accent { background: #2E5AAC; color: #fff; }
+.btn--accent:hover { background: #1E4390; box-shadow: none; transform: translateY(-1px); }
+.btn--ghost { border-color: rgba(0, 0, 0, 0.18); color: #1d1d1f; }
+.btn--ghost:hover { border-color: #1d1d1f; background: rgba(0, 0, 0, 0.04); transform: translateY(-1px); }
+.t-dark .btn--ghost { border-color: rgba(255, 255, 255, 0.24); color: #f5f5f7; }
+.t-dark .btn--ghost:hover { border-color: #f5f5f7; background: rgba(255, 255, 255, 0.06); }
+.link-arrow { color: #2E5AAC; border-bottom-color: rgba(46, 90, 172, 0.35); }
+.t-dark .link-arrow { color: #6EA8FF; border-bottom-color: rgba(110, 168, 255, 0.35); }
+
+/* ---------- surfaces: flatten the cards into editorial rows ---------- */
+.cap {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  border-radius: 20px;
+}
+.cap--feature { background: #000; border-color: #000; }
+.cap--feature h3, .cap--feature .cap__num { color: #f5f5f7; }
+.cap--feature p { color: #86868b; }
+.cap p { line-height: 1.65; }
+.entry { border-bottom-color: rgba(0, 0, 0, 0.08); }
+.case__panel { border-radius: 20px; border-color: rgba(0, 0, 0, 0.08); }
+.chip-list li { background: transparent; border: 1px solid rgba(0, 0, 0, 0.12); color: #1d1d1f; }
+.t-dark .chip-list li { border-color: rgba(255, 255, 255, 0.16); color: #f5f5f7; }
+
+/* ---------- forms: white fields, hairline focus ---------- */
+.cf input, .cf textarea, .datepick input {
+  background: #fff; border-color: rgba(0, 0, 0, 0.14); color: #1d1d1f;
+}
+.cf input:focus, .cf textarea:focus { border-color: #2E5AAC; }
+.tslot { background: #fff; border-color: rgba(0, 0, 0, 0.12); }
+.tslot.is-active { background: #1d1d1f; border-color: #1d1d1f; color: #fff; }
+.date-trigger { background: #fff; border-color: rgba(0, 0, 0, 0.14); color: #1d1d1f; }
+
+/* ---------- footer: the ink closing chapter ---------- */
+.footer, .footer--arena, .site-footer, footer {
+  background: #000 !important; color: #86868b;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+.footer a, .footer--arena a, footer a { color: #86868b; }
+.footer a:hover, .footer--arena a:hover, footer a:hover { color: #f5f5f7; }
+.footer strong, .footer h2, .footer h3, .footer h4, footer strong, footer h2 { color: #f5f5f7; }
+.footer .btn--ghost { border-color: rgba(255,255,255,.24); color: #f5f5f7; }
+.footer .btn--ghost:hover { border-color: #f5f5f7; background: rgba(255,255,255,.06); }
+
+/* ---------- selection + scroll polish ---------- */
+::selection { background: rgba(46, 90, 172, 0.18); }
+
+/* ---------- mobile: frosted sheet, own composition ---------- */
+.mobile-menu { background: rgba(251, 251, 253, 0.96); }
+.mobile-menu a { color: #1d1d1f; }
+.mobile-close { color: #1d1d1f; }
+
+/* ---------- the story page keeps its cinematic world;
+   only its chrome joins the new system (handled above) ---------- */
