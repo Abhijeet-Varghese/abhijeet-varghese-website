@@ -2963,11 +2963,16 @@ CSS;
         $cssDir = $dir . '/css';
         @mkdir($cssDir, 0775, true);
         file_put_contents($cssDir . '/tokens.css', $css);
-        // ensure tokens.css is loaded after styles.css in generated HTML
+        // ensure tokens.css + the Apple redesign layer load after styles.css
         foreach ($this->htmlFiles($dir) as $idx) {
             $html = (string)file_get_contents($idx);
             if (!str_contains($html, 'tokens.css')) {
                 $html = preg_replace('/(<link rel="stylesheet" href="css\/styles\.css(?:\?v=[^"]*)?"\s*>)/', '$1' . "\n" . '<link rel="stylesheet" href="css/tokens.css">', $html, 1);
+                file_put_contents($idx, $html);
+            }
+            if (!str_contains($html, 'apple-theme.css')) {
+                $html = (string)file_get_contents($idx);
+                $html = preg_replace('/(<link rel="stylesheet" href="css\/tokens\.css"\s*>)/', '$1' . "\n" . '<link rel="stylesheet" href="css/apple-theme.css?v=' . $this->assetVersion() . '">', $html, 1);
                 file_put_contents($idx, $html);
             }
         }
