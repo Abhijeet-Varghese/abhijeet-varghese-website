@@ -34,16 +34,8 @@ if (!is_file($file) && !str_starts_with($path, '/api/') && !str_starts_with($pat
 // safety: no traversal
 $real = realpath($file);
 if ($real === false || !str_starts_with($real, realpath($root))) {
-    $notFound = $root . '/site/404.html';
     http_response_code(404);
-    if (is_file($notFound)) {
-        header('Content-Type: text/html; charset=utf-8');
-        header('Cache-Control: no-cache, must-revalidate');
-        readfile($notFound);
-    } else {
-        header('Content-Type: text/plain; charset=utf-8');
-        echo 'Not found';
-    }
+    echo 'Not found';
     return true;
 }
 
@@ -53,17 +45,7 @@ if (is_dir($real)) {
     if (!is_file($cand)) $cand = rtrim($real, '/') . '/index.html';
     $file = $cand;
     $real = realpath($file);
-    if ($real === false) {
-        $notFound = $root . '/site/404.html';
-        http_response_code(404);
-        if (is_file($notFound)) {
-            header('Content-Type: text/html; charset=utf-8');
-            readfile($notFound);
-        } else {
-            echo 'Not found';
-        }
-        return true;
-    }
+    if ($real === false) { http_response_code(404); echo 'Not found'; return true; }
 }
 
 $ext = pathinfo($real, PATHINFO_EXTENSION);
