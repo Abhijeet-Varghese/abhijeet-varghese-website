@@ -705,7 +705,7 @@ html.js.reveal-failsafe:not(.js-ok) [data-reveal="img"] img { transform: scale(1
   text-transform: uppercase; color: #2E5AAC; margin-bottom: 10px;
 }
 .book__eyebrow::before { content: ""; width: 26px; height: 1px; background: #2E5AAC; }
-.book__head h3 { font-size: clamp(1.4rem, 1.15rem + 1.1vw, 1.8rem); font-weight: 600; letter-spacing: -0.022em; line-height: 1.2; }
+.book__head h2, .book__head h3 { font-size: clamp(1.4rem, 1.15rem + 1.1vw, 1.8rem); font-weight: 600; letter-spacing: -0.022em; line-height: 1.2; }
 .book__head-sub { margin-top: 6px; font-size: 13px; color: #59617A; letter-spacing: 0.02em; }
 .book__fine { margin-top: 14px; text-align: center; font-size: 12.5px; color: #454D66; }
 .book__fine-link { color: #1E4390; border-bottom: 1px solid rgba(30, 67, 144, 0.4); padding-bottom: 1px; }
@@ -882,7 +882,7 @@ html.js.reveal-failsafe:not(.js-ok) [data-reveal="img"] img { transform: scale(1
 .prose { max-width: 68ch; }
 .prose p { color: var(--cm); line-height: 1.75; margin-bottom: 18px; font-size: 1.02rem; }
 .prose p strong { color: var(--ct); font-weight: 600; }
-.prose h3 { font-size: clamp(1.3rem, 1.05rem + 1vw, 1.7rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1.24; margin: 34px 0 14px; }
+.prose h2, .prose h3 { font-size: clamp(1.3rem, 1.05rem + 1vw, 1.7rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1.24; margin: 34px 0 14px; }
 .prose ul { list-style: none; margin-bottom: 18px; }
 .prose ul li { position: relative; padding-left: 26px; color: var(--cm); line-height: 1.7; margin-bottom: 8px; }
 .prose ul li::before { content: ""; position: absolute; left: 4px; top: 0.72em; width: 7px; height: 7px; background: var(--ca); transform: rotate(45deg); }
@@ -903,8 +903,8 @@ html.js.reveal-failsafe:not(.js-ok) [data-reveal="img"] img { transform: scale(1
 .entry { border-bottom: 1px solid var(--cl); padding: clamp(22px, 3.4vh, 34px) 4px; }
 .entry__meta { display: flex; align-items: center; gap: 14px; font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm); margin-bottom: 12px; }
 .entry__meta em { font-family: var(--serif); font-style: italic; font-weight: 400; font-size: 1.3em; letter-spacing: 0; color: var(--ca); text-transform: none; }
-.entry h3 { font-size: clamp(1.35rem, 1.05rem + 1.3vw, 1.95rem); font-weight: 600; letter-spacing: -0.022em; line-height: 1.15; }
-.entry h3 em { font-family: var(--serif); font-style: italic; font-weight: 400; color: var(--cah); }
+.entry h2, .entry h3 { font-size: clamp(1.35rem, 1.05rem + 1.3vw, 1.95rem); font-weight: 600; letter-spacing: -0.022em; line-height: 1.15; }
+.entry h2 em, .entry h3 em { font-family: var(--serif); font-style: italic; font-weight: 400; color: var(--cah); }
 .entry p { margin-top: 10px; color: var(--cm); line-height: 1.7; max-width: 62ch; }
 .entry p + p { margin-top: 8px; }
 
@@ -927,7 +927,7 @@ html.js.reveal-failsafe:not(.js-ok) [data-reveal="img"] img { transform: scale(1
   border-radius: 18px; padding: clamp(26px, 3.4vw, 44px);
   display: grid; gap: 18px;
 }
-.recruiter-card h3 { font-size: clamp(1.3rem, 1rem + 1.2vw, 1.8rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; }
+.recruiter-card h2, .recruiter-card h3 { font-size: clamp(1.3rem, 1rem + 1.2vw, 1.8rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; }
 .recruiter-card p { color: var(--cm); line-height: 1.7; max-width: 56ch; }
 .recruiter-card .chip-list { margin: 6px 0 0; }
 
@@ -1052,7 +1052,7 @@ html.js.reveal-failsafe:not(.js-ok) [data-reveal="img"] img { transform: scale(1
   animation: pop 0.6s var(--ease);
 }
 @keyframes pop { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-.book__done h3 { font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2rem); font-weight: 600; letter-spacing: -0.025em; line-height: 1.18; margin-bottom: 10px; color: #0C1330; }
+.book__done h2, .book__done h3 { font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2rem); font-weight: 600; letter-spacing: -0.025em; line-height: 1.18; margin-bottom: 10px; color: #0C1330; }
 .book__done p { color: #59617A; line-height: 1.65; font-size: 15px; }
 .book__done-note { margin-top: 12px; }
 .done__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
@@ -3100,13 +3100,20 @@ body.about-page ::selection { background: rgba(110, 168, 255, 0.30); color: #EFF
   width: min(720px, 92%);
   padding: clamp(16px, 2.2vw, 26px) clamp(18px, 2.6vw, 30px);
   border-radius: 18px;
-  /* Standard content material: denser than the Liquid Glass control layer. */
-  background: rgba(7, 11, 22, 0.82);
-  backdrop-filter: blur(10px) saturate(120%);
-  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  /* Standard content material: denser than the Liquid Glass control layer.
+     Performance: the backdrop-filter lives on the FRONT card only — a live
+     glass plate per card would re-sample the moving backdrop on every frame
+     of the 3D stack (that was the Evolution lag). Back cards keep the same
+     look via a denser fill and carry no filter cost. */
+  background: rgba(7, 11, 22, 0.92);
   border: 1px solid rgba(255, 255, 255, 0.16);
   box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.88);
   transform: translateZ(140px);
+}
+.about-evo3d__card.is-front .about-evo3d__content {
+  background: rgba(7, 11, 22, 0.82);
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
 }
 .about-evo3d__note {
   margin-bottom: 12px;

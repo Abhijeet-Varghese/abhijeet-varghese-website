@@ -417,7 +417,7 @@ HTML;
             <picture><img src="{$this->esc($img)}" alt="{$this->esc($imgAlt)}" width="1536" height="1024" loading="lazy" decoding="async"></picture>
             <figcaption class="case__card" data-reveal>
               <p class="case__kicker"><span>{$this->esc($this->v($p, 'industry', ''))}</span><span class="case__client">{$this->esc($this->v($p, 'client', ''))}</span></p>
-              <h3 class="case__title">{$this->esc($this->v($p, 'title', ''))}</h3>
+              <h2 class="case__title">{$this->esc($this->v($p, 'title', ''))}</h2>
               <a class="case__card-cta" href="{$this->esc($this->caseStudyFile($p))}">Explore case study {$arrow}</a>
             </figcaption>
           </figure>
@@ -634,7 +634,7 @@ HTML;
           <div class="book" data-reveal>
             <header class="book__head">
               <p class="book__eyebrow">Reserve your time</p>
-              <h3>Book an intro call</h3>
+              <h2>Book an intro call</h2>
               <p class="book__head-sub">Video call · no agenda theatre · instant invite</p>
             </header>
             <div class="book__view" id="bookView">
@@ -771,7 +771,7 @@ HTML;
     {
         $out = [];
         foreach (($b['content']['paragraphs'] ?? []) as $p) $out[] = '<p data-reveal>' . $p . '</p>';
-        foreach (($b['content']['headings'] ?? []) as $h) $out[] = '<h3 data-reveal>' . $this->esc($h['h'] ?? '') . '</h3><p data-reveal>' . $this->esc($h['p'] ?? '') . '</p>';
+        foreach (($b['content']['headings'] ?? []) as $h) $out[] = '<h2 data-reveal>' . $this->esc($h['h'] ?? '') . '</h2><p data-reveal>' . $this->esc($h['p'] ?? '') . '</p>';
         return <<<HTML
     <section class="page-section t-light">
       <div class="container">
@@ -880,7 +880,7 @@ HTML;
     <section class="page-section t-light">
       <div class="container">
         <div class="recruiter-card" data-reveal style="max-width:760px;margin-inline:auto;text-align:center">
-          <h3>{$this->esc($this->v($b, 'content', 'title', ''))}</h3>
+          <h2>{$this->esc($this->v($b, 'content', 'title', ''))}</h2>
           <p>{$this->esc($this->v($b, 'content', 'text', ''))}</p>
           {$btn}
         </div>
@@ -900,7 +900,7 @@ HTML;
     <section class="page-section t-light">
       <div class="container">
         <div class="recruiter-card" data-reveal style="max-width:760px;margin-inline:auto">
-          <h3>{$this->esc($this->v($b, 'content', 'title', ''))}</h3>
+          <h2>{$this->esc($this->v($b, 'content', 'title', ''))}</h2>
           <p>{$this->esc($this->v($b, 'content', 'body', ''))}</p>
           {$chipsHtml}
           {$dl}{$cta}
@@ -930,7 +930,7 @@ HTML;
             <picture><img src="{$this->esc($img)}" alt="{$this->esc($imgAlt)}" width="1536" height="1024" loading="lazy" decoding="async"></picture>
             <figcaption class="case__card" data-reveal>
               <p class="case__kicker"><span>{$this->esc($this->v($p, 'industry', ''))}</span><span class="case__client">{$this->esc($this->v($p, 'client', ''))}</span></p>
-              <h3 class="case__title">{$this->esc($this->v($p, 'title', ''))}</h3>
+              <h2 class="case__title">{$this->esc($this->v($p, 'title', ''))}</h2>
               <a class="case__card-cta" href="{$this->esc($this->caseStudyFile($p))}">Explore case study {$arrow}</a>
             </figcaption>
           </figure>
@@ -971,7 +971,7 @@ HTML;
             $href = ($kind === 'essay' ? 'essay-' : 'journal-') . $slug . '.html';
             $rows[] = '<article class="entry" data-reveal>
           <p class="entry__meta"><em>' . str_pad((string)$i, 2, '0', STR_PAD_LEFT) . '</em><span>' . $this->esc($e['category'] ?? '') . ' · ' . $this->esc($e['readTime'] ?? '') . '</span></p>
-          <h3><a href="' . $href . '">' . $this->esc($e['title'] ?? '') . '</a></h3>
+          <h2><a href="' . $href . '">' . $this->esc($e['title'] ?? '') . '</a></h2>
           <p>' . $this->esc($e['excerpt'] ?? '') . '</p>
           <p style="margin-top:12px"><a class="link-arrow" href="' . $href . '">Read ' . ($kind === 'essay' ? 'the essay' : 'the entry') . ' ' . self::ARROW . '</a></p>
         </article>';

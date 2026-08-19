@@ -20,22 +20,75 @@
   const yearEl = $("#year");
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-  /* ---------- Inner-page close — return to the exact originating section ---------- */
-  const pageClose = $("[data-history-close]");
-  if (pageClose) {
-    pageClose.addEventListener("click", event => {
+  /* ---------- Inner-page close — always return to the exact originating section.
+     Preference order:
+       1. same-tab in-site navigation  → history.back() (native scroll restoration)
+       2. remembered return point      → navigate to it and restore the scroll
+          (covers new tabs, reloads and direct visits within the session)
+       3. href fallback                → homepage (untouched default) ---------- */
+  const INNER_PAGE = /(^|\/)(case-study-[\w-]+\.html|essay-[\w-]+\.html|journal-[\w-]+\.html)$|\/experience-design\//;
+  const isInnerUrl = u => {
+    try { const x = new URL(u, location.href); return x.origin === location.origin && INNER_PAGE.test(x.pathname); }
+    catch { return false; }
+  };
+
+  /* listing pages — remember where an inner page was opened from */
+  document.addEventListener("click", e => {
+    const a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
+    if (!a || a.target === "_blank" || a.hasAttribute("download")) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    const href = a.getAttribute("href") || "";
+    if (!href || href.startsWith("#") || /^(https?:|mailto:|tel:)/i.test(href)) return;
+    if (!isInnerUrl(href)) return;
+    try {
+      sessionStorage.setItem("av:return", JSON.stringify({ url: location.href.split("#")[0], y: Math.round(window.scrollY), t: Date.now() }));
+    } catch { /* private mode — the href fallback still works */ }
+  }, true);
+
+  /* listing pages — restore a remembered position after returning */
+  try {
+    const pending = JSON.parse(sessionStorage.getItem("av:scroll") || "null");
+    if (pending && typeof pending.y === "number" && pending.url === location.href.split("#")[0] && Date.now() - (pending.t || 0) < 3e5) {
+      sessionStorage.removeItem("av:scroll");
+      const jump = () => window.scrollTo({ top: pending.y, behavior: "auto" });
+      if ("requestIdleCallback" in window) requestIdleCallback(jump, { timeout: 400 }); else setTimeout(jump, 120);
+    }
+  } catch { /* ignore */ }
+
+  const readReturn = () => {
+    try {
+      const r = JSON.parse(sessionStorage.getItem("av:return") || "null");
+      return r && r.url && Date.now() - (r.t || 0) < 3e5 ? r : null;
+    } catch { return null; }
+  };
+
+  $$("[data-history-close]").forEach(btn => {
+    const ret = readReturn();
+    if (ret) { try { btn.setAttribute("href", new URL(ret.url, location.href).href); } catch { /* keep fallback */ } }
+    btn.addEventListener("click", event => {
       let sameSiteReferrer = false;
       try {
         const referrer = document.referrer ? new URL(document.referrer) : null;
         sameSiteReferrer = !!referrer && referrer.origin === location.origin && referrer.href !== location.href;
       } catch { sameSiteReferrer = false; }
+      /* 1 — came here in this tab: native back restores route + scroll exactly */
       if (sameSiteReferrer && history.length > 1) {
         event.preventDefault();
         history.back();
+        return;
       }
-      // Direct/new-tab visits retain the href fallback to the homepage.
+      /* 2 — opened in a new tab / reloaded / referrer stripped: use the
+             remembered origin and restore its scroll position on arrival */
+      const r = readReturn();
+      if (r) {
+        event.preventDefault();
+        try { sessionStorage.setItem("av:scroll", JSON.stringify({ url: r.url, y: r.y, t: Date.now() })); } catch { /* ignore */ }
+        location.href = r.url;
+        return;
+      }
+      /* 3 — no context at all: keep the authored href (homepage) */
     });
-  }
+  });
 
   /* ---------- Booking — single screen, popover calendar, live availability ----------
      The calendar stays closed until the visitor clicks the date field (popover).
@@ -47,6 +100,7 @@
 
   const bookForm  = $("#contactForm");
   if (bookForm) {
+  try {
   const bookView  = $("#bookView");
   const bookDone  = $("#bookDone");
   const slotBox   = $("#tslots");
@@ -377,7 +431,8 @@
     bookDone.scrollIntoView({ behavior: prefersReduced ? "auto" : "smooth", block: "center" });
   });
 
-  $("#bookAgain").addEventListener("click", () => {
+  const bookAgain = $("#bookAgain");
+  if (bookAgain) bookAgain.addEventListener("click", () => {
     if (submitBtn) { submitBtn.disabled = false; submitBtn.classList.remove("is-loading"); submitBtn.innerHTML = "Send booking request"; }
     bookForm.reset();
     chosenSlot = null; selectedDate = null;
@@ -410,6 +465,10 @@
 
   renderCal();
   fetchMonth(today.getFullYear(), today.getMonth());   // warm the availability cache
+  } catch (err) {
+    /* a booking-widget element moved — degrade this feature only, never the page */
+    console.warn("[booking] init skipped:", err);
+  }
   }
 
   /* ---------- Stagger delays (groups can declare a base delay) ---------- */
@@ -573,6 +632,13 @@
 
     /* --- the three title beats separate at increasing depth as the
        opening frame gives way to the identity spread --- */
+    const aboutScrubbers = [];
+    let aboutScrubTick = false;
+    const queueAboutScrub = () => {
+      if (aboutScrubTick) return;
+      aboutScrubTick = true;
+      requestAnimationFrame(() => { for (const fn of aboutScrubbers) fn(); aboutScrubTick = false; });
+    };
     const pl = document.getElementById("prologue");
     const plLines = pl ? $$(".about-prologue__line", pl) : [];
     const heroDepth = [-0.055, -0.095, -0.14];
@@ -596,8 +662,7 @@
         const p = clamp((vh * 0.6 - r.top) / (r.height + vh * 0.6), 0, 1);
         portrait.style.transform = `scale(1.06) translate3d(0, ${(-5 + p * 10).toFixed(1)}px, 0)`;
       };
-      window.addEventListener("scroll", () => requestAnimationFrame(onPortrait), { passive: true });
-      window.addEventListener("resize", onPortrait, { passive: true });
+      aboutScrubbers.push(onPortrait);
       onPortrait();
     }
 
@@ -619,8 +684,7 @@
         if (g1) { g1.style.opacity = Math.max(0, (p - 0.4) * 0.5).toFixed(3); g1.style.transform = `scale(${(1.06 + p * 0.12).toFixed(3)})`; }
         if (g2) { g2.style.opacity = Math.max(0, (p - 0.72) * 0.5).toFixed(3); g2.style.transform = `scale(${(1.02 + p * 0.2).toFixed(3)})`; }
       };
-      window.addEventListener("scroll", () => requestAnimationFrame(onZoom), { passive: true });
-      window.addEventListener("resize", onZoom, { passive: true });
+      aboutScrubbers.push(onZoom);
       onZoom();
     }
 
@@ -641,9 +705,10 @@
       }
       if (best) document.body.dataset.env = best;
     };
-    window.addEventListener("scroll", () => requestAnimationFrame(computeEnv), { passive: true });
-    window.addEventListener("resize", computeEnv, { passive: true });
-    computeEnv();
+    aboutScrubbers.push(computeEnv);
+    queueAboutScrub();
+    window.addEventListener("scroll", queueAboutScrub, { passive: true });
+    window.addEventListener("resize", queueAboutScrub, { passive: true });
 
     /* ============================================================
        THE EVOLUTION — 3D FILM STACK (scroll-choreographed)
@@ -762,95 +827,119 @@
       };
       const syncCompass = active => {
         if (!compassNum) return;
-        compassNum.textContent = String(active).padStart(2, "0");
+        const num = String(active).padStart(2, "0");
+        if (compassNum.textContent !== num) compassNum.textContent = num;
         const meta = evo3dCards[active - 1].querySelector(".about-evo3d__meta span:last-child");
-        if (compassName) compassName.textContent = meta ? meta.textContent.trim() : String(active).padStart(2, "0");
+        if (compassName) {
+          const name = meta ? meta.textContent.trim() : num;
+          if (compassName.textContent !== name) compassName.textContent = name;
+        }
+      };
+
+      /* --- performance contract ------------------------------------------
+         (1) every per-card style write goes through a cache: identical values
+             are never written twice, so an idle frame costs nothing.
+         (2) blur filters are never animated frame-to-frame (animated blur
+             forces a re-raster of every card texture — the old jank source);
+             depth is carried by translateZ, scale and opacity alone.
+         (3) the rAF loop sleeps when nothing is moving (progress unchanged
+             and camera settled); scroll/pointer/resize/visibility wake it. */
+      const cardState = evo3dCards.map(() => ({ transform: "", opacity: "", zIndex: "", visibility: "", img: "", shTransform: "", shOpacity: "" }));
+      const write = (el, cache, key, value) => {
+        if (cache[key] === value) return;
+        cache[key] = value;
+        el.style[key] = value;
+      };
+      const updateStack = () => {
+        const cardProgress = Math.min(currentProgress * (TOTAL + 1.2), TOTAL - 1);
+        const inView = currentProgress > 0.001 && currentProgress < 0.999;
+        const active = cN(Math.floor(cardProgress) + 1, 1, TOTAL);
+        setAtmo(inView ? (evo3dCards[active - 1].dataset.world || null) : null);
+        syncCompass(active);
+
+        for (let index = 0; index < TOTAL; index++) {
+          const card = evo3dCards[index];
+          const cs = cardState[index];
+          const isFront = index === active - 1;
+          card.classList.toggle("is-front", isFront);
+          const relative = index - cardProgress;
+
+          if (relative < -1) {                                   /* flown out */
+            write(card, cs, "visibility", "hidden");
+            write(card, cs, "transform", `translate3d(0, ${-EXIT_Y}vh, ${EXIT_Z}px) rotateX(-${OPEN_ANGLE}deg) rotateY(-6deg) scale(.86)`);
+            write(card, cs, "opacity", "0");
+            write(card, cs, "zIndex", "0");
+            continue;
+          }
+          write(card, cs, "visibility", "visible");
+
+          if (relative <= 0) {                                   /* hinging open */
+            const t = easeInOut(Math.abs(relative));
+            write(card, cs, "transform", `translate3d(0, ${(-t * EXIT_Y).toFixed(2)}vh, ${(t * EXIT_Z).toFixed(2)}px) rotateX(${(-t * OPEN_ANGLE).toFixed(2)}deg) rotateY(${(-t * 6).toFixed(2)}deg) rotateZ(${(t * 1.5).toFixed(2)}deg) scale(${(1 - t * 0.07).toFixed(4)})`);
+            write(card, cs, "opacity", (1 - Math.max(0, t - 0.9) * 10).toFixed(3));
+            write(card, cs, "zIndex", "1000");
+            if (evo3dImages[index]) write(evo3dImages[index], cs, "img", `translateZ(35px) scale(${(1.12 + t * 0.2).toFixed(4)}) translateY(${(t * 7).toFixed(2)}%)`);
+            if (evo3dShadows[index]) {
+              write(evo3dShadows[index], cs, "shTransform", `translateZ(${(-300 + t * 220).toFixed(1)}px) rotateX(72deg) scale(${(1 + t * 0.5).toFixed(4)})`);
+              write(evo3dShadows[index], cs, "shOpacity", (0.72 - t * 0.58).toFixed(3));
+            }
+            continue;
+          }
+
+          if (relative < 1.5) {                                  /* rising into place */
+            const t = easeOut(cN(1 - (relative - 1), 0, 1));
+            write(card, cs, "transform", `translate3d(0, ${(STACK_Y - t * STACK_Y).toFixed(2)}px, ${(-CARD_DEPTH + t * CARD_DEPTH).toFixed(2)}px) rotateX(${(0.65 - t * 0.65).toFixed(3)}deg) rotateY(${(-0.35 + t * 0.35).toFixed(3)}deg) scale(${(0.966 + t * 0.034).toFixed(4)})`);
+            write(card, cs, "opacity", (0.9 + t * 0.1).toFixed(3));
+            write(card, cs, "zIndex", "999");
+            if (evo3dImages[index]) write(evo3dImages[index], cs, "img", `translateZ(35px) scale(${(1.14 - t * 0.02).toFixed(4)})`);
+            continue;
+          }
+
+          const depth = Math.min(relative, 6);                   /* resting stack */
+          write(card, cs, "transform", `translate3d(0, ${(depth * STACK_Y).toFixed(2)}px, ${(-depth * CARD_DEPTH).toFixed(2)}px) rotateX(${(depth * 0.65).toFixed(2)}deg) rotateY(${(-depth * 0.35).toFixed(2)}deg) scale(${(1 - depth * SCALE_STEP).toFixed(4)})`);
+          write(card, cs, "opacity", Math.max(0, 1 - depth * 0.11).toFixed(3));
+          write(card, cs, "zIndex", String(900 - index));
+          if (evo3dImages[index]) write(evo3dImages[index], cs, "img", "translateZ(35px) scale(1.12)");
+        }
       };
 
       let targetProgress = 0, currentProgress = 0;
       let stackVisible = false, stackRunning = false;
       let lastFrame = performance.now();
-      let mouseX = 0, mouseY = 0, cameraX = 0, cameraY = 0;
+      let cameraX = 0, cameraY = 0, cameraTx = 0, cameraTy = 0;
       const finePointer = window.matchMedia("(pointer: fine)").matches;
-      if (finePointer) {
-        window.addEventListener("pointermove", e => {
-          mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
-          mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
-        }, { passive: true });
-      }
 
       const animate = now => {
-        if (!stackVisible || document.hidden) {
-          stackRunning = false;
-          return;
-        }
+        if (!stackVisible || document.hidden) { stackRunning = false; return; }
         const dt = Math.min(Math.max((now - lastFrame) / 1000, 1 / 240), 0.25);
         lastFrame = now;
+
         targetProgress = getProgress();
-        // Scroll progress is direct: the former damping made cards trail the
-        // user's wheel/touch position and feel slow on long pages.
-        currentProgress = targetProgress;
-        const cardProgress = Math.min(currentProgress * (TOTAL + 1.2), TOTAL - 1);
-        const inView = targetProgress > 0.001 && targetProgress < 0.999;
-        const active = cN(Math.floor(cardProgress) + 1, 1, TOTAL);
-        setAtmo(inView ? (evo3dCards[active - 1].dataset.world || null) : null);
-        syncCompass(active);
+        /* direct 1:1 scroll tracking: no damping between wheel and card */
+        const moved = Math.abs(targetProgress - currentProgress) > 1e-4;
+        if (moved) {
+          currentProgress = targetProgress;
+          updateStack();
+        }
 
-        evo3dCards.forEach((card, index) => {
-          card.classList.toggle("is-front", index === active - 1);
-          const relative = index - cardProgress;
-          if (relative < -1) {
-            card.style.visibility = "hidden";
-            card.style.transform = `translate3d(0, ${-EXIT_Y}vh, ${EXIT_Z}px) rotateX(-${OPEN_ANGLE}deg) rotateY(-6deg) scale(.86)`;
-            card.style.opacity = 0;
-            card.style.filter = "blur(3px)";
-            card.style.zIndex = 0;
-            return;
+        let cameraMoved = false;
+        if (finePointer) {
+          const blend = 1 - Math.exp(-3 * dt);
+          cameraX += (cameraTx - cameraX) * blend;
+          cameraY += (cameraTy - cameraY) * blend;
+          const dx = Math.abs(cameraTx - cameraX), dy = Math.abs(cameraTy - cameraY);
+          if (dx > 0.008 || dy > 0.008) {
+            cameraMoved = true;
+            if (evo3dCamera) evo3dCamera.style.transform = `rotateX(${cameraY.toFixed(3)}deg) rotateY(${cameraX.toFixed(3)}deg)`;
           }
-          card.style.visibility = "visible";
-          if (relative >= -1 && relative <= 0) {
-            const raw = Math.abs(relative);
-            const t = easeInOut(raw);
-            card.style.transform = `translate3d(0, ${(-t * EXIT_Y).toFixed(2)}vh, ${(t * EXIT_Z).toFixed(2)}px) rotateX(${(-t * OPEN_ANGLE).toFixed(2)}deg) rotateY(${(-t * 6).toFixed(2)}deg) rotateZ(${(t * 1.5).toFixed(2)}deg) scale(${(1 - t * 0.07).toFixed(4)})`;
-            card.style.opacity = (1 - Math.max(0, t - 0.9) * 10).toFixed(3);
-            card.style.filter = `blur(${Math.max(0, t - 0.8) * 4}px)`;
-            card.style.zIndex = 1000;
-            if (evo3dImages[index]) evo3dImages[index].style.transform = `translateZ(35px) scale(${(1.12 + t * 0.2).toFixed(4)}) translateY(${(t * 7).toFixed(2)}%)`;
-            if (evo3dShadows[index]) {
-              evo3dShadows[index].style.transform = `translateZ(${(-300 + t * 220).toFixed(1)}px) rotateX(72deg) scale(${(1 + t * 0.5).toFixed(4)})`;
-              evo3dShadows[index].style.opacity = (0.72 - t * 0.58).toFixed(3);
-            }
-            return;
-          }
-          if (relative > 0 && relative < 1.5) {
-            const reveal = cN(1 - (relative - 1), 0, 1);
-            const t = easeOut(reveal);
-            card.style.transform = `translate3d(0, ${(STACK_Y - t * STACK_Y).toFixed(2)}px, ${(-CARD_DEPTH + t * CARD_DEPTH).toFixed(2)}px) rotateX(${(0.65 - t * 0.65).toFixed(3)}deg) rotateY(${(-0.35 + t * 0.35).toFixed(3)}deg) scale(${(0.966 + t * 0.034).toFixed(4)})`;
-            card.style.opacity = (0.9 + t * 0.1).toFixed(3);
-            card.style.filter = `blur(${((1 - t) * 1.2).toFixed(2)}px)`;
-            card.style.zIndex = 999;
-            if (evo3dImages[index]) evo3dImages[index].style.transform = `translateZ(35px) scale(${(1.14 - t * 0.02).toFixed(4)})`;
-            return;
-          }
-          const depth = Math.min(relative, 6);
-          card.style.transform = `translate3d(0, ${(depth * STACK_Y).toFixed(2)}px, ${(-depth * CARD_DEPTH).toFixed(2)}px) rotateX(${(depth * 0.65).toFixed(2)}deg) rotateY(${(-depth * 0.35).toFixed(2)}deg) scale(${(1 - depth * SCALE_STEP).toFixed(4)})`;
-          card.style.opacity = Math.max(0, 1 - depth * 0.11).toFixed(3);
-          card.style.filter = `blur(${Math.max(0, depth - 2) * 0.7}px)`;
-          card.style.zIndex = 900 - index;
-          if (evo3dImages[index]) evo3dImages[index].style.transform = "translateZ(35px) scale(1.12)";
-        });
+        }
 
-        const cameraBlend = 1 - Math.exp(-3 * dt);
-        cameraX += ((finePointer ? mouseX * 3 : 0) - cameraX) * cameraBlend;
-        cameraY += ((finePointer ? mouseY * -2 : 0) - cameraY) * cameraBlend;
-        if (evo3dCamera) evo3dCamera.style.transform = `rotateX(${cameraY.toFixed(3)}deg) rotateY(${cameraX.toFixed(3)}deg)`;
+        if (!moved && !cameraMoved) { stackRunning = false; return; }   /* sleep until woken */
         requestAnimationFrame(animate);
       };
 
       const startStack = () => {
         if (stackRunning || !stackVisible || document.hidden) return;
-        targetProgress = getProgress();
-        currentProgress = targetProgress;
         lastFrame = performance.now();
         stackRunning = true;
         requestAnimationFrame(animate);
@@ -859,47 +948,27 @@
         stackVisible = !!entries[0]?.isIntersecting;
         if (stackVisible) startStack();
       }, { rootMargin: "20% 0px", threshold: 0 });
-      const stackRunway = evo3dScroll || evo3d;
-      stackObserver.observe(stackRunway);
-      const wakeStack = () => {
-        const r = stackRunway.getBoundingClientRect();
-        stackVisible = r.bottom > -window.innerHeight * 0.2 && r.top < window.innerHeight * 1.2;
-        if (stackVisible) startStack();
-      };
-      window.addEventListener("scroll", wakeStack, { passive: true });
-      window.addEventListener("resize", wakeStack, { passive: true });
-      document.addEventListener("visibilitychange", () => {
-        if (!document.hidden) wakeStack();
-      });
-      wakeStack();
+      stackObserver.observe(evo3dScroll || evo3d);
+      window.addEventListener("scroll", startStack, { passive: true });
+      window.addEventListener("resize", () => { currentProgress = -1; startStack(); }, { passive: true });
+      document.addEventListener("visibilitychange", () => { if (!document.hidden) startStack(); });
+      if (finePointer) {
+        window.addEventListener("pointermove", e => {
+          cameraTx = (e.clientX / window.innerWidth - 0.5) * 6;
+          cameraTy = (e.clientY / window.innerHeight - 0.5) * -4;
+          startStack();
+        }, { passive: true });
+      }
+      currentProgress = targetProgress = getProgress();   /* first paint */
+      updateStack();
 
       /* one rAF loop for the remaining scroll scrubbers */
-      let aboutTicking = false;
-      const onAboutScroll = () => {
-        onTheater();
-        aboutTicking = false;
-      };
-      window.addEventListener("scroll", () => {
-        if (aboutTicking) return;
-        aboutTicking = true;
-        requestAnimationFrame(onAboutScroll);
-      }, { passive: true });
-      window.addEventListener("resize", () => { onAboutScroll(); startStack(); }, { passive: true });
-      onAboutScroll();
+      aboutScrubbers.push(onTheater);
+      queueAboutScrub();
     } else {
       /* no 3D (reduced motion / missing) — quiet scroll scrubbers only */
-      let aboutTicking = false;
-      const onAboutScroll = () => {
-        onTheater();
-        aboutTicking = false;
-      };
-      window.addEventListener("scroll", () => {
-        if (aboutTicking) return;
-        aboutTicking = true;
-        requestAnimationFrame(onAboutScroll);
-      }, { passive: true });
-      window.addEventListener("resize", onAboutScroll, { passive: true });
-      onAboutScroll();
+      aboutScrubbers.push(onTheater);
+      queueAboutScrub();
     }
 
   /* ============================================================
