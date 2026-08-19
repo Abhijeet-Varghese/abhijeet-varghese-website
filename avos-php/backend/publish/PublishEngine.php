@@ -694,7 +694,7 @@ HTML;
                   <span id="bookSummaryText">Pick a day and a time</span>
                 </p>
                 <button class="btn btn--accent btn--block" type="submit" id="bookSubmit">Send booking request {$arrow}</button>
-                <p class="cf-note" id="cfNote">Your preferred time will be confirmed personally by email.</p>
+                <p class="cf-note" id="cfNote" role="status" aria-live="polite">Your preferred time will be confirmed personally by email.</p>
               </form>
             </div>
             <div class="book__done" id="bookDone" hidden>
@@ -2895,19 +2895,66 @@ HTML;
 ");
     }
 
-    /** Convert CMS design tokens into a CSS variables file appended to the template CSS. */
+    /** Convert CMS design tokens into a CSS variables file appended to the template CSS.
+     *  Three-layer architecture (primitive → semantic → component), UI/UX Pro Max:
+     *  primitives are static scale facts; CMS overrides land on the semantic layer. */
     private function writeDesignTokens(string $dir, array $s): void
     {
         $tokens = $s['designTokens'] ?? [];
-        $css = "\n/* ============================================================\n   AV OS — design tokens (generated at publish — do not edit)\n   ============================================================ */\n:root {\n";
-        $css .= "  --color-primary: " . ($tokens['accent'] ?? '#2E5AAC') . ";\n";
-        $css .= "  --color-accent: " . ($tokens['accent'] ?? '#2E5AAC') . ";\n";
-        $css .= "  --radius-card: " . ($tokens['radius'] ?? 16) . "px;\n";
-        $css .= "  --space-section: " . ($tokens['spacing'] ?? 24) . "px;\n";
-        $css .= "  --container-width: " . ($tokens['container'] ?? 1280) . "px;\n";
-        $css .= "  --font-body: \"" . ($tokens['bodyFont'] ?? 'Inter Tight') . "\";\n";
-        $css .= "  --font-accent: \"" . ($tokens['accentFont'] ?? 'Instrument Serif') . "\";\n";
-        $css .= "}\n";
+        $accent = $tokens['accent'] ?? '#2E5AAC';
+        $css = <<<CSS
+/* ============================================================
+   AV OS — design tokens (generated at publish — do not edit)
+   Layer 1 — primitives: scale facts (spacing, radius, type, z, motion)
+   Layer 2 — semantic: purpose aliases consumed by components
+   Layer 3 — component tokens live next to their rules in styles.css
+   ============================================================ */
+:root {
+  /* ---- semantic (CMS-driven) ---- */
+  --color-primary: {$accent};
+  --color-accent: {$accent};
+  --radius-card: {$tokens['radius'] ?? 16}px;
+  --space-section: {$tokens['spacing'] ?? 24}px;
+  --container-width: {$tokens['container'] ?? 1280}px;
+  --font-body: "{$tokens['bodyFont'] ?? 'Inter Tight'}";
+  --font-accent: "{$tokens['accentFont'] ?? 'Instrument Serif'}";
+
+  /* ---- spacing scale (4px base) ---- */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px;
+  --sp-12: 48px; --sp-16: 64px; --sp-24: 96px; --sp-32: 128px;
+
+  /* ---- radius scale (5 steps + pill) ---- */
+  --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px;
+  --radius-xl: 18px; --radius-2xl: 22px; --radius-pill: 999px;
+
+  /* ---- type scale (editorial: fluid display, fixed micro-labels) ---- */
+  --f-micro: 8.5px;   /* tracked uppercase eyebrows — decorative */
+  --f-micro-2: 9.5px; /* dense meta strips */
+  --f-label: 11.5px;  /* labels, card meta */
+  --f-small: 12.5px;  /* compact body */
+  --f-body-2: 13.5px; /* secondary body */
+  --f-body-px: 14px;  /* base body (light sections) */
+
+  /* ---- feedback ---- */
+  --color-success: #1F7A4D;
+  --color-warning: #9A6B12;
+  --color-error: #C23B3B;
+  --ring-focus: 0 0 0 3px rgba(46, 90, 172, 0.15);
+  --ring-error: 0 0 0 3px rgba(194, 59, 59, 0.12);
+
+  /* ---- elevation (2-step ladder) ---- */
+  --lift: 0 18px 50px -24px rgba(12, 19, 48, 0.35);
+  --lift-hi: 0 42px 90px -54px rgba(12, 19, 48, 0.55);
+
+  /* ---- z-scale ---- */
+  --z-base: 1; --z-content: 10; --z-sticky: 40; --z-nav: 60;
+  --z-overlay: 80; --z-toast: 90; --z-modal: 100;
+
+  /* ---- motion (durations only — choreography is Stage 04) ---- */
+  --t-fast: 160ms; --t-base: 240ms; --t-slow: 420ms;
+}
+CSS;
         $cssDir = $dir . '/css';
         @mkdir($cssDir, 0775, true);
         file_put_contents($cssDir . '/tokens.css', $css);
