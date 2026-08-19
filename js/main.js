@@ -871,8 +871,9 @@
         const dt = Math.min(Math.max((now - lastFrame) / 1000, 1 / 240), 0.25);
         lastFrame = now;
         targetProgress = getProgress();
-        const progressBlend = 1 - Math.exp(-8 * dt);
-        currentProgress += (targetProgress - currentProgress) * progressBlend;
+        // Scroll progress is direct: the former damping made cards trail the
+        // user's wheel/touch position and feel slow on long pages.
+        currentProgress = targetProgress;
         const cardProgress = Math.min(currentProgress * (TOTAL + 1.2), TOTAL - 1);
         const inView = targetProgress > 0.001 && targetProgress < 0.999;
         const active = cN(Math.floor(cardProgress) + 1, 1, TOTAL);
@@ -883,12 +884,14 @@
           card.classList.toggle("is-front", index === active - 1);
           const relative = index - cardProgress;
           if (relative < -1) {
+            card.style.visibility = "hidden";
             card.style.transform = `translate3d(0, ${-EXIT_Y}vh, ${EXIT_Z}px) rotateX(-${OPEN_ANGLE}deg) rotateY(-6deg) scale(.86)`;
             card.style.opacity = 0;
             card.style.filter = "blur(3px)";
             card.style.zIndex = 0;
             return;
           }
+          card.style.visibility = "visible";
           if (relative >= -1 && relative <= 0) {
             const raw = Math.abs(relative);
             const t = easeInOut(raw);
@@ -940,10 +943,19 @@
         stackVisible = !!entries[0]?.isIntersecting;
         if (stackVisible) startStack();
       }, { rootMargin: "20% 0px", threshold: 0 });
-      stackObserver.observe(evo3dScroll || evo3d);
+      const stackRunway = evo3dScroll || evo3d;
+      stackObserver.observe(stackRunway);
+      const wakeStack = () => {
+        const r = stackRunway.getBoundingClientRect();
+        stackVisible = r.bottom > -window.innerHeight * 0.2 && r.top < window.innerHeight * 1.2;
+        if (stackVisible) startStack();
+      };
+      window.addEventListener("scroll", wakeStack, { passive: true });
+      window.addEventListener("resize", wakeStack, { passive: true });
       document.addEventListener("visibilitychange", () => {
-        if (!document.hidden) startStack();
+        if (!document.hidden) wakeStack();
       });
+      wakeStack();
 
       /* one rAF loop for the remaining scroll scrubbers */
       let aboutTicking = false;

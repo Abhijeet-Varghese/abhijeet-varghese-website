@@ -3060,7 +3060,7 @@ body.about-page ::selection { background: rgba(110, 168, 255, 0.30); color: #EFF
 .about-evo3d__card[data-world="interlude"] { --world: #6EA8FF; }
 
 /* ---- the scroll runway (tall — the last card gets a full beat) ---- */
-.about-evo3d__scroll { position: relative; height: 1060vh; }
+.about-evo3d__scroll { position: relative; height: 720vh; }
 /* ---- the sticky stage ---- */
 .about-evo3d__stage {
   position: sticky; top: 0;
@@ -3306,7 +3306,7 @@ body.about-page ::selection { background: rgba(110, 168, 255, 0.30); color: #EFF
   .about-evo3d__card--interlude .about-evo3d__title { font-size: clamp(26px, 7.4vw, 40px); }
 }
 @media (max-width: 480px) {
-  .about-evo3d__scroll { height: 980vh; }
+  .about-evo3d__scroll { height: 680vh; }
   .about-evo3d__world { height: 62vh; }
 }
 @media (max-width: 768px) and (max-height: 480px) and (orientation: landscape) {
@@ -3816,6 +3816,10 @@ body.about-page .about-evo3d__gradient {
 body.about-page .about-evo3d__content {
   transition: box-shadow 0.6s var(--ease), border-color 0.6s var(--ease);
 }
+body.about-page .about-evo3d__card:not(.is-front) .about-evo3d__content {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
 body.about-page .about-evo3d__card.is-front .about-evo3d__content {
   border-color: rgba(255, 255, 255, 0.22);
   box-shadow: 0 30px 70px -32px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.04);
@@ -3889,4 +3893,110 @@ body.about-page ::selection { background: rgba(110, 168, 255, 0.32); color: #EFF
   body.about-page .about-prologue__skip a { background-size: 0% 1px; }
   body.about-page .about-evo3d__content { transition: none; }
   body.about-page .about-frame__portrait img { transition: none; }
+}
+
+/* ============================================================
+   CASE STUDY — COMING SOON
+   Keeps published project routes useful without exposing unfinished detail.
+   ============================================================ */
+.case-coming {
+  padding: clamp(88px, 12vh, 144px) 0 clamp(104px, 14vh, 170px);
+  background: #F7F5EF;
+  color: #0C1330;
+}
+.case-coming__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr);
+  gap: clamp(40px, 6vw, 96px);
+  align-items: center;
+}
+.case-coming__media {
+  overflow: hidden;
+  border-radius: 22px;
+  background: #080F22;
+  border: 1px solid rgba(12, 19, 48, .1);
+  box-shadow: 0 34px 80px -44px rgba(12, 19, 48, .42);
+}
+.case-coming__media img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+}
+.case-coming__media figcaption {
+  padding: 13px 16px;
+  color: #96A0BE;
+  background: #080F22;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.case-coming__eyebrow {
+  margin: 0 0 20px;
+  color: #2E5AAC;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+}
+.case-coming__copy h2 {
+  max-width: 12ch;
+  font-size: clamp(2.5rem, 4.6vw, 5.5rem);
+  line-height: .95;
+  letter-spacing: -.05em;
+}
+.case-coming__copy h2 em {
+  font-family: var(--serif);
+  font-weight: 400;
+  color: #2E5AAC;
+}
+.case-coming__copy > p:not(.case-coming__eyebrow) {
+  max-width: 52ch;
+  margin-top: 28px;
+  color: #59617A;
+  line-height: 1.72;
+}
+.case-coming__copy dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 34px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(12, 19, 48, .12);
+}
+.case-coming__copy dt {
+  color: #7B849B;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+.case-coming__copy dd {
+  margin-top: 7px;
+  color: #0C1330;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.case-coming__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 24px;
+  margin-top: 38px;
+}
+@media (max-width: 900px) {
+  .case-coming__grid { grid-template-columns: 1fr; }
+  .case-coming__copy { max-width: 700px; }
+  .case-coming__copy h2 { max-width: 14ch; }
+}
+@media (max-width: 600px) {
+  .case-coming { padding: 72px 0 96px; }
+  .case-coming__grid { gap: 36px; }
+  .case-coming__media { border-radius: 16px; }
+  .case-coming__copy dl { grid-template-columns: 1fr; gap: 14px; }
+  .case-coming__actions { align-items: stretch; }
+  .case-coming__actions .btn,
+  .case-coming__actions .link-arrow { width: 100%; justify-content: center; }
 }
