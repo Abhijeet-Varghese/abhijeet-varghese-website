@@ -2743,6 +2743,12 @@ HTML;
 
     public function publish(): array
     {
+        // Vite mode → delegate to the React/Vite build publisher (no PHP HTML
+        // rendering, no legacy template dependency). Legacy renderers remain for
+        // backward compatibility until the cutover is fully verified.
+        if (defined('AV_VITE_MODE') && AV_VITE_MODE) {
+            return $this->publishViteBuild();
+        }
         $site = $this->site;
         $staging = AV_CACHE . '/stage-' . bin2hex(random_bytes(4));
         @mkdir($staging, 0775, true);
@@ -2796,6 +2802,153 @@ HTML;
             $this->rmDir($staging);
             throw $e;
         }
+    }
+
+    /**
+     * VITE PUBLISH — the React/Vite build (AV_VITE_DIST) is the authoritative
+     * frontend. The pipeline becomes:
+     *
+     *   CMS → published snapshot → Vite build (build-time, npm) → dist
+     *        → PHP validates → atomic swap → public_html/site/
+     *
+     * No PHP HTML rendering, no legacy template (site-template/abhijeetvarghese)
+     * dependency, no Node at runtime. Reuses the same validate → swap → verify →
+     * rollback machinery as the legacy path.
+     */
+    public function publishViteBuild(): array
+    {
+        $site = $this->site;
+        $dist = AV_VITE_DIST;
+        if (!is_dir($dist) || !is_file($dist . '/index.html')) {
+            throw new RuntimeException("Vite build not found at $dist — run `npm run build` in frontend/ first");
+        }
+
+        $staging = AV_CACHE . '/stage-' . bin2hex(random_bytes(4));
+        @mkdir($staging, 0775, true);
+        try {
+            // copy the validated build into staging (source of truth stays untouched)
+            $this->copyDir($dist, $staging);
+
+            // ---- validate before touching production ----
+            $this->validateViteBuild($staging, $site);
+            $brokenLinks = $this->internalLinkCheck($staging);
+            if ($brokenLinks) {
+                throw new RuntimeException('Build has broken internal links: ' . implode('; ', array_slice($brokenLinks, 0, 6)));
+            }
+
+            // ---- atomic swap ----
+            $old = AV_CACHE . '/site-old-' . bin2hex(random_bytes(4));
+            $snapshotPath = null;
+            try {
+                if (is_dir($this->out)) rename($this->out, $old);
+                if (!rename($staging, $this->out)) throw new RuntimeException('staging swap failed');
+                $snapshotPath = DeploymentModel::storeSnapshot($this->out);
+                if (is_dir($old)) $this->rmDir($old);
+            } catch (Throwable $e) {
+                if (!is_dir($this->out) && is_dir($old)) rename($old, $this->out);
+                $this->rmDir($staging);
+                throw $e;
+            }
+
+            // ---- post-publish health check with automatic rollback ----
+            $problems = $this->verifyVitePublishedSite();
+            if ($problems) {
+                $msg = 'Post-publish verification failed: ' . implode('; ', array_slice($problems, 0, 5));
+                try { DeploymentModel::rollback(Auth::user()['id'] ?? null); } catch (Throwable $rb) {}
+                ErrorModel::log('critical', 'publish', $msg);
+                NotificationModel::push('Publish failed — auto-rolled back', $msg, 'error');
+                Audit::log(Auth::user()['id'] ?? null, 'publish_auto_rollback', 'site', '', ['problems' => $problems]);
+                throw new RuntimeException('Publish reverted: ' . $msg);
+            }
+
+            $counts = $this->viteCounts();
+            Audit::log(Auth::user()['id'] ?? null, 'publish', 'site', '', ['mode' => 'vite', 'pages' => $counts['pages'], 'articles' => $counts['articles']]);
+            DeploymentModel::record(Auth::user()['id'] ?? null, 'Publish (Vite)', $snapshotPath);
+            $this->mirrorSite();
+            return ['pages' => $counts['pages'], 'articles' => $counts['articles'], 'mode' => 'vite', 'time' => date('c')];
+        } catch (Throwable $e) {
+            $this->rmDir($staging);
+            throw $e;
+        }
+    }
+
+    /** Expected public routes, derived from the CMS + the fixed route set. */
+    private function viteRouteFiles(array $site): array
+    {
+        $files = ['index.html', '404.html', 'sitemap.html', 'search.html', 'sitemap.xml', 'robots.txt'];
+        foreach (($site['pages'] ?? []) as $p) {
+            if (!$this->isDue($p)) continue;
+            $slug = $p['slug'] ?? '';
+            if (in_array($slug, ['', 'home', 'index'], true)) continue;
+            $files[] = $slug . '.html';
+        }
+        foreach (($site['articles'] ?? []) as $a) {
+            if (!$this->isDue($a)) continue;
+            $slug = $a['slug'] ?? $this->slugify($a['title'] ?? '');
+            $files[] = (($a['type'] ?? 'essay') === 'essay' ? 'essay-' : 'journal-') . $slug . '.html';
+        }
+        foreach (($site['projects'] ?? []) as $project) {
+            if (!$this->isDue($project) || ($project['status'] ?? 'published') !== 'published') continue;
+            $files[] = $this->caseStudyOutputFile($project);
+        }
+        return array_values(array_unique($files));
+    }
+
+    /** Vite-build validation: routes present, hashed assets present, no leakage. */
+    private function validateViteBuild(string $dir, array $site): void
+    {
+        $fail = [];
+        foreach ($this->viteRouteFiles($site) as $f) {
+            if (!is_file($dir . '/' . $f)) $fail[] = "missing route $f";
+        }
+        // hashed Vite assets (css/js) must be present — the build emits assets/*.css / assets/*.js
+        $hasCss = count(glob($dir . '/assets/*.css') ?: []) > 0;
+        $hasJs = count(glob($dir . '/assets/*.js') ?: []) > 0;
+        if (!$hasCss) $fail[] = 'missing hashed CSS (assets/*.css)';
+        if (!$hasJs) $fail[] = 'missing hashed JS (assets/*.js)';
+        // no PHP source, no legacy template leakage in public output
+        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS));
+        foreach ($it as $f) {
+            if (!$f->isFile()) continue;
+            if (strtolower($f->getExtension()) === 'php') { $fail[] = 'PHP file in public output: ' . $f->getFilename(); }
+        }
+        foreach ($this->htmlFiles($dir) as $htmlFile) {
+            $content = (string)file_get_contents($htmlFile);
+            if (str_contains($content, '<?php') || str_contains($content, '{$this->') || preg_match('/\\$\\{[a-zA-Z_]/', $content)) {
+                $fail[] = 'template leakage in ' . str_replace(rtrim($dir, '/') . '/', '', $htmlFile);
+            }
+        }
+        if ($fail) throw new RuntimeException('Vite build validation failed: ' . implode('; ', $fail));
+    }
+
+    /** Post-swap health check for the Vite build (hashed assets + key routes). */
+    private function verifyVitePublishedSite(): array
+    {
+        $problems = [];
+        $critical = ['index.html', 'story.html', 'experience.html', 'portfolio.html', 'case-studies.html', 'contact.html', 'sitemap.xml', 'robots.txt', '404.html', 'experience-design/orange-business-executive-briefing-center/index.html'];
+        foreach ($critical as $f) {
+            $p = $this->out . '/' . $f;
+            if (!is_file($p)) { $problems[] = "missing $f"; continue; }
+            if ($f !== 'robots.txt' && filesize($p) < 100) $problems[] = "$f too small (" . filesize($p) . 'b)';
+        }
+        if (count(glob($this->out . '/assets/*.css') ?: []) === 0) $problems[] = 'missing hashed CSS after publish';
+        if (count(glob($this->out . '/assets/*.js') ?: []) === 0) $problems[] = 'missing hashed JS after publish';
+        return $problems;
+    }
+
+    /** Route/article counts for the Vite build (from the site content). */
+    private function viteCounts(): array
+    {
+        $pages = 0; $articles = 0;
+        foreach (($this->site['pages'] ?? []) as $p) {
+            if (!$this->isDue($p)) continue;
+            if (in_array($p['slug'] ?? '', ['', 'home', 'index'], true)) continue;
+            $pages++;
+        }
+        foreach (($this->site['articles'] ?? []) as $a) {
+            if ($this->isDue($a)) $articles++;
+        }
+        return ['pages' => $pages + 1, 'articles' => $articles];
     }
 
     /** 404 page (static, matches the design system) */

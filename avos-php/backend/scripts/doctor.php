@@ -35,9 +35,13 @@ $add('Storage', is_writable(AV_STORAGE), AV_STORAGE);
 $add('Uploads', is_writable(AV_UPLOADS), AV_UPLOADS);
 $add('Backups', is_writable(AV_BACKUPS), AV_BACKUPS);
 $add('Locks', is_writable(AV_STORAGE . '/locks') || (is_dir(AV_STORAGE . '/locks') || @mkdir(AV_STORAGE . '/locks', 0775, true)), AV_STORAGE . '/locks');
-$add('Template', is_dir(AV_TEMPLATE) && is_file(AV_TEMPLATE . '/css/styles.css'), AV_TEMPLATE);
-$fe = AV_FRONTEND_DIR !== '' ? AV_FRONTEND_DIR : (dirname($root) . '/abhijeetvarghese');
-$add('Frontend source', is_dir($fe), $fe);
+if (defined('AV_VITE_MODE') && AV_VITE_MODE) {
+    $add('Vite build', is_dir(AV_VITE_DIST) && is_file(AV_VITE_DIST . '/index.html'), AV_VITE_DIST);
+} else {
+    $add('Template', is_dir(AV_TEMPLATE) && is_file(AV_TEMPLATE . '/css/styles.css'), AV_TEMPLATE);
+    $fe = AV_FRONTEND_DIR !== '' ? AV_FRONTEND_DIR : (dirname($root) . '/abhijeetvarghese');
+    $add('Frontend source', is_dir($fe), $fe);
+}
 $add('Publish destination', is_dir(AV_SITE_OUT), AV_SITE_OUT);
 $add('Web root .htaccess', is_file(AV_PUBLIC . '/.htaccess'), AV_PUBLIC . '/.htaccess');
 $add('Installer locked', is_file(AV_PUBLIC . '/install/.installed'), '');

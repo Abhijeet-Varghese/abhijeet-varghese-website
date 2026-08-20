@@ -29,6 +29,13 @@ $root = dirname(__DIR__, 2);
 require $root . '/includes/bootstrap.php';
 
 $dry = in_array('--check', $argv, true) || in_array('--dry-run', $argv, true);
+
+/* ---------- Vite mode: assets ship inside the Vite build; template sync is a no-op ---------- */
+if (defined('AV_VITE_MODE') && AV_VITE_MODE) {
+    echo "vite mode — template sync skipped (assets served from the Vite build at " . AV_VITE_DIST . ")\n";
+    exit(0);
+}
+
 $src = defined('AV_FRONTEND_DIR') && AV_FRONTEND_DIR !== '' ? AV_FRONTEND_DIR : (dirname($root) . '/abhijeetvarghese');
 $dst = AV_TEMPLATE;
 $manifestFile = AV_CACHE . '/frontend-manifest.json';

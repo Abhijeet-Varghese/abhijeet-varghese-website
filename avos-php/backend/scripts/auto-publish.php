@@ -36,8 +36,8 @@ $state = is_file($stateFile) ? (json_decode((string)file_get_contents($stateFile
 $changes = [];
 $state['checked_at'] = date('c');
 
-/* ---------- 1. frontend sync (only when enabled) ---------- */
-if (FeatureFlagModel::isOn('frontend_sync')) {
+/* ---------- 1. frontend sync (only when enabled, and only in legacy mode) ---------- */
+if (FeatureFlagModel::isOn('frontend_sync') && !(defined('AV_VITE_MODE') && AV_VITE_MODE)) {
     $src = defined('AV_FRONTEND_DIR') && AV_FRONTEND_DIR !== '' ? AV_FRONTEND_DIR : (dirname($root) . '/abhijeetvarghese');
     if (is_dir($src)) {
         $out = [];

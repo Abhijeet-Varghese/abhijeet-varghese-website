@@ -2421,6 +2421,11 @@ Sent at " . date('c'));
     /* ---------- frontend sync (backend pulls frontend design assets) ---------- */
     private static function syncFrontend(): void
     {
+        // Vite mode: assets live inside the Vite build — template sync is a no-op.
+        if (defined('AV_VITE_MODE') && AV_VITE_MODE) {
+            Audit::log(Auth::user()['id'], 'frontend_sync', 'template', '', ['mode' => 'vite', 'output' => 'vite mode — template sync skipped']);
+            Response::json(['ok' => true, 'mode' => 'vite', 'output' => ['vite mode — template sync skipped (assets served from the Vite build)']]);
+        }
         $src = AV_FRONTEND_DIR !== '' ? AV_FRONTEND_DIR : (dirname(AV_ROOT) . '/abhijeetvarghese');
         if (!is_dir($src)) {
             Response::error('Frontend folder not found (' . $src . ') — set $frontendDir in config.local.php or AV_FRONTEND_DIR', 422, 'VALIDATION_ERROR');
@@ -2487,10 +2492,14 @@ Sent at " . date('c'));
         $add('storage', 'Storage writable', is_writable(AV_STORAGE));
         $add('uploads', 'Uploads writable', is_writable(AV_UPLOADS));
         $add('backups', 'Backups writable', is_writable(AV_BACKUPS));
-        $add('template', 'Template (site-template/)', is_dir(AV_TEMPLATE) && is_file(AV_TEMPLATE . '/css/styles.css'), AV_TEMPLATE);
         $add('publish_dest', 'Publish destination', is_dir(AV_SITE_OUT) && is_writable(dirname(AV_SITE_OUT)), AV_SITE_OUT);
-        $fe = AV_FRONTEND_DIR !== '' ? AV_FRONTEND_DIR : (dirname(AV_ROOT) . '/abhijeetvarghese');
-        $add('frontend', 'Frontend source', is_dir($fe), $fe);
+        if (defined('AV_VITE_MODE') && AV_VITE_MODE) {
+            $add('vite_build', 'Vite build (frontend/dist)', is_dir(AV_VITE_DIST) && is_file(AV_VITE_DIST . '/index.html'), AV_VITE_DIST);
+        } else {
+            $add('template', 'Template (site-template/)', is_dir(AV_TEMPLATE) && is_file(AV_TEMPLATE . '/css/styles.css'), AV_TEMPLATE);
+            $fe = AV_FRONTEND_DIR !== '' ? AV_FRONTEND_DIR : (dirname(AV_ROOT) . '/abhijeetvarghese');
+            $add('frontend', 'Frontend source', is_dir($fe), $fe);
+        }
         $add('https', 'HTTPS (production)', AV_ENV !== 'production' || str_starts_with(AV_SITE_URL, 'https://'), AV_SITE_URL);
         $add('enc_key', 'Encryption key (32+)', strlen((string)AV_ENC_KEY) >= 32, strlen((string)AV_ENC_KEY) . ' chars');
         $add('config', 'Production guard', !(AV_ENV === 'production' && ((($GLOBALS['db']['pass'] ?? '') === 'aV0s_d3v_9xKq2mN7') || (($GLOBALS['db']['user'] ?? '') === 'avos'))), 'no default credentials');

@@ -18,8 +18,11 @@ define('AV_CACHE', AV_STORAGE . '/cache');
 define('AV_VERSIONS', AV_STORAGE . '/versions');
 define('AV_LOGS', AV_STORAGE . '/logs');
 define('AV_BACKUPS', AV_STORAGE . '/backups');
-define('AV_TEMPLATE', AV_ROOT . '/site-template');          // canonical frontend template
+define('AV_TEMPLATE', AV_ROOT . '/site-template');          // canonical frontend template (legacy)
 define('AV_SITE_OUT', AV_ROOT . '/public_html/site');       // generated public site
+// React + Vite production build — the authoritative frontend source in Vite
+// mode. Defaults to <repo>/frontend/dist (the Vite `npm run build` output).
+define('AV_VITE_DIST', getenv('AV_VITE_DIST') ?: dirname(AV_ROOT) . '/frontend/dist');
 
 // ---- app ----
 define('AV_NAME', 'AV OS');
@@ -74,6 +77,16 @@ define('AV_ENC_KEY', $encKey);
 define('AV_SITE_URL', $siteUrl);
 define('AV_TURNSTILE', $turnstile);
 define('AV_FRONTEND_DIR', isset($frontendDir) ? $frontendDir : (getenv('AV_FRONTEND_DIR') ?: ''));
+
+// ---- frontend mode ----
+// 'vite' → the React/Vite build (AV_VITE_DIST) is the official frontend source;
+//          the legacy template sync (AV_FRONTEND_DIR → site-template) is bypassed.
+// 'legacy' → the pre-migration publish pipeline (PublishEngine HTML renderers +
+//            template asset sync) remains in effect.
+// auto-detect: 'vite' when AV_VITE_DIST contains a valid build; else 'legacy'.
+$frontendMode = getenv('AV_FRONTEND_MODE') ?: (is_file(AV_VITE_DIST . '/index.html') && is_dir(AV_VITE_DIST . '/assets') ? 'vite' : 'legacy');
+define('AV_FRONTEND_MODE', $frontendMode);
+define('AV_VITE_MODE', $frontendMode === 'vite');
 
 // ---- upload limits ----
 define('AV_MAX_UPLOAD_BYTES', (int)(getenv('AV_MAX_UPLOAD_MB') ?: 20) * 1024 * 1024);
