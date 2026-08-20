@@ -1,0 +1,143 @@
+name: Deploy React/Vite Staging (safe)
+
+# ============================================================================
+# SAFE React/Vite staging pipeline — completely separate from the legacy path.
+#
+# TRIGGER: push to `staging-react-vite` only (+ manual workflow_dispatch).
+#          NEVER triggers from `main` or `hostinger`.
+#
+# TARGET:  builds frontend/dist, packages it WITH the PHP backend, and force
+#          -pushes a NEW branch `staging-react-vite-deploy` — it does NOT touch
+#          `hostinger`, does NOT touch `main`, and does NOT push to any Hostinger
+#          domain. Actual Hostinger ingestion of `staging-react-vite-deploy` is a
+#          separate, manual, Hostinger-side step (see runbook).
+#
+# The legacy workflow (.github/workflows/deploy-staging.yml) is left UNTOUCHED
+# as the rollback path (main → subtree abhijeetvarghese/ → hostinger).
+# ============================================================================
+
+on:
+  push:
+    branches:
+      - staging-react-vite
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: react-vite-staging
+  cancel-in-progress: true
+
+jobs:
+  build-and-package:
+    name: Build + validate + package staging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Typecheck
+        run: npm run typecheck
+        working-directory: frontend
+
+      - name: Build
+        run: npm run build
+        working-directory: frontend
+
+      - name: Validate routes (exactly 25)
+        run: |
+          COUNT=$(find frontend/dist -name '*.html' | wc -l)
+          echo "html routes: $COUNT"
+          test "$COUNT" -eq 25 || { echo "expected exactly 25 routes"; exit 1; }
+          for f in \
+            index.html story.html experience.html portfolio.html case-studies.html \
+            contact.html consulting.html for-recruiters.html insights.html journal.html \
+            search.html sitemap.html privacy-policy.html terms.html 404.html \
+            case-study-intuitive-experiences-for-industrial-environments.html \
+            case-study-immersive-solutions-for-the-indian-army.html \
+            case-study-enterprise-technology-made-understandable.html \
+            experience-design/orange-business-executive-briefing-center/index.html \
+            essay-technology-should-feel-human.html essay-ai-isnt-replacing-creativity.html \
+            essay-designing-experiences-people-remember.html essay-why-enterprise-experiences-fail.html \
+            journal-what-a-year-of-ai-enabled-production-taught-me.html \
+            journal-the-experience-centre-as-a-strategic-instrument.html \
+            sitemap.xml robots.txt search-index.json ; do
+            test -f "frontend/dist/$f" || { echo "MISSING ROUTE: $f"; exit 1; }
+          done
+          echo "all 25 routes present"
+
+      - name: Secret scan
+        run: |
+          if grep -rInE 'sk-[A-Za-z0-9]{20,}|AIza[0-9A-Za-z_-]{20,}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{30,}|github_pat_|sk-or-|-----BEGIN (RSA|OPENSSH|PRIVATE) KEY|client_secret|OPENROUTER|DB_PASSWORD|SMTP_PASS' frontend/dist/ ; then
+            echo "SECRET DETECTED — aborting"; exit 1
+          fi
+          echo "secret scan clean"
+
+      - name: No dev / leak files
+        run: |
+          LEAK=$(find frontend/dist -type f \( -name '*.php' -o -name '*.ts' -o -name '*.tsx' -o -name '*.map' -o -name '.env*' \) | head -n1)
+          test -z "$LEAK" || { echo "leak/dev file: $LEAK"; exit 1; }
+          if grep -rlE '<\?php' frontend/dist --include='*.html' | head -n1 | grep -q .; then
+            echo "PHP tag leaked into static HTML"; exit 1
+          fi
+          echo "no dev/leak files"
+
+      - name: Assemble staging package (frontend + PHP backend)
+        run: |
+          set -euo pipefail
+          PKG=_deploy
+          rm -rf "$PKG"
+          mkdir -p "$PKG"
+
+          # 1) PHP backend + public_html (admin / api / install / media / .htaccess)
+          cp -r avos-php/. "$PKG/"
+          # hard guarantee: never ship secrets (config.local.php is gitignored anyway)
+          rm -f "$PKG/config.local.php"
+          rm -rf "$PKG/storage"; mkdir -p "$PKG/storage"   # runtime writable skeleton
+
+          # 2) published site = the Vite build (replaces the committed legacy site)
+          rm -rf "$PKG/public_html/site"
+          mkdir -p "$PKG/public_html/site"
+          cp -r frontend/dist/. "$PKG/public_html/site/"
+
+          # 3) belt-and-suspenders verification
+          test -f "$PKG/public_html/site/index.html" || { echo "no site index"; exit 1; }
+          test -d "$PKG/public_html/admin" || { echo "admin missing"; exit 1; }
+          test -f "$PKG/public_html/api/index.php" || { echo "api missing"; exit 1; }
+          if [ -e "$PKG/config.local.php" ]; then echo "config.local.php leaked"; exit 1; fi
+          echo "package assembled"
+
+      - name: Upload staging artifact (SFTP fallback)
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-react-vite-package
+          path: _deploy/
+
+      - name: Publish deploy branch (staging-react-vite-deploy only)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd _deploy
+          git init -q
+          git add -A
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -qm "staging-react-vite deploy $(date -u +%Y%m%d%H%M%S)"
+          # NEVER hostinger, NEVER main — this is the new dedicated staging target
+          git push --force \
+            "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            HEAD:staging-react-vite-deploy
