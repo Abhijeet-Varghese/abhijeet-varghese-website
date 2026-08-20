@@ -51,6 +51,7 @@ export interface PageEntry {
   seo: SeoData;
   bodyClass: string;
   preloads?: PreloadSpec[];
+  favicon?: string;
 }
 
 const bpcl = PROJECTS.find((p) => p.slug === 'intuitive-experiences-for-industrial-environments')!;
@@ -113,6 +114,7 @@ export const PAGES: Record<string, PageEntry> = {
     Component: OrangePage,
     seo: ORANGE_SEO,
     bodyClass: 'orange-business-case',
+    favicon: '../../assets/logo.png',
     preloads: [
       { href: '../../assets/fonts/inter-tight-normal.woff2', as: 'font', type: 'font/woff2' },
       { href: '../../assets/media/orange-business-executive-briefing-center-mumbai-panoramic-1280.webp', as: 'image', type: 'image/webp', fetchPriority: 'high' },

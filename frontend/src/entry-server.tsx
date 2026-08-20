@@ -24,7 +24,7 @@ export function renderPage(pageId: string): RenderedPage {
 
   const body = renderToString(<entry.Component />);
   const preloads: PreloadSpec[] = entry.preloads ?? [FONT_PRELOAD];
-  const head = buildHead(entry.seo, { preloads });
+  const head = buildHead(entry.seo, { preloads, favicon: entry.favicon });
 
   return { head, body, bodyClass: entry.bodyClass, analytics: ANALYTICS_SCRIPT };
 }

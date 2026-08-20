@@ -58,6 +58,8 @@ interface HeadOptions {
   /** optional asset paths to preload (fonts / hero image) */
   preloads?: { href: string; as: 'font' | 'image'; type?: string; fetchPriority?: string }[];
   themeColor?: string;
+  /** relative favicon path (defaults to root-level assets/logo.png) */
+  favicon?: string;
 }
 
 function esc(s: string): string {
@@ -107,7 +109,7 @@ export function buildHead(seo: SeoData, opts: HeadOptions = {}): string {
   parts.push(`<meta name="twitter:title" content="${esc(seo.ogTitle ?? seo.title)}">`);
   parts.push(`<meta name="twitter:description" content="${esc(seo.ogDescription ?? seo.description)}">`);
   if (seo.ogImage) parts.push(`<meta name="twitter:image" content="${esc(seo.ogImage)}">`);
-  parts.push('<link rel="icon" type="image/png" href="assets/logo.png">');
+  parts.push(`<link rel="icon" type="image/png" href="${esc(opts.favicon ?? 'assets/logo.png')}">`);
   if (seo.jsonLd) parts.push(`<script type="application/ld+json">${JSON.stringify(seo.jsonLd)}</script>`);
   return parts.join('\n  ');
 }
