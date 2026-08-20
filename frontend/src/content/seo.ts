@@ -33,6 +33,27 @@ export const HOME_SEO: SeoData = {
   },
 };
 
+export const STORY_SEO: SeoData = {
+  title: 'About — Abhijeet Varghese | Creative Director & Experience Designer',
+  description:
+    'A creative director and experience designer who started in VFX and animation and now shapes films, interactive experiences, VR/XR, experience centres and brand systems.',
+  keywords:
+    'Abhijeet Varghese, creative director, experience design, enterprise innovation, UX design, design leadership, brand experience, immersive technology, AI design, creative strategy, experience centre, design consulting',
+  canonical: `${SITE_ORIGIN}/story.html`,
+  ogType: 'website',
+  ogImage: `${SITE_ORIGIN}/assets/hero-portrait.webp`,
+  twitterCard: 'summary_large_image',
+  jsonLd: {
+    '@context': 'https://schema.org',
+    '@type': 'AboutPage',
+    name: 'Abhijeet Varghese',
+    url: `${SITE_ORIGIN}/story.html`,
+    inLanguage: 'en',
+    description:
+      'A creative director and experience designer who started in VFX and animation and now shapes films, interactive experiences, VR/XR, experience centres and brand systems.',
+  },
+};
+
 interface HeadOptions {
   /** optional asset paths to preload (fonts / hero image) */
   preloads?: { href: string; as: 'font' | 'image'; type?: string; fetchPriority?: string }[];

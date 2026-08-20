@@ -1,13 +1,13 @@
 # React + TypeScript + Vite — Frontend Migration Plan
 
-Branch: `feat/react-ts-vite-migration` · Status: **Milestone 1 complete** (foundation + homepage).
+Branch: `feat/react-ts-vite-migration` · Status: **Milestone 2 complete** (homepage + Story/Evolution + bundle splitting).
 
 ## Route manifest (single frontend owner per route)
 
 | # | Route (public URL) | pageId | Status |
 |---|---|---|---|
 | 1 | `/` (`index.html`) | `home` | ✅ Migrated |
-| 2 | `/story.html` | `story` | ⬜ Pending (Evolution 3D film stack) |
+| 2 | `/story.html` | `story` | ✅ Migrated (Evolution 3D film stack) |
 | 3 | `/experience.html` | `experience` | ⬜ Pending |
 | 4 | `/case-studies.html` | `case-studies` | ⬜ Pending |
 | 5 | `/portfolio.html` | `portfolio` | ⬜ Pending |

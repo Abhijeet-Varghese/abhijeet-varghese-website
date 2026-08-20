@@ -1,7 +1,7 @@
 import { CONTACT } from '@/content/home';
 import { CHROME } from '@/content/chrome';
 import { ChapterMeta } from './ChapterMeta';
-import { ContactBook } from '@/components/booking/ContactBook';
+import { BookingGate } from '@/components/booking/BookingGate';
 import { SocialIcon } from '@/components/chrome/SocialIcon';
 
 export function Contact() {
@@ -48,7 +48,7 @@ export function Contact() {
               </ul>
             </div>
           </div>
-          <ContactBook />
+          <BookingGate />
         </div>
       </div>
     </section>

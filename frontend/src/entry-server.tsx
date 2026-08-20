@@ -23,7 +23,9 @@ export function renderPage(pageId: string): RenderedPage {
   const body = renderToString(<entry.Component />);
   const preloads = [
     { href: 'assets/fonts/inter-tight-normal.woff2', as: 'font' as const, type: 'font/woff2' },
-    { href: 'assets/hero-portrait.webp', as: 'image' as const, fetchPriority: 'high' },
+    ...(entry.heroImagePreload
+      ? [{ href: entry.heroImagePreload, as: 'image' as const, fetchPriority: 'high' as const }]
+      : []),
   ];
   const head = buildHead(entry.seo, { preloads });
 

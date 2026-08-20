@@ -1,5 +1,6 @@
 import { Layout } from '@/components/Layout';
 import { useSiteChrome } from '@/lib/scroll';
+import { useHomeMotion } from '@/lib/home-motion';
 import { Hero } from '@/sections/home/Hero';
 import { Clients } from '@/sections/home/Clients';
 import { Capabilities } from '@/sections/home/Capabilities';
@@ -12,6 +13,7 @@ import { Contact } from '@/sections/home/Contact';
 
 export function Home() {
   useSiteChrome();
+  useHomeMotion();
   return (
     <Layout activeHref="index.html">
       <Hero />

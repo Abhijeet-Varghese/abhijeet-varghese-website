@@ -26,6 +26,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         index: resolve(rootDir, 'index.html'),
+        story: resolve(rootDir, 'story.html'),
       },
     },
   },

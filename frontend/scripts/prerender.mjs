@@ -13,6 +13,7 @@ import { resolve } from 'node:path';
  */
 const ROUTES = [
   { file: 'index.html', pageId: 'home' },
+  { file: 'story.html', pageId: 'story' },
 ];
 
 const root = resolve(import.meta.dirname, '..');
