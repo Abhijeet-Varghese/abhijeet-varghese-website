@@ -54,14 +54,15 @@ jobs:
         run: npm run typecheck
         working-directory: frontend
 
-      - name: Build (staging: noindex)
+      - name: Build (staging — noindex)
         env:
           VITE_STAGING: '1'
         run: npm run build
         working-directory: frontend
 
       - name: Staging robots (Disallow all)
-        run: printf 'User-agent: *\nDisallow: /\n' > frontend/dist/robots.txt
+        run: |
+          printf 'User-agent: *\nDisallow: /\n' > frontend/dist/robots.txt
 
       - name: Validate routes (exactly 25)
         run: |
