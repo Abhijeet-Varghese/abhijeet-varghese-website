@@ -1,6 +1,6 @@
 # React + TypeScript + Vite — Frontend Migration Plan
 
-Branch: `feat/react-ts-vite-migration` · Status: **Milestone 3 complete** (Portfolio + Case Studies + Orange + coming-soon pages).
+Branch: `feat/react-ts-vite-migration` · Status: **Milestone 4 complete** — all public routes migrated.
 
 ## Route manifest (single frontend owner per route)
 
@@ -8,25 +8,28 @@ Branch: `feat/react-ts-vite-migration` · Status: **Milestone 3 complete** (Port
 |---|---|---|---|
 | 1 | `/` (`index.html`) | `home` | ✅ Migrated |
 | 2 | `/story.html` | `story` | ✅ Migrated (Evolution 3D film stack) |
-| 3 | `/experience.html` | `experience` | ⬜ Pending |
+| 3 | `/experience.html` | `experience` | ✅ Migrated |
 | 4 | `/case-studies.html` | `case-studies` | ✅ Migrated |
 | 5 | `/portfolio.html` | `portfolio` | ✅ Migrated |
-| 6 | `/contact.html` | `contact` | ⬜ Pending (reuses ContactBook) |
-| 7 | `/consulting.html` | `consulting` | ⬜ Pending (Page template) |
-| 8 | `/for-recruiters.html` | `for-recruiters` | ⬜ Pending (Page template) |
-| 9 | `/insights.html` | `insights` | ⬜ Pending (Blog index) |
-| 10 | `/journal.html` | `journal` | ⬜ Pending (Blog index) |
-| 11 | `/search.html` | `search` | ⬜ Pending (client search index) |
-| 12 | `/sitemap.html` | `sitemap` | ⬜ Pending (Page template) |
-| 13 | `/privacy-policy.html` | `privacy-policy` | ⬜ Pending (Page template) |
-| 14 | `/terms.html` | `terms` | ⬜ Pending (Page template) |
-| 15 | `/404.html` | `not-found` | ⬜ Pending |
+| 6 | `/contact.html` | `contact` | ✅ Migrated (booking calendar) |
+| 7 | `/consulting.html` | `consulting` | ✅ Migrated |
+| 8 | `/for-recruiters.html` | `for-recruiters` | ✅ Migrated |
+| 9 | `/insights.html` | `insights` | ✅ Migrated |
+| 10 | `/journal.html` | `journal` | ✅ Migrated |
+| 11 | `/search.html` | `search` | ✅ Migrated (search index) |
+| 12 | `/sitemap.html` | `sitemap` | ✅ Migrated |
+| 13 | `/privacy-policy.html` | `privacy-policy` | ✅ Migrated |
+| 14 | `/terms.html` | `terms` | ✅ Migrated |
+| 15 | `/404.html` | `not-found` | ✅ Migrated |
 | 16 | `/case-study-immersive-solutions-for-the-indian-army.html` | `case-army` | ✅ Migrated (coming-soon) |
 | 17 | `/case-study-intuitive-experiences-for-industrial-environments.html` | `case-bpcl` | ✅ Migrated (coming-soon) |
 | 18 | `/case-study-enterprise-technology-made-understandable.html` | `case-redirect` | ✅ Migrated (static redirect) |
-| 19–22 | `/essay-*.html` (×4) | `essay-*` | ⬜ Pending (article template) |
-| 23–24 | `/journal-*.html` (×2) | `journal-*` | ⬜ Pending (article template) |
+| 19–22 | `/essay-*.html` (×4) | `essay-*` | ✅ Migrated |
+| 23–24 | `/journal-*.html` (×2) | `journal-*` | ✅ Migrated |
 | 25 | `/experience-design/orange-business-executive-briefing-center/` | `orange` | ✅ Migrated (long-form case study) |
+
+All 25 public routes migrated. Remaining stage (awaiting approval): legacy cleanup,
+final optimization, production deployment.
 
 ## Suggested commit sequence
 
@@ -36,11 +39,11 @@ Branch: `feat/react-ts-vite-migration` · Status: **Milestone 3 complete** (Port
 4. ~~feat(frontend): migrate homepage~~ ✅ (verified: hero 0-pixel diff)
 5. ~~feat(frontend): migrate story and evolution (3D film stack port)~~ ✅
 6. ~~feat(frontend): migrate portfolio and case studies~~ ✅ (Milestone 3)
-7. feat(frontend): migrate contact and booking UI
-8. feat(frontend): migrate remaining public pages (essays, journal, legal, 404)
-9. refactor(frontend): remove legacy frontend code
-10. perf(frontend): optimize assets and bundles
-11. test(frontend): add production route and UX validation
+7. ~~feat(frontend): migrate contact and booking UI~~ ✅ (Milestone 4)
+8. ~~feat(frontend): migrate remaining public pages (essays, journal, legal, 404)~~ ✅ (Milestone 4)
+9. refactor(frontend): remove legacy frontend code — **awaiting approval**
+10. perf(frontend): optimize assets and bundles — **awaiting approval**
+11. test(frontend): add production route and UX validation — **awaiting approval**
 
 ## Known findings (documented deviations from the spec's assumptions)
 

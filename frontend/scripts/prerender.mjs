@@ -19,6 +19,21 @@ const ROUTES = [
   { file: 'case-study-intuitive-experiences-for-industrial-environments.html', pageId: 'case-bpcl' },
   { file: 'case-study-immersive-solutions-for-the-indian-army.html', pageId: 'case-army' },
   { file: 'experience-design/orange-business-executive-briefing-center/index.html', pageId: 'orange' },
+  { file: 'contact.html', pageId: 'contact' },
+  { file: 'consulting.html', pageId: 'consulting' },
+  { file: 'for-recruiters.html', pageId: 'for-recruiters' },
+  { file: 'insights.html', pageId: 'insights' },
+  { file: 'journal.html', pageId: 'journal' },
+  { file: 'search.html', pageId: 'search' },
+  { file: 'privacy-policy.html', pageId: 'privacy-policy' },
+  { file: 'terms.html', pageId: 'terms' },
+  { file: '404.html', pageId: 'not-found' },
+  { file: 'essay-technology-should-feel-human.html', pageId: 'essay-technology-should-feel-human' },
+  { file: 'essay-ai-isnt-replacing-creativity.html', pageId: 'essay-ai-isnt-replacing-creativity' },
+  { file: 'essay-designing-experiences-people-remember.html', pageId: 'essay-designing-experiences-people-remember' },
+  { file: 'essay-why-enterprise-experiences-fail.html', pageId: 'essay-why-enterprise-experiences-fail' },
+  { file: 'journal-what-a-year-of-ai-enabled-production-taught-me.html', pageId: 'journal-what-a-year-of-ai-enabled-production-taught-me' },
+  { file: 'journal-the-experience-centre-as-a-strategic-instrument.html', pageId: 'journal-the-experience-centre-as-a-strategic-instrument' },
 ];
 
 const root = resolve(import.meta.dirname, '..');
