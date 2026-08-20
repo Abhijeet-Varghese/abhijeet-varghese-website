@@ -1,0 +1,46 @@
+:root {
+  --nav-bg: rgba(8, 15, 34, 0.72);
+  --chrome-text: #EFF0EA;
+  --chrome-muted: #96A0BE;
+  --azure: #6EA8FF;
+  --azure-hi: #9CC2FF;
+  --azure-ink: #051129;
+
+  --serif: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --font: "Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          "Helvetica Neue", Arial, sans-serif;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-io: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --pad-x: clamp(20px, 4.5vw, 72px);
+  --chapter-pad: clamp(110px, 15vh, 190px);
+
+  --f-label: 11.5px;
+  --f-body:  clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+  --f-lede:  clamp(1.12rem, 1.02rem + 0.5vw, 1.4rem);
+  --f-h2:    clamp(2.3rem, 1.55rem + 3.6vw, 4.3rem);
+  --f-quote: clamp(2.3rem, 1.5rem + 4vw, 4.9rem);
+}
+
+/* ---------- Chapter themes ---------- */
+.t-light {
+  --cb: #F7F5EF; --cs: #FFFFFF; --ct: #0C1330; --cm: #59617A;
+  --cl: rgba(12, 19, 48, 0.12); --cls: rgba(12, 19, 48, 0.28);
+  --ca: #2E5AAC; --cah: #1E4390; --con: #FFFFFF;
+  --veil: linear-gradient(90deg, rgba(46, 90, 172, 0.07), transparent 60%);
+  --lift: 0 26px 56px -30px rgba(12, 19, 48, 0.35);
+  --chip-tint: rgba(46, 90, 172, 0.07);
+  --panel-grad: linear-gradient(165deg, rgba(46, 90, 172, 0.05), transparent 45%);
+}
+.t-dark {
+  --cb: #080F22; --cs: #0E1A3C; --ct: #EFF0EA; --cm: #96A0BE;
+  --cl: rgba(148, 170, 230, 0.14); --cls: rgba(148, 170, 230, 0.30);
+  --ca: #6EA8FF; --cah: #9CC2FF; --con: #051129;
+  --veil: linear-gradient(90deg, rgba(110, 168, 255, 0.10), transparent 60%);
+  --lift: 0 30px 70px -34px rgba(0, 0, 0, 0.85), 0 0 50px -22px rgba(110, 168, 255, 0.30);
+  --chip-tint: rgba(110, 168, 255, 0.08);
+  --panel-grad: linear-gradient(165deg, rgba(110, 168, 255, 0.06), transparent 45%);
+}
+

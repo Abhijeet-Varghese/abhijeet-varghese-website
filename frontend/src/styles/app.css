@@ -1,0 +1,12 @@
+/* ============================================================
+   AV OS — React/Vite stylesheet entry
+   Layer order (spec: tokens → base → layout → components → pages)
+
+   1. tokens.css  — design tokens + chapter themes (locked palette)
+   2. base.css    — @font-face, reset, base element styles, layout
+   3. styles.css  — components + page styles (ported verbatim from
+                    the production stylesheet; visual source of truth)
+   ============================================================ */
+@import './tokens.css';
+@import './base.css';
+@import './styles.css';
