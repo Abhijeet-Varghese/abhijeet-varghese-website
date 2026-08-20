@@ -15,6 +15,8 @@ import { ArticlePage } from './article/ArticlePage';
 import { SearchPage } from './search/SearchPage';
 import { LegalPage } from './legal/LegalPage';
 import { NotFoundPage } from './not-found/NotFoundPage';
+import { ExperiencePage } from './experience/ExperiencePage';
+import { SitemapPage } from './sitemap/SitemapPage';
 import { HOME_SEO, STORY_SEO } from '@/content/seo';
 import { PORTFOLIO_SEO, CASE_STUDIES_SEO, PROJECTS, comingSoonSeo } from '@/content/projects';
 import { ORANGE_SEO } from '@/content/orange';
@@ -25,6 +27,7 @@ import {
   INSIGHTS_SEO,
   JOURNAL_SEO,
   SEARCH_SEO,
+  SITEMAP_SEO,
   PRIVACY_SEO,
   TERMS_SEO,
   NOT_FOUND_SEO,
@@ -33,6 +36,7 @@ import {
   TERMS,
   TERMS_PAGE,
 } from '@/content/pages';
+import { EXPERIENCE_SEO } from '@/content/experience';
 import { ARTICLES_BY_SLUG } from '@/content/articles';
 
 export interface PreloadSpec {
@@ -143,6 +147,16 @@ export const PAGES: Record<string, PageEntry> = {
     Component: SearchPage,
     seo: SEARCH_SEO,
     bodyClass: '',
+  },
+  sitemap: {
+    Component: SitemapPage,
+    seo: SITEMAP_SEO,
+    bodyClass: '',
+  },
+  experience: {
+    Component: ExperiencePage,
+    seo: EXPERIENCE_SEO,
+    bodyClass: 'experience-page',
   },
   'privacy-policy': {
     Component: () => (

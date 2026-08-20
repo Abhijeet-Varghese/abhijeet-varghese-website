@@ -38,6 +38,8 @@ export default defineConfig({
         insights: resolve(rootDir, 'insights.html'),
         journal: resolve(rootDir, 'journal.html'),
         search: resolve(rootDir, 'search.html'),
+        sitemap: resolve(rootDir, 'sitemap.html'),
+        experience: resolve(rootDir, 'experience.html'),
         'privacy-policy': resolve(rootDir, 'privacy-policy.html'),
         terms: resolve(rootDir, 'terms.html'),
         '404': resolve(rootDir, '404.html'),

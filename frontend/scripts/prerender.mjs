@@ -25,6 +25,8 @@ const ROUTES = [
   { file: 'insights.html', pageId: 'insights' },
   { file: 'journal.html', pageId: 'journal' },
   { file: 'search.html', pageId: 'search' },
+  { file: 'sitemap.html', pageId: 'sitemap' },
+  { file: 'experience.html', pageId: 'experience' },
   { file: 'privacy-policy.html', pageId: 'privacy-policy' },
   { file: 'terms.html', pageId: 'terms' },
   { file: '404.html', pageId: 'not-found' },

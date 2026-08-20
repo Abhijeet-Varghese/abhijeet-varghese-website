@@ -73,6 +73,13 @@ export const SEARCH_SEO = pageSeo({
   ldName: 'Search',
 });
 
+export const SITEMAP_SEO = pageSeo({
+  title: 'Sitemap — Abhijeet Varghese',
+  description: 'Every corner of this site.',
+  canonical: `${SITE}/sitemap.html`,
+  ldName: 'Sitemap',
+});
+
 export const PRIVACY_SEO = pageSeo({
   title: 'Privacy Policy — Abhijeet Varghese',
   description: 'Plain English about your data.',
