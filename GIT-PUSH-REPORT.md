@@ -107,3 +107,23 @@ deploy workflow.
 
 **Git push: BLOCKED** — insufficient permissions on the supplied token (403),
 not a problem with the repository state or the migration commits.
+
+### Second attempt (replacement token)
+
+A second fine-grained PAT was supplied (`…YXK…`). Same result: it authenticates
+as `Abhijeet-Varghese` and reads the API (200), but **git push is denied 403**:
+
+```
+remote: Permission to Abhijeet-Varghese/abhijeet-varghese-website.git denied to Abhijeet-Varghese.
+```
+
+Confirmed the repo is owned by `Abhijeet-Varghese`, is not a fork, and is not
+archived/disabled. The consistent 403 across **two** tokens means both fine-grained
+PATs are **read-only** — they lack **Repository permissions → Contents = Read and
+write**. (The REST API `permissions` object's `push:true` reflects the account's
+ownership role, not the PAT's actual grant; the git 403 is authoritative.)
+
+**Exact fix** — in GitHub → Settings → Developer settings → Fine-grained PATs →
+edit the token → Repository access → `abhijeet-varghese-website` →
+**Contents → Read and write** (or generate a classic PAT with the `repo` scope),
+then re-run the single push command.
