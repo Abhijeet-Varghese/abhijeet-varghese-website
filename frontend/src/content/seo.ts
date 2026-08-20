@@ -81,7 +81,7 @@ export function buildHead(seo: SeoData, opts: HeadOptions = {}): string {
       ? '<meta name="robots" content="noindex, follow">'
       : '<meta name="robots" content="index, follow, max-image-preview:large">',
   );
-  parts.push(`<meta name="theme-color" content="${opts.themeColor ?? '#F7F5EF'}">`);
+  parts.push(`<meta name="theme-color" content="${opts.themeColor ?? seo.themeColor ?? '#F7F5EF'}">`);
   parts.push(`<link rel="canonical" href="${esc(seo.canonical)}">`);
   for (const p of opts.preloads ?? []) {
     const attrs = [
@@ -102,6 +102,7 @@ export function buildHead(seo: SeoData, opts: HeadOptions = {}): string {
   parts.push(`<meta property="og:title" content="${esc(seo.ogTitle ?? seo.title)}">`);
   parts.push(`<meta property="og:description" content="${esc(seo.ogDescription ?? seo.description)}">`);
   if (seo.ogImage) parts.push(`<meta property="og:image" content="${esc(seo.ogImage)}">`);
+  if (seo.ogImageAlt) parts.push(`<meta property="og:image:alt" content="${esc(seo.ogImageAlt)}">`);
   parts.push(`<meta name="twitter:card" content="${seo.twitterCard ?? 'summary_large_image'}">`);
   parts.push(`<meta name="twitter:title" content="${esc(seo.ogTitle ?? seo.title)}">`);
   parts.push(`<meta name="twitter:description" content="${esc(seo.ogDescription ?? seo.description)}">`);

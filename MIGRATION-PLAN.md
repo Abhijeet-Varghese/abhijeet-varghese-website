@@ -1,6 +1,6 @@
 # React + TypeScript + Vite — Frontend Migration Plan
 
-Branch: `feat/react-ts-vite-migration` · Status: **Milestone 2 complete** (homepage + Story/Evolution + bundle splitting).
+Branch: `feat/react-ts-vite-migration` · Status: **Milestone 3 complete** (Portfolio + Case Studies + Orange + coming-soon pages).
 
 ## Route manifest (single frontend owner per route)
 
@@ -9,8 +9,8 @@ Branch: `feat/react-ts-vite-migration` · Status: **Milestone 2 complete** (home
 | 1 | `/` (`index.html`) | `home` | ✅ Migrated |
 | 2 | `/story.html` | `story` | ✅ Migrated (Evolution 3D film stack) |
 | 3 | `/experience.html` | `experience` | ⬜ Pending |
-| 4 | `/case-studies.html` | `case-studies` | ⬜ Pending |
-| 5 | `/portfolio.html` | `portfolio` | ⬜ Pending |
+| 4 | `/case-studies.html` | `case-studies` | ✅ Migrated |
+| 5 | `/portfolio.html` | `portfolio` | ✅ Migrated |
 | 6 | `/contact.html` | `contact` | ⬜ Pending (reuses ContactBook) |
 | 7 | `/consulting.html` | `consulting` | ⬜ Pending (Page template) |
 | 8 | `/for-recruiters.html` | `for-recruiters` | ⬜ Pending (Page template) |
@@ -21,12 +21,12 @@ Branch: `feat/react-ts-vite-migration` · Status: **Milestone 2 complete** (home
 | 13 | `/privacy-policy.html` | `privacy-policy` | ⬜ Pending (Page template) |
 | 14 | `/terms.html` | `terms` | ⬜ Pending (Page template) |
 | 15 | `/404.html` | `not-found` | ⬜ Pending |
-| 16 | `/case-study-immersive-solutions-for-the-indian-army.html` | `case-army` | ⬜ Pending (shared chrome) |
-| 17 | `/case-study-intuitive-experiences-for-industrial-environments.html` | `case-bpcl` | ⬜ Pending (shared chrome) |
-| 18 | `/case-study-enterprise-technology-made-understandable.html` | `case-redirect` | ⬜ Pending (redirect) |
+| 16 | `/case-study-immersive-solutions-for-the-indian-army.html` | `case-army` | ✅ Migrated (coming-soon) |
+| 17 | `/case-study-intuitive-experiences-for-industrial-environments.html` | `case-bpcl` | ✅ Migrated (coming-soon) |
+| 18 | `/case-study-enterprise-technology-made-understandable.html` | `case-redirect` | ✅ Migrated (static redirect) |
 | 19–22 | `/essay-*.html` (×4) | `essay-*` | ⬜ Pending (article template) |
 | 23–24 | `/journal-*.html` (×2) | `journal-*` | ⬜ Pending (article template) |
-| 25 | `/experience-design/orange-business-executive-briefing-center/` | `orange` | ⬜ Pending (long-form case study) |
+| 25 | `/experience-design/orange-business-executive-briefing-center/` | `orange` | ✅ Migrated (long-form case study) |
 
 ## Suggested commit sequence
 
@@ -34,8 +34,8 @@ Branch: `feat/react-ts-vite-migration` · Status: **Milestone 2 complete** (home
 2. ~~feat(frontend): add React TypeScript Vite MPA~~ ✅
 3. ~~feat(frontend): migrate shared design system~~ ✅ (tokens/base/components CSS)
 4. ~~feat(frontend): migrate homepage~~ ✅ (verified: hero 0-pixel diff)
-5. feat(frontend): migrate story and evolution (3D film stack port)
-6. feat(frontend): migrate portfolio and case studies
+5. ~~feat(frontend): migrate story and evolution (3D film stack port)~~ ✅
+6. ~~feat(frontend): migrate portfolio and case studies~~ ✅ (Milestone 3)
 7. feat(frontend): migrate contact and booking UI
 8. feat(frontend): migrate remaining public pages (essays, journal, legal, 404)
 9. refactor(frontend): remove legacy frontend code

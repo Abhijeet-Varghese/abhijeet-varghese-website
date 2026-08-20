@@ -9,20 +9,22 @@ import { Footer } from './chrome/Footer';
 export function Layout({
   activeHref,
   pageClose = false,
+  base = '',
   children,
 }: {
   activeHref?: string;
   pageClose?: boolean;
+  base?: string;
   children: ReactNode;
 }) {
   return (
     <>
       <SkipLink />
       <Progress />
-      <Nav activeHref={activeHref} />
-      {pageClose && <PageClose />}
+      <Nav activeHref={activeHref} base={base} />
+      {pageClose && <PageClose base={base} />}
       <main id="main">{children}</main>
-      <Footer />
+      <Footer base={base} />
     </>
   );
 }

@@ -1,5 +1,5 @@
 import { renderToString } from 'react-dom/server';
-import { PAGES } from './pages';
+import { PAGES, type PreloadSpec } from './pages';
 import { buildHead } from './content/seo';
 import { ANALYTICS_SCRIPT } from './lib/analytics';
 
@@ -8,8 +8,10 @@ export interface RenderedPage {
   body: string;
   bodyClass: string;
   analytics: string;
-  preloads: { href: string; as: 'font' | 'image'; type?: string; fetchPriority?: string }[];
 }
+
+/** Default font preload (self-hosted Inter Tight). */
+const FONT_PRELOAD: PreloadSpec = { href: 'assets/fonts/inter-tight-normal.woff2', as: 'font', type: 'font/woff2' };
 
 /**
  * Build-time static renderer. Produces the complete inner content of
@@ -21,13 +23,8 @@ export function renderPage(pageId: string): RenderedPage {
   if (!entry) throw new Error(`Unknown page id "${pageId}"`);
 
   const body = renderToString(<entry.Component />);
-  const preloads = [
-    { href: 'assets/fonts/inter-tight-normal.woff2', as: 'font' as const, type: 'font/woff2' },
-    ...(entry.heroImagePreload
-      ? [{ href: entry.heroImagePreload, as: 'image' as const, fetchPriority: 'high' as const }]
-      : []),
-  ];
+  const preloads: PreloadSpec[] = entry.preloads ?? [FONT_PRELOAD];
   const head = buildHead(entry.seo, { preloads });
 
-  return { head, body, bodyClass: entry.bodyClass, analytics: ANALYTICS_SCRIPT, preloads };
+  return { head, body, bodyClass: entry.bodyClass, analytics: ANALYTICS_SCRIPT };
 }

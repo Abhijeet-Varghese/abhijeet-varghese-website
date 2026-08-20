@@ -1,17 +1,17 @@
 import { CHROME } from '@/content/chrome';
 import { SocialIcon } from './SocialIcon';
 
-/** Global footer chrome — identical on every page. */
-export function Footer() {
+/** Global footer chrome — identical on every page. `base` prefixes internal links. */
+export function Footer({ base = '' }: { base?: string }) {
   const f = CHROME.footer;
   return (
     <footer className="footer footer--arena">
       <div className="container footer__inner">
         <div className="footer__brand">
-          <a className="footer__brandtop" href={CHROME.brandHref} aria-label="Abhijeet Varghese — home">
+          <a className="footer__brandtop" href={base + CHROME.brandHref} aria-label="Abhijeet Varghese — home">
             <img
               className="brand__logo brand__logo--foot"
-              src={CHROME.logoUrl}
+              src={base + CHROME.logoUrl}
               alt="Abhijeet Varghese logo"
               width="36"
               height="36"
@@ -35,7 +35,7 @@ export function Footer() {
             <ul className="footer__links">
               {col.links.map((link) => (
                 <li key={link.href + link.label}>
-                  <a href={link.href}>{link.label}</a>
+                  <a href={base + link.href}>{link.label}</a>
                 </li>
               ))}
             </ul>

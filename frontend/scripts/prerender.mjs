@@ -14,6 +14,11 @@ import { resolve } from 'node:path';
 const ROUTES = [
   { file: 'index.html', pageId: 'home' },
   { file: 'story.html', pageId: 'story' },
+  { file: 'portfolio.html', pageId: 'portfolio' },
+  { file: 'case-studies.html', pageId: 'case-studies' },
+  { file: 'case-study-intuitive-experiences-for-industrial-environments.html', pageId: 'case-bpcl' },
+  { file: 'case-study-immersive-solutions-for-the-indian-army.html', pageId: 'case-army' },
+  { file: 'experience-design/orange-business-executive-briefing-center/index.html', pageId: 'orange' },
 ];
 
 const root = resolve(import.meta.dirname, '..');

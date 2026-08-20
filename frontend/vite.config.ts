@@ -27,6 +27,11 @@ export default defineConfig({
       input: {
         index: resolve(rootDir, 'index.html'),
         story: resolve(rootDir, 'story.html'),
+        portfolio: resolve(rootDir, 'portfolio.html'),
+        'case-studies': resolve(rootDir, 'case-studies.html'),
+        'case-bpcl': resolve(rootDir, 'case-study-intuitive-experiences-for-industrial-environments.html'),
+        'case-army': resolve(rootDir, 'case-study-immersive-solutions-for-the-indian-army.html'),
+        orange: resolve(rootDir, 'experience-design/orange-business-executive-briefing-center/index.html'),
       },
     },
   },

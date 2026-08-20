@@ -16,9 +16,11 @@ export interface SeoData {
   canonical: string;
   ogType?: string;
   ogImage?: string;
+  ogImageAlt?: string;
   ogTitle?: string;
   ogDescription?: string;
   twitterCard?: string;
+  themeColor?: string;
   noindex?: boolean;
   jsonLd?: object;
 }

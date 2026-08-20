@@ -6,8 +6,11 @@ import type { NavLink } from '@/types';
  * Global navigation chrome. Replicates the production nav behaviour exactly:
  * compact focus-trapped mobile dialog ≤900px, desktop chrome above 900px,
  * Escape-to-close, focus return, and body scroll lock.
+ *
+ * `base` is a relative prefix for internal links ('' at root, '../../' for
+ * nested routes like the Orange case study).
  */
-export function Nav({ activeHref }: { activeHref?: string }) {
+export function Nav({ activeHref, base = '' }: { activeHref?: string; base?: string }) {
   const [open, setOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -90,7 +93,7 @@ export function Nav({ activeHref }: { activeHref?: string }) {
   }, [open, close, focusables]);
 
   const renderLink = (link: NavLink, current: boolean) => (
-    <a href={link.href} aria-current={current ? 'page' : undefined}>
+    <a href={base + link.href} aria-current={current ? 'page' : undefined}>
       {link.label}
     </a>
   );
@@ -98,10 +101,10 @@ export function Nav({ activeHref }: { activeHref?: string }) {
   return (
     <header className="site-nav" id="siteNav">
       <nav className="site-nav__inner" aria-label="Primary">
-        <a className="brand" href={CHROME.brandHref} aria-label="Abhijeet Varghese — home">
+        <a className="brand" href={base + CHROME.brandHref} aria-label="Abhijeet Varghese — home">
           <img
             className="brand__logo"
-            src={CHROME.logoUrl}
+            src={base + CHROME.logoUrl}
             alt="Abhijeet Varghese logo"
             width="36"
             height="36"
@@ -114,7 +117,7 @@ export function Nav({ activeHref }: { activeHref?: string }) {
             <li key={link.href}>{renderLink(link, link.href === activeHref)}</li>
           ))}
         </ul>
-        <a className="btn btn--accent btn--small" href={CHROME.cta.href}>
+        <a className="btn btn--accent btn--small" href={base + CHROME.cta.href}>
           {CHROME.cta.label}
         </a>
         <button
@@ -159,7 +162,7 @@ export function Nav({ activeHref }: { activeHref?: string }) {
           <ul className="mobile-menu__list">
             {CHROME.mobile.map((link) => (
               <li key={link.href}>
-                <a href={link.href} onClick={close}>
+                <a href={base + link.href} onClick={close}>
                   <em>{link.index}</em>
                   {link.label}
                 </a>
@@ -167,7 +170,7 @@ export function Nav({ activeHref }: { activeHref?: string }) {
             ))}
           </ul>
           <div className="mobile-menu__actions">
-            <a className="btn btn--accent btn--block" href={CHROME.cta.href} onClick={close}>
+            <a className="btn btn--accent btn--block" href={base + CHROME.cta.href} onClick={close}>
               {CHROME.cta.label}
             </a>
             <a className="mobile-menu__mail" href={CHROME.footer.emailHref} onClick={close}>
