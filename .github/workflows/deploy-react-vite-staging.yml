@@ -54,9 +54,14 @@ jobs:
         run: npm run typecheck
         working-directory: frontend
 
-      - name: Build
+      - name: Build (staging: noindex)
+        env:
+          VITE_STAGING: '1'
         run: npm run build
         working-directory: frontend
+
+      - name: Staging robots (Disallow all)
+        run: printf 'User-agent: *\nDisallow: /\n' > frontend/dist/robots.txt
 
       - name: Validate routes (exactly 25)
         run: |
@@ -96,30 +101,44 @@ jobs:
           fi
           echo "no dev/leak files"
 
-      - name: Assemble staging package (frontend + PHP backend)
+      - name: Assemble staging package (flat web root + private backend)
         run: |
           set -euo pipefail
           PKG=_deploy
           rm -rf "$PKG"
           mkdir -p "$PKG"
 
-          # 1) PHP backend + public_html (admin / api / install / media / .htaccess)
-          cp -r avos-php/. "$PKG/"
-          # hard guarantee: never ship secrets (config.local.php is gitignored anyway)
-          rm -f "$PKG/config.local.php"
-          rm -rf "$PKG/storage"; mkdir -p "$PKG/storage"   # runtime writable skeleton
+          # 1) WEB ROOT (flat React/Vite build at the top level — NOT under site/)
+          mkdir -p "$PKG/public_html"
+          cp -r frontend/dist/. "$PKG/public_html/"
+          # PHP public entry points live alongside the static build
+          cp -r avos-php/public_html/admin   "$PKG/public_html/"
+          cp -r avos-php/public_html/api     "$PKG/public_html/"
+          cp -r avos-php/public_html/install "$PKG/public_html/"
+          cp    avos-php/public_html/media.php "$PKG/public_html/"
+          # hardened staging .htaccess (blocks .git / private dirs / config / sql)
+          cp frontend/staging/htaccess "$PKG/public_html/.htaccess"
 
-          # 2) published site = the Vite build (replaces the committed legacy site)
-          rm -rf "$PKG/public_html/site"
-          mkdir -p "$PKG/public_html/site"
-          cp -r frontend/dist/. "$PKG/public_html/site/"
+          # 2) PRIVATE backend (account root — OUTSIDE the web root)
+          cp -r avos-php/backend      "$PKG/"
+          cp -r avos-php/includes     "$PKG/"
+          cp -r avos-php/database     "$PKG/"
+          cp -r avos-php/site-template "$PKG/"
+          mkdir -p "$PKG/storage"              # empty writable runtime skeleton
+          cp avos-php/router.php "$PKG/" 2>/dev/null || true
+          cp avos-php/config.local.example.php "$PKG/" 2>/dev/null || true
 
-          # 3) belt-and-suspenders verification
-          test -f "$PKG/public_html/site/index.html" || { echo "no site index"; exit 1; }
-          test -d "$PKG/public_html/admin" || { echo "admin missing"; exit 1; }
-          test -f "$PKG/public_html/api/index.php" || { echo "api missing"; exit 1; }
-          if [ -e "$PKG/config.local.php" ]; then echo "config.local.php leaked"; exit 1; fi
-          echo "package assembled"
+          # 3) hard guarantees
+          test -f "$PKG/public_html/index.html"     || { echo "no web-root index"; exit 1; }
+          test -d "$PKG/public_html/assets"         || { echo "no hashed assets"; exit 1; }
+          test -d "$PKG/public_html/admin"          || { echo "admin missing"; exit 1; }
+          test -f "$PKG/public_html/api/index.php"  || { echo "api missing"; exit 1; }
+          test -f "$PKG/public_html/.htaccess"      || { echo ".htaccess missing"; exit 1; }
+          test -d "$PKG/backend" && test -d "$PKG/includes" || { echo "backend/includes missing"; exit 1; }
+          test ! -d "$PKG/public_html/site"         || { echo "legacy site/ nesting leaked"; exit 1; }
+          test ! -e "$PKG/config.local.php"         || { echo "config.local.php leaked"; exit 1; }
+          test ! -e "$PKG/public_html/config.local.php" || { echo "config.local.php leaked to web root"; exit 1; }
+          echo "package assembled: flat web root + private backend"
 
       - name: Upload staging artifact (SFTP fallback)
         uses: actions/upload-artifact@v4

@@ -3,6 +3,13 @@ import type { SeoData } from '@/types';
 /** Canonical production origin (SEO absolute URLs). */
 export const SITE_ORIGIN = 'https://abhijeetvarghese.com';
 
+/**
+ * Staging build flag (build-time only). When `VITE_STAGING=1` is set for the
+ * Vite build, every generated page gets `noindex, nofollow` so a staging copy
+ * (e.g. next.abhijeetvarghese.com) cannot compete with production SEO.
+ */
+const IS_STAGING = (import.meta.env?.VITE_STAGING ?? '') === '1';
+
 export const HOME_SEO: SeoData = {
   title:
     'Abhijeet Varghese — Creative Systems Leader | Experience Design, Enterprise Innovation & AI',
@@ -79,8 +86,8 @@ export function buildHead(seo: SeoData, opts: HeadOptions = {}): string {
   parts.push(`<meta name="description" content="${esc(seo.description)}">`);
   if (seo.keywords) parts.push(`<meta name="keywords" content="${esc(seo.keywords)}">`);
   parts.push(
-    seo.noindex
-      ? '<meta name="robots" content="noindex, follow">'
+    seo.noindex || IS_STAGING
+      ? '<meta name="robots" content="noindex, nofollow">'
       : '<meta name="robots" content="index, follow, max-image-preview:large">',
   );
   parts.push(`<meta name="theme-color" content="${opts.themeColor ?? seo.themeColor ?? '#F7F5EF'}">`);

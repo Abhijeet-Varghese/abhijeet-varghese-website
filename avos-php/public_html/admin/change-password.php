@@ -1,6 +1,21 @@
 <?php
 /** AV OS — forced password change (first login) */
-require __DIR__ . '/../../includes/bootstrap.php';
+// Locate the app root (backend/includes live OUTSIDE the web root, so the
+// web root may be public_html/ or a subdirectory like public_html/next/).
+// Walk upward until includes/bootstrap.php is found - no hardcoded depth.
+$__avos_root = __DIR__;
+for ($__i = 0; $__i < 8; $__i++) {
+    if (is_file($__avos_root . '/includes/bootstrap.php')) break;
+    $__parent = dirname($__avos_root);
+    if ($__parent === $__avos_root) { $__avos_root = null; break; }
+    $__avos_root = $__parent;
+}
+if ($__avos_root === null || !is_file($__avos_root . '/includes/bootstrap.php')) {
+    $__avos_root = dirname(__DIR__, 2);   // legacy fallback (unchanged behaviour)
+}
+require $__avos_root . '/includes/bootstrap.php';
+unset($__avos_root, $__i, $__parent);
+
 if (!Auth::check()) { header('Location: login.php'); exit; }
 if (!Auth::mustChangePassword()) { header('Location: app/index.html'); exit; }
 ?>

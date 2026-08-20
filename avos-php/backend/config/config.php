@@ -9,7 +9,10 @@
 
 // ---- paths ----
 define('AV_ROOT', dirname(__DIR__, 2));                    // .../avos-php
-define('AV_PUBLIC', AV_ROOT . '/public_html');
+// Staging note: the web root may be public_html/ (production) or a subdirectory
+// like public_html/next/ (staging). AV_PUBLIC_DIR / AV_SITE_OUT_DIR let the
+// backend target a non-default web root without touching production defaults.
+define('AV_PUBLIC', getenv('AV_PUBLIC_DIR') ?: AV_ROOT . '/public_html');
 define('AV_BACKEND', AV_ROOT . '/backend');
 define('AV_INSTALL', AV_ROOT . '/install');
 define('AV_STORAGE', AV_ROOT . '/storage');
@@ -19,7 +22,7 @@ define('AV_VERSIONS', AV_STORAGE . '/versions');
 define('AV_LOGS', AV_STORAGE . '/logs');
 define('AV_BACKUPS', AV_STORAGE . '/backups');
 define('AV_TEMPLATE', AV_ROOT . '/site-template');          // canonical frontend template (legacy)
-define('AV_SITE_OUT', AV_ROOT . '/public_html/site');       // generated public site
+define('AV_SITE_OUT', getenv('AV_SITE_OUT_DIR') ?: AV_ROOT . '/public_html/site');   // generated public site
 // React + Vite production build — the authoritative frontend source in Vite
 // mode. Defaults to <repo>/frontend/dist (the Vite `npm run build` output).
 define('AV_VITE_DIST', getenv('AV_VITE_DIST') ?: dirname(AV_ROOT) . '/frontend/dist');

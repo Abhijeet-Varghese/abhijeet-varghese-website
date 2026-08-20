@@ -1,0 +1,104 @@
+# ============================================================================
+# AV OS — staging web-root .htaccess (flat React/Vite + PHP backend)
+#
+# This is the .htaccess for the STAGING web root, e.g. /public_html/next/ for
+# next.abhijeetvarghese.com. It serves the flat React/Vite build (index.html +
+# hashed assets at the web root — NOT nested under site/) AND the PHP backend
+# (admin/, api/, media.php), while keeping private files unreachable.
+#
+# PRIVATE files (backend/, includes/, database/, storage/, site-template/,
+# config.local.php) must live OUTSIDE the web root (account root). The rules
+# below are belt-and-suspenders in case any private file lands in the web root.
+# ============================================================================
+
+Options -Indexes
+ErrorDocument 404 /404.html
+
+# ---------------------------------------------------------------------------
+# 1) HARDENING — never expose .git, dotfiles, config, SQL, dumps, source
+# ---------------------------------------------------------------------------
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+<FilesMatch "\.(sql|md|lock|log|bak|sh|env|example|py|dist)$">
+  Require all denied
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # block private paths if they ever land inside the web root
+  RewriteRule ^(?:backend|includes|storage|database|installer|site-template|\.git|vendor)/ - [F,L]
+  RewriteCond %{REQUEST_URI} (^|/)(config\.local\.php|config\.php|schema\.sql|seed\.php|bootstrap\.php|site\.json|\.env)$ [NC]
+  RewriteRule ^ - [F,L]
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# 2) SECURITY HEADERS
+# ---------------------------------------------------------------------------
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# 3) ROUTING — static React/Vite (flat) + PHP endpoints, without swallowing
+#    /api/*, /admin/*, /install/*, /media/*
+# ---------------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # /media/* → private-storage media server
+  RewriteRule ^media/(.+)$ media.php?f=$1 [L,QSA]
+
+  # /admin and /admin/ → admin login (admin has no directory index)
+  RewriteRule ^admin/?$ admin/login.php [L]
+
+  # /install and /install/ → install wizard
+  RewriteRule ^install/?$ install/index.php [L]
+
+  # The React/Vite build is a real MPA: every page is a physical .html file.
+  # No SPA fallback — unknown paths fall through to the designed 404.
+
+  # legacy case-study redirect (preserved from production)
+  RewriteRule ^case\-study\-enterprise\-technology\-made\-understandable\.html/?$ /experience-design/orange-business-executive-briefing-center/ [R=301,L]
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# 4) CACHE / COMPRESSION
+# ---------------------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json application/xml image/svg+xml
+</IfModule>
+<IfModule mod_brotli.c>
+  AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css text/javascript application/javascript application/json application/xml image/svg+xml
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 30 days"
+  ExpiresByType image/webp "access plus 30 days"
+  ExpiresByType image/avif "access plus 30 days"
+  ExpiresByType image/jpeg "access plus 30 days"
+  ExpiresByType image/png "access plus 30 days"
+  ExpiresByType image/svg+xml "access plus 30 days"
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header merge Vary "Accept-Encoding"
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+  <FilesMatch "\.(?:css|js)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.(?:woff2|avif|webp|jpe?g|png|svg)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+</IfModule>
