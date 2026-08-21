@@ -1,0 +1,296 @@
+· runtime payload validated: ok
+· adapted collections: chrome, projects, articles, home, clients
+· unmapped collections (no CMS equivalent): experience, story, orange, pages, seo
+
+== Parity report (static vs runtime) ==
+
+  collection  MATCH  MISSING  EXTRA  DIFFERENT  UNMAPPED  leaves
+  home        197    31       10     0          0         238   
+  chrome      78     4        6      10         0         98    
+  projects    74     0        0      14         0         88    
+  articles    580    20       2      46         0         648   
+  experience  0      0        0      0          1         239   
+  story       0      0        0      0          1         195   
+  orange      0      0        0      0          1         237   
+  pages       0      0        0      0          1         197   
+  seo         0      0        0      0          1         35    
+
+TOTALS → MATCH 929 · MISSING 55 · EXTRA 18 · DIFFERENT 70 · UNMAPPED 5 (of 1975 static leaves)
+
+── DIFFERENT (static → runtime) ──
+  chrome.CHROME.footer.columns[2].label
+    static : Legal
+    runtime: Social
+  chrome.CHROME.footer.columns[2].links[0].label
+    static : Privacy Policy
+    runtime: LinkedIn
+  chrome.CHROME.footer.columns[2].links[0].href
+    static : privacy-policy.html
+    runtime: https://www.linkedin.com/in/abhijeetvarghese/
+  chrome.CHROME.footer.columns[2].links[1].label
+    static : Terms
+    runtime: Instagram
+  chrome.CHROME.footer.columns[2].links[1].href
+    static : terms.html
+    runtime: https://www.instagram.com/abhijeetvarghese/
+  chrome.CHROME.footer.social[0].icon
+    static : linkedin
+    runtime: s1
+  chrome.CHROME.footer.social[1].icon
+    static : instagram
+    runtime: s2
+  chrome.CHROME.footer.social[2].icon
+    static : whatsapp
+    runtime: s3
+  chrome.CHROME.footer.social[3].icon
+    static : youtube
+    runtime: s4
+  chrome.CHROME.footer.social[4].icon
+    static : behance
+    runtime: s5
+  projects.PROJECTS[0].href
+    static : experience-design/orange-business-executive-briefing-center/
+    runtime: 
+  projects.PROJECTS[0].image
+    static : assets/case-orange-experience-in-action.webp
+    runtime: media/case-orange-experience-in-action.webp
+  projects.PROJECTS[1].slug
+    static : intuitive-experiences-for-industrial-environments
+    runtime: 
+  projects.PROJECTS[1].href
+    static : case-study-intuitive-experiences-for-industrial-environments.html
+    runtime: 
+  projects.PROJECTS[1].image
+    static : assets/case-bpcl.webp
+    runtime: media/case-bpcl.webp
+  projects.PROJECTS[1].imageAlt
+    static : BPCL — Energy & Industrial engagement
+    runtime: 
+  projects.PROJECTS[1].portfolioAlt
+    static : Intuitive Experiences for Industrial Environments — BPCL
+    runtime: 
+  projects.PROJECTS[1].status
+    static : coming-soon
+    runtime: published
+  projects.PROJECTS[2].slug
+    static : immersive-solutions-for-the-indian-army
+    runtime: 
+  projects.PROJECTS[2].href
+    static : case-study-immersive-solutions-for-the-indian-army.html
+    runtime: 
+  projects.PROJECTS[2].image
+    static : assets/case-army.webp
+    runtime: media/case-army.webp
+  projects.PROJECTS[2].imageAlt
+    static : Indian Army — Defence & Immersive engagement
+    runtime: 
+  projects.PROJECTS[2].portfolioAlt
+    static : Immersive Solutions for the Indian Army — Indian Army
+    runtime: 
+  projects.PROJECTS[2].status
+    static : coming-soon
+    runtime: published
+  articles.ARTICLES[0].slug
+    static : essay-technology-should-feel-human
+    runtime: technology-should-feel-human
+  articles.ARTICLES[0].tag
+    static : Design · 6 min
+    runtime: Design
+  articles.ARTICLES[0].image
+    static : assets/essay-01.webp
+    runtime: media/essay-01.webp
+  articles.ARTICLES[0].imageAlt
+    static : Artwork for “Technology Should Feel Human”
+    runtime: 
+  articles.ARTICLES[0].paragraphs[1]
+    static : 
+    runtime: I've spent twelve years inside that translation problem. The pattern repeats everywhere — the system is powerful, the pe…
+  articles.ARTICLES[0].paragraphs[2]
+    static : I've spent twelve years inside that translation problem. The pattern repeats everywhere — the system is powerful, the pe…
+    runtime: What does a human interface actually mean? It means respecting attention, which is finite. It means earning trust, which…
+  articles.ARTICLES[0].paragraphs[3]
+    static : 
+    runtime: Technology evolves every day. Human understanding doesn't. That asymmetry is the brief.
+  articles.ARTICLES[0].backLabel
+    static : ← All insights
+    runtime: 
+  articles.ARTICLES[0].backHref
+    static : insights.html
+    runtime: 
+  articles.ARTICLES[1].slug
+    static : essay-ai-isnt-replacing-creativity
+    runtime: ai-isnt-replacing-creativity
+  articles.ARTICLES[1].tag
+    static : AI · 8 min
+    runtime: AI
+  articles.ARTICLES[1].image
+    static : assets/essay-02.webp
+    runtime: media/essay-02.webp
+  articles.ARTICLES[1].imageAlt
+    static : Artwork for “AI Isn't Replacing Creativity”
+    runtime: 
+  articles.ARTICLES[1].paragraphs[1]
+    static : 
+    runtime: What AI actually compresses is exploration. The first 80 percent of any creative task can now happen in minutes instead …
+  articles.ARTICLES[1].paragraphs[2]
+    static : What AI actually compresses is exploration. The first 80 percent of any creative task can now happen in minutes instead …
+    runtime: But exploration was never the hard part. The hard part was always judgment: knowing which variation deserves to exist.
+  articles.ARTICLES[1].paragraphs[3]
+    static : 
+    runtime: So the new workflow looks like this: machines for momentum, humans for judgment.
+  articles.ARTICLES[1].backLabel
+    static : ← All insights
+    runtime: 
+  articles.ARTICLES[1].backHref
+    static : insights.html
+    runtime: 
+  articles.ARTICLES[2].slug
+    static : essay-designing-experiences-people-remember
+    runtime: designing-experiences-people-remember
+  articles.ARTICLES[2].tag
+    static : Experience · 7 min
+    runtime: Experience
+  articles.ARTICLES[2].image
+    static : assets/essay-03.webp
+    runtime: media/essay-03.webp
+  articles.ARTICLES[2].imageAlt
+    static : Artwork for “Designing Experiences People Remember”
+    runtime: 
+  articles.ARTICLES[2].paragraphs[1]
+    static : 
+    runtime: Designing for memory also means designing for retelling. An experience that can be told as a story propagates.
+  articles.ARTICLES[2].paragraphs[2]
+    static : Designing for memory also means designing for retelling. An experience that can be told as a story propagates.
+    runtime: So I design for the moments people will retell. A single honest moment beats a hundred polished ones.
+  articles.ARTICLES[2].backLabel
+    static : ← All insights
+    runtime: 
+  articles.ARTICLES[2].backHref
+    static : insights.html
+    runtime: 
+  articles.ARTICLES[3].slug
+    static : essay-why-enterprise-experiences-fail
+    runtime: why-enterprise-experiences-fail
+  articles.ARTICLES[3].tag
+    static : Enterprise · 9 min
+    runtime: Enterprise
+  articles.ARTICLES[3].image
+    static : assets/essay-04.webp
+    runtime: media/essay-04.webp
+  articles.ARTICLES[3].imageAlt
+    static : Artwork for “Why Enterprise Experiences Fail”
+    runtime: 
+  articles.ARTICLES[3].paragraphs[1]
+    static : 
+    runtime: The first killer is jargon. The second is the org chart. The third is inherited complexity.
+  articles.ARTICLES[3].paragraphs[2]
+    static : The first killer is jargon. The second is the org chart. The third is inherited complexity.
+    runtime: The fix is the same for all three: treat clarity as a first-class requirement.
+  articles.ARTICLES[3].backLabel
+    static : ← All insights
+    runtime: 
+  articles.ARTICLES[3].backHref
+    static : insights.html
+    runtime: 
+  articles.ARTICLES[4].slug
+    static : journal-what-a-year-of-ai-enabled-production-taught-me
+    runtime: what-a-year-of-ai-enabled-production-taught-me
+  articles.ARTICLES[4].tag
+    static : Journal · 4 min
+    runtime: Journal
+  articles.ARTICLES[4].image
+    static : assets/journal-01.webp
+    runtime: media/journal-01.webp
+  articles.ARTICLES[4].imageAlt
+    static : Artwork for “What a year of AI-enabled production taught me”
+    runtime: 
+  articles.ARTICLES[4].backLabel
+    static : ← All journal entries
+    runtime: 
+  articles.ARTICLES[4].backHref
+    static : journal.html
+    runtime: 
+  articles.ARTICLES[5].slug
+    static : journal-the-experience-centre-as-a-strategic-instrument
+    runtime: the-experience-centre-as-a-strategic-instrument
+  articles.ARTICLES[5].tag
+    static : Journal · 3 min
+    runtime: Journal
+  articles.ARTICLES[5].image
+    static : assets/journal-02.webp
+    runtime: media/journal-02.webp
+  articles.ARTICLES[5].imageAlt
+    static : Artwork for “The experience centre as a strategic instrument”
+    runtime: 
+  articles.ARTICLES[5].backLabel
+    static : ← All journal entries
+    runtime: 
+  articles.ARTICLES[5].backHref
+    static : journal.html
+    runtime: 
+
+── MISSING in runtime (55 fields — sample) ──
+  home.AI_METHOD.num  (static: 07)
+  home.AI_METHOD.tag  (static: Method)
+  home.AI_METHOD.chips  (static: ["Research","Ideation","Storyboards","Scripts","Image Genera…)
+  home.AI_METHOD.projects  (static: [{"title":"The Virtual Life","description":"An AI-crafted na…)
+  home.AI_METHOD.motto  (static: “AI accelerates the hands. It doesn't replace the head — or …)
+  home.AI_METHOD.media  (static: {"src":"assets/experience-centre.webp","alt":"Enterprise exp…)
+  home.CAPABILITIES.num  (static: 03)
+  home.CAPABILITIES.tag  (static: Capabilities)
+  home.CAPABILITIES.items[5].feature  (static: true)
+  home.CLIENTS.num  (static: 02)
+  home.CLIENTS.tag  (static: Trust)
+  home.CONTACT.num  (static: 09)
+  home.CONTACT.tag  (static: Begin)
+  home.FOCUS.num  (static: 08)
+  home.FOCUS.tag  (static: Now)
+  home.HERO.nameLines  (static: ["Abhijeet","Varghese"])
+  home.HERO.portrait  (static: {"src":"assets/hero-portrait.webp","alt":"Editorial portrait…)
+  home.HERO.actions  (static: {"work":{"label":"Explore my work","href":"case-studies.html…)
+  home.HERO.availability  (static: Available for select projects — 2026)
+  home.HERO.marquee  (static: ["Experience Design","Creative Strategy","Brand Systems","Ex…)
+  home.JOURNEY.num  (static: 06)
+  home.JOURNEY.tag  (static: Journey)
+  home.JOURNEY.hint  (static: Keep scrolling — the years unfold sideways)
+  home.JOURNEY.coda  (static: The tools changed. The curiosity never did.)
+  home.THINKING.num  (static: 05)
+  home.THINKING.tag  (static: Point of view)
+  home.THINKING.essays  (static: [{"num":"01","title":"Technology Should Feel Human","tag":"D…)
+  home.THINKING.media  (static: {"src":"assets/working-session.webp","alt":"Working session …)
+  home.WORK.num  (static: 04)
+  home.WORK.tag  (static: Featured work)
+  home.WORK.cases  (static: [{"id":"case-prj-1","image":"assets/case-orange-experience-i…)
+  chrome.CHROME.brandHref  (static: index.html)
+  chrome.CHROME.logoUrl  (static: assets/logo.png)
+  chrome.CHROME.cta  (static: {"label":"Start a conversation","href":"contact.html"})
+  chrome.CHROME.footer.note  (static: Built on AV OS · experience design, engineering & creative l…)
+  articles.ARTICLES[0].paragraphs[4]  (static: What does a human interface actually mean? It means respecti…)
+  articles.ARTICLES[0].paragraphs[5]  (static: )
+  articles.ARTICLES[0].paragraphs[6]  (static: Technology evolves every day. Human understanding doesn't. T…)
+  articles.ARTICLES[0].seo  (static: {"title":"Technology Should Feel Human","description":"The m…)
+  articles.ARTICLES[1].paragraphs[4]  (static: But exploration was never the hard part. The hard part was a…)
+
+── EXTRA in runtime (18 fields — sample) ──
+  home.CONTACT.micro[0].href  (runtime: undefined)
+  home.CONTACT.micro[1].href  (runtime: undefined)
+  home.JOURNEY.eras[0].future  (runtime: false)
+  home.JOURNEY.eras[1].future  (runtime: false)
+  home.JOURNEY.eras[2].future  (runtime: false)
+  home.JOURNEY.eras[3].future  (runtime: false)
+  home.JOURNEY.eras[4].future  (runtime: false)
+  home.JOURNEY.eras[5].future  (runtime: false)
+  home.JOURNEY.eras[6].future  (runtime: false)
+  home.JOURNEY.eras[7].future  (runtime: false)
+  chrome.CHROME.primary[4]  (runtime: {"label":"Start a conversation","href":"contact.html"})
+  chrome.CHROME.mobile[4]  (runtime: {"label":"Start a conversation","href":"contact.html","index…)
+  chrome.CHROME.footer.columns[2].links[2]  (runtime: {"label":"WhatsApp","href":"https://api.whatsapp.com/send?ph…)
+  chrome.CHROME.footer.columns[2].links[3]  (runtime: {"label":"YouTube","href":"https://www.youtube.com/@Abhijeet…)
+  chrome.CHROME.footer.columns[2].links[4]  (runtime: {"label":"Behance","href":"https://www.behance.net/abhijeetv…)
+  chrome.CHROME.footer.columns[3]  (runtime: {"label":"Legal","links":[{"label":"Privacy Policy","href":"…)
+  articles.ARTICLES[0].related  (runtime: undefined)
+  articles.ARTICLES[1].related  (runtime: undefined)
+
+Note: MATCH counts leaves that are byte-identical between the static snapshot
+and the adapted runtime content. UNMAPPED = collections with no CMS equivalent yet.
+
