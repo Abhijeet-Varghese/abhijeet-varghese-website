@@ -35,6 +35,43 @@ final class Response
         exit;
     }
 
+    /**
+     * Cached public JSON response (for the public content bridge).
+     *
+     * Used by GET /api/v1/content — the only response in AV OS that is
+     * publicly cacheable. Emits an ETag (caller-supplied, derived from the
+     * exact serialized payload) + a short max-age so a publish invalidates
+     * within `maxAge` seconds even for clients that do not revalidate, while
+     * ETag-aware clients get an instant 304.
+     */
+    public static function jsonCached(mixed $data, int $code = 200, ?string $etag = null, int $maxAge = 60): never
+    {
+        $cacheControl = 'public, max-age=' . max(0, $maxAge) . ', must-revalidate';
+        if ($etag !== null && $etag !== '') {
+            $inm = (string)($_SERVER['HTTP_IF_NONE_MATCH'] ?? '');
+            $normalize = static fn(string $v): string => trim($v, " \t\n\r\"");
+            if ($inm !== '' && in_array($etag, array_map($normalize, explode(',', $inm)), true)) {
+                http_response_code(304);
+                header('ETag: "' . $etag . '"');
+                header('Cache-Control: ' . $cacheControl);
+                header('X-Content-Type-Options: nosniff');
+                exit;
+            }
+            header('ETag: "' . $etag . '"');
+        }
+        http_response_code($code);
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: ' . $cacheControl);
+        header('Vary: Accept-Encoding');
+        if (defined('AV_REQUEST_ID')) header('X-Request-Id: ' . AV_REQUEST_ID);
+        header('X-Content-Type-Options: nosniff');
+        header('X-Frame-Options: SAMEORIGIN');
+        header('Referrer-Policy: strict-origin-when-cross-origin');
+        header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+        echo json_encode(['ok' => $code < 400, 'data' => $data, 'error' => null], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        exit;
+    }
+
     public static function html(string $html, int $code = 200): never
     {
         http_response_code($code);

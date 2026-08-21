@@ -214,6 +214,7 @@ final class ApiController
                 $action === 'search' && $method === 'GET' => self::requireAuth('content.read', fn() => self::search()),
                 $action === 'copilot' && $method === 'POST' => self::requireAuth('ai.use', fn() => self::copilot()),
                 // ---------- V1 public API ----------
+                $action === 'v1' && $a === 'content' && $method === 'GET' => self::v1Content(),
                 $action === 'v1' && $a === 'projects' && $method === 'GET' => self::projects(),
                 $action === 'v1' && $a === 'case-studies' && $method === 'GET' => self::projects(),
                 $action === 'v1' && $a === 'leads' && $method === 'POST' => self::publicLead(),
@@ -465,6 +466,76 @@ final class ApiController
             if (($a['slug'] ?? '') === $slug && ($a['status'] ?? '') === 'published') Response::json($a);
         }
         Response::error('Post not found', 404, 'NOT_FOUND');
+    }
+
+    /**
+     * GET /api/v1/content — the public content bridge.
+     *
+     * Returns ONLY the published, public content the frontend needs, as a
+     * deliberately structured document (schema + revision + collections).
+     * It never returns drafts, leads, users, tokens, secrets, forms,
+     * analytics, availability, notifications, dashboard or any internal /
+     * admin-only data — the top-level keys are an explicit allowlist and the
+     * status-bearing collections are filtered to `status === 'published'`.
+     *
+     * Caching: ETag is the SHA-256 of the exact serialized payload, so any
+     * content change (a publish) yields a new ETag and the next request
+     * revalidates to a 304 or the fresh body. A short `max-age` bounds
+     * staleness for clients that do not revalidate.
+     */
+    private static function v1Content(): void
+    {
+        $doc = ContentStore::all();
+
+        $published = static fn(array $items): array => array_values(array_filter(
+            is_array($items) ? $items : [],
+            static fn($it) => is_array($it) && (($it['status'] ?? 'published') === 'published')
+        ));
+
+        // Content-only document (no per-request timestamp) — this is what the
+        // ETag is derived from, so the ETag is stable until content changes.
+        $content = [
+            'schema' => 'avos.content/v1',
+            'schemaVersion' => 1,
+            'revision' => self::contentRevision(),
+            'settings' => self::publicSettings($doc['settings'] ?? []),
+            'navigation' => $doc['nav'] ?? [],
+            'sections' => $published($doc['sections'] ?? []),
+            'pages' => $published($doc['pages'] ?? []),
+            'projects' => $published($doc['projects'] ?? []),
+            'articles' => $published($doc['articles'] ?? []),
+            'clients' => array_values($doc['clients'] ?? []),
+            'testimonials' => $published($doc['testimonials'] ?? []),
+            'media' => array_values($doc['media'] ?? []),
+            'seo' => array_values($doc['seo'] ?? []),
+            'downloads' => $published($doc['downloads'] ?? []),
+        ];
+
+        // generatedAt is metadata only and intentionally excluded from the ETag
+        // (a wall-clock timestamp must not invalidate the cache every second).
+        $payload = ['generatedAt' => gmdate('c')] + $content;
+
+        $body = json_encode($content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        Response::jsonCached($payload, 200, $body === false ? null : hash('sha256', $body), 60);
+    }
+
+    /** Monotonic content revision — MAX(version) across content_store keys. */
+    private static function contentRevision(): int
+    {
+        $r = Database::one("SELECT COALESCE(MAX(version),0) v FROM versions WHERE entity='store'");
+        return (int)($r['v'] ?? 0);
+    }
+
+    /** Public site-settings allowlist — admin/internal keys are never exposed. */
+    private static function publicSettings(array $s): array
+    {
+        $allow = ['siteName', 'tagline', 'email', 'phone', 'theme', 'designTokens',
+                  'favicon', 'logo', 'ogImage', 'metaDescription', 'keywords', 'socials', 'availability'];
+        $out = [];
+        foreach ($allow as $k) {
+            if (array_key_exists($k, $s)) $out[$k] = $s[$k];
+        }
+        return $out;
     }
 
     /* ---------- public lead (CRM) + spam protection ---------- */
