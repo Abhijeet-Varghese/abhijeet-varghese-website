@@ -42,7 +42,7 @@ export const HERO = {
   tagline: 'Making ambitious ideas impossible to misunderstand.',
   roles: ['Creative Systems Leader', 'Experience Design', 'Enterprise Innovation'],
   actions: {
-    work: { label: 'Explore my work', href: 'case-studies.html' },
+    work: { label: 'Explore my work', href: '/case-studies' },
     resume: { label: 'Download résumé', href: 'assets/Abhijeet-Varghese-Resume.pdf' },
   },
   availability: 'Available for select projects — 2026',
@@ -166,7 +166,7 @@ export const WORK = {
       kicker: 'Energy & Industrial',
       client: 'BPCL',
       title: 'Intuitive Experiences for Industrial Environments',
-      href: 'case-study-intuitive-experiences-for-industrial-environments.html',
+      href: '/case-study-intuitive-experiences-for-industrial-environments',
       parallax: 0.05,
       meta: {
         problem:
@@ -184,7 +184,7 @@ export const WORK = {
       kicker: 'Defence & Immersive',
       client: 'Indian Army',
       title: 'Immersive Solutions for the Indian Army',
-      href: 'case-study-immersive-solutions-for-the-indian-army.html',
+      href: '/case-study-immersive-solutions-for-the-indian-army',
       parallax: 0.05,
       meta: {
         problem:
@@ -204,10 +204,10 @@ export const THINKING = {
   lede:
     'Every engagement I take on is a translation problem: turning what an organization knows into what its audience understands. Tools change quarterly; the human mind doesn\u0027t. So I design for the constant — attention, trust, memory — and let the tools serve it, never the other way around.',
   essays: [
-    { num: '01', title: 'Technology Should Feel Human', tag: 'Design · 6 min', href: 'essay-technology-should-feel-human.html' },
-    { num: '02', title: 'AI Isn\u0027t Replacing Creativity', tag: 'AI · 8 min', href: 'essay-ai-isnt-replacing-creativity.html' },
-    { num: '03', title: 'Designing Experiences People Remember', tag: 'Experience · 7 min', href: 'essay-designing-experiences-people-remember.html' },
-    { num: '04', title: 'Why Enterprise Experiences Fail', tag: 'Enterprise · 9 min', href: 'essay-why-enterprise-experiences-fail.html' },
+    { num: '01', title: 'Technology Should Feel Human', tag: 'Design · 6 min', href: '/essay-technology-should-feel-human' },
+    { num: '02', title: 'AI Isn\u0027t Replacing Creativity', tag: 'AI · 8 min', href: '/essay-ai-isnt-replacing-creativity' },
+    { num: '03', title: 'Designing Experiences People Remember', tag: 'Experience · 7 min', href: '/essay-designing-experiences-people-remember' },
+    { num: '04', title: 'Why Enterprise Experiences Fail', tag: 'Enterprise · 9 min', href: '/essay-why-enterprise-experiences-fail' },
   ] as EssayLink[],
   media: {
     src: 'assets/working-session.webp',

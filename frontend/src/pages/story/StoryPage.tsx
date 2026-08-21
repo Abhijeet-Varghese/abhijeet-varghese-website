@@ -20,7 +20,7 @@ export function StoryPage() {
   useSiteChrome();
   useAboutPage();
   return (
-    <Layout activeHref="story.html" pageClose>
+    <Layout activeHref="/story" pageClose>
       <div className="about-atmo" id="aboutAtmo" aria-hidden="true" />
       <div className="about-reel" aria-hidden="true">
         <div className="about-reel__track" id="aboutReelTrack">

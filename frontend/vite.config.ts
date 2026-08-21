@@ -11,7 +11,9 @@ const rootDir = fileURLToPath(new URL('.', import.meta.url));
  */
 export default defineConfig({
   plugins: [react()],
-  base: './',
+  // Root-absolute asset URLs: clean URLs put pages at varying directory
+  // depths (/story/index.html), so relative './assets' would break.
+  base: '/',
   resolve: {
     alias: {
       '@': resolve(rootDir, 'src'),

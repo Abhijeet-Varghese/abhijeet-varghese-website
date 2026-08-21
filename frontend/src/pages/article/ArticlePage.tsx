@@ -16,7 +16,7 @@ export function ArticlePage({ slug }: { slug: string }) {
   const { content } = useContent();
   const article = content.articles.ARTICLES_BY_SLUG[slug];
   if (!article) return null;
-  const activeHref = article.kind === 'essay' ? 'insights.html' : 'journal.html';
+  const activeHref = article.kind === 'essay' ? '/insights' : '/journal';
   return (
     <Layout activeHref={activeHref} pageClose>
       <section className="article-hero">
@@ -59,7 +59,7 @@ export function ArticlePage({ slug }: { slug: string }) {
               <a className="link-arrow" href={article.backHref}>
                 {article.backLabel}
               </a>
-              <a className="link-arrow" href="contact.html">
+              <a className="link-arrow" href="/contact">
                 Start a conversation <Arrow />
               </a>
             </div>

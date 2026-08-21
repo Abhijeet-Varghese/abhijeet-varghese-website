@@ -9,7 +9,7 @@ export function ConsultingPage() {
   const { content } = useContent();
   const CONSULTING = content.pages.CONSULTING;
   return (
-    <Layout activeHref="consulting.html" pageClose>
+    <Layout activeHref="/consulting" pageClose>
       <PageHero num={CONSULTING.num} tag={CONSULTING.tag} lede={CONSULTING.lede}>
         {CONSULTING.title[0]}
         <em>{CONSULTING.title[1]}</em>
@@ -40,7 +40,7 @@ export function ConsultingPage() {
             <h3>{CONSULTING.card.heading}</h3>
             <p>{CONSULTING.card.body}</p>
             <p style={{ marginTop: '10px' }}>
-              <a className="btn btn--accent" href="contact.html">
+              <a className="btn btn--accent" href="/contact">
                 Start a conversation <Arrow />
               </a>
             </p>

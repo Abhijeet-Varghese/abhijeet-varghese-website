@@ -1,0 +1,214 @@
+[
+  {
+    "id": "home",
+    "clean": "/",
+    "legacy": "/index.html",
+    "out": "index.html",
+    "sitemap": true,
+    "priority": 1,
+    "changefreq": "monthly"
+  },
+  {
+    "id": "story",
+    "clean": "/story",
+    "legacy": "/story.html",
+    "out": "story/index.html",
+    "sitemap": true,
+    "priority": 0.9,
+    "changefreq": "monthly"
+  },
+  {
+    "id": "experience",
+    "clean": "/experience",
+    "legacy": "/experience.html",
+    "out": "experience/index.html",
+    "sitemap": true,
+    "priority": 0.9,
+    "changefreq": "monthly"
+  },
+  {
+    "id": "portfolio",
+    "clean": "/portfolio",
+    "legacy": "/portfolio.html",
+    "out": "portfolio/index.html",
+    "sitemap": true,
+    "priority": 0.9,
+    "changefreq": "monthly"
+  },
+  {
+    "id": "case-studies",
+    "clean": "/case-studies",
+    "legacy": "/case-studies.html",
+    "out": "case-studies/index.html",
+    "sitemap": true,
+    "priority": 0.9,
+    "changefreq": "monthly"
+  },
+  {
+    "id": "contact",
+    "clean": "/contact",
+    "legacy": "/contact.html",
+    "out": "contact/index.html",
+    "sitemap": true,
+    "priority": 0.9,
+    "changefreq": "monthly"
+  },
+  {
+    "id": "consulting",
+    "clean": "/consulting",
+    "legacy": "/consulting.html",
+    "out": "consulting/index.html",
+    "sitemap": true,
+    "priority": 0.8,
+    "changefreq": "monthly"
+  },
+  {
+    "id": "for-recruiters",
+    "clean": "/for-recruiters",
+    "legacy": "/for-recruiters.html",
+    "out": "for-recruiters/index.html",
+    "sitemap": true,
+    "priority": 0.8,
+    "changefreq": "monthly"
+  },
+  {
+    "id": "insights",
+    "clean": "/insights",
+    "legacy": "/insights.html",
+    "out": "insights/index.html",
+    "sitemap": true,
+    "priority": 0.8,
+    "changefreq": "monthly"
+  },
+  {
+    "id": "journal",
+    "clean": "/journal",
+    "legacy": "/journal.html",
+    "out": "journal/index.html",
+    "sitemap": true,
+    "priority": 0.8,
+    "changefreq": "monthly"
+  },
+  {
+    "id": "search",
+    "clean": "/search",
+    "legacy": "/search.html",
+    "out": "search/index.html",
+    "sitemap": false
+  },
+  {
+    "id": "sitemap",
+    "clean": "/sitemap",
+    "legacy": "/sitemap.html",
+    "out": "sitemap/index.html",
+    "sitemap": true,
+    "priority": 0.3,
+    "changefreq": "yearly"
+  },
+  {
+    "id": "privacy-policy",
+    "clean": "/privacy-policy",
+    "legacy": "/privacy-policy.html",
+    "out": "privacy-policy/index.html",
+    "sitemap": true,
+    "priority": 0.3,
+    "changefreq": "yearly"
+  },
+  {
+    "id": "terms",
+    "clean": "/terms",
+    "legacy": "/terms.html",
+    "out": "terms/index.html",
+    "sitemap": true,
+    "priority": 0.3,
+    "changefreq": "yearly"
+  },
+  {
+    "id": "case-bpcl",
+    "clean": "/case-study-intuitive-experiences-for-industrial-environments",
+    "legacy": "/case-study-intuitive-experiences-for-industrial-environments.html",
+    "out": "case-study-intuitive-experiences-for-industrial-environments/index.html",
+    "sitemap": true,
+    "priority": 0.8,
+    "changefreq": "monthly"
+  },
+  {
+    "id": "case-army",
+    "clean": "/case-study-immersive-solutions-for-the-indian-army",
+    "legacy": "/case-study-immersive-solutions-for-the-indian-army.html",
+    "out": "case-study-immersive-solutions-for-the-indian-army/index.html",
+    "sitemap": true,
+    "priority": 0.8,
+    "changefreq": "monthly"
+  },
+  {
+    "id": "orange",
+    "clean": "/experience-design/orange-business-executive-briefing-center",
+    "legacy": "/experience-design/orange-business-executive-briefing-center/index.html",
+    "out": "experience-design/orange-business-executive-briefing-center/index.html",
+    "sitemap": true,
+    "priority": 0.9,
+    "changefreq": "monthly"
+  },
+  {
+    "id": "essay-technology-should-feel-human",
+    "clean": "/essay-technology-should-feel-human",
+    "legacy": "/essay-technology-should-feel-human.html",
+    "out": "essay-technology-should-feel-human/index.html",
+    "sitemap": true,
+    "priority": 0.7,
+    "changefreq": "monthly"
+  },
+  {
+    "id": "essay-ai-isnt-replacing-creativity",
+    "clean": "/essay-ai-isnt-replacing-creativity",
+    "legacy": "/essay-ai-isnt-replacing-creativity.html",
+    "out": "essay-ai-isnt-replacing-creativity/index.html",
+    "sitemap": true,
+    "priority": 0.7,
+    "changefreq": "monthly"
+  },
+  {
+    "id": "essay-designing-experiences-people-remember",
+    "clean": "/essay-designing-experiences-people-remember",
+    "legacy": "/essay-designing-experiences-people-remember.html",
+    "out": "essay-designing-experiences-people-remember/index.html",
+    "sitemap": true,
+    "priority": 0.7,
+    "changefreq": "monthly"
+  },
+  {
+    "id": "essay-why-enterprise-experiences-fail",
+    "clean": "/essay-why-enterprise-experiences-fail",
+    "legacy": "/essay-why-enterprise-experiences-fail.html",
+    "out": "essay-why-enterprise-experiences-fail/index.html",
+    "sitemap": true,
+    "priority": 0.7,
+    "changefreq": "monthly"
+  },
+  {
+    "id": "journal-what-a-year-of-ai-enabled-production-taught-me",
+    "clean": "/journal-what-a-year-of-ai-enabled-production-taught-me",
+    "legacy": "/journal-what-a-year-of-ai-enabled-production-taught-me.html",
+    "out": "journal-what-a-year-of-ai-enabled-production-taught-me/index.html",
+    "sitemap": true,
+    "priority": 0.7,
+    "changefreq": "monthly"
+  },
+  {
+    "id": "journal-the-experience-centre-as-a-strategic-instrument",
+    "clean": "/journal-the-experience-centre-as-a-strategic-instrument",
+    "legacy": "/journal-the-experience-centre-as-a-strategic-instrument.html",
+    "out": "journal-the-experience-centre-as-a-strategic-instrument/index.html",
+    "sitemap": true,
+    "priority": 0.7,
+    "changefreq": "monthly"
+  },
+  {
+    "id": "not-found",
+    "clean": "/404",
+    "legacy": null,
+    "out": "404.html",
+    "sitemap": false
+  }
+]

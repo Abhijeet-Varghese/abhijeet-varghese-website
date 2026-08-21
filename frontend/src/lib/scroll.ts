@@ -18,7 +18,7 @@ export function useSiteChrome(): void {
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     /* --- active nav link --- */
-    const hereFile = (location.pathname.split('/').pop() || 'index.html').replace(/\/$/, '') || 'index.html';
+    const hereFile = (location.pathname.split('/').pop() || '/').replace(/\/$/, '') || '/';
     document
       .querySelectorAll<HTMLAnchorElement>('.nav-links a, .mobile-menu__list a')
       .forEach((a) => {

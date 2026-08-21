@@ -14,7 +14,7 @@ export function PortfolioPage() {
   const CAPABILITIES = content.home.CAPABILITIES;
   const CLIENTS = content.home.CLIENTS;
   return (
-    <Layout activeHref="portfolio.html" pageClose>
+    <Layout activeHref="/portfolio" pageClose>
       <section className="portfolio-hero t-dark" aria-label="Portfolio introduction">
         <div className="portfolio-hero__grid" aria-hidden="true">
           <i />
@@ -156,7 +156,7 @@ export function PortfolioPage() {
             <br />
             <em>impossible to misunderstand.</em>
           </h2>
-          <a className="btn btn--accent" href="contact.html" data-reveal>
+          <a className="btn btn--accent" href="/contact" data-reveal>
             Start a conversation <Arrow />
           </a>
         </div>

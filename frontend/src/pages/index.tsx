@@ -157,12 +157,12 @@ export const PAGES: Record<string, PageEntry> = {
     bodyClass: 'experience-page',
   },
   'privacy-policy': {
-    Component: () => <LegalPage activeHref="privacy-policy.html" kind="privacy" />,
+    Component: () => <LegalPage activeHref="/privacy-policy" kind="privacy" />,
     seo: PRIVACY_SEO,
     bodyClass: '',
   },
   terms: {
-    Component: () => <LegalPage activeHref="terms.html" kind="terms" />,
+    Component: () => <LegalPage activeHref="/terms" kind="terms" />,
     seo: TERMS_SEO,
     bodyClass: '',
   },

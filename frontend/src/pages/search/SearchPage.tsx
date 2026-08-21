@@ -7,7 +7,7 @@ import type { SearchResult } from '@/types/domain';
 export function SearchPage() {
   useSiteChrome();
   return (
-    <Layout activeHref="search.html" pageClose>
+    <Layout activeHref="/search" pageClose>
       <section className="page-hero" aria-label="Search">
         <div className="container">
           <div className="chapter__meta page-hero__meta" data-reveal>
@@ -63,7 +63,7 @@ function SearchForm() {
         })
         .slice(0, 10);
       if (!hits.length) {
-        return `<p class="site-search__empty">No results for “${esc(q)}”. Try another term, or <a href="contact.html">ask me directly</a>.</p>`;
+        return `<p class="site-search__empty">No results for “${esc(q)}”. Try another term, or <a href="/contact">ask me directly</a>.</p>`;
       }
       return hits
         .map(
@@ -79,7 +79,7 @@ function SearchForm() {
   );
 
   const html = failed
-    ? '<p class="site-search__empty">Search is unavailable right now. Use the <a href="sitemap.html">sitemap</a> or <a href="contact.html">ask me directly</a>.</p>'
+    ? '<p class="site-search__empty">Search is unavailable right now. Use the <a href="/sitemap">sitemap</a> or <a href="/contact">ask me directly</a>.</p>'
     : render(query);
 
   return (

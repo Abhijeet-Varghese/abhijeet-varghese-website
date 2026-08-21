@@ -1,5 +1,10 @@
-import { readFile, writeFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
+import { resolve, dirname } from 'node:path';
+import { ROUTES as REGISTRY } from './route-registry.mjs';
+
+/** pageId → clean output path (single source of truth: src/routes/registry.ts) */
+const CLEAN_OUT = new Map(REGISTRY.map((r) => [r.id, r.out]));
+const written = [];
 
 /**
  * Build-time static generation (SSG).
@@ -62,14 +67,21 @@ async function main() {
     // Privacy-respecting analytics (static, runs without the React bundle)
     html = html.replace('<!--ANALYTICS-->', `<script>${rendered.analytics}</script>`);
 
-    await writeFile(builtPath, html, 'utf8');
-    console.log(`✓ ${route.file} — prerendered (${route.pageId})`);
+    // §28: write the page at its clean, extensionless location
+    // (directory-index form, so any static host serves it without rewrites).
+    const target = CLEAN_OUT.get(route.pageId) ?? route.file;
+    const targetPath = resolve(root, 'dist', target);
+    await mkdir(dirname(targetPath), { recursive: true });
+    await writeFile(targetPath, html, 'utf8');
+    written.push({ pageId: route.pageId, from: route.file, to: target });
+    if (target !== route.file) await rm(builtPath, { force: true });
+    console.log(`✓ ${target.padEnd(62)} ← ${route.pageId}`);
   }
 
   // Sanity: no unresolved markers should remain.
   let failed = false;
   for (const route of ROUTES) {
-    const html = await readFile(resolve(root, 'dist', route.file), 'utf8');
+    const html = await readFile(resolve(root, 'dist', CLEAN_OUT.get(route.pageId) ?? route.file), 'utf8');
     for (const marker of ['<!--HEAD-->', '<!--APP-->', '<!--ANALYTICS-->']) {
       if (html.includes(marker)) {
         failed = true;

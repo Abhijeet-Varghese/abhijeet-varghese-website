@@ -63,7 +63,7 @@ const RAW: RawArticle[] = [
     ],
     date: '2026-07-12',
     backLabel: '← All insights',
-    backHref: 'insights.html',
+    backHref: '/insights',
   },
   {
     slug: 'essay-ai-isnt-replacing-creativity',
@@ -84,7 +84,7 @@ const RAW: RawArticle[] = [
     ],
     date: '2026-06-20',
     backLabel: '← All insights',
-    backHref: 'insights.html',
+    backHref: '/insights',
   },
   {
     slug: 'essay-designing-experiences-people-remember',
@@ -103,8 +103,8 @@ const RAW: RawArticle[] = [
     ],
     date: '2026-05-15',
     backLabel: '← All insights',
-    backHref: 'insights.html',
-    related: { title: 'Why Enterprise Experiences Fail', href: 'essay-why-enterprise-experiences-fail.html', label: 'Essay' },
+    backHref: '/insights',
+    related: { title: 'Why Enterprise Experiences Fail', href: '/essay-why-enterprise-experiences-fail', label: 'Essay' },
   },
   {
     slug: 'essay-why-enterprise-experiences-fail',
@@ -123,8 +123,8 @@ const RAW: RawArticle[] = [
     ],
     date: '2026-04-02',
     backLabel: '← All insights',
-    backHref: 'insights.html',
-    related: { title: 'Designing Experiences People Remember', href: 'essay-designing-experiences-people-remember.html', label: 'Essay' },
+    backHref: '/insights',
+    related: { title: 'Designing Experiences People Remember', href: '/essay-designing-experiences-people-remember', label: 'Essay' },
   },
   {
     slug: 'journal-what-a-year-of-ai-enabled-production-taught-me',
@@ -139,8 +139,8 @@ const RAW: RawArticle[] = [
     ],
     date: '2026-08-04',
     backLabel: '← All journal entries',
-    backHref: 'journal.html',
-    related: { title: 'The experience centre as a strategic instrument', href: 'journal-the-experience-centre-as-a-strategic-instrument.html', label: 'Journal' },
+    backHref: '/journal',
+    related: { title: 'The experience centre as a strategic instrument', href: '/journal-the-experience-centre-as-a-strategic-instrument', label: 'Journal' },
   },
   {
     slug: 'journal-the-experience-centre-as-a-strategic-instrument',
@@ -155,8 +155,8 @@ const RAW: RawArticle[] = [
     ],
     date: '2026-06-11',
     backLabel: '← All journal entries',
-    backHref: 'journal.html',
-    related: { title: 'What a year of AI-enabled production taught me', href: 'journal-what-a-year-of-ai-enabled-production-taught-me.html', label: 'Journal' },
+    backHref: '/journal',
+    related: { title: 'What a year of AI-enabled production taught me', href: '/journal-what-a-year-of-ai-enabled-production-taught-me', label: 'Journal' },
   },
 ];
 

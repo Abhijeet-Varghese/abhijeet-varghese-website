@@ -54,7 +54,7 @@ export function OrangePage() {
 
   return (
     <>
-      <Layout activeHref="case-studies.html" pageClose base={B}>
+      <Layout activeHref="/case-studies" pageClose base={B}>
         <article>
           <Hero />
 

@@ -21,6 +21,7 @@ import * as story from './story';
 import * as orange from './orange';
 import * as pages from './pages';
 import * as seo from './seo';
+import { normalizeContentUrls } from '@/routes/normalize-content';
 
 export interface ContentDocument {
   home: typeof home;
@@ -34,7 +35,11 @@ export interface ContentDocument {
   seo: typeof seo;
 }
 
-export const STATIC_CONTENT: ContentDocument = {
+/**
+ * Internal links are normalised to clean, extensionless URLs (§28) here — the
+ * static fallback is one of exactly two values ContentLoader.doc can hold.
+ */
+export const STATIC_CONTENT: ContentDocument = normalizeContentUrls({
   home,
   chrome,
   projects,
@@ -44,6 +49,6 @@ export const STATIC_CONTENT: ContentDocument = {
   orange,
   pages,
   seo,
-};
+}) as ContentDocument;
 
 export type ContentCollection = keyof ContentDocument;

@@ -9,7 +9,7 @@ export function RecruitersPage() {
   const { content } = useContent();
   const RECRUITERS = content.pages.RECRUITERS;
   return (
-    <Layout activeHref="for-recruiters.html" pageClose>
+    <Layout activeHref="/for-recruiters" pageClose>
       <PageHero num={RECRUITERS.num} tag={RECRUITERS.tag} lede={RECRUITERS.lede}>
         {RECRUITERS.title[0]}
         <em>{RECRUITERS.title[1]}</em>

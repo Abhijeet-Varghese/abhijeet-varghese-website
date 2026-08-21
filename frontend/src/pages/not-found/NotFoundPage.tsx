@@ -12,8 +12,8 @@ export function NotFoundPage() {
         index="404"
         lede={
           <>
-            The link may be old or mistyped. Head back to the <a href="index.html">homepage</a> or{' '}
-            <a href="case-studies.html">browse the work</a>.
+            The link may be old or mistyped. Head back to the <a href="/">homepage</a> or{' '}
+            <a href="/case-studies">browse the work</a>.
           </>
         }
       >

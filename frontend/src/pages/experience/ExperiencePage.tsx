@@ -17,7 +17,7 @@ export function ExperiencePage() {
   const { content } = useContent();
   const EXPERIENCE_JOBS = content.experience.EXPERIENCE_JOBS;
   return (
-    <Layout activeHref="experience.html" pageClose>
+    <Layout activeHref="/experience" pageClose>
       <section className="exp-hero t-dark" aria-label="Experience">
         <div className="exp-hero__grid container">
           <div className="exp-hero__copy">
@@ -61,7 +61,7 @@ export function ExperiencePage() {
             <h2 data-reveal>Now, the work.</h2>
             <p data-reveal>The roles are the record — the work is the evidence.</p>
             <p data-reveal>
-              <a className="btn btn--accent" href="case-studies.html">
+              <a className="btn btn--accent" href="/case-studies">
                 Explore the work <Arrow />
               </a>
             </p>

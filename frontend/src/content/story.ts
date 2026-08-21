@@ -212,7 +212,7 @@ export const CREDITS = {
   quote: "That's the work I'm interested in.",
   role: 'Creative Director & Experience Designer',
   sig: '— Abhijeet Varghese',
-  cta: { label: 'Start a conversation', href: 'contact.html' },
+  cta: { label: 'Start a conversation', href: '/contact' },
 };
 
 export const COMPASS_ACTS = [

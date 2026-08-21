@@ -118,7 +118,7 @@ export interface CaseStudySummary {
 export interface RouteSpec {
   /** filesystem path of the generated HTML, relative to dist/ */
   file: string;
-  /** public URL path (e.g. "/", "/story.html") */
+  /** public URL path (e.g. "/", "/story") */
   path: string;
   pageId: string;
   seo: SeoData;

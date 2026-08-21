@@ -135,7 +135,7 @@ export function initNavOrigin(): void {
         history.back();
         return;
       }
-      location.assign(pageClose.getAttribute('href') || 'index.html');
+      location.assign(pageClose.getAttribute('href') || '/');
     });
   }
 }

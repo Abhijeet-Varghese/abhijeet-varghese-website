@@ -3,12 +3,14 @@
   "private": true,
   "version": "3.0.0",
   "type": "module",
-  "description": "Abhijeet Varghese — React + TypeScript + Vite MPA (static build, PHP/MariaDB backend preserved)",
+  "description": "Abhijeet Varghese \u2014 React + TypeScript + Vite MPA (static build, PHP/MariaDB backend preserved)",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && vite build --ssr src/entry-server.tsx --outDir dist-server && node scripts/prerender.mjs",
+    "build": "vite build && vite build --ssr src/entry-server.tsx --outDir dist-server && node scripts/prerender.mjs && node scripts/generate-urls.mjs && node scripts/critical-css.mjs && node scripts/verify-urls.mjs",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "subset-fonts": "python3 scripts/subset-fonts.py",
+    "verify:urls": "node scripts/verify-urls.mjs"
   },
   "dependencies": {
     "react": "^19.0.0",
@@ -19,6 +21,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "beasties": "^0.4.3",
     "tsx": "^4.23.12",
     "typescript": "^5.7.2",
     "vite": "^6.0.7"

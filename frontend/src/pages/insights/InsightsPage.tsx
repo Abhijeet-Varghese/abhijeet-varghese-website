@@ -10,7 +10,7 @@ export function InsightsPage() {
   const INSIGHTS = content.pages.INSIGHTS;
   const ESSAY_INDEX = content.articles.ESSAY_INDEX;
   return (
-    <Layout activeHref="insights.html" pageClose>
+    <Layout activeHref="/insights" pageClose>
       <PageHero num={INSIGHTS.num} tag={INSIGHTS.tag} lede={INSIGHTS.lede}>
         {INSIGHTS.title[0]}
         <em>{INSIGHTS.title[1]}</em>

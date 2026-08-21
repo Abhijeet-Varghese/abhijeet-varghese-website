@@ -11,6 +11,7 @@
  */
 import { STATIC_CONTENT, type ContentDocument } from './static-snapshot';
 import type { DeepPartial } from './types';
+import { normalizeContentUrls } from '@/routes/normalize-content';
 
 function isPlainObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -48,5 +49,7 @@ export function mergeContent(adapted: DeepPartial<ContentDocument>): ContentDocu
       (merged as Record<string, any>)[key] = { ...(merged[key] as object), ...(value as object) };
     }
   }
-  return merged;
+  // §28: CMS-authored links are normalised on the same code path as the
+  // static fallback, so SSR and client hydration always agree.
+  return normalizeContentUrls(merged);
 }

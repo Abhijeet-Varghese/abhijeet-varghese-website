@@ -19,7 +19,7 @@ export function ComingSoonCase({ slug }: { slug: string }) {
   // but never render a broken page if the content is unexpectedly absent.
   if (!project) return null;
   return (
-    <Layout activeHref="case-studies.html" pageClose>
+    <Layout activeHref="/case-studies" pageClose>
       <section className="page-hero case-coming__hero" aria-label={`${project.client} case study coming soon`}>
         <div className="container">
           <div className="chapter__meta page-hero__meta" data-reveal>
@@ -71,10 +71,10 @@ export function ComingSoonCase({ slug }: { slug: string }) {
               </div>
             </dl>
             <div className="case-coming__actions">
-              <a className="btn btn--accent" href="case-studies.html">
+              <a className="btn btn--accent" href="/case-studies">
                 View all case studies <Arrow />
               </a>
-              <a className="link-arrow" href="portfolio.html">
+              <a className="link-arrow" href="/portfolio">
                 Explore the portfolio <Arrow />
               </a>
             </div>

@@ -6,13 +6,18 @@ export function Hero() {
   const HERO = content.home.HERO;
   return (
     <section className="hp-hero t-dark" id="hero" data-theme="dark" aria-label="Introduction">
-      <p className="hp-hero__seo">{HERO.seoLine}</p>
       <div className="hp-hero__glow" aria-hidden="true" />
       <div className="hp-hero__stage">
-        <h1 className="hp-hero__name">
-          <span className="hp-hero__name-line">{HERO.nameLines[0]}</span>
-          <span className="hp-hero__name-line">{HERO.nameLines[1]}</span>
-        </h1>
+        {/*
+          The wordmark is the brand, not the page's proposition, so it is a <p>
+          with an accessible label rather than the <h1>. The <h1> is the tagline
+          below — the sentence that states what this person actually does.
+          Purely semantic: .hp-hero__name keeps every visual property.
+        */}
+        <p className="hp-hero__name" aria-label={HERO.nameLines.join(' ')}>
+          <span className="hp-hero__name-line" aria-hidden="true">{HERO.nameLines[0]}</span>
+          <span className="hp-hero__name-line" aria-hidden="true">{HERO.nameLines[1]}</span>
+        </p>
         <figure className="hp-hero__portrait">
           <img
             src={HERO.portrait.src}
@@ -25,7 +30,8 @@ export function Hero() {
           <span className="hp-hero__veil" aria-hidden="true" />
         </figure>
         <div className="hp-hero__copy">
-          <p className="hp-hero__tagline">{HERO.tagline}</p>
+          {/* The page's real <h1>: the proposition, visible and unduplicated. */}
+          <h1 className="hp-hero__tagline">{HERO.tagline}</h1>
           <p className="hp-hero__roles">
             {HERO.roles.map((role) => (
               <span className="hero__roles-item" key={role}>

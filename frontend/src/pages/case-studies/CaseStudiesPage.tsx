@@ -14,7 +14,7 @@ export function CaseStudiesPage() {
   const { content } = useContent();
   const PROJECTS = content.projects.PROJECTS;
   return (
-    <Layout activeHref="case-studies.html" pageClose>
+    <Layout activeHref="/case-studies" pageClose>
       <section className="page-hero" aria-label="Case Studies">
         <div className="container">
           <div className="chapter__meta page-hero__meta" data-reveal>

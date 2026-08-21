@@ -16,7 +16,7 @@ export function ContactPage() {
   const CONTACT = content.home.CONTACT;
   const CHROME = content.chrome.CHROME;
   return (
-    <Layout activeHref="contact.html" pageClose>
+    <Layout activeHref="/contact" pageClose>
       <PageHero num="04" tag="Contact" lede={CONTACT.lede}>
         Let&apos;s build something <em>worth remembering</em>.
       </PageHero>

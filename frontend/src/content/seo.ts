@@ -1,4 +1,5 @@
 import type { SeoData } from '@/types';
+import { normalizeHref } from '@/routes/registry';
 
 /** Canonical production origin (SEO absolute URLs). */
 export const SITE_ORIGIN = 'https://abhijeetvarghese.com';
@@ -9,6 +10,17 @@ export const SITE_ORIGIN = 'https://abhijeetvarghese.com';
  * (e.g. next.abhijeetvarghese.com) cannot compete with production SEO.
  */
 const IS_STAGING = (import.meta.env?.VITE_STAGING ?? '') === '1';
+
+/** Absolute canonical URL, forced to the clean extensionless form (§30). */
+export function canonicalUrl(raw: string): string {
+  if (!raw) return SITE_ORIGIN + '/';
+  const abs = raw.startsWith('http') ? raw : SITE_ORIGIN + (raw.startsWith('/') ? raw : '/' + raw);
+  const u = new URL(abs);
+  const clean = normalizeHref(u.pathname);
+  // no trailing slash, except the root (§30)
+  const path = clean === '/' ? '/' : clean.replace(/\/+$/, '');
+  return u.origin + path + u.search + u.hash;
+}
 
 export const HOME_SEO: SeoData = {
   title:
@@ -24,12 +36,34 @@ export const HOME_SEO: SeoData = {
   jsonLd: {
     '@context': 'https://schema.org',
     '@type': 'Person',
+    // Stable @id so other pages (e.g. the Orange case study graph) can
+    // reference the same entity instead of describing a second person.
+    '@id': `${SITE_ORIGIN}/#person`,
     name: 'Abhijeet Varghese',
     url: `${SITE_ORIGIN}/`,
     jobTitle: 'Creative Systems Leader',
+    description:
+      'Multidisciplinary creative systems leader with 12+ years across experience design, enterprise innovation, immersive technology and AI-enabled creative production.',
     email: 'mailto:hi@abhijeetvarghese.com',
     telephone: '+91-96940 80706',
     image: `${SITE_ORIGIN}/assets/logo.png`,
+    // What this person is an authority on. This is the property that
+    // increasingly drives inclusion in AI-assisted search results.
+    knowsAbout: [
+      'Experience Design',
+      'Experience Centres',
+      'Executive Briefing Centers',
+      'Creative Direction',
+      'Creative Strategy',
+      'Brand Systems',
+      'Enterprise Innovation',
+      'Immersive Technology',
+      'XR',
+      'VR',
+      'Spatial Experience',
+      'AI-Enabled Creative Production',
+      'Design Leadership',
+    ],
     sameAs: [
       'https://www.linkedin.com/in/abhijeetvarghese/',
       'https://www.instagram.com/abhijeetvarghese/',
@@ -91,7 +125,11 @@ export function buildHead(seo: SeoData, opts: HeadOptions = {}): string {
       : '<meta name="robots" content="index, follow, max-image-preview:large">',
   );
   parts.push(`<meta name="theme-color" content="${opts.themeColor ?? seo.themeColor ?? '#F7F5EF'}">`);
-  parts.push(`<link rel="canonical" href="${esc(seo.canonical)}">`);
+  // §30: canonicals are always the clean, extensionless form. Normalising
+  // here (rather than in 25 SeoData literals) means a stray *.html canonical
+  // is structurally impossible.
+  const canonical = canonicalUrl(seo.canonical);
+  parts.push(`<link rel="canonical" href="${esc(canonical)}">`);
   for (const p of opts.preloads ?? []) {
     const attrs = [
       `rel="preload"`,
@@ -106,7 +144,7 @@ export function buildHead(seo: SeoData, opts: HeadOptions = {}): string {
     parts.push(`<link ${attrs}>`);
   }
   parts.push(`<meta property="og:type" content="${seo.ogType ?? 'website'}">`);
-  parts.push(`<meta property="og:url" content="${esc(seo.canonical)}">`);
+  parts.push(`<meta property="og:url" content="${esc(canonical)}">`);
   parts.push('<meta property="og:site_name" content="Abhijeet Varghese">');
   parts.push(`<meta property="og:title" content="${esc(seo.ogTitle ?? seo.title)}">`);
   parts.push(`<meta property="og:description" content="${esc(seo.ogDescription ?? seo.description)}">`);

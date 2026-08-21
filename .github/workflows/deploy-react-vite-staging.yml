@@ -84,27 +84,36 @@ jobs:
         run: |
           printf 'User-agent: *\nDisallow: /\n' > frontend/dist/robots.txt
 
-      - name: Validate routes (exactly 25)
+      - name: Validate routes (registry-driven, clean URLs)
         run: |
-          COUNT=$(find frontend/dist -name '*.html' | wc -l)
-          echo "html routes: $COUNT"
-          test "$COUNT" -eq 25 || { echo "expected exactly 25 routes"; exit 1; }
-          for f in \
-            index.html story.html experience.html portfolio.html case-studies.html \
-            contact.html consulting.html for-recruiters.html insights.html journal.html \
-            search.html sitemap.html privacy-policy.html terms.html 404.html \
-            case-study-intuitive-experiences-for-industrial-environments.html \
-            case-study-immersive-solutions-for-the-indian-army.html \
-            case-study-enterprise-technology-made-understandable.html \
-            experience-design/orange-business-executive-briefing-center/index.html \
-            essay-technology-should-feel-human.html essay-ai-isnt-replacing-creativity.html \
-            essay-designing-experiences-people-remember.html essay-why-enterprise-experiences-fail.html \
-            journal-what-a-year-of-ai-enabled-production-taught-me.html \
-            journal-the-experience-centre-as-a-strategic-instrument.html \
-            sitemap.xml robots.txt search-index.json ; do
-            test -f "frontend/dist/$f" || { echo "MISSING ROUTE: $f"; exit 1; }
+          set -euo pipefail
+          EXPECTED=$(node -e "console.log(require('./src/routes/routes.json').length)")
+          FOUND=$(find dist -name '*.html' | wc -l)
+          echo "registry routes: $EXPECTED · emitted html: $FOUND"
+          test "$FOUND" -eq "$EXPECTED" || { echo "route count mismatch"; exit 1; }
+          node -e "
+            const fs=require('fs');
+            for (const r of require('./src/routes/routes.json')) {
+              if (!fs.existsSync('dist/'+r.out)) { console.error('MISSING ROUTE: '+r.out); process.exit(1); }
+            }
+            console.log('all registry routes emitted');
+          "
+          for f in sitemap.xml robots.txt search-index.json; do
+            test -f "dist/$f" || { echo "MISSING: $f"; exit 1; }
           done
-          echo "all 25 routes present"
+        working-directory: frontend
+
+      # §103 acceptance: hard build failure on ANY extension URL, broken
+      # internal link, duplicate canonical or dirty sitemap entry.
+      - name: URL acceptance — static (§103)
+        run: npm run verify:urls
+        working-directory: frontend
+
+      # §103 acceptance: runtime behaviour of the generated rewrite rules —
+      # clean URLs 200, legacy URLs 301, trailing slash 301, unknown 404.
+      - name: URL acceptance — runtime (§103)
+        run: python3 scripts/acceptance-urls.py dist
+        working-directory: frontend
 
       - name: Secret scan (frontend + admin)
         run: |
@@ -142,8 +151,12 @@ jobs:
           cp -r avos-php/public_html/install "$PKG/"
           cp    avos-php/public_html/media.php "$PKG/"
 
-          # 3) hardened staging .htaccess (blocks .git/dotfiles/private dirs/config/sql)
+          # 3) hardened staging .htaccess + generated clean-URL rules (§28-31)
           cp frontend/staging/htaccess "$PKG/.htaccess"
+          test -f frontend/dist/_redirects.htaccess || { echo "clean-URL rules not generated"; exit 1; }
+          printf '\n' >> "$PKG/.htaccess"
+          cat frontend/dist/_redirects.htaccess >> "$PKG/.htaccess"
+          rm -f "$PKG/_redirects.htaccess"          # rules are merged, not shipped separately
 
           # 4) PHP engine (flat; protected from direct HTTP by the .htaccess rules)
           cp -r avos-php/backend       "$PKG/"
@@ -163,6 +176,10 @@ jobs:
           test -d "$PKG/os/assets"                  || { echo "React admin assets missing"; exit 1; }
           test ! -e "$PKG/config.local.php"         || { echo "config.local.php leaked"; exit 1; }
           test ! -d "$PKG/css" && test ! -d "$PKG/js" || { echo "legacy css/js leaked"; exit 1; }
+          # §103: no page may ship at an extension URL (404.html is ErrorDocument-only)
+          STRAY=$(find "$PKG" -maxdepth 1 -name '*.html' ! -name 'index.html' ! -name '404.html' | head -n1)
+          test -z "$STRAY" || { echo "page at extension URL: $STRAY"; exit 1; }
+          grep -q 'RewriteRule .*R=301' "$PKG/.htaccess" || { echo "clean-URL redirects missing from .htaccess"; exit 1; }
           echo "flat package assembled (branch root = web root)"
 
       - name: Inspect deployment package

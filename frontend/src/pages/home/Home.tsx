@@ -15,7 +15,7 @@ export function Home() {
   useSiteChrome();
   useHomeMotion();
   return (
-    <Layout activeHref="index.html">
+    <Layout activeHref="/">
       <Hero />
       <Clients />
       <Capabilities />
