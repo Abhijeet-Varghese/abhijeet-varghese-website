@@ -1,0 +1,62 @@
+/* ---- buttons ---- */
+.av-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
+  border: 1px solid transparent; border-radius: var(--r-md);
+  font-weight: 600; cursor: pointer; white-space: nowrap;
+  transition: background var(--t-fast), border-color var(--t-fast), opacity var(--t-fast);
+}
+.av-btn--md { height: 36px; padding: 0 var(--s-4); font-size: 13.5px; }
+.av-btn--sm { height: 30px; padding: 0 var(--s-3); font-size: 12.5px; }
+.av-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.av-btn--primary { background: var(--accent); color: var(--accent-contrast); }
+.av-btn--primary:hover:not(:disabled) { background: var(--accent-strong); color: #fff; }
+
+.av-btn--ghost { background: transparent; border-color: var(--border-strong); color: var(--text); }
+.av-btn--ghost:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+
+.av-btn--subtle { background: var(--bg-surface); border-color: var(--border); color: var(--text-secondary); }
+.av-btn--subtle:hover:not(:disabled) { color: var(--text); border-color: var(--border-strong); }
+
+.av-btn--danger { background: transparent; border-color: color-mix(in srgb, var(--danger) 45%, transparent); color: var(--danger); }
+.av-btn--danger:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 14%, transparent); }
+
+.av-btn__spinner {
+  width: 13px; height: 13px; border-radius: 50%;
+  border: 2px solid color-mix(in srgb, currentColor 35%, transparent);
+  border-top-color: currentColor;
+  animation: av-spin 0.7s linear infinite;
+}
+@keyframes av-spin { to { transform: rotate(360deg); } }
+
+/* ---- toggle ---- */
+.av-toggle { display: inline-flex; align-items: center; gap: var(--s-2); cursor: pointer; }
+.av-toggle__track {
+  width: 40px; height: 22px; border-radius: var(--r-full);
+  background: var(--border-strong); border: none; cursor: pointer; position: relative;
+  transition: background var(--t-fast);
+}
+.av-toggle__thumb {
+  position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%;
+  background: #fff; transition: transform var(--t-base);
+}
+.av-toggle__track.is-on { background: var(--accent); }
+.av-toggle__track.is-on .av-toggle__thumb { transform: translateX(18px); }
+.av-toggle__track:disabled { opacity: 0.5; cursor: not-allowed; }
+.av-toggle__label { font-size: 13px; color: var(--text-secondary); }
+
+/* ---- badge ---- */
+.av-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 9px; border-radius: var(--r-full);
+  font-size: 11.5px; font-weight: 600; letter-spacing: 0.02em;
+  background: var(--bg-surface); color: var(--text-secondary); border: 1px solid var(--border);
+}
+.av-badge--success { color: var(--success); border-color: color-mix(in srgb, var(--success) 35%, transparent); background: color-mix(in srgb, var(--success) 10%, transparent); }
+.av-badge--warning { color: var(--warning); border-color: color-mix(in srgb, var(--warning) 35%, transparent); background: color-mix(in srgb, var(--warning) 10%, transparent); }
+.av-badge--danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 35%, transparent); background: color-mix(in srgb, var(--danger) 10%, transparent); }
+.av-badge--info { color: var(--info); border-color: color-mix(in srgb, var(--info) 35%, transparent); background: color-mix(in srgb, var(--info) 10%, transparent); }
+.av-badge--accent { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 35%, transparent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+
+/* ---- field ---- */
+.av-field__hint { font-size: 12px; color: var(--text-muted); margin-top: var(--s-1); }

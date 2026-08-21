@@ -1,0 +1,27 @@
+{
+  "name": "av-os-admin",
+  "private": true,
+  "version": "5.0.0",
+  "type": "module",
+  "description": "AV OS — next-generation React admin foundation (Phase 5)",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^6.28.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tsx": "^4.23.12",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7"
+  }
+}

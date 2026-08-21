@@ -722,7 +722,10 @@ final class ApiController
                 }
             }
         }
-        $allowed = ['settings', 'nav', 'sections', 'pages', 'projects', 'articles', 'clients', 'testimonials', 'downloads', 'media', 'forms', 'seo', 'analytics', 'availability', 'notifications', 'dashboard'];
+        $allowed = ['settings', 'nav', 'sections', 'pages', 'projects', 'articles', 'clients', 'testimonials', 'downloads', 'media', 'forms', 'seo', 'analytics', 'availability', 'notifications', 'dashboard',
+            // Phase 4 content-migration collections (additive — makes the migrated
+            // CMS content editable through the same content.write path).
+            'experience', 'story', 'orange', 'page_content', 'page_seo'];
         $uid = Auth::user()['id'] ?? null;
         foreach ($allowed as $key) {
             if (array_key_exists($key, $d)) ContentStore::put($key, $d[$key], $uid, 'saved from CMS');

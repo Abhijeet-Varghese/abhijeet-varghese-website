@@ -1,0 +1,57 @@
+/* ---- spinner ---- */
+.av-spinner { display: flex; align-items: center; gap: var(--s-3); color: var(--text-secondary); padding: var(--s-10); justify-content: center; }
+.av-spinner__ring {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid var(--border-strong); border-top-color: var(--accent);
+  animation: av-spin 0.7s linear infinite;
+}
+
+/* ---- empty / error ---- */
+.av-empty { text-align: center; padding: var(--s-12) var(--s-6); color: var(--text-secondary); }
+.av-empty__icon {
+  width: 44px; height: 44px; margin: 0 auto var(--s-4); border-radius: var(--r-md);
+  display: grid; place-items: center; font-size: 20px;
+  background: var(--bg-surface); border: 1px dashed var(--border-strong); color: var(--accent);
+}
+.av-empty--error .av-empty__icon { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, transparent); }
+.av-empty__title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: var(--s-2); }
+.av-empty__hint { font-size: 13px; max-width: 420px; margin: 0 auto; }
+.av-empty__action { margin-top: var(--s-4); }
+.av-empty__rid { display: inline-block; margin-top: var(--s-3); font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
+
+/* ---- dialog ---- */
+.av-dialog-backdrop {
+  position: fixed; inset: 0; background: var(--overlay);
+  display: grid; place-items: center; z-index: var(--z-dialog); padding: var(--s-4);
+}
+.av-dialog {
+  width: min(520px, 100%); background: var(--bg-elevated);
+  border: 1px solid var(--border-strong); border-radius: var(--r-xl);
+  box-shadow: var(--shadow-lg); max-height: 86vh; display: flex; flex-direction: column;
+  animation: av-pop 0.18s ease;
+}
+@keyframes av-pop { from { transform: scale(0.97); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.av-dialog__head { display: flex; align-items: center; justify-content: space-between; padding: var(--s-5); border-bottom: 1px solid var(--border); }
+.av-dialog__title { font-size: 16px; font-weight: 700; }
+.av-dialog__close { background: none; border: none; color: var(--text-muted); font-size: 22px; cursor: pointer; line-height: 1; }
+.av-dialog__close:hover { color: var(--text); }
+.av-dialog__body { padding: var(--s-5); overflow-y: auto; }
+.av-dialog__foot { padding: var(--s-4) var(--s-5); border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: var(--s-3); }
+
+/* ---- toasts ---- */
+.av-toasts { position: fixed; bottom: var(--s-5); right: var(--s-5); z-index: var(--z-toast); display: flex; flex-direction: column; gap: var(--s-2); }
+.av-toast {
+  display: flex; align-items: center; gap: var(--s-3);
+  background: var(--bg-elevated); border: 1px solid var(--border-strong);
+  border-radius: var(--r-md); box-shadow: var(--shadow-md);
+  padding: var(--s-3) var(--s-4); min-width: 260px; max-width: 380px;
+  animation: av-slide-in 0.2s ease;
+}
+@keyframes av-slide-in { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.av-toast__icon { font-weight: 700; flex-shrink: 0; }
+.av-toast--success .av-toast__icon { color: var(--success); }
+.av-toast--error .av-toast__icon { color: var(--danger); }
+.av-toast--warning .av-toast__icon { color: var(--warning); }
+.av-toast--info .av-toast__icon { color: var(--info); }
+.av-toast__msg { flex: 1; font-size: 13px; }
+.av-toast__close { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; }

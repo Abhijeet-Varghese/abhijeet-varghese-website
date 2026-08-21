@@ -1,0 +1,11 @@
+.av-login { min-height: 100vh; display: grid; place-items: center; padding: 24px;
+  background:
+    radial-gradient(720px 420px at 85% -10%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%),
+    radial-gradient(620px 420px at -10% 110%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 60%),
+    var(--bg);
+}
+.av-login__card { width: min(400px, 100%); background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--r-xl); box-shadow: var(--shadow-lg); padding: 36px 32px; }
+.av-login__brand { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+.av-login__name { font-weight: 700; font-size: 16px; }
+.av-login__title { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+.av-login__error { color: var(--danger); font-size: 13px; margin-bottom: 14px; padding: 10px 12px; background: color-mix(in srgb, var(--danger) 10%, transparent); border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent); border-radius: var(--r-md); }

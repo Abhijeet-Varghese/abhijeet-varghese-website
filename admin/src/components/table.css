@@ -1,0 +1,10 @@
+.av-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--bg-elevated); }
+.av-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.av-table th {
+  text-align: left; padding: var(--s-3) var(--s-4); font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border);
+}
+.av-table td { padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--border); vertical-align: middle; }
+.av-table tbody tr:last-child td { border-bottom: none; }
+.av-table tbody tr.is-clickable { cursor: pointer; }
+.av-table tbody tr.is-clickable:hover { background: var(--bg-surface); }

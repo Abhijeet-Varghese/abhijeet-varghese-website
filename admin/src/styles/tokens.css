@@ -1,0 +1,110 @@
+/* ========================================================================
+   AV OS — admin design tokens (Phase 5 foundation)
+   Original design language. Dark/light via CSS variables; the public site
+   theme is entirely unaffected by these admin tokens.
+   ======================================================================== */
+
+:root {
+  /* ---- typography ---- */
+  --font-sans: "Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
+
+  /* ---- radii ---- */
+  --r-xs: 6px;
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+  --r-full: 999px;
+
+  /* ---- spacing scale ---- */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+
+  /* ---- z-index ---- */
+  --z-base: 0;
+  --z-sticky: 100;
+  --z-sidebar: 200;
+  --z-topbar: 300;
+  --z-overlay: 400;
+  --z-dialog: 500;
+  --z-palette: 600;
+  --z-toast: 700;
+
+  /* ---- transitions ---- */
+  --t-fast: 120ms ease;
+  --t-base: 200ms ease;
+  --t-slow: 320ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* ---- breakpoints (JS mirrors these in responsive utilities) ---- */
+  --bp-mobile: 640px;
+  --bp-tablet: 960px;
+  --bp-desktop: 1280px;
+}
+
+/* ---- DARK (default) ---- */
+:root[data-theme="dark"] {
+  --bg: #080F22;
+  --bg-elevated: #0C1630;
+  --bg-surface: #101D3E;
+  --bg-inset: #060A18;
+
+  --text: #EAF0F8;
+  --text-secondary: #A9B8CE;
+  --text-muted: #6B7A93;
+
+  --border: rgba(148, 170, 230, 0.14);
+  --border-strong: rgba(148, 170, 230, 0.26);
+
+  --accent: #6EA8FF;
+  --accent-strong: #2E5AAC;
+  --accent-contrast: #06142E;
+
+  --success: #4ADE80;
+  --warning: #FBBF24;
+  --danger: #F87171;
+  --info: #38BDF8;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 24px 60px -24px rgba(0, 0, 0, 0.75);
+
+  --overlay: rgba(4, 8, 20, 0.6);
+}
+
+/* ---- LIGHT ---- */
+:root[data-theme="light"] {
+  --bg: #F7F5EF;
+  --bg-elevated: #FFFFFF;
+  --bg-surface: #FFFFFF;
+  --bg-inset: #EEECE4;
+
+  --text: #11161F;
+  --text-secondary: #3D4654;
+  --text-muted: #717A88;
+
+  --border: rgba(17, 22, 31, 0.12);
+  --border-strong: rgba(17, 22, 31, 0.22);
+
+  --accent: #2E5AAC;
+  --accent-strong: #1E3E7C;
+  --accent-contrast: #FFFFFF;
+
+  --success: #16A34A;
+  --warning: #B45309;
+  --danger: #DC2626;
+  --info: #0284C7;
+
+  --shadow-sm: 0 1px 2px rgba(17, 22, 31, 0.06);
+  --shadow-md: 0 8px 24px -12px rgba(17, 22, 31, 0.16);
+  --shadow-lg: 0 24px 60px -24px rgba(17, 22, 31, 0.28);
+
+  --overlay: rgba(17, 22, 31, 0.32);
+}
