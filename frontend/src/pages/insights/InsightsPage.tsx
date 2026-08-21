@@ -2,11 +2,13 @@ import { Layout } from '@/components/Layout';
 import { PageHero } from '@/components/PageHero';
 import { EntryList } from '@/components/EntryList';
 import { useSiteChrome } from '@/lib/scroll';
-import { INSIGHTS } from '@/content/pages';
-import { ESSAY_INDEX } from '@/content/articles';
+import { useContent } from '@/content/provider';
 
 export function InsightsPage() {
   useSiteChrome();
+  const { content } = useContent();
+  const INSIGHTS = content.pages.INSIGHTS;
+  const ESSAY_INDEX = content.articles.ESSAY_INDEX;
   return (
     <Layout activeHref="insights.html" pageClose>
       <PageHero num={INSIGHTS.num} tag={INSIGHTS.tag} lede={INSIGHTS.lede}>

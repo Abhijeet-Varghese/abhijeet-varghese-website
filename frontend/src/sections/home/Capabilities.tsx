@@ -1,7 +1,9 @@
-import { CAPABILITIES } from '@/content/home';
+import { useContent } from '@/content/provider';
 import { ChapterMeta } from './ChapterMeta';
 
 export function Capabilities() {
+  const { content } = useContent();
+  const CAPABILITIES = content.home.CAPABILITIES;
   return (
     <section className="chapter capabilities t-dark" id="capabilities">
       <div className="container">

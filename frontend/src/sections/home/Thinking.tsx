@@ -1,8 +1,10 @@
-import { THINKING } from '@/content/home';
+import { useContent } from '@/content/provider';
 import { ArrowSm } from '@/components/Arrow';
 import { ChapterMeta } from './ChapterMeta';
 
 export function Thinking() {
+  const { content } = useContent();
+  const THINKING = content.home.THINKING;
   return (
     <section className="chapter thinking t-dark" id="thinking">
       <div className="container">

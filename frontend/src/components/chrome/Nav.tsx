@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { CHROME } from '@/content/chrome';
+import { useContent } from '@/content/provider';
 import type { NavLink } from '@/types';
 
 /**
@@ -11,6 +11,8 @@ import type { NavLink } from '@/types';
  * nested routes like the Orange case study).
  */
 export function Nav({ activeHref, base = '' }: { activeHref?: string; base?: string }) {
+  const { content } = useContent();
+  const CHROME = content.chrome.CHROME;
   const [open, setOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);

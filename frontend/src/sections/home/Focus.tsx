@@ -1,7 +1,9 @@
-import { FOCUS } from '@/content/home';
+import { useContent } from '@/content/provider';
 import { ChapterMeta } from './ChapterMeta';
 
 export function Focus() {
+  const { content } = useContent();
+  const FOCUS = content.home.FOCUS;
   return (
     <section className="chapter focus t-light" id="focus">
       <div className="container">

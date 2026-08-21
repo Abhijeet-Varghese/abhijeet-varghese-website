@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { EVOLUTION_CARDS } from '@/content/story';
+import { useContent } from '@/content/provider';
 
 /**
  * Evolution — the 3D film stack. Ported 1:1 from the production
@@ -36,6 +36,8 @@ const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
 const clamp = (v: number, a: number, b: number) => Math.min(Math.max(v, a), b);
 
 export function Evolution() {
+  const { content } = useContent();
+  const EVOLUTION_CARDS = content.story.EVOLUTION_CARDS;
   const scrollRef = useRef<HTMLDivElement>(null);
   const cameraRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLElement | null)[]>([]);

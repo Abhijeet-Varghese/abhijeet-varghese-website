@@ -1,8 +1,10 @@
-import { WORK } from '@/content/home';
+import { useContent } from '@/content/provider';
 import { Arrow } from '@/components/Arrow';
 import { ChapterMeta } from './ChapterMeta';
 
 export function Work() {
+  const { content } = useContent();
+  const WORK = content.home.WORK;
   return (
     <section className="chapter work t-light" id="work">
       <div className="container">

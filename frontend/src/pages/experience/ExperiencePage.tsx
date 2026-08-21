@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { useSiteChrome } from '@/lib/scroll';
-import { EXPERIENCE_JOBS, type ExperienceJob } from '@/content/experience';
+import { useContent } from '@/content/provider';
+import type { ExperienceJob } from '@/content/experience';
 import { Arrow } from '@/components/Arrow';
 
 /**
@@ -13,6 +14,8 @@ import { Arrow } from '@/components/Arrow';
 export function ExperiencePage() {
   useSiteChrome();
   useExperienceTimeline();
+  const { content } = useContent();
+  const EXPERIENCE_JOBS = content.experience.EXPERIENCE_JOBS;
   return (
     <Layout activeHref="experience.html" pageClose>
       <section className="exp-hero t-dark" aria-label="Experience">

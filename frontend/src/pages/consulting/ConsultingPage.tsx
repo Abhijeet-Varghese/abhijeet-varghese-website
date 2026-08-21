@@ -1,11 +1,13 @@
 import { Layout } from '@/components/Layout';
 import { PageHero } from '@/components/PageHero';
 import { useSiteChrome } from '@/lib/scroll';
-import { CONSULTING } from '@/content/pages';
+import { useContent } from '@/content/provider';
 import { Arrow } from '@/components/Arrow';
 
 export function ConsultingPage() {
   useSiteChrome();
+  const { content } = useContent();
+  const CONSULTING = content.pages.CONSULTING;
   return (
     <Layout activeHref="consulting.html" pageClose>
       <PageHero num={CONSULTING.num} tag={CONSULTING.tag} lede={CONSULTING.lede}>

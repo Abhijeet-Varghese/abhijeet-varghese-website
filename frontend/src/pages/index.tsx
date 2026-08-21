@@ -31,10 +31,6 @@ import {
   PRIVACY_SEO,
   TERMS_SEO,
   NOT_FOUND_SEO,
-  PRIVACY,
-  PRIVACY_PAGE,
-  TERMS,
-  TERMS_PAGE,
 } from '@/content/pages';
 import { EXPERIENCE_SEO } from '@/content/experience';
 import { ARTICLES_BY_SLUG } from '@/content/articles';
@@ -63,7 +59,7 @@ const FONT_PRELOAD: PreloadSpec = { href: 'assets/fonts/inter-tight-normal.woff2
 const ARTICLE_PAGES: Record<string, PageEntry> = {};
 for (const a of Object.values(ARTICLES_BY_SLUG)) {
   ARTICLE_PAGES[a.slug] = {
-    Component: () => <ArticlePage article={a} />,
+    Component: () => <ArticlePage slug={a.slug} />,
     seo: a.seo,
     bodyClass: '',
   };
@@ -101,12 +97,12 @@ export const PAGES: Record<string, PageEntry> = {
     bodyClass: '',
   },
   'case-bpcl': {
-    Component: () => <ComingSoonCase project={bpcl} />,
+    Component: () => <ComingSoonCase slug="intuitive-experiences-for-industrial-environments" />,
     seo: comingSoonSeo(bpcl),
     bodyClass: 'case-coming-page',
   },
   'case-army': {
-    Component: () => <ComingSoonCase project={army} />,
+    Component: () => <ComingSoonCase slug="immersive-solutions-for-the-indian-army" />,
     seo: comingSoonSeo(army),
     bodyClass: 'case-coming-page',
   },
@@ -161,28 +157,12 @@ export const PAGES: Record<string, PageEntry> = {
     bodyClass: 'experience-page',
   },
   'privacy-policy': {
-    Component: () => (
-      <LegalPage
-        activeHref="privacy-policy.html"
-        num={PRIVACY_PAGE.num}
-        title={PRIVACY_PAGE.title}
-        lede={PRIVACY_PAGE.lede}
-        sections={PRIVACY}
-      />
-    ),
+    Component: () => <LegalPage activeHref="privacy-policy.html" kind="privacy" />,
     seo: PRIVACY_SEO,
     bodyClass: '',
   },
   terms: {
-    Component: () => (
-      <LegalPage
-        activeHref="terms.html"
-        num={TERMS_PAGE.num}
-        title={TERMS_PAGE.title}
-        lede={TERMS_PAGE.lede}
-        sections={TERMS}
-      />
-    ),
+    Component: () => <LegalPage activeHref="terms.html" kind="terms" />,
     seo: TERMS_SEO,
     bodyClass: '',
   },

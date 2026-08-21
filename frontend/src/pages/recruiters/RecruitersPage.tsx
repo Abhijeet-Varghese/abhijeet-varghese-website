@@ -1,11 +1,13 @@
 import { Layout } from '@/components/Layout';
 import { PageHero } from '@/components/PageHero';
 import { useSiteChrome } from '@/lib/scroll';
-import { RECRUITERS } from '@/content/pages';
+import { useContent } from '@/content/provider';
 import { Arrow } from '@/components/Arrow';
 
 export function RecruitersPage() {
   useSiteChrome();
+  const { content } = useContent();
+  const RECRUITERS = content.pages.RECRUITERS;
   return (
     <Layout activeHref="for-recruiters.html" pageClose>
       <PageHero num={RECRUITERS.num} tag={RECRUITERS.tag} lede={RECRUITERS.lede}>

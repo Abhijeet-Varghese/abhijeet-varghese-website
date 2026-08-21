@@ -1,15 +1,21 @@
 import { Layout } from '@/components/Layout';
 import { useSiteChrome } from '@/lib/scroll';
-import type { Article } from '@/types/domain';
+import { useContent } from '@/content/provider';
 import { Arrow } from '@/components/Arrow';
 
 /**
  * Shared essay/journal article page (production `article-hero` + `article-body`
  * template). Content is transcribed verbatim; blank paragraphs render as
  * `<p>&nbsp;</p>` exactly as the production source.
+ *
+ * The article is resolved from the runtime content provider by slug; the
+ * static snapshot guarantees the slug is present even when the CMS is offline.
  */
-export function ArticlePage({ article }: { article: Article }) {
+export function ArticlePage({ slug }: { slug: string }) {
   useSiteChrome();
+  const { content } = useContent();
+  const article = content.articles.ARTICLES_BY_SLUG[slug];
+  if (!article) return null;
   const activeHref = article.kind === 'essay' ? 'insights.html' : 'journal.html';
   return (
     <Layout activeHref={activeHref} pageClose>

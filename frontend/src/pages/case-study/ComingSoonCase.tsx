@@ -1,15 +1,23 @@
 import { Layout } from '@/components/Layout';
 import { useSiteChrome } from '@/lib/scroll';
-import type { Project } from '@/content/projects';
+import { useContent } from '@/content/provider';
 import { Arrow } from '@/components/Arrow';
 
 /**
  * Honest "coming soon" case-study page (production behaviour). Renders the
  * real project record (client / practice / role) with a "Full case study
  * coming soon" state — no fabricated content, no dead links.
+ *
+ * The project is resolved from the runtime content provider by slug; the
+ * static snapshot guarantees the slug is present even when the CMS is offline.
  */
-export function ComingSoonCase({ project }: { project: Project }) {
+export function ComingSoonCase({ slug }: { slug: string }) {
   useSiteChrome();
+  const { content } = useContent();
+  const project = content.projects.PROJECTS.find((p) => p.slug === slug);
+  // Unreachable in practice (the static fallback always contains the slug),
+  // but never render a broken page if the content is unexpectedly absent.
+  if (!project) return null;
   return (
     <Layout activeHref="case-studies.html" pageClose>
       <section className="page-hero case-coming__hero" aria-label={`${project.client} case study coming soon`}>

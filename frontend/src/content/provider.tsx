@@ -42,6 +42,15 @@ export function CMSContentProvider({ children }: { children: ReactNode }): React
     };
   }, []);
 
+  // Observable diagnostics (Phase 4 §5): expose the content source/phase on the
+  // document root so ops/tests can confirm whether runtime content or the static
+  // fallback is being served — a runtime failure is never silently masked.
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.avosSource = state.source;
+    root.dataset.avosPhase = state.phase;
+  }, [state]);
+
   const revalidate = async (): Promise<void> => {
     await contentLoader.revalidate();
     setContent(contentLoader.content);

@@ -1,6 +1,7 @@
 import { StrictMode, type ComponentType } from 'react';
 import { hydrateRoot, createRoot } from 'react-dom/client';
 import { initNavOrigin } from './nav-origin';
+import { CMSContentProvider } from '@/content/provider';
 
 /**
  * Shared hydration bootstrap. Each page entry calls this with its own page
@@ -20,13 +21,17 @@ export function hydratePage(Component: ComponentType, pageId: string): void {
     hydrateRoot(
       root,
       <StrictMode>
-        <Component />
+        <CMSContentProvider>
+          <Component />
+        </CMSContentProvider>
       </StrictMode>,
     );
   } else {
     createRoot(root).render(
       <StrictMode>
-        <Component />
+        <CMSContentProvider>
+          <Component />
+        </CMSContentProvider>
       </StrictMode>,
     );
   }

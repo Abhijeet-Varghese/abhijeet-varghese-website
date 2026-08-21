@@ -2,6 +2,7 @@ import { renderToString } from 'react-dom/server';
 import { PAGES, type PreloadSpec } from './pages';
 import { buildHead } from './content/seo';
 import { ANALYTICS_SCRIPT } from './lib/analytics';
+import { CMSContentProvider } from './content/provider';
 
 export interface RenderedPage {
   head: string;
@@ -22,7 +23,11 @@ export function renderPage(pageId: string): RenderedPage {
   const entry = PAGES[pageId];
   if (!entry) throw new Error(`Unknown page id "${pageId}"`);
 
-  const body = renderToString(<entry.Component />);
+  const body = renderToString(
+    <CMSContentProvider>
+      <entry.Component />
+    </CMSContentProvider>,
+  );
   const preloads: PreloadSpec[] = entry.preloads ?? [FONT_PRELOAD];
   const head = buildHead(entry.seo, { preloads, favicon: entry.favicon });
 

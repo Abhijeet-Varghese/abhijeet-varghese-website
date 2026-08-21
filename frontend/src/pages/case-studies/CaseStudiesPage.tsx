@@ -1,7 +1,7 @@
 import { Layout } from '@/components/Layout';
 import { useSiteChrome } from '@/lib/scroll';
 import { useHomeMotion } from '@/lib/home-motion';
-import { PROJECTS } from '@/content/projects';
+import { useContent } from '@/content/provider';
 import { Arrow } from '@/components/Arrow';
 
 /**
@@ -11,6 +11,8 @@ import { Arrow } from '@/components/Arrow';
 export function CaseStudiesPage() {
   useSiteChrome();
   useHomeMotion();
+  const { content } = useContent();
+  const PROJECTS = content.projects.PROJECTS;
   return (
     <Layout activeHref="case-studies.html" pageClose>
       <section className="page-hero" aria-label="Case Studies">

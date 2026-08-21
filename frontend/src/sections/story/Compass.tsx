@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { COMPASS_ACTS } from '@/content/story';
+import { useContent } from '@/content/provider';
 
 /**
  * Story compass pill — materializes once the prologue scrolls away; expands
@@ -7,6 +7,8 @@ import { COMPASS_ACTS } from '@/content/story';
  * behaviour exactly.
  */
 export function Compass() {
+  const { content } = useContent();
+  const COMPASS_ACTS = content.story.COMPASS_ACTS;
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLElement>(null);
   const listRef = useRef<HTMLUListElement>(null);

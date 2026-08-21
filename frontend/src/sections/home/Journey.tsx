@@ -1,7 +1,9 @@
-import { JOURNEY } from '@/content/home';
+import { useContent } from '@/content/provider';
 import { ChapterMeta } from './ChapterMeta';
 
 export function Journey() {
+  const { content } = useContent();
+  const JOURNEY = content.home.JOURNEY;
   return (
     <>
       <section className="journey t-light" id="journey">

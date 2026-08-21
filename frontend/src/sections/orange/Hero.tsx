@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { ORANGE_HOTSPOTS } from '@/content/orange';
+import { useContent } from '@/content/provider';
 
 const B = '../../';
 const PANO = `${B}assets/media/orange-business-executive-briefing-center-mumbai-panoramic`;
@@ -12,6 +12,8 @@ interface Hotspot {
 }
 
 export function Hero() {
+  const { content } = useContent();
+  const ORANGE_HOTSPOTS = content.orange.ORANGE_HOTSPOTS;
   const [active, setActive] = useState(ORANGE_HOTSPOTS[0]! as Hotspot);
   const heroRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);

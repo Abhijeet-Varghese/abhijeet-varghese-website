@@ -1,7 +1,9 @@
-import { AI_METHOD } from '@/content/home';
+import { useContent } from '@/content/provider';
 import { ChapterMeta } from './ChapterMeta';
 
 export function AiMethod() {
+  const { content } = useContent();
+  const AI_METHOD = content.home.AI_METHOD;
   return (
     <section className="chapter ai t-dark" id="ai">
       <div className="container">

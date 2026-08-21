@@ -1,7 +1,9 @@
-import { CLIENTS } from '@/content/home';
+import { useContent } from '@/content/provider';
 import { ChapterMeta } from './ChapterMeta';
 
 export function Clients() {
+  const { content } = useContent();
+  const CLIENTS = content.home.CLIENTS;
   return (
     <section className="chapter clients t-light" id="clients">
       <div className="container">

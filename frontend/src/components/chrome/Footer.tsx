@@ -1,8 +1,10 @@
-import { CHROME } from '@/content/chrome';
+import { useContent } from '@/content/provider';
 import { SocialIcon } from './SocialIcon';
 
 /** Global footer chrome — identical on every page. `base` prefixes internal links. */
 export function Footer({ base = '' }: { base?: string }) {
+  const { content } = useContent();
+  const CHROME = content.chrome.CHROME;
   const f = CHROME.footer;
   return (
     <footer className="footer footer--arena">

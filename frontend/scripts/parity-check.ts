@@ -31,16 +31,11 @@ interface DiffEntry {
 /* the MISSING/DIFFERENT/UNMAPPED target                                */
 /* ------------------------------------------------------------------ */
 
-/** per-article SEO is derived at render time by articleSeo(). */
-const DERIVED_ARTICLE_SEO = /^articles\.ARTICLES\[\d+\]\.seo/;
-/** derived index/lookup exports (computed from ARTICLES at module load). */
+/** per-article SEO is derived at render time by articleSeo() (prerender only). */
+const DERIVED_ARTICLE_SEO = /^articles\..*\.seo$/;
+/** build-time chrome constant (home link) — not CMS-managed. */
 const DERIVED_EXPORTS = [
-  'articles.ARTICLES_BY_SLUG',
-  'articles.ESSAYS',
-  'articles.JOURNAL',
-  'articles.ESSAY_INDEX',
-  'articles.JOURNAL_INDEX',
-  'chrome.CHROME.brandHref', // build-time chrome (home link)
+  'chrome.CHROME.brandHref',
 ];
 
 function isDerived(path: string): boolean {

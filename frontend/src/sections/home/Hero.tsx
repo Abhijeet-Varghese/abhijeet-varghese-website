@@ -1,7 +1,9 @@
-import { HERO } from '@/content/home';
+import { useContent } from '@/content/provider';
 import { Arrow } from '@/components/Arrow';
 
 export function Hero() {
+  const { content } = useContent();
+  const HERO = content.home.HERO;
   return (
     <section className="hp-hero t-dark" id="hero" data-theme="dark" aria-label="Introduction">
       <p className="hp-hero__seo">{HERO.seoLine}</p>

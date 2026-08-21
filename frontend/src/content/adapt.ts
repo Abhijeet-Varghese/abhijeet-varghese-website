@@ -116,8 +116,23 @@ function adaptArticles(articles: R[]): PartialContent['articles'] {
     backHref: str(a.backHref),
     related: (a.related ?? undefined) as never,
   }));
-  // `seo` is derived by articleSeo() at render time (not CMS content) — left out.
-  return { ARTICLES } as unknown as PartialContent['articles'];
+
+  // Runtime-derived views of the CMS article content (these are consumed at
+  // runtime by the insights/journal listings and the article entry, so they
+  // must be derived from runtime ARTICLES — not the static module). `seo` is
+  // NOT included: per-article SEO is built by articleSeo() at prerender time
+  // and is not consumed at runtime.
+  const ESSAYS = ARTICLES.filter((a) => a.kind === 'essay');
+  const JOURNAL = ARTICLES.filter((a) => a.kind === 'journal');
+  const ESSAY_INDEX = ESSAYS.map((a, i) => ({
+    num: pad2(i + 1), title: a.title, tag: a.tag, excerpt: a.excerpt, href: `${a.slug}.html`,
+  }));
+  const JOURNAL_INDEX = JOURNAL.map((a, i) => ({
+    num: pad2(i + 1), title: a.title, tag: a.tag, excerpt: a.excerpt, href: `${a.slug}.html`,
+  }));
+  const ARTICLES_BY_SLUG = Object.fromEntries(ARTICLES.map((a) => [a.slug, a]));
+
+  return { ARTICLES, ARTICLES_BY_SLUG, ESSAYS, JOURNAL, ESSAY_INDEX, JOURNAL_INDEX } as unknown as PartialContent['articles'];
 }
 
 /* ------------------------------------------------------------------ */

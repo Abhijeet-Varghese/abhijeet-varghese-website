@@ -1,12 +1,6 @@
 import { useRef, useState } from 'react';
-import {
-  ORANGE_ROLE_CHAIN,
-  ORANGE_JOURNEY,
-  ORANGE_ARCH_NODES,
-  ORANGE_PURPOSE,
-  ORANGE_VIDEO_MODES,
-  withBaseSrcset,
-} from '@/content/orange';
+import { useContent } from '@/content/provider';
+import { withBaseSrcset } from '@/content/orange';
 
 const B = '../../';
 
@@ -14,6 +8,8 @@ const B = '../../';
 /* Responsibility chain (strategy → site)                              */
 /* ------------------------------------------------------------------ */
 export function RoleChain() {
+  const { content } = useContent();
+  const ORANGE_ROLE_CHAIN = content.orange.ORANGE_ROLE_CHAIN;
   const [active, setActive] = useState(0);
   return (
     <>
@@ -45,6 +41,8 @@ export function RoleChain() {
 /* Visitor journey (7 stages, evidence-led image transitions)          */
 /* ------------------------------------------------------------------ */
 export function JourneyStrip() {
+  const { content } = useContent();
+  const ORANGE_JOURNEY = content.orange.ORANGE_JOURNEY;
   const [active, setActive] = useState(0);
   const stageRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -117,6 +115,8 @@ export function JourneyStrip() {
 /* System architecture diagram + room response                         */
 /* ------------------------------------------------------------------ */
 export function ArchitectureDiagram() {
+  const { content } = useContent();
+  const ORANGE_ARCH_NODES = content.orange.ORANGE_ARCH_NODES;
   const [active, setActive] = useState(0);
   const node = ORANGE_ARCH_NODES[active]!;
   return (
@@ -231,6 +231,8 @@ export function RoomResponse() {
 /* Technology-with-purpose strip                                       */
 /* ------------------------------------------------------------------ */
 export function PurposeStrip() {
+  const { content } = useContent();
+  const ORANGE_PURPOSE = content.orange.ORANGE_PURPOSE;
   const [active, setActive] = useState(0);
   const p = ORANGE_PURPOSE[active]!;
   return (
@@ -270,6 +272,8 @@ export function PurposeStrip() {
 /* in the sibling wide-media-copy — shared state lifted here)          */
 /* ------------------------------------------------------------------ */
 export function VideoModeButtons({ active, onChange }: { active: number; onChange: (i: number) => void }) {
+  const { content } = useContent();
+  const ORANGE_VIDEO_MODES = content.orange.ORANGE_VIDEO_MODES;
   return (
     <div className="video-modes" role="group" aria-label="Video wall modes">
       {ORANGE_VIDEO_MODES.map((m, i) => (

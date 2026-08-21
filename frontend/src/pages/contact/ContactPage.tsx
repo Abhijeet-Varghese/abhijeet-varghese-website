@@ -1,8 +1,7 @@
 import { Layout } from '@/components/Layout';
 import { PageHero } from '@/components/PageHero';
 import { useSiteChrome } from '@/lib/scroll';
-import { CHROME } from '@/content/chrome';
-import { CONTACT } from '@/content/home';
+import { useContent } from '@/content/provider';
 import { BookingGate } from '@/components/booking/BookingGate';
 import { SocialIcon } from '@/components/chrome/SocialIcon';
 
@@ -13,6 +12,9 @@ import { SocialIcon } from '@/components/chrome/SocialIcon';
  */
 export function ContactPage() {
   useSiteChrome();
+  const { content } = useContent();
+  const CONTACT = content.home.CONTACT;
+  const CHROME = content.chrome.CHROME;
   return (
     <Layout activeHref="contact.html" pageClose>
       <PageHero num="04" tag="Contact" lede={CONTACT.lede}>

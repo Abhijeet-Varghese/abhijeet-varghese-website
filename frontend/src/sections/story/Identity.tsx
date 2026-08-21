@@ -1,6 +1,8 @@
-import { IDENTITY } from '@/content/story';
+import { useContent } from '@/content/provider';
 
 export function Identity() {
+  const { content } = useContent();
+  const IDENTITY = content.story.IDENTITY;
   return (
     <section className="about-frame t-light" id="act-01" data-act="01" aria-label="About — identity">
       <div className="container">

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ORANGE_VIDEO_MODES, ORANGE_WALL_DEFAULT_COPY } from '@/content/orange';
+import { useContent } from '@/content/provider';
 import { VideoModeButtons } from './interactive';
 
 const B = '../../';
@@ -14,6 +14,8 @@ const TABS: { key: PanelKey; label: string }[] = [
 
 /** Experience-proof tabs (rotoscope / video wall / VR) with keyboard nav. */
 export function ActionPanels() {
+  const { content } = useContent();
+  const { ORANGE_VIDEO_MODES, ORANGE_WALL_DEFAULT_COPY } = content.orange;
   const [panel, setPanel] = useState<PanelKey>('rotoscope');
   const [wallMode, setWallMode] = useState(0);
   const [wallModeSelected, setWallModeSelected] = useState(false);

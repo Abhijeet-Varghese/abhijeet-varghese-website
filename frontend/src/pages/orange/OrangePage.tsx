@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { Layout } from '@/components/Layout';
 import { useOrangePage } from '@/lib/orange';
-import { ORANGE_SUMMARY, ORANGE_PROJECT_STRIP } from '@/content/orange';
+import { useContent } from '@/content/provider';
 import { Hero } from '@/sections/orange/Hero';
 import { RoleChain, JourneyStrip, ArchitectureDiagram, RoomResponse, PurposeStrip } from '@/sections/orange/interactive';
 import { ActionPanels } from '@/sections/orange/ActionPanels';
@@ -33,6 +33,8 @@ function SectionHead({
 /** Orange Business New Executive Briefing Center — long-form case study. */
 export function OrangePage() {
   useOrangePage();
+  const { content } = useContent();
+  const { ORANGE_SUMMARY, ORANGE_PROJECT_STRIP } = content.orange;
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   const openSummary = () => {

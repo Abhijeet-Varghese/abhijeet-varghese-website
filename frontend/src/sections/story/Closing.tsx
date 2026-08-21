@@ -1,7 +1,9 @@
-import { WHAT, NOW, CURIOUS, CREDITS } from '@/content/story';
+import { useContent } from '@/content/provider';
 import { Arrow } from '@/components/Arrow';
 
 export function WhatNowCurious() {
+  const { content } = useContent();
+  const { WHAT, NOW, CURIOUS, CREDITS } = content.story;
   return (
     <>
       <section className="about-what t-light" aria-label="What I actually do">

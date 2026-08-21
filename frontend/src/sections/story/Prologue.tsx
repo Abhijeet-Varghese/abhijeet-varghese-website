@@ -1,6 +1,8 @@
-import { PROLOGUE } from '@/content/story';
+import { useContent } from '@/content/provider';
 
 export function Prologue() {
+  const { content } = useContent();
+  const PROLOGUE = content.story.PROLOGUE;
   return (
     <section className="about-prologue t-dark" id="prologue" aria-label="About — opening frame">
       <div className="about-prologue__blueprint" aria-hidden="true">

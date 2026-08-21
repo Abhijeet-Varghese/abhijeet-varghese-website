@@ -1,23 +1,17 @@
 import { Layout } from '@/components/Layout';
 import { PageHero } from '@/components/PageHero';
 import { useSiteChrome } from '@/lib/scroll';
-import type { LegalSection } from '@/types/domain';
+import { useContent } from '@/content/provider';
 
-/** Shared legal page (Privacy Policy / Terms of Use). */
-export function LegalPage({
-  activeHref,
-  num,
-  title,
-  lede,
-  sections,
-}: {
-  activeHref: string;
-  num: string;
-  title: readonly [string, string, string];
-  lede: string;
-  sections: LegalSection[];
-}) {
+/** Shared legal page (Privacy Policy / Terms of Use) — content via provider. */
+export function LegalPage({ activeHref, kind }: { activeHref: string; kind: 'privacy' | 'terms' }) {
   useSiteChrome();
+  const { content } = useContent();
+  const page = kind === 'privacy' ? content.pages.PRIVACY_PAGE : content.pages.TERMS_PAGE;
+  const sections = kind === 'privacy' ? content.pages.PRIVACY : content.pages.TERMS;
+  const num = page.num;
+  const title = page.title;
+  const lede = page.lede;
   return (
     <Layout activeHref={activeHref} pageClose>
       <PageHero num={num} tag="Legal" lede={lede}>

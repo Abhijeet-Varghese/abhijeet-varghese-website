@@ -1,7 +1,6 @@
 import { Layout } from '@/components/Layout';
 import { useSiteChrome } from '@/lib/scroll';
-import { PROJECTS } from '@/content/projects';
-import { CAPABILITIES, CLIENTS } from '@/content/home';
+import { useContent } from '@/content/provider';
 import { Arrow } from '@/components/Arrow';
 
 /**
@@ -10,6 +9,10 @@ import { Arrow } from '@/components/Arrow';
  */
 export function PortfolioPage() {
   useSiteChrome();
+  const { content } = useContent();
+  const PROJECTS = content.projects.PROJECTS;
+  const CAPABILITIES = content.home.CAPABILITIES;
+  const CLIENTS = content.home.CLIENTS;
   return (
     <Layout activeHref="portfolio.html" pageClose>
       <section className="portfolio-hero t-dark" aria-label="Portfolio introduction">

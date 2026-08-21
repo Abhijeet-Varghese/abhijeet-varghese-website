@@ -1,10 +1,12 @@
-import { CONTACT } from '@/content/home';
-import { CHROME } from '@/content/chrome';
+import { useContent } from '@/content/provider';
 import { ChapterMeta } from './ChapterMeta';
 import { BookingGate } from '@/components/booking/BookingGate';
 import { SocialIcon } from '@/components/chrome/SocialIcon';
 
 export function Contact() {
+  const { content } = useContent();
+  const CONTACT = content.home.CONTACT;
+  const CHROME = content.chrome.CHROME;
   return (
     <section className="chapter contact t-dark" id="contact">
       <div className="contact__glow" aria-hidden="true" />
