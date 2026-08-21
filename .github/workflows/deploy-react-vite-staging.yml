@@ -1,19 +1,22 @@
 name: Deploy React/Vite Staging (safe)
 
 # ============================================================================
-# SAFE React/Vite staging pipeline — completely separate from the legacy path.
+# ACTIVE React/Vite staging pipeline — the ONLY path to Hostinger.
 #
-# TRIGGER: push to `staging-react-vite` only (+ manual workflow_dispatch).
-#          NEVER triggers from `main` or `hostinger`.
+# FLOW:
+#   staging-react-vite → npm ci → typecheck → Vite build (VITE_STAGING=1)
+#      → validate 25 routes → secret scan → leak check
+#      → assemble FLAT package (Vite build + PHP backend at branch root)
+#      → force-push `hostinger`
 #
-# TARGET:  builds frontend/dist, packages it WITH the PHP backend, and force
-#          -pushes a NEW branch `staging-react-vite-deploy` — it does NOT touch
-#          `hostinger`, does NOT touch `main`, and does NOT push to any Hostinger
-#          domain. Actual Hostinger ingestion of `staging-react-vite-deploy` is a
-#          separate, manual, Hostinger-side step (see runbook).
+# `hostinger` is the branch Hostinger's git deployment actually pulls into
+# /public_html/next/ → https://next.abhijeetvarghese.com . The branch root IS
+# the web root, so the package is assembled FLAT (no public_html/ wrapper) —
+# exactly matching the structure Hostinger has been serving.
 #
-# The legacy workflow (.github/workflows/deploy-staging.yml) is left UNTOUCHED
-# as the rollback path (main → subtree abhijeetvarghese/ → hostinger).
+# NEVER triggers from `main`. NEVER touches `main`.
+# The legacy deploy-staging.yml (main → abhijeetvarghese/ → hostinger) has been
+# retired so a main push can no longer overwrite hostinger with the old frontend.
 # ============================================================================
 
 on:
@@ -31,7 +34,7 @@ concurrency:
 
 jobs:
   build-and-package:
-    name: Build + validate + package staging
+    name: Build + validate + deploy to hostinger
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -102,44 +105,42 @@ jobs:
           fi
           echo "no dev/leak files"
 
-      - name: Assemble staging package (flat web root + private backend)
+      - name: Assemble FLAT staging package (branch root = web root)
         run: |
           set -euo pipefail
           PKG=_deploy
           rm -rf "$PKG"
           mkdir -p "$PKG"
 
-          # 1) WEB ROOT (flat React/Vite build at the top level — NOT under site/)
-          mkdir -p "$PKG/public_html"
-          cp -r frontend/dist/. "$PKG/public_html/"
-          # PHP public entry points live alongside the static build
-          cp -r avos-php/public_html/admin   "$PKG/public_html/"
-          cp -r avos-php/public_html/api     "$PKG/public_html/"
-          cp -r avos-php/public_html/install "$PKG/public_html/"
-          cp    avos-php/public_html/media.php "$PKG/public_html/"
-          # hardened staging .htaccess (blocks .git / private dirs / config / sql)
-          cp frontend/staging/htaccess "$PKG/public_html/.htaccess"
+          # 1) React/Vite build at the branch root (the web root for /public_html/next/)
+          cp -r frontend/dist/. "$PKG/"
 
-          # 2) PRIVATE backend (account root — OUTSIDE the web root)
-          cp -r avos-php/backend      "$PKG/"
-          cp -r avos-php/includes     "$PKG/"
-          cp -r avos-php/database     "$PKG/"
+          # 2) PHP public entry points alongside the static build
+          cp -r avos-php/public_html/admin   "$PKG/"
+          cp -r avos-php/public_html/api     "$PKG/"
+          cp -r avos-php/public_html/install "$PKG/"
+          cp    avos-php/public_html/media.php "$PKG/"
+
+          # 3) hardened staging .htaccess (blocks .git/dotfiles/private dirs/config/sql)
+          cp frontend/staging/htaccess "$PKG/.htaccess"
+
+          # 4) PHP engine (flat; protected from direct HTTP by the .htaccess rules)
+          cp -r avos-php/backend       "$PKG/"
+          cp -r avos-php/includes      "$PKG/"
+          cp -r avos-php/database      "$PKG/"
           cp -r avos-php/site-template "$PKG/"
-          mkdir -p "$PKG/storage"              # empty writable runtime skeleton
-          cp avos-php/router.php "$PKG/" 2>/dev/null || true
-          cp avos-php/config.local.example.php "$PKG/" 2>/dev/null || true
+          mkdir -p "$PKG/storage"                 # empty writable runtime skeleton
 
-          # 3) hard guarantees
-          test -f "$PKG/public_html/index.html"     || { echo "no web-root index"; exit 1; }
-          test -d "$PKG/public_html/assets"         || { echo "no hashed assets"; exit 1; }
-          test -d "$PKG/public_html/admin"          || { echo "admin missing"; exit 1; }
-          test -f "$PKG/public_html/api/index.php"  || { echo "api missing"; exit 1; }
-          test -f "$PKG/public_html/.htaccess"      || { echo ".htaccess missing"; exit 1; }
+          # 5) hard guarantees
+          test -f "$PKG/index.html"                 || { echo "no web-root index"; exit 1; }
+          test -d "$PKG/assets"                     || { echo "no hashed assets"; exit 1; }
+          test -d "$PKG/admin"                      || { echo "admin missing"; exit 1; }
+          test -f "$PKG/api/index.php"              || { echo "api missing"; exit 1; }
+          test -f "$PKG/.htaccess"                  || { echo ".htaccess missing"; exit 1; }
           test -d "$PKG/backend" && test -d "$PKG/includes" || { echo "backend/includes missing"; exit 1; }
-          test ! -d "$PKG/public_html/site"         || { echo "legacy site/ nesting leaked"; exit 1; }
           test ! -e "$PKG/config.local.php"         || { echo "config.local.php leaked"; exit 1; }
-          test ! -e "$PKG/public_html/config.local.php" || { echo "config.local.php leaked to web root"; exit 1; }
-          echo "package assembled: flat web root + private backend"
+          test ! -d "$PKG/css" && test ! -d "$PKG/js" || { echo "legacy css/js leaked"; exit 1; }
+          echo "flat package assembled (branch root = web root)"
 
       - name: Upload staging artifact (SFTP fallback)
         uses: actions/upload-artifact@v4
@@ -147,7 +148,7 @@ jobs:
           name: staging-react-vite-package
           path: _deploy/
 
-      - name: Publish deploy branch (staging-react-vite-deploy only)
+      - name: Publish to hostinger (the live staging branch)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -157,7 +158,7 @@ jobs:
           git -c user.name="github-actions[bot]" \
               -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
               commit -qm "staging-react-vite deploy $(date -u +%Y%m%d%H%M%S)"
-          # NEVER hostinger, NEVER main — this is the new dedicated staging target
+          # hostinger is the Hostinger-connected branch → next.abhijeetvarghese.com
           git push --force \
             "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
-            HEAD:staging-react-vite-deploy
+            HEAD:hostinger
