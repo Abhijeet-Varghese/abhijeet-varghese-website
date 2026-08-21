@@ -156,7 +156,16 @@ jobs:
           test -f frontend/dist/_redirects.htaccess || { echo "clean-URL rules not generated"; exit 1; }
           printf '\n' >> "$PKG/.htaccess"
           cat frontend/dist/_redirects.htaccess >> "$PKG/.htaccess"
-          rm -f "$PKG/_redirects.htaccess"          # rules are merged, not shipped separately
+          test -f frontend/dist/_csp.htaccess || { echo "CSP not generated"; exit 1; }
+          printf '\n' >> "$PKG/.htaccess"
+          cat frontend/dist/_csp.htaccess >> "$PKG/.htaccess"
+          rm -f "$PKG/_redirects.htaccess" "$PKG/_csp.htaccess"   # merged, not shipped separately
+
+          # §88: per-directory deny files must accompany every private directory
+          for d in backend includes database site-template storage; do
+            mkdir -p "$PKG/$d"
+            cp avos-php/scripts-security/private-dir.htaccess "$PKG/$d/.htaccess"
+          done
 
           # 4) PHP engine (flat; protected from direct HTTP by the .htaccess rules)
           cp -r avos-php/backend       "$PKG/"
@@ -180,6 +189,20 @@ jobs:
           STRAY=$(find "$PKG" -maxdepth 1 -name '*.html' ! -name 'index.html' ! -name '404.html' | head -n1)
           test -z "$STRAY" || { echo "page at extension URL: $STRAY"; exit 1; }
           grep -q 'RewriteRule .*R=301' "$PKG/.htaccess" || { echo "clean-URL redirects missing from .htaccess"; exit 1; }
+
+          # ---- §88 security acceptance on the assembled package -------------
+          grep -q 'Content-Security-Policy' "$PKG/.htaccess" || { echo "CSP missing from .htaccess"; exit 1; }
+          for d in backend includes database site-template storage; do
+            test -f "$PKG/$d/.htaccess" || { echo "per-directory deny missing: $d"; exit 1; }
+            grep -q 'Require all denied' "$PKG/$d/.htaccess" || { echo "deny rule missing: $d"; exit 1; }
+          done
+          test ! -e "$PKG/config.local.php" || { echo "config.local.php in package"; exit 1; }
+          test ! -e "$PKG/.env" || { echo ".env in package"; exit 1; }
+          test ! -d "$PKG/.git" || { echo ".git in package"; exit 1; }
+          BAD=$(find "$PKG" -type f \( -name '*.sql' -o -name '*.sql.gz' -o -name '*.bak' -o -name '*.log' \
+                -o -name '*.map' -o -name '*.pem' -o -name '*.key' \) -not -path "$PKG/database/*" | head -n1)
+          test -z "$BAD" || { echo "sensitive artefact in package: $BAD"; exit 1; }
+          echo "§88 package security guarantees: OK"
           echo "flat package assembled (branch root = web root)"
 
       - name: Inspect deployment package

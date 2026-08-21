@@ -39,34 +39,53 @@ function redirects() {
     '<IfModule mod_rewrite.c>',
     '  RewriteEngine On',
     '',
+    '  # LOOP GUARD (§6): only act on real client requests. Rule 4 performs an',
+    '  # internal rewrite to <path>/index.html; without this guard Apache',
+    '  # re-enters these rules and the legacy *.html redirect fires again,',
+    '  # 301-ing the clean URL to itself.',
+    '  RewriteCond %{ENV:REDIRECT_STATUS} ^$',
+    '  RewriteRule ^ - [E=AVOS_EXTERNAL:1]',
+    '',
     '  # 1) Legacy extension URLs → clean canonical (301, §31)',
+    '  RewriteCond %{ENV:AVOS_EXTERNAL} =1',
   ];
   for (const r of ROUTES) {
     if (!r.legacy || r.legacy === r.clean) continue;
     const from = r.legacy.replace(/^\//, '').replace(/[.+?^${}()|[\]\\]/g, '\\$&');
-    lines.push(`  RewriteRule ^${from}$ ${r.clean} [R=301,L]`);
+    lines.push(`  RewriteCond %{ENV:AVOS_EXTERNAL} =1`);
+    lines.push(`  RewriteRule ^${from}$ %{REQUEST_SCHEME}://%{HTTP_HOST}${r.clean} [R=301,L]`);
   }
   if (LEGACY.length) {
     lines.push('', '  # 1b) Retired URLs with no page of their own');
     for (const r of LEGACY) {
       const from = r.from.replace(/^\//, '').replace(/[.+?^${}()|[\]\\]/g, '\\$&');
-      lines.push(`  RewriteRule ^${from}$ ${r.to} [R=${r.status || 301},L]`);
+      lines.push(`  RewriteCond %{ENV:AVOS_EXTERNAL} =1`);
+      lines.push(`  RewriteRule ^${from}$ %{REQUEST_SCHEME}://%{HTTP_HOST}${r.to} [R=${r.status || 301},L]`);
     }
   }
 
   lines.push(
     '',
-    '  # 2) Any other *.html request → extensionless equivalent (301)',
+    '  # 2) Any other *.html request → extensionless equivalent (301).',
+    '  #    Application dirs are excluded: /os/ is a React SPA served from a',
+    '  #    real index.html, and /admin//install/ are PHP entry points.',
+    '  RewriteCond %{ENV:AVOS_EXTERNAL} =1',
+    '  RewriteCond %{REQUEST_URI} !^/(?:os|admin|install|api|assets)/ [NC]',
     '  RewriteCond %{THE_REQUEST} \\s/(.+?)\\.html[\\s?] [NC]',
-    '  RewriteRule ^ /%1 [R=301,L]',
+    '  RewriteRule ^ %{REQUEST_SCHEME}://%{HTTP_HOST}/%1 [R=301,L]',
     '',
-    '  # 3) Strip trailing slashes, except the site root (§30)',
-    '  RewriteCond %{REQUEST_FILENAME} !-d',
-    '  RewriteRule ^(.+?)/$ /$1 [R=301,L]',
+    '  # 3) Strip trailing slashes — the canonical form has none (§30).',
+    '  #    Applies to directories too, because clean URLs ARE directories.',
+    '  RewriteCond %{ENV:AVOS_EXTERNAL} =1',
+    '  RewriteCond %{REQUEST_URI} !^/(?:os|admin|install|api|assets)/ [NC]',
+    '  RewriteRule ^(.+?)/$ %{REQUEST_SCHEME}://%{HTTP_HOST}/$1 [R=301,L]',
     '',
-    '  # 4) Serve the directory-index file for a clean URL (internal, no redirect)',
+    '  # 4) Serve the directory-index file for a clean URL (internal, no redirect).',
+    '  #    Note: -d is deliberately NOT excluded. Clean URLs ARE directories,',
+    '  #    and with DirectorySlash Off we must serve their index ourselves —',
+    '  #    otherwise mod_dir 301s /story to /story/ and breaks the canonical.',
     '  RewriteCond %{REQUEST_FILENAME} !-f',
-    '  RewriteCond %{REQUEST_FILENAME} !-d',
+    '  RewriteCond %{REQUEST_URI} !^/(?:os|admin|install|api)/ [NC]',
     '  RewriteCond %{DOCUMENT_ROOT}/$1/index.html -f',
     '  RewriteRule ^(.+?)/?$ /$1/index.html [L]',
     '</IfModule>',

@@ -13,9 +13,29 @@ define('AV_ROOT', dirname(__DIR__, 2));                    // .../avos-php
 // like public_html/next/ (staging). AV_PUBLIC_DIR / AV_SITE_OUT_DIR let the
 // backend target a non-default web root without touching production defaults.
 define('AV_PUBLIC', getenv('AV_PUBLIC_DIR') ?: AV_ROOT . '/public_html');
+
+/**
+ * PRIVATE ROOT (§88 §2) — writable/secret state that must never be reachable
+ * over HTTP. Resolution order:
+ *   1. AV_PRIVATE_DIR env (hPanel → PHP → environment variables)
+ *   2. <parent of web root>/avos-private   ← preferred on Hostinger shared,
+ *      where git deployment can only write inside the web root
+ *   3. AV_ROOT/storage                     ← legacy in-web-root fallback,
+ *      which is why the deny rules and per-directory .htaccess still ship
+ * Fallback (3) is NOT considered secure on its own; deployment docs instruct
+ * creating (2) manually once, which git deployment cannot do for us.
+ */
+$__priv = getenv('AV_PRIVATE_DIR') ?: '';
+if ($__priv === '') {
+    $__candidate = dirname(AV_ROOT) . '/avos-private';
+    $__priv = is_dir($__candidate) ? $__candidate : AV_ROOT . '/storage';
+}
+define('AV_PRIVATE', rtrim($__priv, '/'));
+define('AV_PRIVATE_IS_OUTSIDE_WEBROOT', strpos(AV_PRIVATE, AV_ROOT . '/') !== 0);
+unset($__priv, $__candidate);
 define('AV_BACKEND', AV_ROOT . '/backend');
 define('AV_INSTALL', AV_ROOT . '/install');
-define('AV_STORAGE', AV_ROOT . '/storage');
+define('AV_STORAGE', AV_PRIVATE_IS_OUTSIDE_WEBROOT ? AV_PRIVATE : AV_ROOT . '/storage');
 define('AV_UPLOADS', AV_STORAGE . '/uploads');
 define('AV_CACHE', AV_STORAGE . '/cache');
 define('AV_VERSIONS', AV_STORAGE . '/versions');
@@ -52,9 +72,22 @@ $turnstile = ['site_key' => getenv('TURNSTILE_SITE_KEY') ?: '', 'secret_key' => 
 // it may override $env, $db, $encKey, $siteUrl, $turnstile, $sessionHours.
 // AV_SKIP_LOCAL_CONFIG=1 bypasses it — used only to simulate a pristine
 // production boot (CI/tests). Never set in real deployments.
-if (getenv('AV_SKIP_LOCAL_CONFIG') !== '1' && is_file(AV_ROOT . '/config.local.php')) {
-    require AV_ROOT . '/config.local.php';
+// Search order puts the out-of-web-root locations FIRST so a hardened install
+// is preferred over a legacy in-web-root file, even if both exist.
+$__cfgCandidates = array_filter([
+    getenv('AV_CONFIG_FILE') ?: '',
+    dirname(AV_ROOT) . '/avos-private/config.local.php',
+    dirname(AV_ROOT) . '/config.local.php',
+    AV_ROOT . '/config.local.php',            // legacy, in web root (deny-protected)
+]);
+$__cfgFile = '';
+foreach ($__cfgCandidates as $__c) { if (is_file($__c)) { $__cfgFile = $__c; break; } }
+define('AV_CONFIG_PATH', $__cfgFile);
+define('AV_CONFIG_OUTSIDE_WEBROOT', $__cfgFile !== '' && strpos($__cfgFile, AV_ROOT . '/') !== 0);
+if (getenv('AV_SKIP_LOCAL_CONFIG') !== '1' && $__cfgFile !== '') {
+    require $__cfgFile;
 }
+unset($__cfgCandidates, $__c, $__cfgFile);
 
 if (!defined('AV_ENV')) define('AV_ENV', $env);
 // local/development/staging = verbose debugging · production = sanitized errors

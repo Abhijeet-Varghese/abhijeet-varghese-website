@@ -6,7 +6,7 @@
   "description": "Abhijeet Varghese \u2014 React + TypeScript + Vite MPA (static build, PHP/MariaDB backend preserved)",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && vite build --ssr src/entry-server.tsx --outDir dist-server && node scripts/prerender.mjs && node scripts/generate-urls.mjs && node scripts/critical-css.mjs && node scripts/verify-urls.mjs",
+    "build": "vite build && vite build --ssr src/entry-server.tsx --outDir dist-server && node scripts/prerender.mjs && node scripts/generate-urls.mjs && node scripts/critical-css.mjs && node scripts/generate-csp.mjs && node scripts/verify-urls.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "subset-fonts": "python3 scripts/subset-fonts.py",

@@ -14,13 +14,26 @@
 Options -Indexes
 ErrorDocument 404 /404.html
 
+# Clean URLs are canonical WITHOUT a trailing slash (§30). mod_dir would
+# otherwise 301 /story → /story/ for every directory-backed page, contradicting
+# the canonical and adding a redirect hop to every navigation.
+<IfModule mod_dir.c>
+  DirectorySlash Off
+  DirectoryIndex index.html index.php
+</IfModule>
+
 # ---------------------------------------------------------------------------
 # 1) HARDENING — never expose .git, dotfiles, config, SQL, dumps, source
 # ---------------------------------------------------------------------------
 <FilesMatch "^\.">
   Require all denied
 </FilesMatch>
-<FilesMatch "\.(sql|md|lock|log|bak|sh|env|example|py|dist)$">
+<FilesMatch "\.(sql|sql\.gz|md|lock|log|bak|backup|old|orig|save|swp|tmp|sh|bash|env|example|py|dist|ini|yml|yaml|tpl|twig|sqlite|sqlite3|db|dump|tar|tgz|gz|zip|rar|7z|pem|key|crt|p12|pfx|ts|tsx|map)$">
+  Require all denied
+</FilesMatch>
+
+# Build/manifest and dependency metadata must never be served (§88 §4).
+<FilesMatch "^(composer\.(json|lock)|package(-lock)?\.json|pnpm-lock\.yaml|yarn\.lock|tsconfig.*\.json|vite\.config\..*|Dockerfile|Makefile|\.htpasswd|config.*\.php|.*\.local\.php)$">
   Require all denied
 </FilesMatch>
 
@@ -28,8 +41,13 @@ ErrorDocument 404 /404.html
   RewriteEngine On
 
   # block private paths if they ever land inside the web root
-  RewriteRule ^(?:backend|includes|storage|database|installer|site-template|\.git|vendor)/ - [F,L]
-  RewriteCond %{REQUEST_URI} (^|/)(config\.local\.php|config\.php|schema\.sql|seed\.php|bootstrap\.php|site\.json|\.env)$ [NC]
+  RewriteRule ^(?:backend|includes|storage|database|installer|install-data|site-template|avos-private|private|backups|logs|tests|docs|scripts|node_modules|src|\.git|\.github|\.vscode|vendor)/ - [F,L]
+  RewriteCond %{REQUEST_URI} (^|/)(config\.local\.php|config\.php|schema\.sql|provision\.sql|seed\.php|bootstrap\.php|site\.json|migrated-content\.json|\.env.*|\.gitignore|\.htpasswd)$ [NC]
+  RewriteRule ^ - [F,L]
+
+  # Deny any dotfile path segment (e.g. /.git/config, /foo/.env)
+  RewriteCond %{REQUEST_URI} (^|/)\.[^/]+ [NC]
+  RewriteCond %{REQUEST_URI} !^/\.well-known/ [NC]
   RewriteRule ^ - [F,L]
 </IfModule>
 
