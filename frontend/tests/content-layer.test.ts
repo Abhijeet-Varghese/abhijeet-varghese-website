@@ -120,7 +120,7 @@ const api: ApiContentPayload = {
     { id: 'prj-9', slug: '', client: 'Hidden', title: 'Draft Project', status: 'draft' },
   ],
   articles: [
-    { slug: 'essay-x', type: 'essay', status: 'published', title: 'Essay X', excerpt: 'ex', category: 'Design', body: 'Para one.\n\nPara two.', date: '2026-01-01' },
+    { slug: 'essay-x', type: 'essay', status: 'published', title: 'Essay X', excerpt: 'ex', category: 'Design', readTime: '6 min', paragraphs: ['Para one.', '', 'Para two.'], date: '2026-01-01', backLabel: '← All insights', backHref: 'insights.html' },
   ],
   clients: [{ id: 'c1', name: 'Amazon', logo: 'amazon.webp' }],
 };
@@ -131,9 +131,10 @@ const api: ApiContentPayload = {
   check('projects: industry→category', content.projects?.PROJECTS?.[0]?.category === 'Experience Design');
   check('projects: challenge→problem', content.projects?.PROJECTS?.[0]?.problem === 'Transform briefing');
   check('articles: type→kind', content.articles?.ARTICLES?.[0]?.kind === 'essay');
-  check('articles: body→paragraphs', content.articles?.ARTICLES?.[0]?.paragraphs?.length === 2);
+  check('articles: paragraphs preserved (incl. blank line)', content.articles?.ARTICLES?.[0]?.paragraphs?.length === 3);
+  check('articles: category+readTime→tag', content.articles?.ARTICLES?.[0]?.tag === 'Design · 6 min');
   check('clients: logo→file', (content.home?.CLIENTS as { logos?: { file: string }[] })?.logos?.[0]?.file === 'amazon.webp');
-  check('unmapped collections reported', report.unmapped.includes('experience') && report.unmapped.includes('story'));
+  check('no unmapped collections remain', report.unmapped.length === 0);
 }
 
 /* ------------------------------------------------------------------ */

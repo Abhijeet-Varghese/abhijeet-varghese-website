@@ -15,14 +15,40 @@ import { readFileSync } from 'node:fs';
 import { STATIC_CONTENT, type ContentDocument } from '../src/content/static-snapshot';
 import { validateContentPayload, describeValidation } from '../src/content/schema';
 import { adaptContentPayload } from '../src/content/adapt';
+import { mergeContent } from '../src/content/merge';
 
-type Status = 'MATCH' | 'MISSING' | 'EXTRA' | 'DIFFERENT' | 'UNMAPPED';
+type Status = 'MATCH' | 'MISSING' | 'EXTRA' | 'DIFFERENT' | 'UNMAPPED' | 'DERIVED';
 
 interface DiffEntry {
   status: Status;
   path: string;
   staticVal?: unknown;
   runtimeVal?: unknown;
+}
+
+/* ------------------------------------------------------------------ */
+/* derived/hardcoded renderer fields — not CMS content, excluded from   */
+/* the MISSING/DIFFERENT/UNMAPPED target                                */
+/* ------------------------------------------------------------------ */
+
+/** per-article SEO is derived at render time by articleSeo(). */
+const DERIVED_ARTICLE_SEO = /^articles\.ARTICLES\[\d+\]\.seo/;
+/** derived index/lookup exports (computed from ARTICLES at module load). */
+const DERIVED_EXPORTS = [
+  'articles.ARTICLES_BY_SLUG',
+  'articles.ESSAYS',
+  'articles.JOURNAL',
+  'articles.ESSAY_INDEX',
+  'articles.JOURNAL_INDEX',
+  'chrome.CHROME.brandHref', // build-time chrome (home link)
+];
+
+function isDerived(path: string): boolean {
+  if (DERIVED_ARTICLE_SEO.test(path)) return true;
+  for (const k of DERIVED_EXPORTS) {
+    if (path === k || path.startsWith(k + '.') || path.startsWith(k + '[')) return true;
+  }
+  return false;
 }
 
 /* ------------------------------------------------------------------ */
@@ -68,6 +94,10 @@ function diffLeaves(
       const hasA = k in a;
       const hasB = k in b;
       const p = path === '' ? k : `${path}.${k}`;
+      if (isDerived(p)) {
+        out.push({ status: 'DERIVED', path: p });
+        continue;
+      }
       if (!hasA) {
         out.push({ status: 'EXTRA', path: p, runtimeVal: b[k] });
       } else if (!hasB || b[k] === undefined) {
@@ -88,7 +118,7 @@ function diffLeaves(
 /* ------------------------------------------------------------------ */
 
 function summarize(entries: DiffEntry[]): Record<Status, number> {
-  const counts: Record<Status, number> = { MATCH: 0, MISSING: 0, EXTRA: 0, DIFFERENT: 0, UNMAPPED: 0 };
+  const counts: Record<Status, number> = { MATCH: 0, MISSING: 0, EXTRA: 0, DIFFERENT: 0, UNMAPPED: 0, DERIVED: 0 };
   for (const e of entries) counts[e.status] += 1;
   return counts;
 }
@@ -117,14 +147,9 @@ async function main(): Promise<void> {
   }
   console.log('· runtime payload validated:', describeValidation(result));
 
-  // ---- adapt + merge over static ----
+  // ---- adapt + merge over static (same merge the loader uses) ----
   const { content: adapted, report } = adaptContentPayload(payload);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const merged: Record<string, any> = { ...STATIC_CONTENT };
-  for (const key of Object.keys(adapted)) {
-    const v = (adapted as Record<string, unknown>)[key];
-    if (v !== undefined) merged[key] = { ...merged[key], ...(v as object) };
-  }
+  const merged = mergeContent(adapted);
 
   console.log('· adapted collections:', report.adapted.join(', '));
   console.log('· unmapped collections (no CMS equivalent):', report.unmapped.join(', '));
@@ -148,17 +173,17 @@ async function main(): Promise<void> {
 
   // ---- print ----
   console.log('== Parity report (static vs runtime) ==\n');
-  interface Row { collection: string; match: number; missing: number; extra: number; different: number; unmapped: number; leaves: number }
+  interface Row { collection: string; match: number; missing: number; extra: number; different: number; unmapped: number; derived: number; leaves: number }
   const rows: Row[] = [];
   for (const [col, entries] of Object.entries(byCollection)) {
     const c = summarize(entries);
     const leaves = countLeaves(STATIC_CONTENT[col as keyof ContentDocument]);
-    const match = c.UNMAPPED > 0 ? 0 : Math.max(0, leaves - c.MISSING - c.EXTRA - c.DIFFERENT);
-    rows.push({ collection: col, match, missing: c.MISSING, extra: c.EXTRA, different: c.DIFFERENT, unmapped: c.UNMAPPED, leaves });
+    const match = c.UNMAPPED > 0 ? 0 : Math.max(0, leaves - c.MISSING - c.EXTRA - c.DIFFERENT - c.DERIVED);
+    rows.push({ collection: col, match, missing: c.MISSING, extra: c.EXTRA, different: c.DIFFERENT, unmapped: c.UNMAPPED, derived: c.DERIVED, leaves });
   }
 
-  const table: string[][] = [['collection', 'MATCH', 'MISSING', 'EXTRA', 'DIFFERENT', 'UNMAPPED', 'leaves']];
-  for (const r of rows) table.push([r.collection, String(r.match), String(r.missing), String(r.extra), String(r.different), String(r.unmapped), String(r.leaves)]);
+  const table: string[][] = [['collection', 'MATCH', 'MISSING', 'EXTRA', 'DIFFERENT', 'DERIVED', 'UNMAPPED', 'leaves']];
+  for (const r of rows) table.push([r.collection, String(r.match), String(r.missing), String(r.extra), String(r.different), String(r.derived), String(r.unmapped), String(r.leaves)]);
   printTable(table);
 
   const totals = {
@@ -167,10 +192,11 @@ async function main(): Promise<void> {
     extra: rows.reduce((n, r) => n + r.extra, 0),
     different: rows.reduce((n, r) => n + r.different, 0),
     unmapped: rows.reduce((n, r) => n + r.unmapped, 0),
+    derived: rows.reduce((n, r) => n + r.derived, 0),
     leaves: rows.reduce((n, r) => n + r.leaves, 0),
   };
   console.log('');
-  console.log(`TOTALS → MATCH ${totals.match} · MISSING ${totals.missing} · EXTRA ${totals.extra} · DIFFERENT ${totals.different} · UNMAPPED ${totals.unmapped} (of ${totals.leaves} static leaves)`);
+  console.log(`TOTALS → MATCH ${totals.match} · MISSING ${totals.missing} · EXTRA ${totals.extra} · DIFFERENT ${totals.different} · DERIVED ${totals.derived} · UNMAPPED ${totals.unmapped} (of ${totals.leaves} static leaves)`);
 
   // ---- detail: DIFFERENT first (highest signal), then MISSING sample ----
   const different = all.filter((e) => e.status === 'DIFFERENT');

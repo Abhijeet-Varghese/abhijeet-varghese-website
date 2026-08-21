@@ -37,11 +37,16 @@ export interface ApiContentPayload {
   media?: unknown[];
   seo?: unknown[];
   downloads?: unknown[];
+  experience?: unknown[];
+  story?: Record<string, unknown>;
+  orange?: Record<string, unknown>;
+  page_content?: Record<string, unknown>;
+  page_seo?: Record<string, unknown>;
 }
 
 /** Collections that MUST be arrays (or objects) to be considered valid. */
-const ARRAY_KEYS = ['sections', 'pages', 'projects', 'articles', 'clients', 'testimonials', 'media', 'seo', 'downloads'] as const;
-const OBJECT_KEYS = ['settings', 'navigation'] as const;
+const ARRAY_KEYS = ['sections', 'pages', 'projects', 'articles', 'clients', 'testimonials', 'media', 'seo', 'downloads', 'experience'] as const;
+const OBJECT_KEYS = ['settings', 'navigation', 'story', 'orange', 'page_content', 'page_seo'] as const;
 
 export interface ValidationResult {
   ok: boolean;

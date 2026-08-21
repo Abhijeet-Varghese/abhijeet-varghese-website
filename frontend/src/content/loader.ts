@@ -19,6 +19,7 @@ import { STATIC_CONTENT, type ContentDocument } from './static-snapshot';
 import type { DeepPartial } from './types';
 import { validateContentPayload, describeValidation, type ApiContentPayload } from './schema';
 import { adaptContentPayload } from './adapt';
+import { mergeContent } from './merge';
 
 export type ContentSource = 'static' | 'runtime';
 export type ContentPhase = 'idle' | 'loading' | 'runtime' | 'fallback' | 'error';
@@ -178,20 +179,8 @@ class ContentLoader {
 
   /** Merge adapted runtime content over the static snapshot (per collection). */
   private applyRuntime(adapted: DeepPartial<ContentDocument>, revision: number | null, etag: string | null, started: number): void {
-    // Compact first: drop undefined/''/empty values so an empty or partial CMS
-    // document never blanks out a field that has static content (§11D).
-    const compacted = deepCompact(adapted) as DeepPartial<ContentDocument> | undefined;
-    // Shallow-merge per top-level collection: a collection present in the
-    // adapted content replaces the static one; anything absent keeps static.
-    const merged: ContentDocument = { ...STATIC_CONTENT };
-    for (const key of Object.keys(compacted ?? {}) as (keyof ContentDocument)[]) {
-      const value = (compacted as DeepPartial<ContentDocument>)[key];
-      if (value !== undefined) {
-        // @ts-expect-error — collection-level merge (each collection is a module namespace)
-        merged[key] = { ...merged[key], ...value };
-      }
-    }
-    this.doc = merged;
+    // Compact + merge over the static snapshot (shared with the parity checker).
+    this.doc = mergeContent(adapted);
     this.stateValue = {
       phase: 'runtime',
       source: 'runtime',
@@ -230,33 +219,6 @@ class ContentLoader {
       runtimeLoads: this.stateValue.runtimeLoads,
     };
   }
-}
-
-/**
- * Deep-compact: remove `undefined`/`null`/`''`/empty-array/empty-object leaves
- * (recursively). Used so empty runtime content falls back to static per-field
- * rather than overwriting it with blanks.
- */
-function isPlainObject(v: unknown): v is Record<string, unknown> {
-  return typeof v === 'object' && v !== null && !Array.isArray(v);
-}
-function isEmptyLeaf(v: unknown): boolean {
-  return v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0);
-}
-function deepCompact(v: unknown): unknown {
-  if (Array.isArray(v)) {
-    const out = v.map(deepCompact).filter((x) => !isEmptyLeaf(x));
-    return out.length ? out : undefined;
-  }
-  if (isPlainObject(v)) {
-    const out: Record<string, unknown> = {};
-    for (const [k, x] of Object.entries(v)) {
-      const c = deepCompact(x);
-      if (!isEmptyLeaf(c)) out[k] = c;
-    }
-    return Object.keys(out).length ? out : undefined;
-  }
-  return v;
 }
 
 /** Singleton loader (one content source per session). */

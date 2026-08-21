@@ -509,6 +509,12 @@ final class ApiController
             'media' => array_values($doc['media'] ?? []),
             'seo' => array_values($doc['seo'] ?? []),
             'downloads' => $published($doc['downloads'] ?? []),
+            // Phase 4 (content migration): structured content collections.
+            'experience' => array_values($doc['experience'] ?? []),
+            'story' => $doc['story'] ?? [],
+            'orange' => $doc['orange'] ?? [],
+            'page_content' => $doc['page_content'] ?? [],
+            'page_seo' => $doc['page_seo'] ?? [],
         ];
 
         // generatedAt is metadata only and intentionally excluded from the ETag
