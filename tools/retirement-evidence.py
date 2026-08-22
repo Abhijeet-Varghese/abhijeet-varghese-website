@@ -50,6 +50,8 @@ ENTRY_GLOBS = [
     "cli/avos",
     "app/Autoloader.php",
     "tests/next/run.php",
+    "tests/next/auth.php",
+    "public-next/api/index.php",        # Phase 3C new API front controller
 ]
 
 
@@ -240,7 +242,7 @@ def main() -> None:
         # Consumer evidence has priority over reachability (per brief).
         is_new_stack = any(
             f.as_posix().find(seg) >= 0
-            for seg in ("/app/", "/cli/", "/database/next/", "/tests/next/")
+            for seg in ("/app/", "/cli/", "/database/next/", "/tests/next/", "/public-next/")
         )
         legacy_admin_only = f.as_posix().find("public_html/admin/") >= 0
         is_legacy_engine = any(k in rel for k in (
