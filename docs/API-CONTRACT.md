@@ -641,3 +641,23 @@ every guard runs before a single byte is emitted.
 | Automated orphan cleanup | **DEFERRED to a maintenance phase** — §3F.22 requires report-only |
 | Derivatives for private assets | **NOT PLANNED** — a public derivative of a private asset defeats the point |
 | S3 / external DAM | **FORBIDDEN** by the locked architecture |
+
+## Correction (Phase 3F re-verification) — public asset URL prefix
+
+`StorageManager::PUBLIC_URL_PREFIX` is **`/assets`**, not `/assets/media`. The
+public disk is rooted at `<publicRoot>/assets` and every relative path already
+begins with `media/`, so a `/assets/media` prefix produced
+`/assets/media/media/…` — a URL that 404s.
+
+`StorageManager::publicUrlFor()` is now the **only** place a public asset URL is
+constructed; `AssetRepository` and `VariantRepository` call it instead of
+building the string themselves. The regression test resolves the URL against the
+document root rather than against the constant, so it cannot pass while the
+constant is wrong.
+
+Canonical form:
+
+```
+/assets/media/2026/08/ab/<24-hex>.<ext>                originals (public assets)
+/assets/media/2026/08/ab/<24-hex>-hero-1280.webp       derivatives
+```

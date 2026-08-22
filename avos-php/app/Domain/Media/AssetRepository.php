@@ -167,7 +167,8 @@ final class AssetRepository
             'replaced_by'     => $row['replaced_by'] === null ? null : (int)$row['replaced_by'],
             'uploaded_by'     => $row['uploaded_by'] === null ? null : (int)$row['uploaded_by'],
             'url'             => $row['public_path'] !== ''
-                                 ? '/assets/media/' . ltrim((string)$row['public_path'], '/') : null,
+                                 ? \AvOS\Media\Storage\StorageManager::publicUrlFor((string)$row['public_path'])
+                                 : null,
             'download_url'    => '/api/v1/media/' . (int)$row['id'] . '/download',
             'variants'        => $variants,
             'usage_count'     => count($usage),
@@ -193,7 +194,8 @@ final class AssetRepository
             'duration_ms' => $row['duration_ms'] === null ? null : (int)$row['duration_ms'],
             'focal'       => ['x' => (float)$row['focal_x'], 'y' => (float)$row['focal_y']],
             'url'         => $row['public_path'] !== ''
-                             ? '/assets/media/' . ltrim((string)$row['public_path'], '/') : null,
+                             ? \AvOS\Media\Storage\StorageManager::publicUrlFor((string)$row['public_path'])
+                             : null,
             'variants'    => $variants,
         ];
     }

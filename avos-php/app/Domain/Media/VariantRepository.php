@@ -81,7 +81,7 @@ final class VariantRepository
                 'width'   => $r['width'] === null ? null : (int)$r['width'],
                 'height'  => $r['height'] === null ? null : (int)$r['height'],
                 'bytes'   => (int)$r['bytes'],
-                'url'     => '/assets/media/' . ltrim((string)$r['public_path'], '/'),
+                'url'     => \AvOS\Media\Storage\StorageManager::publicUrlFor((string)$r['public_path']),
             ];
         }
         return $out;

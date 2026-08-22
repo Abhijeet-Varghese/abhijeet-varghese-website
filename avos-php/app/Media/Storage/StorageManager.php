@@ -25,7 +25,17 @@ use AvOS\Config\Config;
  */
 final class StorageManager
 {
-    public const PUBLIC_URL_PREFIX = '/assets/media';
+    /**
+     * URL prefix for the PUBLIC disk root.
+     *
+     * The public disk is rooted at `<publicRoot>/assets`, and every relative
+     * path already begins with `media/`. The prefix is therefore `/assets`, NOT
+     * `/assets/media` — getting that wrong produced `/assets/media/media/...`,
+     * a URL that 404s. That bug existed because three classes each built the
+     * URL with their own string literal, so this is now the only place it is
+     * constructed.
+     */
+    public const PUBLIC_URL_PREFIX = '/assets';
 
     private ?LocalFilesystemStorage $private = null;
     private ?LocalFilesystemStorage $public = null;
@@ -93,7 +103,18 @@ final class StorageManager
      */
     public function publicUrl(string $relative): string
     {
-        return self::PUBLIC_URL_PREFIX . '/' . ltrim($relative, '/');
+        return self::publicUrlFor($relative);
+    }
+
+    /**
+     * The single place a public asset URL is built. Static so repositories can
+     * use it without holding a StorageManager, and so there is exactly one
+     * definition rather than one per caller.
+     */
+    public static function publicUrlFor(string $relative): string
+    {
+        $relative = ltrim($relative, '/');
+        return $relative === '' ? '' : self::PUBLIC_URL_PREFIX . '/' . $relative;
     }
 
     /**

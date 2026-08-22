@@ -113,25 +113,26 @@ foreach ([$MGR, $SEO] as $e) $conn->run('DELETE FROM users WHERE email = ?', [$e
 $mgrId = $users->create('ZZZ HTTP Media Mgr', $MGR, $PW, ['media_manager'], false)->id;
 $seoId = $users->create('ZZZ HTTP SEO Mgr', $SEO, $PW, ['seo_manager'], false)->id;
 
-$makePng = static function (int $w, int $h): string {
-    if (Capabilities::hasImagick()) {
-        $im = new Imagick();
-        $im->newImage($w, $h, new ImagickPixel('rgb(30,120,90)'));
-        $im->setImageFormat('png');
-        $b = (string)$im->getImagesBlob();
-        $im->clear();
-        return $b;
-    }
-    $img = imagecreatetruecolor($w, $h);
-    imagefill($img, 0, 0, imagecolorallocate($img, 30, 120, 90));
-    ob_start(); imagepng($img); $b = (string)ob_get_clean();
-    imagedestroy($img);
-    return $b;
+/**
+ * A real PNG built with zlib alone — no Imagick, no GD. The HTTP suite must be
+ * runnable on a host with no image library, otherwise it cannot honestly test
+ * that such a host still accepts uploads.
+ */
+$makePng = static function (int $w, int $h, array $rgb = [30, 120, 90]): string {
+    $chunk = static fn(string $t, string $d): string =>
+        pack('N', strlen($d)) . $t . $d . pack('N', crc32($t . $d));
+    $ihdr = pack('NN', $w, $h) . chr(8) . chr(2) . chr(0) . chr(0) . chr(0);
+    $row = str_repeat(chr($rgb[0]) . chr($rgb[1]) . chr($rgb[2]), $w);
+    return "\x89PNG\r\n\x1a\n"
+         . $chunk('IHDR', $ihdr)
+         . $chunk('IDAT', (string)gzcompress(str_repeat(chr(0) . $row, $h), 9))
+         . $chunk('IEND', '');
 };
 // Unique bytes per run so the hash never collides with a previous execution.
 $nonce = bin2hex(random_bytes(8));
-$png = $makePng(1500, 1000);
-$png2 = $makePng(1200, 900);
+$tint = [random_int(0, 255), random_int(0, 255), random_int(0, 255)];
+$png = $makePng(1500, 1000, $tint);
+$png2 = $makePng(1200, 900, $tint);
 $pdf = "%PDF-1.4\n% zzz-avos-http {$nonce}\n1 0 obj<</Type/Catalog>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n";
 
 /* -------------------------- unauthenticated ----------------------------- */
@@ -327,7 +328,7 @@ HM::eq('  …usage is empty again', $detach['body']['data']['total'] ?? -1, 0);
 /* ------------------------------ replace ---------------------------------- */
 HM::group('3F.23 replace over HTTP');
 
-$png3 = $makePng(1000, 700);
+$png3 = $makePng(1000, 700, $tint);
 $replace = $req('POST', '/api/v1/media/' . $mediaId . '/replace', [
     'filename' => 'zzz-avos-http-hero-v2.png', 'content_base64' => base64_encode($png3),
 ], $CT);

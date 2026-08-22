@@ -88,23 +88,36 @@ final class M
 /** Everything is generated in-process; no binary fixture is committed. */
 final class Fx
 {
-    public static function png(int $w = 800, int $h = 600): string
+    /**
+     * A real PNG built with NO image library at all — just zlib, which is core.
+     *
+     * This exists because the first version of this suite used Imagick/GD to
+     * build its own fixtures, so on a host with neither the suite crashed
+     * instead of reporting NOT AVAILABLE. A test harness must not require the
+     * capability it is meant to be able to report as missing.
+     */
+    public static function png(int $w = 800, int $h = 600, array $rgb = [30, 110, 170]): string
     {
-        if (Capabilities::hasImagick()) {
-            $im = new Imagick();
-            $im->newImage($w, $h, new ImagickPixel('rgba(20,80,160,1)'));
-            $im->setImageFormat('png');
-            $b = $im->getImagesBlob();
-            $im->clear();
-            return (string)$b;
-        }
-        $img = imagecreatetruecolor($w, $h);
-        imagefill($img, 0, 0, imagecolorallocate($img, 20, 80, 160));
-        ob_start(); imagepng($img); $b = (string)ob_get_clean();
-        imagedestroy($img);
-        return $b;
+        $chunk = static fn(string $type, string $data): string =>
+            pack('N', strlen($data)) . $type . $data . pack('N', crc32($type . $data));
+
+        // 8-bit truecolour, no interlace.
+        $ihdr = pack('NN', $w, $h) . chr(8) . chr(2) . chr(0) . chr(0) . chr(0);
+
+        $row = str_repeat(chr($rgb[0]) . chr($rgb[1]) . chr($rgb[2]), $w);
+        $raw = str_repeat(chr(0) . $row, $h);        // filter byte 0 per scanline
+
+        return "\x89PNG\r\n\x1a\n"
+             . $chunk('IHDR', $ihdr)
+             . $chunk('IDAT', (string)gzcompress($raw, 9))
+             . $chunk('IEND', '');
     }
 
+    /**
+     * A JPEG. Needs a real encoder for arbitrary dimensions; when none exists
+     * it falls back to an embedded 1x1 baseline JPEG, which is enough for the
+     * tests that only need "some valid JPEG bytes".
+     */
     public static function jpeg(int $w = 1600, int $h = 1000): string
     {
         if (Capabilities::hasImagick()) {
@@ -115,11 +128,25 @@ final class Fx
             $im->clear();
             return (string)$b;
         }
-        $img = imagecreatetruecolor($w, $h);
-        imagefill($img, 0, 0, imagecolorallocate($img, 200, 30, 30));
-        ob_start(); imagejpeg($img, null, 90); $b = (string)ob_get_clean();
-        imagedestroy($img);
-        return $b;
+        if (Capabilities::hasGd()) {
+            $img = imagecreatetruecolor($w, $h);
+            imagefill($img, 0, 0, imagecolorallocate($img, 200, 30, 30));
+            ob_start(); imagejpeg($img, null, 90); $b = (string)ob_get_clean();
+            imagedestroy($img);
+            return $b;
+        }
+        return self::tinyJpeg();
+    }
+
+    /** A minimal valid baseline JPEG (1x1), embedded so no encoder is needed. */
+    public static function tinyJpeg(): string
+    {
+        return (string)base64_decode(
+            '/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0a'
+          . 'HBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAA'
+          . 'AAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==',
+            true,
+        );
     }
 
     /** A JPEG carrying an EXIF block with GPS strings, for the stripping test. */
@@ -355,7 +382,7 @@ $reject('GIF/PHP polyglot refused',
 $reject('PNG with an appended PHP payload refused',
     'trojan.png', $png . $phpBody, 'EMBEDDED_SCRIPT');
 $reject('a JPEG body under a .png name refused (signature)',
-    'mislabelled.png', $jpeg, 'MIME_MISMATCH');
+    'mislabelled.png', Fx::tinyJpeg(), 'MIME_MISMATCH');
 
 // --- filename attacks ------------------------------------------------------
 $reject('null byte in the filename refused', "image\0.php.png", $png, 'UNSAFE_FILENAME');
@@ -599,8 +626,11 @@ if ($dbUp) {
     /* ================= UPLOAD + IMAGE PIPELINE ======================== */
     M::group('3F.8 / 3F.30 image upload and real derivatives');
 
-    $bigJpeg = Fx::jpeg(2400, 1600);
-    $up = $svc->upload('zzz-avos-hero.jpg', $bigJpeg, ['alt_text' => 'ZZZ synthetic hero']);
+    // A PNG, not a JPEG: it can be built without any image library, so the
+    // upload/storage/hashing half of this group runs even on a host with no
+    // rasteriser. Derivative generation below is capability-gated.
+    $bigJpeg = Fx::png(2400, 1600);
+    $up = $svc->upload('zzz-avos-hero.png', $bigJpeg, ['alt_text' => 'ZZZ synthetic hero']);
     $imageId = (int)$up['asset']['id'];
 
     M::ok('image uploaded', $imageId > 0);
@@ -732,7 +762,7 @@ if ($dbUp) {
     /* ==================== 3F.19 DUPLICATE DETECTION =================== */
     M::group('3F.19 duplicate detection');
 
-    $dupe = $svc->upload('zzz-avos-hero-again.jpg', $bigJpeg);
+    $dupe = $svc->upload('zzz-avos-hero-again.png', $bigJpeg);
     M::eq('identical bytes are reported as a duplicate', $dupe['duplicate'], true);
     M::eq('the duplicate points at the existing asset', $dupe['duplicate_of'], $imageId);
     M::eq('no second row was created', (int)$conn->scalar(
@@ -1164,6 +1194,33 @@ if ($dbUp) {
     M::group('3F.25 public asset URLs');
 
     $pubAsset = $svc->getAdmin($newId);
+
+    // THE assertion that was missing. The URL previously read
+    // /assets/media/media/... — a doubled segment that 404s — and every other
+    // check here passed anyway, because none of them resolved the URL back to
+    // a file. This one does.
+    // Resolved the way a WEB SERVER would: document root + URL path. This is
+    // deliberately independent of PUBLIC_URL_PREFIX — an earlier version of
+    // this check stripped the URL using the same constant that built it, so it
+    // passed even while the URL was wrong. A circular assertion is worse than
+    // no assertion, because it looks like coverage.
+    $resolveAsWebServer = static fn(?string $url): string =>
+        ($url === null || $url === '') ? '' : $pubRoot . $url;
+
+    M::ok('the public URL resolves to a real file under the document root',
+        is_file($resolveAsWebServer($pubAsset['url'])));
+    M::ok('the URL has no duplicated path segment',
+        !str_contains((string)$pubAsset['url'], '/media/media/'));
+    M::eq('the URL path equals /assets + the stored public_path',
+        (string)$pubAsset['url'],
+        '/assets/' . (string)$assetRepo->findById($newId)['public_path']);
+
+    foreach ($variantRepo->forMedia($newId) as $vRow) {
+        M::ok('every derivative URL resolves to a real file under the document root',
+            is_file($resolveAsWebServer(StorageManager::publicUrlFor((string)$vRow['public_path']))));
+        break;
+    }
+
     M::ok('the public URL has no .php', !str_contains((string)$pubAsset['url'], '.php'));
     M::ok('the public URL has no .html', !str_contains((string)$pubAsset['url'], '.html'));
     M::ok('the public URL exposes no filesystem path',
