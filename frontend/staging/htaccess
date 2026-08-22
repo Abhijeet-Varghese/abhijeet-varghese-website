@@ -71,27 +71,24 @@ ErrorDocument 404 /404.html
 
     # /api/v1/* → the NEW AV OS API front controller (Phase 3D–3F).
     #
-    # LITESPEED NOTE — verified on the real host, not assumed. The first version
-    # of this rule was:
+    # LITESPEED FINDINGS — measured on the real host, not assumed:
     #
-    #     RewriteCond %{REQUEST_URI} !^/api/v1/index\.php$
-    #     RewriteRule ^api/v1(?:/.*)?$ api/v1/index.php [L,QSA]
+    #  1. A non-capturing optional group, ^api/v1(?:/.*)?$, is never matched by
+    #     LiteSpeed, although every other rewrite in this file works.
+    #  2. LiteSpeed ignores `DirectorySlash Off` for real directories: /api/v1
+    #     still 301s to /api/v1/.
+    #  3. LiteSpeed resolves /api/* to api/index.php with PATH_INFO BEFORE
+    #     .htaccess rewrites run, so a physical api/v1/ directory was shadowed
+    #     by the legacy handler and sub-paths reached the wrong runtime.
     #
-    # LiteSpeed silently did not match it, while every other rewrite in this
-    # file worked (/story.html → 301, /media/* → media.php, /admin → login.php,
-    # /backend/ → 403). The non-capturing optional group `(?:/.*)?` is not
-    # handled the way Apache handles it. Rewritten below in the same simple
-    # shape as the rules that demonstrably work on this host.
+    # The fix is to keep the new front controller OUT of the api/ tree entirely.
+    # It ships as a single root-level file, avos-api.php, so no directory can
+    # shadow it and no PATH_INFO walk can capture it. The controller resolves
+    # its own app root upward, so the mount point does not matter.
     #
-    # The `!-f` guard means api/v1/index.php is served directly as a real file,
-    # so the rewrite cannot re-enter and loop. REQUEST_URI is preserved, which
-    # is what the router reads, so path parameters survive.
-    #
-    # The legacy unversioned /api/* surface is untouched and still served by
-    # api/index.php.
-    RewriteRule ^api/v1$ api/v1/index.php [L,QSA]
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteRule ^api/v1/(.*)$ api/v1/index.php [L,QSA]
+    # Legacy unversioned /api/* is untouched and still served by api/index.php.
+    RewriteRule ^api/v1$ avos-api.php [L,QSA]
+    RewriteRule ^api/v1/(.*)$ avos-api.php [L,QSA]
 
     # /media/* → private-storage media server
     RewriteRule ^media/(.+)$ media.php?f=$1 [L,QSA]
