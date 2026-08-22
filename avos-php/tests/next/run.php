@@ -160,6 +160,45 @@ T::ok('safeReport exposes booleans, not secrets',
     $report['enc_key_set'] === true && $report['enc_key_strong'] === true
     && !in_array(str_repeat('k', 40), array_map('strval', array_values($report)), true));
 
+// --- amendment A15: $dbNext keeps the two runtimes on separate databases ---
+// The legacy backend reads $db from the SAME private file, so $db must stay
+// pointed at the legacy database while the new runtime uses its own.
+$legacyDb = ['host' => 'lh', 'name' => 'legacy_db', 'user' => 'legacy_u', 'pass' => 'lp', 'charset' => 'utf8mb4'];
+
+$only = $mk(['db' => $legacyDb, 'encKey' => str_repeat('k', 40)]);
+T::eq('without $dbNext the legacy $db block is used', $only->get('database.name'), 'legacy_db');
+T::eq('without $dbNext the profile reports db', $only->get('config_meta.db_profile'), 'db');
+
+$both = $mk([
+    'db'     => $legacyDb,
+    'dbNext' => ['name' => 'next_db', 'user' => 'next_u', 'pass' => 'np'],
+    'encKey' => str_repeat('k', 40),
+]);
+T::eq('$dbNext overrides the database name', $both->get('database.name'), 'next_db');
+T::eq('$dbNext overrides the database user', $both->get('database.user'), 'next_u');
+T::eq('$dbNext inherits unspecified keys from $db', $both->get('database.host'), 'lh');
+T::eq('$dbNext inherits the charset from $db', $both->get('database.charset'), 'utf8mb4');
+T::eq('the profile reports dbNext when present', $both->get('config_meta.db_profile'), 'dbNext');
+T::eq('safeReport exposes the profile name', $both->safeReport()['db_profile'], 'dbNext');
+T::ok('safeReport never exposes a database name or password',
+    !in_array('next_db', array_map('strval', array_values($both->safeReport())), true)
+    && !in_array('np', array_map('strval', array_values($both->safeReport())), true));
+T::eq('$dbNext is still subject to the production guard',
+    $mk(['db' => $legacyDb, 'dbNext' => ['name' => 'n', 'user' => 'avos', 'pass' => 'p'], 'encKey' => str_repeat('k', 40)])
+        ->productionProblems(),
+    ['default development database credentials detected']);
+
+// --- debug may be narrowed, never widened -------------------------------
+T::ok('production never enables debug', $mk($good, 'production')->isDebug() === false);
+T::ok('staging enables debug by default', $mk($good, 'staging')->isDebug() === true);
+T::ok('a public staging host can switch debug off from the private config',
+    $mk($good + ['debug' => false], 'staging')->isDebug() === false);
+putenv('AV_DEBUG=0');
+T::ok('AV_DEBUG=0 switches debug off', $mk($good, 'staging')->isDebug() === false);
+putenv('AV_DEBUG=1');
+T::ok('AV_DEBUG=1 cannot switch debug on in production', $mk($good, 'production')->isDebug() === false);
+putenv('AV_DEBUG=');
+
 /* ============================ 3A · SECURITY PRIMITIVES ================== */
 T::group('3A.6 security primitives');
 

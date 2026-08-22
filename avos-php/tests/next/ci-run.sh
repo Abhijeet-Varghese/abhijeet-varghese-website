@@ -40,7 +40,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"   # -> avos-php
 cd "$ROOT"
 
-MIN_TESTS="${AVOS_MIN_TESTS:-1150}"
+MIN_TESTS="${AVOS_MIN_TESTS:-1181}"
 HTTP_PORT="${AVOS_HTTP_PORT:-8199}"
 
 CLI_SUITES=(run auth api content media)

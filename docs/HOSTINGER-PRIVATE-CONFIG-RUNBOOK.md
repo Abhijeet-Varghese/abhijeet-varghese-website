@@ -48,27 +48,61 @@ mkdir -p ~/avos-private/{logs,backups,uploads,cache,versions}
 chmod 700 ~/avos-private
 ```
 
-Create `~/avos-private/config.local.php` with your **existing** values —
-copy them from the current `/home/u747717869/public_html/next/config.local.php`.
-Do not retype secrets, do not paste them into chat, do not commit the file.
+### 2a · A SECOND DATABASE IS REQUIRED (measured, not assumed)
+
+The new runtime **must not** share the legacy staging database. 20 table names
+collide (`users`, `roles`, `sessions`, `media`, `projects`, `leads`, `forms`,
+`audit_logs`, …) with incompatible definitions. Reproduced against a real copy
+of the legacy schema:
+
+```
+php cli/avos migrate          FAILS  012_media_engine.sql: Unknown column 'kind' in 'media'
+php cli/avos schema:validate  missing_columns 52 · missing_indexes 27
+```
+
+Worse, the failed run still writes ~50 new tables **into the legacy database**.
+So: **never point the new runtime at the legacy database, not even once.**
+
+In **hPanel → Databases → MySQL Databases**:
+
+1. create a new database, e.g. `u747717869_avos_next`;
+2. grant the **existing** staging DB user access to it (no new password needed),
+   or create a dedicated user if you prefer.
+
+### 2b · Write the private config
+
+Create `~/avos-private/config.local.php` with your **existing** values — copy
+`$db`, `$encKey` from the current
+`/home/u747717869/public_html/next/config.local.php`. Do not retype secrets, do
+not paste them into chat, do not commit the file.
 
 ```php
 <?php
 // AV OS — PRIVATE configuration. Outside the web root. Never committed.
-$env = 'production';
+$env = 'staging';          // next.abhijeetvarghese.com is the staging host
+$debug = false;            // public host: never emit stack traces (A15)
 
+// LEGACY runtime — leave exactly as it is today.
 $db = [
   'host'    => 'localhost',
-  'name'    => '',   // existing value
+  'name'    => '',   // existing legacy database
   'user'    => '',   // existing value
   'pass'    => '',   // existing value
   'charset' => 'utf8mb4',
+];
+
+// NEW runtime (amendment A15). Keys omitted here are inherited from $db,
+// so normally only the database name changes.
+$dbNext = [
+  'name' => 'u747717869_avos_next',
+  // 'user' => '', 'pass' => '',   // only if you created a dedicated user
 ];
 
 $sessionHours = 12;
 $encKey       = '';  // EXISTING AV_ENC_KEY — must not change, or stored
                      // secrets become undecryptable. Rotation is a separate step.
 $siteUrl      = 'https://next.abhijeetvarghese.com';
+$ownerEmail   = '';  // private owner address — this file only, never in git
 $turnstile    = ['site_key' => '', 'secret_key' => ''];
 ```
 
@@ -77,8 +111,7 @@ chmod 600 ~/avos-private/config.local.php
 ```
 
 > **Permissions note.** `700`/`600` is correct on Hostinger because PHP runs as
-> your account user. My local rig runs Apache as `www-data`, so I tested with
-> `755`/`644`; the mechanism is identical, only the owning user differs.
+> your account user.
 
 ---
 
@@ -100,8 +133,43 @@ The application walks up from the web root looking for `avos-private/`,
 segment**. From `/public_html/next` it correctly rejects `/public_html` and
 selects `/home/u747717869/avos-private`.
 
-*Verified locally with zero environment variables:* `config_source: "AV_PRIVATE"`,
-`private_source: "ancestor"`, both `outside_webroot: true`.
+*Verified in an exact replica of this layout, with zero environment variables:*
+`config_source: "ancestor:avos-private"`, `private_source: "ancestor:avos-private"`,
+both `outside_webroot: true`.
+
+---
+
+## 3a · Create the schema and the first owner (SSH)
+
+`cli/` now ships with the package, deny-protected (`Require all denied`,
+`php_flag engine off`) so it is unreachable over HTTP and usable only over SSH.
+
+```bash
+cd ~/public_html/next
+
+php cli/avos health            # config source, outside-webroot flags, DB reachability
+php cli/avos migrate           # 12 migrations -> 61 tables in the NEW database
+php cli/avos seed              # 49 permissions · 7 roles · 9 settings · 3 nav groups
+php cli/avos schema:validate   # must print all four counters as 0
+php cli/avos owner:init        # first owner account; prompts for a password (echo off)
+```
+
+`health` prints booleans and category names only. The expected shape:
+
+```json
+"config": { "env": "staging", "config_source": "ancestor:avos-private",
+            "db_profile": "dbNext", "config_outside_webroot": true,
+            "private_outside_webroot": true, "db_password_set": true,
+            "enc_key_set": true, "enc_key_strong": true },
+"database": { "ok": true, "database_exists": true, "table_count": 61 }
+```
+
+`db_profile` **must read `dbNext`** — if it reads `db`, the new runtime is
+pointed at the legacy database: stop and fix `$dbNext` before migrating.
+
+`owner:init` never accepts the address or the password as an argument, refuses a
+piped password, and refuses to run twice. Nothing it prints contains the
+address.
 
 ---
 
@@ -130,9 +198,16 @@ silently return. Leave it off until the private config is confirmed working.
 **a) The application boots**
 
 ```
-https://next.abhijeetvarghese.com/api/session
+https://next.abhijeetvarghese.com/api/v1/system/health     NEW runtime
+→ {"ok":true,"data":{"status":"ok","application":"alive",
+                     "database":"reachable","config":"valid",...}}
+
+https://next.abhijeetvarghese.com/api/session              LEGACY runtime
 → {"ok":true,"data":{"authed":false,...}}
 ```
+
+Before the private config exists both return HTTP 500 `CONFIGURATION_ERROR` —
+that is the correct fail-closed state, not a routing fault.
 
 **b) The old path is gone**
 

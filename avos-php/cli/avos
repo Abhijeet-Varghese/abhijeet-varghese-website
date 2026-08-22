@@ -160,11 +160,80 @@ switch ($command) {
         exit($report['ok'] ? 0 : 1);
     }
 
+    /**
+     * owner:init — create the FIRST owner account.
+     *
+     * A migrated + seeded database has roles and permissions but no users, so
+     * nothing can log in. The address is never an argument (it comes from the
+     * configured owner identity) and the password is never an argument either —
+     * it is read from the terminal with echo disabled, so neither value can
+     * reach argv, shell history, a process list or a log.
+     */
+    case 'owner:init': {
+        $bootstrap = new AvOS\Identity\OwnerBootstrap(
+            new AvOS\Identity\UserRepository($db, new AvOS\Auth\PasswordHasher()),
+            AvOS\Identity\EmailIdentity::fromConfig($kernel->config),
+        );
+
+        $state = $bootstrap->status();
+        $line();
+        $line('  owner address configured : ' . ($state['owner_address_configured'] ? 'yes' : 'NO'));
+        $line('  owner account exists     : ' . ($state['owner_account_exists'] ? 'yes' : 'no'));
+        $line('  active users             : ' . $state['user_count']);
+        $line();
+
+        if ($hasFlag('--status')) exit(0);
+
+        if (!$state['owner_address_configured']) {
+            fwrite(STDERR, "Set AV_OWNER_EMAIL (or \$ownerEmail in the private config) first.\n");
+            exit(1);
+        }
+        if ($state['owner_account_exists']) {
+            fwrite(STDERR, "An owner account already exists. This command creates the first one only.\n");
+            exit(1);
+        }
+        if (!stream_isatty(STDIN)) {
+            fwrite(STDERR, "Refusing to read a password from a pipe. Run this in an interactive shell.\n");
+            exit(1);
+        }
+
+        $prompt = static function (string $label): string {
+            fwrite(STDOUT, $label);
+            $hidden = @shell_exec('stty -echo 2>/dev/null; echo ok') !== null;
+            $value = rtrim((string)fgets(STDIN), "\r\n");
+            if ($hidden) { @shell_exec('stty echo 2>/dev/null'); fwrite(STDOUT, PHP_EOL); }
+            return $value;
+        };
+
+        $pw1 = $prompt('  owner password        : ');
+        $pw2 = $prompt('  repeat password       : ');
+        if ($pw1 === '' || $pw1 !== $pw2) {
+            fwrite(STDERR, "Passwords did not match. Nothing was created.\n");
+            exit(1);
+        }
+
+        try {
+            $result = $bootstrap->create($flagVal('name', 'Owner'), $pw1);
+        } catch (Throwable $e) {
+            // The identity is redacted defensively: a validation message can
+            // echo the address back ("is already registered").
+            fwrite(STDERR, AvOS\Identity\EmailIdentity::fromConfig($kernel->config)->redact($e->getMessage()) . "\n");
+            exit(1);
+        } finally {
+            $pw1 = $pw2 = str_repeat("\0", 64);
+        }
+
+        $line('  ' . json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        $line();
+        break;
+    }
+
     default:
         $line();
         $line('  AV OS CLI');
         $line('    migrate [--dry-run] · status · rollback [--steps=N]');
         $line('    fresh · reset · seed · health · schema:validate');
+        $line('    owner:init [--status] [--name=NAME]   first owner account');
         $line();
         $line('  environment: ' . $kernel->environment->name());
         $line();

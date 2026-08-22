@@ -661,3 +661,68 @@ Canonical form:
 /assets/media/2026/08/ab/<24-hex>.<ext>                originals (public assets)
 /assets/media/2026/08/ab/<24-hex>-hero-1280.webp       derivatives
 ```
+
+## Amendment A15 — private configuration: `$dbNext`, `db_profile`, `AV_DEBUG`
+
+**Why.** The legacy backend and the new runtime read the **same** private
+`config.local.php`, but they cannot share a **database**: 20 table names collide
+(`users`, `roles`, `sessions`, `media`, `projects`, `leads`, `forms`,
+`audit_logs`, `permissions`, `role_permissions`, `login_attempts`, `redirects`,
+`site_settings`, `notifications`, `rate_limits`, `email_templates`,
+`form_submissions`, `builder_components`, `builder_nodes`, `builder_templates`)
+and the definitions differ. Measured against a real legacy database:
+
+```
+php cli/avos migrate          -> FAILS  012_media_engine.sql: Unknown column 'kind' in 'media'
+php cli/avos schema:validate  -> missing_columns 52 · missing_indexes 27
+```
+
+`CREATE TABLE IF NOT EXISTS` silently keeps the legacy definition, so the new
+runtime would query columns that do not exist — and the failed run still writes
+~50 new tables into the legacy database. The two runtimes therefore get two
+databases from one config file.
+
+**Contract.**
+
+| Variable | Read by | Meaning |
+|---|---|---|
+| `$db` | legacy backend **and** new runtime (fallback) | legacy database — unchanged |
+| `$dbNext` | new runtime only | new database; keys given here override `$db`, keys omitted are inherited |
+| `$debug` | new runtime | `false` forces debug off even in `staging` |
+
+Precedence is unchanged: **environment variables still win** over both.
+Omitting `$dbNext` reproduces the previous behaviour exactly.
+
+**Diagnostics.** `Config::safeReport()` and
+`GET /api/v1/system/health` (authenticated `detail` shape) gain:
+
+```json
+"database_profile": "dbNext" | "db",
+"config_source":    "AV_CONFIG_FILE" | "AV_PRIVATE_DIR" | "ancestor:avos-private" | "legacy-in-webroot"
+```
+
+A **name**, never a value — it proves the new runtime is on its own database
+rather than silently sharing the legacy one. The public health shape is
+unchanged.
+
+**`AV_DEBUG`.** Debug may only ever be *narrowed*: `AV_DEBUG=0` (or `$debug =
+false`) switches it off on a public staging host; `AV_DEBUG=1` can **not** turn
+it on in production.
+
+## Amendment A16 — `cli/avos owner:init` and the shipped `cli/`
+
+A migrated + seeded database holds 7 roles and 49 permissions and **zero users**,
+so nothing can authenticate. `owner:init` creates exactly one account:
+
+* the address is **never an argument** — it comes from `AV_OWNER_EMAIL` /
+  `$ownerEmail`, so it cannot reach argv, shell history or a process list;
+* the password is **never an argument** — read from the terminal with echo off,
+  and the command refuses to read one from a pipe;
+* it refuses when an owner already exists (it is not a password-reset path);
+* its output is redacted (`"email": "[redacted]"`).
+
+`cli/` is now included in the deployment package because there is no other way
+to run the real migration engine on shared hosting. It ships with the standard
+private-directory deny file (`Require all denied`, `php_flag engine off`,
+`RemoveHandler .php`), so it is unreachable and non-executable over HTTP; it is
+usable only as `php cli/avos …` over SSH. `tests/` still never ships.

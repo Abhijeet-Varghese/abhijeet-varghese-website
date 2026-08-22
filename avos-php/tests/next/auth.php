@@ -411,6 +411,46 @@ $st = $identity->status();
 A::ok('identity status exposes presence only, never the value',
     $st['owner_email_set'] === true && !in_array($OWNER_EMAIL, array_values($st), true));
 
+/* ============================ OWNER BOOTSTRAP =========================== */
+A::group('3C.3 first-owner bootstrap');
+
+$bootstrapExisting = new \AvOS\Identity\OwnerBootstrap($users, $identity);
+A::ok('reports the configured owner address as present',
+    $bootstrapExisting->status()['owner_address_configured'] === true);
+A::ok('detects the existing owner account', $bootstrapExisting->exists());
+A::throws('refuses to create a second owner',
+    fn() => $bootstrapExisting->create('Owner', $PW), 'CONFLICT');
+
+$bootstrapUnset = new \AvOS\Identity\OwnerBootstrap($users, $noOwner);
+A::ok('unconfigured owner address is reported, not guessed',
+    $bootstrapUnset->status()['owner_address_configured'] === false);
+A::ok('unconfigured owner never reports an existing account', !$bootstrapUnset->exists());
+A::throws('refuses to create when no owner address is configured',
+    fn() => $bootstrapUnset->create('Owner', $PW), 'CONFIGURATION_ERROR');
+
+$FRESH_OWNER = 'owner-bootstrap-fixture@example.test';
+$freshIdentity = new EmailIdentity('hi@abhijeetvarghese.com', 'no-reply@abhijeetvarghese.com', $FRESH_OWNER);
+$freshBootstrap = new \AvOS\Identity\OwnerBootstrap($users, $freshIdentity);
+A::ok('a not-yet-created owner reports absent', !$freshBootstrap->exists());
+A::throws('a weak owner password is rejected',
+    fn() => $freshBootstrap->create('Owner', 'abc'), 'VALIDATION_ERROR');
+
+$created = $freshBootstrap->create('Site Owner', $PW);
+A::ok('creates the first owner account', ($created['created'] ?? false) === true && $created['user_id'] > 0);
+A::eq('the new account holds the owner role', $created['roles'], ['owner']);
+A::ok('the owner is not forced to change password on first login',
+    $created['must_change_password'] === false);
+A::ok('the created owner can authenticate',
+    $users->findByEmail($FRESH_OWNER)?->id === $created['user_id']);
+A::ok('the result never contains the owner address',
+    !str_contains(json_encode($created, JSON_UNESCAPED_SLASHES) ?: '', $FRESH_OWNER));
+A::eq('the result redacts the address explicitly', $created['email'], '[redacted]');
+A::ok('a second run is refused once the account exists', $freshBootstrap->exists());
+A::throws('the bootstrap is not a password reset path',
+    fn() => $freshBootstrap->create('Site Owner', $PW . 'x'), 'CONFLICT');
+
+$users->softDelete($created['user_id']);
+
 /* ============================= MFA BOUNDARY ============================= */
 A::group('3C.14 MFA boundary (declared, not implemented)');
 

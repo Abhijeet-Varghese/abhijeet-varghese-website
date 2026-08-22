@@ -28,11 +28,24 @@ final class Config
      */
     public static function build(ConfigResolver $resolver, array $fileVars, Environment $env): self
     {
-        $db = is_array($fileVars['db'] ?? null) ? $fileVars['db'] : [];
+        // Legacy runtime credentials. The SAME private file is read by the old
+        // backend, so `$db` must keep pointing at the legacy database.
+        $dbLegacy = is_array($fileVars['db'] ?? null) ? $fileVars['db'] : [];
+        // Contract amendment A15: `$dbNext` lets one private config serve both
+        // runtimes. The new schema shares 20 table names with the legacy one
+        // (users, roles, sessions, media, projects, leads, forms, audit_logs, …)
+        // with INCOMPATIBLE definitions, so the two must not share a database.
+        // Absent `$dbNext`, behaviour is exactly as before.
+        $db = is_array($fileVars['dbNext'] ?? null) ? ($fileVars['dbNext'] + $dbLegacy) : $dbLegacy;
+
+        // Debug may only ever be NARROWED, never widened: production can never
+        // turn it on, and a public staging host can turn it off.
+        $debug = $env->debugAllowed();
+        if (getenv('AV_DEBUG') === '0' || ($fileVars['debug'] ?? null) === false) $debug = false;
 
         $data = [
             'env'      => $env->name(),
-            'debug'    => $env->debugAllowed(),
+            'debug'    => $debug,
 
             'database' => [
                 'host'    => self::pick(getenv('DB_HOST'), $db['host'] ?? null, '127.0.0.1'),
@@ -98,6 +111,10 @@ final class Config
             ],
 
             'config_meta' => [
+                // WHICH variable in the private file supplied the credentials.
+                // A name, never a value — proves the new runtime is on its own
+                // database rather than silently sharing the legacy one.
+                'db_profile'              => isset($fileVars['dbNext']) ? 'dbNext' : 'db',
                 'path'                    => $resolver->resolve(),
                 'source'                  => $resolver->source(),
                 'outside_webroot'         => $resolver->isConfigOutsideWebRoot(),
@@ -189,6 +206,7 @@ final class Config
             'env'                     => $this->env(),
             'debug'                   => $this->isDebug(),
             'config_source'           => $this->get('config_meta.source'),
+            'db_profile'              => $this->get('config_meta.db_profile'),
             'config_outside_webroot'  => $this->get('config_meta.outside_webroot'),
             'private_source'          => $this->get('config_meta.private_source'),
             'private_outside_webroot' => $this->get('config_meta.private_outside_webroot'),

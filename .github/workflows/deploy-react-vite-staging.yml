@@ -100,7 +100,7 @@ jobs:
       DB_USER: avos_ci
       AVOS_TEST_HOST: 127.0.0.1
       AVOS_TEST_USER: avos_ci
-      AVOS_MIN_TESTS: '1150'    # current verified baseline; a shrink fails CI
+      AVOS_MIN_TESTS: '1181'    # current verified baseline; a shrink fails CI
 
     steps:
       - name: Checkout
@@ -448,8 +448,13 @@ jobs:
           # shadowed by the legacy handler. The controller resolves app/ upward,
           # so this mount point works.
           cp avos-php/public-next/api/index.php "$PKG/avos-api.php"
-          # cli/ and tests/ are development entry points and are deliberately
-          # NOT shipped.
+          # cli/ IS shipped, deny-protected. Migrations have to be applied on the
+          # server somehow, and there is no other way to run the real migration
+          # engine on shared hosting. It is CLI-only PHP invoked over SSH
+          # (`php cli/avos migrate`); the private-dir deny file makes it
+          # unreachable AND non-executable over HTTP. tests/ stays out.
+          cp -r avos-php/cli "$PKG/"
+          cp avos-php/scripts-security/private-dir.htaccess "$PKG/cli/.htaccess"
 
           # Deploy fingerprint — lets anyone confirm WHICH package is live
           # without guessing at Hostinger's pull latency. Contains no secret.
@@ -488,8 +493,14 @@ jobs:
             if (!$found) { fwrite(STDERR, "front controller cannot resolve app/\n"); exit(1); }
             echo "  new API front controller resolves app/ correctly\n";
           '
+          # cli/ ships for SSH migrations, but must be inert over HTTP
+          test -f "$PKG/cli/avos"                   || { echo "cli/avos missing (SSH migrations impossible)"; exit 1; }
+          test -f "$PKG/cli/.htaccess"              || { echo "cli/ deny file missing"; exit 1; }
+          grep -q 'Require all denied' "$PKG/cli/.htaccess" || { echo "cli/ deny rule missing"; exit 1; }
+          grep -q 'engine off' "$PKG/cli/.htaccess" || { echo "cli/ php engine not disabled"; exit 1; }
+          test -f "$PKG/database/next/migrations/001_identity.sql" || { echo "new migrations not packaged"; exit 1; }
+          test "$(ls -1 "$PKG"/database/next/migrations/*.sql | wc -l)" -eq 12 || { echo "expected 12 new migrations"; exit 1; }
           # development-only entry points must never ship
-          test ! -d "$PKG/cli"                      || { echo "cli/ leaked into package"; exit 1; }
           test ! -d "$PKG/tests"                    || { echo "tests/ leaked into package"; exit 1; }
           test ! -d "$PKG/public-next"              || { echo "public-next/ leaked into package"; exit 1; }
           test -d "$PKG/os/assets"                  || { echo "React admin assets missing"; exit 1; }

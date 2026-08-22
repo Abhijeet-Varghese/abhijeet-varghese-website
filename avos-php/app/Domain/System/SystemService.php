@@ -63,6 +63,8 @@ final class SystemService
             // AUTHENTICATED shape: still no secrets — booleans and categories.
             $payload['detail'] = [
                 'environment'             => $this->config->env(),
+                'database_profile'        => (string)$this->config->get('config_meta.db_profile', 'db'),
+                'config_source'           => (string)$this->config->get('config_meta.source', 'none'),
                 'database_latency_ms'     => $dbLatency,
                 'config_outside_webroot'  => (bool)$this->config->get('config_meta.outside_webroot'),
                 'private_outside_webroot' => (bool)$this->config->get('config_meta.private_outside_webroot'),
