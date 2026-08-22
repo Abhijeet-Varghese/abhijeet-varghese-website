@@ -25,11 +25,19 @@ final class SchemaValidator
     public function expected(): array
     {
         $tables = [];
+        $alters = [];
         foreach (glob(rtrim($this->migrationsDir, '/') . '/*.sql') ?: [] as $file) {
             $sql = (string)file_get_contents($file);
             $up = MigrationRunner::parse($sql)['up'];
             foreach ($up as $stmt) {
                 if (preg_match('/CREATE TABLE IF NOT EXISTS\s+`?(\w+)`?\s*\((.*)\)\s*ENGINE/is', $stmt, $m) !== 1) {
+                    // Later migrations extend earlier tables by ALTER, because
+                    // the earlier files are checksummed and must not be edited.
+                    // Without this branch the validator would be blind to every
+                    // column added after the table was first created.
+                    if (preg_match('/^\s*ALTER\s+TABLE\s+`?(\w+)`?(.*)$/is', $stmt, $am) === 1) {
+                        $alters[] = [$am[1], $am[2]];
+                    }
                     continue;
                 }
                 [$name, $body] = [$m[1], $m[2]];
@@ -47,6 +55,29 @@ final class SchemaValidator
                     }
                 }
                 $tables[$name] = ['columns' => $cols, 'indexes' => $indexes];
+            }
+        }
+
+        // Apply ALTERs in file order, after every CREATE has been collected.
+        foreach ($alters as [$table, $body]) {
+            if (!isset($tables[$table])) continue;
+            if (preg_match_all(
+                '/(?:ADD|MODIFY)\s+(?:COLUMN\s+)?`?(\w+)`?\s+([A-Za-z]+)/i',
+                $body, $cm, PREG_SET_ORDER,
+            )) {
+                foreach ($cm as $c) {
+                    // Skip ADD KEY / ADD CONSTRAINT / ADD UNIQUE, handled below.
+                    if (in_array(strtoupper($c[1]), ['KEY', 'INDEX', 'CONSTRAINT', 'UNIQUE', 'PRIMARY', 'FOREIGN'], true)) {
+                        continue;
+                    }
+                    $tables[$table]['columns'][$c[1]] = strtolower($c[2]);
+                }
+            }
+            if (preg_match_all('/ADD\s+(?:UNIQUE\s+)?KEY\s+`?(\w+)`?/i', $body, $km, PREG_SET_ORDER)) {
+                foreach ($km as $k) $tables[$table]['indexes'][] = $k[1];
+            }
+            if (preg_match_all('/DROP\s+COLUMN\s+`?(\w+)`?/i', $body, $dm, PREG_SET_ORDER)) {
+                foreach ($dm as $d) unset($tables[$table]['columns'][$d[1]]);
             }
         }
         return $tables;

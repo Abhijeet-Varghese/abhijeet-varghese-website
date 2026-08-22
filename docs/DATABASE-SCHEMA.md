@@ -393,3 +393,42 @@ migration failure during the first fresh run.
 | `content_versions.entity_id` | polymorphic; history must outlive a hard-deleted entity |
 | `media_usage.entity_id` | polymorphic across page/project/article/builder_node |
 | `rate_limits.bucket` | pure counter, no entity |
+
+---
+
+## §11 · Phase 3E additions (migration 011)
+
+`011_content_engine.sql` extends the content tables by `ALTER`, because
+migrations 001–010 are checksummed and must not be edited. **No table was
+created or dropped — the count stays at 60 (+ `avos_migrations` = 61).**
+
+| Table | Columns added | ENUM widened |
+|---|---|---|
+| `pages` | `excerpt` `content`(JSON) `published_at` `author_id` | yes |
+| `projects` | `description` `content`(JSON) `metadata`(JSON) `published_at` `author_id` `created_by` `updated_by` | yes |
+| `articles` | `featured` `published_at` `created_by` `updated_by` | yes |
+| `experience` | `content`(JSON) `published_at` `author_id` `created_by` `updated_by` | yes (3 → 6 values) |
+
+All four `status` ENUMs are now identical:
+`draft, review, scheduled, published, unpublished, archived`.
+`experience.status` default moves `published` → `draft`.
+
+**`publish_at` vs `published_at` are different columns on purpose.**
+`publish_at` is scheduling intent; `published_at` is the moment the content
+actually went live and is cleared on unpublish. See API-CONTRACT amendment A4.
+
+FKs added to `users(id) ON DELETE SET NULL` for every actor column, plus
+`idx_pages_published`, `idx_proj_published`, `idx_art_featured`.
+
+### Schema validation now covers `ALTER TABLE`
+
+`SchemaValidator::expected()` previously parsed only `CREATE TABLE`, so every
+column added after a table's first migration was ungated. It now applies
+`ADD/MODIFY/DROP COLUMN` and `ADD KEY` in file order (amendment A8). Proven by
+dropping `pages.excerpt` by hand and confirming the gate reported it.
+
+### Still true
+
+MariaDB has **no native JSON type**: `JSON` is `LONGTEXT` + an automatic
+`json_valid()` CHECK, and `information_schema` reports `longtext`. The
+validator treats `json ≡ longtext`. The new JSON columns behave the same way.

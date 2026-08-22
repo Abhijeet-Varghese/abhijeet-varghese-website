@@ -53,6 +53,14 @@ ENTRY_GLOBS = [
     "tests/next/auth.php",
     "public-next/api/index.php",        # Phase 3C/3D API front controller
     "tests/next/api.php",               # Phase 3D test suite
+    # --- Phase 3E: content engine. Registered per the §3D.23 standing
+    # requirement — every new runtime entry point must be declared here BEFORE
+    # the analyzer runs, or it classifies the new code as DELETE. The content
+    # API adds no new front controller (it mounts on the Phase 3D one), but it
+    # does add two test entry points and a dev-only router.
+    "tests/next/content.php",           # Phase 3E test suite
+    "tests/next/content-http.php",      # Phase 3E real-HTTP suite
+    "tests/next/dev-router.php",        # dev-only `php -S` router, never shipped
 ]
 
 

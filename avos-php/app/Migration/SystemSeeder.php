@@ -19,7 +19,13 @@ final class SystemSeeder
 {
     /** domain => [action => label] */
     private const PERMISSIONS = [
-        'content'    => ['read' => 'Read content', 'write' => 'Edit content'],
+        // content.delete added in Phase 3E (contract amendment A6): the API
+        // contract routes experience CRUD through `content.*`, but the Phase 2
+        // permission set had no delete action for that domain — pages/projects/
+        // articles all have one. Granted ONLY through the owner/administrator
+        // wildcard, matching the fact that editors and content managers do not
+        // hold pages.delete either.
+        'content'    => ['read' => 'Read content', 'write' => 'Edit content', 'delete' => 'Delete content'],
         'pages'      => ['read' => 'Read pages', 'write' => 'Edit pages', 'delete' => 'Delete pages'],
         'projects'   => ['read' => 'Read projects', 'write' => 'Edit projects', 'delete' => 'Delete projects'],
         'articles'   => ['read' => 'Read articles', 'write' => 'Edit articles', 'delete' => 'Delete articles'],
