@@ -51,7 +51,8 @@ ENTRY_GLOBS = [
     "app/Autoloader.php",
     "tests/next/run.php",
     "tests/next/auth.php",
-    "public-next/api/index.php",        # Phase 3C new API front controller
+    "public-next/api/index.php",        # Phase 3C/3D API front controller
+    "tests/next/api.php",               # Phase 3D test suite
 ]
 
 

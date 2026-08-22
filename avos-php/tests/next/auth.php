@@ -428,22 +428,29 @@ $conn->run('UPDATE users SET twofa_enabled=0 WHERE id=?', [$ids['media_manager']
 /* ============================== HTTP LAYER ============================== */
 A::group('3C.18 API request handling');
 
+// Phase 3D added a required $requestId to Request and moved router failures
+// to ApiException. Updated here; no Phase 3C runtime code changed.
 $mkReq = static fn(string $m, string $p, string $body = '', array $h = []): Request =>
-    new Request($m, $p, [], array_merge(['content-type' => 'application/json'], $h), $body, '127.0.0.1', 'test');
+    new Request($m, $p, [], array_merge(['content-type' => 'application/json'], $h),
+        $body, '127.0.0.1', 'test', 'AV-3C-TEST');
 
-A::throws('malformed JSON is rejected',
-    fn() => $mkReq('POST', '/x', '{not json')->json(), 'VALIDATION_ERROR');
-A::throws('oversized body is rejected',
-    fn() => $mkReq('POST', '/x', str_repeat('a', Request::MAX_BODY_BYTES + 10))->json(), 'PAYLOAD_TOO_LARGE');
-A::throws('wrong content type is rejected',
-    fn() => $mkReq('POST', '/x', '{}', ['content-type' => 'text/plain'])->json(), 'UNSUPPORTED_MEDIA');
+$apiCode = static function (callable $fn): string {
+    try { $fn(); return 'none'; }
+    catch (\AvOS\Api\ApiException $e) { return $e->code(); }
+    catch (Throwable $e) { return $e::class; }
+};
+A::eq('malformed JSON is rejected', $apiCode(fn() => $mkReq('POST', '/x', '{not json')->json()), 'INVALID_JSON');
+A::eq('oversized body is rejected',
+    $apiCode(fn() => $mkReq('POST', '/x', str_repeat('a', Request::MAX_BODY_BYTES + 10))->json()), 'PAYLOAD_TOO_LARGE');
+A::eq('wrong content type is rejected',
+    $apiCode(fn() => $mkReq('POST', '/x', '{}', ['content-type' => 'text/plain'])->json()), 'UNSUPPORTED_MEDIA_TYPE');
 A::eq('valid JSON decodes', $mkReq('POST', '/x', '{"a":1}')->json(), ['a' => 1]);
 A::eq('empty body decodes to an empty array', $mkReq('POST', '/x', '')->json(), []);
 
 $router = new Router();
 $router->post('/api/v1/auth/login', static fn(Request $r) => ['status' => 200, 'body' => ['ok' => true]]);
-A::throws('unknown route returns NOT_FOUND',
-    fn() => $router->dispatch($mkReq('GET', '/api/v1/nope')), 'NOT_FOUND');
+A::eq('unknown route returns NOT_FOUND',
+    $apiCode(fn() => $router->dispatch($mkReq('GET', '/api/v1/nope'))), 'NOT_FOUND');
 A::ok('known route dispatches',
     $router->dispatch($mkReq('POST', '/api/v1/auth/login', '{}'))['status'] === 200);
 

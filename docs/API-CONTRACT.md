@@ -154,3 +154,112 @@ used for file deletion.
   alongside each controller so they cannot drift from the implementation.
 - Webhook payload signatures — **DEFERRED to Phase 3O**.
 - Analytics event taxonomy — **UNKNOWN**, needs product input.
+
+
+---
+
+# Phase 3D — IMPLEMENTED (amendments and status)
+
+Everything above this line remains the *plan*. This section records what is
+actually built as of Phase 3D. Endpoints not listed here are **PLANNED**.
+
+## Amendment A1 — response envelope (supersedes §1 above)
+
+§3D.4 of the Phase 3D brief specifies a different envelope from the Phase 2
+contract. It is implemented as specified and recorded here rather than changed
+silently:
+
+| | Phase 2 contract | Implemented (Phase 3D) |
+|---|---|---|
+| request id | inside `error.request_id` | **top level `request_id`**, on success *and* failure |
+| validation detail key | `error.fields` | **`error.details`** |
+
+`error.request_id` is **retained as a duplicate** so any Phase 3C client that
+already reads it keeps working. Both shapes are emitted.
+
+```json
+{ "ok": true,  "data": {...}, "error": null, "request_id": "AV-20260822-89CE04" }
+{ "ok": false, "data": null,
+  "error": { "code": "VALIDATION_ERROR", "message": "...", "details": {...},
+             "request_id": "AV-..." },
+  "request_id": "AV-..." }
+```
+
+## Amendment A2 — error codes
+
+The catalog implements 16 codes: the 14 required by §3D.5 plus
+`PAYLOAD_TOO_LARGE` (413) and `UNSUPPORTED_MEDIA_TYPE` (415), which the request
+parser needs. `ErrorCatalog` owns the code→status mapping; controllers cannot
+invent one.
+
+## Amendment A3 — shared HTTP primitives changed
+
+`Http\Request` gained a required `$requestId`; `Http\Router` now throws
+`ApiException` (was `AppException`). No Phase 3C **runtime** code changed, but
+the Phase 3C **test file** was updated to match. Recorded because Phase 3C is
+frozen.
+
+## IMPLEMENTED endpoints (10)
+
+| Method | Path | Auth | Permission | Rate limit |
+|---|---|---|---|---|
+| POST | `/api/v1/auth/login` | public | — | 20 / 15 min |
+| POST | `/api/v1/auth/logout` | session | — | — |
+| GET | `/api/v1/auth/session` | optional | — | — |
+| POST | `/api/v1/auth/password/change` | required | — | 10 / 15 min |
+| POST | `/api/v1/auth/password/reset/request` | public | — | 5 / 15 min |
+| POST | `/api/v1/auth/password/reset/complete` | public | — | 10 / 15 min |
+| GET | `/api/v1/system/health` | optional | — | — |
+| GET | `/api/v1/system/settings` | required | `settings.read` | — |
+| GET | `/api/v1/system/settings/{key}` | required | `settings.read` | — |
+| GET | `/api/v1/system/owner-status` | required | **owner only** | — |
+
+`HEAD` is accepted wherever `GET` is.
+
+## Pagination (IMPLEMENTED)
+
+```json
+{ "items": [...],
+  "pagination": { "page": 1, "per_page": 25, "total": 9,
+                  "total_pages": 1, "has_more": false } }
+```
+`per_page` default 25, **hard maximum 100**. No endpoint may return an
+unbounded set.
+
+## Filtering & sorting (IMPLEMENTED)
+
+`?field=value&sort=field&order=asc|desc`. Both filter and sort fields come from
+a per-endpoint allow-list. A disallowed **filter** is ignored; a disallowed
+**sort or order** is a `422`. Values are always bound parameters — a request can
+never contribute SQL text.
+
+## CORS (IMPLEMENTED)
+
+Allow-list from `AV_CORS_ORIGINS` (comma-separated). Default is **empty**:
+same-origin only, no CORS headers emitted. `Access-Control-Allow-Origin: *` is
+never sent — these APIs are credentialed. A disallowed origin receives no
+allow-origin header; a disallowed preflight receives `403`.
+
+| Environment | Typical value |
+|---|---|
+| local | `http://localhost:5173` |
+| staging | `https://next.abhijeetvarghese.com` |
+| production | empty (same-origin) |
+
+## Security headers (IMPLEMENTED)
+
+Applied to **every** response including 404/405:
+`X-Content-Type-Options: nosniff` · `Referrer-Policy: no-referrer` ·
+`Cache-Control: no-store, no-cache, must-revalidate, private` · `Pragma: no-cache` ·
+`X-Frame-Options: DENY` · `X-Request-Id` · `X-Powered-By` removed.
+
+## Versioning
+
+`/api/v1` is current and additive-only. A future `/api/v2` mounts as a second
+router namespace in `ApiKernel`; v1 routes stay registered and unchanged until
+the evidence tool reports zero consumers. **v2 is not implemented.**
+
+## Still PLANNED (not built)
+
+Content, pages, projects, articles, media, routes, redirects, navigation, SEO,
+forms, leads, CRM, bookings, WebGL, animations, publishing, audit, jobs.
