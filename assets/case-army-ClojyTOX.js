@@ -1,0 +1,1 @@
+import{h as o,j as m}from"./app-DlEuRiBh.js";import{C as r}from"./ComingSoonCase-BxcsafUv.js";import"./scroll-CtL8EErh.js";import"./Arrow-CCZmLYQa.js";o(()=>m.jsx(r,{slug:"immersive-solutions-for-the-indian-army"}),"case-army");

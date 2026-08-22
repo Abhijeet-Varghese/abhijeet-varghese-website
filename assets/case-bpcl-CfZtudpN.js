@@ -1,0 +1,1 @@
+import{h as i,j as e}from"./app-DlEuRiBh.js";import{C as o}from"./ComingSoonCase-BxcsafUv.js";import"./scroll-CtL8EErh.js";import"./Arrow-CCZmLYQa.js";i(()=>e.jsx(o,{slug:"intuitive-experiences-for-industrial-environments"}),"case-bpcl");

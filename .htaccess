@@ -1,0 +1,228 @@
+# ============================================================================
+# AV OS — staging web-root .htaccess (flat React/Vite + PHP backend)
+#
+# This is the .htaccess for the STAGING web root, e.g. /public_html/next/ for
+# next.abhijeetvarghese.com. It serves the flat React/Vite build (index.html +
+# hashed assets at the web root — NOT nested under site/) AND the PHP backend
+# (admin/, api/, media.php), while keeping private files unreachable.
+#
+# PRIVATE files (backend/, includes/, database/, storage/, site-template/,
+# config.local.php) must live OUTSIDE the web root (account root). The rules
+# below are belt-and-suspenders in case any private file lands in the web root.
+# ============================================================================
+
+Options -Indexes
+ErrorDocument 404 /404.html
+
+# Clean URLs are canonical WITHOUT a trailing slash (§30). mod_dir would
+# otherwise 301 /story → /story/ for every directory-backed page, contradicting
+# the canonical and adding a redirect hop to every navigation.
+<IfModule mod_dir.c>
+  DirectorySlash Off
+  DirectoryIndex index.html index.php
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# 1) HARDENING — never expose .git, dotfiles, config, SQL, dumps, source
+# ---------------------------------------------------------------------------
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+<FilesMatch "\.(sql|sql\.gz|md|lock|log|bak|backup|old|orig|save|swp|tmp|sh|bash|env|example|py|dist|ini|yml|yaml|tpl|twig|sqlite|sqlite3|db|dump|tar|tgz|gz|zip|rar|7z|pem|key|crt|p12|pfx|ts|tsx|map)$">
+  Require all denied
+</FilesMatch>
+
+# Build/manifest and dependency metadata must never be served (§88 §4).
+<FilesMatch "^(composer\.(json|lock)|package(-lock)?\.json|pnpm-lock\.yaml|yarn\.lock|tsconfig.*\.json|vite\.config\..*|Dockerfile|Makefile|\.htpasswd|config.*\.php|.*\.local\.php)$">
+  Require all denied
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # block private paths if they ever land inside the web root
+  RewriteRule ^(?:backend|includes|storage|database|installer|install-data|site-template|avos-private|private|backups|logs|tests|docs|scripts|node_modules|src|\.git|\.github|\.vscode|vendor)/ - [F,L]
+  RewriteCond %{REQUEST_URI} (^|/)(config\.local\.php|config\.php|schema\.sql|provision\.sql|seed\.php|bootstrap\.php|site\.json|migrated-content\.json|\.env.*|\.gitignore|\.htpasswd)$ [NC]
+  RewriteRule ^ - [F,L]
+
+  # Deny any dotfile path segment (e.g. /.git/config, /foo/.env)
+  RewriteCond %{REQUEST_URI} (^|/)\.[^/]+ [NC]
+  RewriteCond %{REQUEST_URI} !^/\.well-known/ [NC]
+  RewriteRule ^ - [F,L]
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# 2) SECURITY HEADERS
+# ---------------------------------------------------------------------------
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# 3) ROUTING — static React/Vite (flat) + PHP endpoints, without swallowing
+#    /api/*, /admin/*, /install/*, /media/*
+# ---------------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # /media/* → private-storage media server
+  RewriteRule ^media/(.+)$ media.php?f=$1 [L,QSA]
+
+  # /admin and /admin/ → admin login (admin has no directory index)
+  RewriteRule ^admin/?$ admin/login.php [L]
+
+  # /install and /install/ → install wizard
+  RewriteRule ^install/?$ install/index.php [L]
+
+  # The React/Vite build is a real MPA: every page is a physical .html file.
+  # No SPA fallback — unknown paths fall through to the designed 404.
+
+  # legacy case-study redirect (preserved from production)
+  RewriteRule ^case\-study\-enterprise\-technology\-made\-understandable\.html/?$ /experience-design/orange-business-executive-briefing-center/ [R=301,L]
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# 4) CACHE / COMPRESSION
+# ---------------------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json application/xml image/svg+xml
+</IfModule>
+<IfModule mod_brotli.c>
+  AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css text/javascript application/javascript application/json application/xml image/svg+xml
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 30 days"
+  ExpiresByType image/webp "access plus 30 days"
+  ExpiresByType image/avif "access plus 30 days"
+  ExpiresByType image/jpeg "access plus 30 days"
+  ExpiresByType image/png "access plus 30 days"
+  ExpiresByType image/svg+xml "access plus 30 days"
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header merge Vary "Accept-Encoding"
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+  <FilesMatch "\.(?:css|js)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.(?:woff2|avif|webp|jpe?g|png|svg)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+</IfModule>
+
+# ── AV OS clean-URL engine — GENERATED, DO NOT EDIT ──────────────────
+# Source: frontend/src/routes/routes.json → scripts/generate-urls.mjs
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # LOOP GUARD (§6): only act on real client requests. Rule 4 performs an
+  # internal rewrite to <path>/index.html; without this guard Apache
+  # re-enters these rules and the legacy *.html redirect fires again,
+  # 301-ing the clean URL to itself.
+  RewriteCond %{ENV:REDIRECT_STATUS} ^$
+  RewriteRule ^ - [E=AVOS_EXTERNAL:1]
+
+  # 1) Legacy extension URLs → clean canonical (301, §31)
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteRule ^index\.html$ %{REQUEST_SCHEME}://%{HTTP_HOST}/ [R=301,L]
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteRule ^story\.html$ %{REQUEST_SCHEME}://%{HTTP_HOST}/story [R=301,L]
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteRule ^experience\.html$ %{REQUEST_SCHEME}://%{HTTP_HOST}/experience [R=301,L]
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteRule ^portfolio\.html$ %{REQUEST_SCHEME}://%{HTTP_HOST}/portfolio [R=301,L]
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteRule ^case-studies\.html$ %{REQUEST_SCHEME}://%{HTTP_HOST}/case-studies [R=301,L]
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteRule ^contact\.html$ %{REQUEST_SCHEME}://%{HTTP_HOST}/contact [R=301,L]
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteRule ^consulting\.html$ %{REQUEST_SCHEME}://%{HTTP_HOST}/consulting [R=301,L]
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteRule ^for-recruiters\.html$ %{REQUEST_SCHEME}://%{HTTP_HOST}/for-recruiters [R=301,L]
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteRule ^insights\.html$ %{REQUEST_SCHEME}://%{HTTP_HOST}/insights [R=301,L]
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteRule ^journal\.html$ %{REQUEST_SCHEME}://%{HTTP_HOST}/journal [R=301,L]
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteRule ^search\.html$ %{REQUEST_SCHEME}://%{HTTP_HOST}/search [R=301,L]
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteRule ^sitemap\.html$ %{REQUEST_SCHEME}://%{HTTP_HOST}/sitemap [R=301,L]
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteRule ^privacy-policy\.html$ %{REQUEST_SCHEME}://%{HTTP_HOST}/privacy-policy [R=301,L]
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteRule ^terms\.html$ %{REQUEST_SCHEME}://%{HTTP_HOST}/terms [R=301,L]
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteRule ^case-study-intuitive-experiences-for-industrial-environments\.html$ %{REQUEST_SCHEME}://%{HTTP_HOST}/case-study-intuitive-experiences-for-industrial-environments [R=301,L]
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteRule ^case-study-immersive-solutions-for-the-indian-army\.html$ %{REQUEST_SCHEME}://%{HTTP_HOST}/case-study-immersive-solutions-for-the-indian-army [R=301,L]
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteRule ^experience-design/orange-business-executive-briefing-center/index\.html$ %{REQUEST_SCHEME}://%{HTTP_HOST}/experience-design/orange-business-executive-briefing-center [R=301,L]
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteRule ^essay-technology-should-feel-human\.html$ %{REQUEST_SCHEME}://%{HTTP_HOST}/essay-technology-should-feel-human [R=301,L]
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteRule ^essay-ai-isnt-replacing-creativity\.html$ %{REQUEST_SCHEME}://%{HTTP_HOST}/essay-ai-isnt-replacing-creativity [R=301,L]
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteRule ^essay-designing-experiences-people-remember\.html$ %{REQUEST_SCHEME}://%{HTTP_HOST}/essay-designing-experiences-people-remember [R=301,L]
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteRule ^essay-why-enterprise-experiences-fail\.html$ %{REQUEST_SCHEME}://%{HTTP_HOST}/essay-why-enterprise-experiences-fail [R=301,L]
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteRule ^journal-what-a-year-of-ai-enabled-production-taught-me\.html$ %{REQUEST_SCHEME}://%{HTTP_HOST}/journal-what-a-year-of-ai-enabled-production-taught-me [R=301,L]
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteRule ^journal-the-experience-centre-as-a-strategic-instrument\.html$ %{REQUEST_SCHEME}://%{HTTP_HOST}/journal-the-experience-centre-as-a-strategic-instrument [R=301,L]
+
+  # 1b) Retired URLs with no page of their own
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteRule ^case-study-enterprise-technology-made-understandable\.html$ %{REQUEST_SCHEME}://%{HTTP_HOST}/experience-design/orange-business-executive-briefing-center [R=301,L]
+
+  # 2) Any other *.html request → extensionless equivalent (301).
+  #    Application dirs are excluded: /os/ is a React SPA served from a
+  #    real index.html, and /admin//install/ are PHP entry points.
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteCond %{REQUEST_URI} !^/(?:os|admin|install|api|assets)/ [NC]
+  RewriteCond %{THE_REQUEST} \s/(.+?)\.html[\s?] [NC]
+  RewriteRule ^ %{REQUEST_SCHEME}://%{HTTP_HOST}/%1 [R=301,L]
+
+  # 3) Strip trailing slashes — the canonical form has none (§30).
+  #    Applies to directories too, because clean URLs ARE directories.
+  RewriteCond %{ENV:AVOS_EXTERNAL} =1
+  RewriteCond %{REQUEST_URI} !^/(?:os|admin|install|api|assets)/ [NC]
+  RewriteRule ^(.+?)/$ %{REQUEST_SCHEME}://%{HTTP_HOST}/$1 [R=301,L]
+
+  # 4) Serve the directory-index file for a clean URL (internal, no redirect).
+  #    Note: -d is deliberately NOT excluded. Clean URLs ARE directories,
+  #    and with DirectorySlash Off we must serve their index ourselves —
+  #    otherwise mod_dir 301s /story to /story/ and breaks the canonical.
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_URI} !^/(?:os|admin|install|api)/ [NC]
+  RewriteCond %{DOCUMENT_ROOT}/$1/index.html -f
+  RewriteRule ^(.+?)/?$ /$1/index.html [L]
+</IfModule>
+
+# ── AV OS Content-Security-Policy — GENERATED, DO NOT EDIT ───────────
+# Source: frontend/scripts/generate-csp.mjs (hashes computed from dist/)
+# Inline scripts: 4 hashed · inline handlers: 1 hashed
+# JSON-LD data blocks (not executable, not hashed): 24
+#
+# WebGL/Three.js note: if a WASM path is added, append 'wasm-unsafe-eval' to
+# script-src. blob: worker/child sources are already permitted.
+<IfModule mod_headers.c>
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'sha256-/x7W7R75k8Roq0WaVRQX9blP4OufE5xbAdzklGxsgpw=' 'sha256-J39ExUN6HqUrdhDrezndyOqVgd9IS8/XJFdTeHJd97Y=' 'sha256-Mv7CAZkhjiLTFtVdrFIC5pcefo3kMYmJvi8fMREhje0=' 'sha256-ZMiVmtNpcINIp34f5ZnD1YX4o7xVBAbChz0Q9dlcLKs=' 'unsafe-hashes' 'sha256-F1noxsLOnJhyRSgc0zu5JgzoLjG2BBMaXaSG24k2mRM='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; media-src 'self' blob:; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'; upgrade-insecure-requests"
+  Header always set Cross-Origin-Opener-Policy "same-origin"
+  Header always set Cross-Origin-Resource-Policy "same-origin"
+  Header always set X-Permitted-Cross-Domain-Policies "none"
+  Header always unset X-Powered-By
+  Header always unset Server
+</IfModule>

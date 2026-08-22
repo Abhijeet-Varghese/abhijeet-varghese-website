@@ -1,0 +1,1 @@
+import{h as i,j as r}from"./app-DlEuRiBh.js";import{L as a}from"./LegalPage-oDFtp9Hv.js";import"./PageHero-BwXk9zu-.js";import"./scroll-CtL8EErh.js";i(()=>r.jsx(a,{activeHref:"/privacy-policy",kind:"privacy"}),"privacy-policy");

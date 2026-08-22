@@ -1,0 +1,1 @@
+import{h as r,j as t}from"./app-DlEuRiBh.js";import{L as e}from"./LegalPage-oDFtp9Hv.js";import"./PageHero-BwXk9zu-.js";import"./scroll-CtL8EErh.js";r(()=>t.jsx(e,{activeHref:"/terms",kind:"terms"}),"terms");

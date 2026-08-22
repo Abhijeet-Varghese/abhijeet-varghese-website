@@ -1,0 +1,24 @@
+# AV OS — private directory. Nothing here may be served over HTTP.
+#
+# Defense in depth (§88 §4): this file is shipped INSIDE each private directory
+# so protection survives the root .htaccess being replaced, reordered or lost.
+# Apache 2.4 syntax first, with a 2.2 fallback for older shared hosts.
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+  Order allow,deny
+  Deny from all
+</IfModule>
+
+# Belt & braces: never execute or serve anything here even if the deny above
+# is somehow not applied.
+<IfModule mod_php.c>
+  php_flag engine off
+</IfModule>
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^ - [F,L]
+</IfModule>
+Options -Indexes -ExecCGI
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phar
