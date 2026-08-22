@@ -71,14 +71,27 @@ ErrorDocument 404 /404.html
 
     # /api/v1/* → the NEW AV OS API front controller (Phase 3D–3F).
     #
-    # Mounted at api/v1/index.php. The guard on the first condition stops the
-    # rewrite re-entering .htaccess and looping back onto itself. REQUEST_URI is
-    # preserved, which is what the router reads, so path parameters survive.
+    # LITESPEED NOTE — verified on the real host, not assumed. The first version
+    # of this rule was:
     #
-    # The legacy unversioned /api/* surface is deliberately left untouched and
-    # continues to be served by api/index.php.
-    RewriteCond %{REQUEST_URI} !^/api/v1/index\.php$
-    RewriteRule ^api/v1(?:/.*)?$ api/v1/index.php [L,QSA]
+    #     RewriteCond %{REQUEST_URI} !^/api/v1/index\.php$
+    #     RewriteRule ^api/v1(?:/.*)?$ api/v1/index.php [L,QSA]
+    #
+    # LiteSpeed silently did not match it, while every other rewrite in this
+    # file worked (/story.html → 301, /media/* → media.php, /admin → login.php,
+    # /backend/ → 403). The non-capturing optional group `(?:/.*)?` is not
+    # handled the way Apache handles it. Rewritten below in the same simple
+    # shape as the rules that demonstrably work on this host.
+    #
+    # The `!-f` guard means api/v1/index.php is served directly as a real file,
+    # so the rewrite cannot re-enter and loop. REQUEST_URI is preserved, which
+    # is what the router reads, so path parameters survive.
+    #
+    # The legacy unversioned /api/* surface is untouched and still served by
+    # api/index.php.
+    RewriteRule ^api/v1$ api/v1/index.php [L,QSA]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^api/v1/(.*)$ api/v1/index.php [L,QSA]
 
     # /media/* → private-storage media server
     RewriteRule ^media/(.+)$ media.php?f=$1 [L,QSA]
