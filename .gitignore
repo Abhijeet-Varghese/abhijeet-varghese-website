@@ -56,3 +56,6 @@ avos-php/database/next/dumps/
 # runtime and must never be committed.
 /avos-php/public-next/assets/media/
 /avos-php/storage/media/
+# Directory-listing guard planted at runtime by LocalFilesystemStorage.
+# The deny .htaccess beside it IS tracked; this empty file is pure artefact.
+/avos-php/storage/index.html

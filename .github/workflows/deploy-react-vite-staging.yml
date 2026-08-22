@@ -4,10 +4,19 @@ name: Deploy React/Vite Staging (safe)
 # ACTIVE React/Vite staging pipeline — the ONLY path to Hostinger.
 #
 # FLOW:
-#   staging-react-vite → npm ci → typecheck → Vite build (VITE_STAGING=1)
+#   staging-react-vite
+#      → backend-tests  (PHP 8.3 + MariaDB → migrate → seed → Phase 3A–3F gate)
+#      → npm ci → typecheck → Vite build (VITE_STAGING=1)
 #      → validate 25 routes → secret scan → leak check
 #      → assemble FLAT package (Vite build + PHP backend at branch root)
 #      → force-push `hostinger`
+#
+# The deploy job `needs: backend-tests`, so a red backend can never reach
+# `hostinger`. The backend suites are NOT invoked directly: they are written to
+# SKIP (and exit 0) when MariaDB or the API server is missing, so calling them
+# raw would produce a gate that passes when the infrastructure is broken.
+# `avos-php/tests/next/ci-run.sh` enforces exit-code 0, FAIL 0, SKIP 0 and a
+# minimum assertion count instead.
 #
 # `hostinger` is the branch Hostinger's git deployment actually pulls into
 # /public_html/next/ → https://next.abhijeetvarghese.com . The branch root IS
@@ -33,9 +42,186 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # ==========================================================================
+  # Phase 3A–3F backend gate. Runs FIRST; deployment depends on it.
+  #
+  # Configuration is ENVIRONMENT ONLY — no config.local.php is written anywhere
+  # on the runner, because AvOS\Config\Config reads env first and env wins.
+  # The database password and encryption key are GENERATED per run, so no
+  # credential literal exists in this file or in the repository.
+  # ==========================================================================
+  backend-tests:
+    name: Backend tests (Phase 3A–3F)
+    runs-on: ubuntu-latest
+
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          # Throwaway container on the job's private network. An empty root
+          # password means there is no credential to hardcode; the application
+          # user below gets a generated one.
+          MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: '1'
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=15
+
+    env:
+      APP_ENV: staging          # debug off — the stricter of the two non-prod modes
+      DB_HOST: 127.0.0.1
+      DB_PORT: '3306'
+      DB_NAME: avos_next_dev
+      DB_USER: avos_ci
+      AVOS_TEST_HOST: 127.0.0.1
+      AVOS_TEST_USER: avos_ci
+      AVOS_MIN_TESTS: '1150'    # current verified baseline; a shrink fails CI
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, curl, xml, pdo_mysql, mysqli, fileinfo, exif, gd, imagick, zip
+          coverage: none
+
+      # Optional capabilities. The engine works without them and the Phase 3F
+      # suite reports NOT AVAILABLE rather than passing — installing them here
+      # means CI exercises the full image and video pipeline instead.
+      - name: Install optional media capabilities (ffmpeg) + db client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg mariadb-client
+
+      - name: Report runtime capabilities
+        run: |
+          php -v | head -1
+          php -r 'foreach (["pdo_mysql","fileinfo","exif","gd","imagick"] as $e)
+                    printf("  %-10s %s\n", $e, extension_loaded($e) ? "yes" : "NO");'
+          ffmpeg -version | head -1
+
+      # Credentials exist only for the life of this job.
+      - name: Generate disposable CI credentials
+        run: |
+          set -euo pipefail
+          echo "DB_PASS=$(openssl rand -hex 24)"        >> "$GITHUB_ENV"
+          echo "AV_ENC_KEY=$(openssl rand -hex 32)"     >> "$GITHUB_ENV"
+          echo "generated a throwaway DB password and encryption key"
+
+      - name: Wait for MariaDB
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 30); do
+            if mysqladmin ping -h 127.0.0.1 -P 3306 -u root --silent 2>/dev/null; then
+              echo "MariaDB is up"; exit 0
+            fi
+            sleep 2
+          done
+          echo "MariaDB never became available"; exit 1
+
+      - name: Create disposable databases and user
+        run: |
+          set -euo pipefail
+          mysql -h 127.0.0.1 -P 3306 -u root <<SQL
+          CREATE DATABASE IF NOT EXISTS avos_next_dev  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+          CREATE DATABASE IF NOT EXISTS avos_next_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+          CREATE USER IF NOT EXISTS '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASS}';
+          GRANT ALL PRIVILEGES ON avos_next_dev.*  TO '${DB_USER}'@'%';
+          GRANT ALL PRIVILEGES ON avos_next_test.* TO '${DB_USER}'@'%';
+          GRANT CREATE ON *.* TO '${DB_USER}'@'%';
+          FLUSH PRIVILEGES;
+          SQL
+          echo "disposable databases created (never persisted)"
+
+      - name: Run migrations (real migration engine, not a dump)
+        run: php avos-php/cli/avos migrate
+
+      - name: Seed system data (roles, permissions, settings)
+        run: php avos-php/cli/avos seed
+
+      - name: Validate schema against the migration files
+        run: |
+          set -euo pipefail
+          php avos-php/cli/avos schema:validate | tee /tmp/schema.txt
+          grep -qE 'missing_tables +0'  /tmp/schema.txt || { echo "missing tables";  exit 1; }
+          grep -qE 'missing_columns +0' /tmp/schema.txt || { echo "missing columns"; exit 1; }
+          grep -qE 'missing_indexes +0' /tmp/schema.txt || { echo "missing indexes"; exit 1; }
+
+      - name: PHP lint (new stack)
+        run: |
+          set -euo pipefail
+          FAILED=0
+          while IFS= read -r f; do
+            php -l "$f" > /dev/null || { echo "LINT FAILED: $f"; FAILED=1; }
+          done < <(find avos-php/app avos-php/cli avos-php/public-next avos-php/tests/next \
+                        -type f \( -name '*.php' -o -name 'avos' \))
+          test "$FAILED" -eq 0 || exit 1
+          echo "php lint clean"
+
+      # THE GATE. Enforces exit 0, FAIL 0, SKIP 0 and >= AVOS_MIN_TESTS.
+      # No `|| true`, no `continue-on-error`.
+      - name: Phase 3A–3F backend test suite
+        env:
+          AVOS_TEST_PASS: ${{ env.DB_PASS }}
+        run: bash avos-php/tests/next/ci-run.sh
+
+      - name: Retirement analyzer (DELETE must be 0)
+        run: |
+          set -euo pipefail
+          python3 tools/retirement-evidence.py . | tee /tmp/retire.txt
+          grep -qE '^DELETE +\(0 files' /tmp/retire.txt || { echo "analyzer wants to DELETE new runtime"; exit 1; }
+
+      # §3: the private owner identity must never exist in backend source.
+      #
+      # NOTE: tools/identity-leak-guard.py only inspects CLIENT-VISIBLE file
+      # types (ts/tsx/js/html/json), so pointing it at PHP directories scans
+      # zero files and proves nothing. This step therefore greps the PHP source
+      # directly. The private literal is never written here — the always-on
+      # check is for any gmail address, and the exact-address check uses the
+      # repository secret when it is configured.
+      - name: Private identity check (backend source)
+        env:
+          AV_OWNER_EMAIL: ${{ secrets.AV_OWNER_EMAIL }}
+        run: |
+          set -euo pipefail
+          DIRS="avos-php/app avos-php/cli avos-php/public-next avos-php/tests/next avos-php/database/next"
+
+          if grep -rIn --include='*.php' -E '[A-Za-z0-9._%+-]+@gmail\.com' $DIRS ; then
+            echo "PRIVATE ADDRESS PATTERN IN BACKEND SOURCE — aborting"; exit 1
+          fi
+          echo "no personal address in backend source"
+
+          if [ -n "${AV_OWNER_EMAIL:-}" ]; then
+            if grep -rIFq "$AV_OWNER_EMAIL" $DIRS ; then
+              echo "CONFIGURED OWNER ADDRESS FOUND IN BACKEND SOURCE — aborting"; exit 1
+            fi
+            echo "configured owner address absent from backend source"
+          else
+            echo "AV_OWNER_EMAIL secret is not set — exact-address check skipped (pattern check still ran)"
+          fi
+
+          # The public address is allowed, but only as a default — never a
+          # committed private one.
+          echo "public address occurrences (allowed): $(grep -rIl 'hi@abhijeetvarghese.com' $DIRS 2>/dev/null | wc -l)"
+
+      - name: Drop disposable databases
+        if: always()
+        run: |
+          mysql -h 127.0.0.1 -P 3306 -u root \
+            -e "DROP DATABASE IF EXISTS avos_next_dev; DROP DATABASE IF EXISTS avos_next_test;" || true
+          echo "test databases dropped — nothing persisted"
+
   build-and-package:
     name: Build + validate + deploy to hostinger
     runs-on: ubuntu-latest
+    # A red backend can never reach the deployment package or `hostinger`.
+    needs: backend-tests
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -218,7 +404,8 @@ jobs:
       - name: Identity leak guard (deployment package)
         env:
           AV_OWNER_EMAIL: ${{ secrets.AV_OWNER_EMAIL }}
-        run: python3 tools/identity-leak-guard.py _deploy
+        run: |
+          python3 tools/identity-leak-guard.py _deploy
           echo "flat package assembled (branch root = web root)"
 
       - name: Inspect deployment package
