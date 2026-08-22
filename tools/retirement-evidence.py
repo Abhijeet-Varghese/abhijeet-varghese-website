@@ -45,11 +45,20 @@ ENTRY_GLOBS = [
     "database/migrate.php",
     "database/install.php",
     "database/validate-migrations.php",
+    # --- Phase 3A/3B: the NEW bespoke stack. Without these the analyzer marks
+    # the entire new backend "unreachable" and would recommend deleting it.
+    "cli/avos",
+    "app/Autoloader.php",
+    "tests/next/run.php",
 ]
 
 
 def php_files() -> list[Path]:
-    return sorted(p for p in PHP_ROOT.rglob("*.php") if p.is_file())
+    files = [p for p in PHP_ROOT.rglob("*.php") if p.is_file()]
+    cli = PHP_ROOT / "cli" / "avos"          # extensionless CLI entry point
+    if cli.is_file():
+        files.append(cli)
+    return sorted(files)
 
 
 def read(p: Path) -> str:
@@ -119,11 +128,20 @@ def main() -> None:
                 rq.add(r)
         requires[f] = rq
 
+    # PSR-4 resolution for the new AvOS\ namespace (app/ is the base dir).
+    psr4: dict[str, Path] = {}
+    app_dir = PHP_ROOT / "app"
+    if app_dir.is_dir():
+        for f in app_dir.rglob("*.php"):
+            psr4[f.stem] = f
+
     class_owner: dict[str, Path] = {}
     for f, ds in defines.items():
         for d in ds:
             class_owner.setdefault(d, f)
     for cls, f in amap.items():
+        class_owner.setdefault(cls, f)
+    for cls, f in psr4.items():
         class_owner.setdefault(cls, f)
 
     # ---- BFS from entry points ------------------------------------------- #
@@ -220,10 +238,16 @@ def main() -> None:
         ext = externally_referenced(f)
         # ---- Phase 1 five-way classification -------------------------------
         # Consumer evidence has priority over reachability (per brief).
+        is_new_stack = any(
+            f.as_posix().find(seg) >= 0
+            for seg in ("/app/", "/cli/", "/database/next/", "/tests/next/")
+        )
         legacy_admin_only = f.as_posix().find("public_html/admin/") >= 0
         is_legacy_engine = any(k in rel for k in (
             "publish/PublishEngine", "site-template", "integrations/", "ai/AiProviders"))
-        if is_entry and legacy_admin_only:
+        if is_new_stack:
+            verdict, why = "KEEP", "Phase 3 new stack (built to the approved contract)"
+        elif is_entry and legacy_admin_only:
             verdict, why = "REWRITE", "legacy admin entry point — replaced by /os/"
         elif legacy_admin_only:
             verdict, why = "ARCHIVE", "legacy admin runtime — delete only after /os/ parity"

@@ -44,3 +44,9 @@ previews/
 # visual-regression screenshot artifacts
 compare-shots/
 previews/
+
+# Phase 3 new stack — runtime artefacts, never committed
+avos-php/database/next/dumps/
+/_avosnext/
+*.sql.gz
+*.dump

@@ -345,3 +345,51 @@ passwords, tokens, keys or DB credentials.
 - Migrations are immutable and checksummed (the existing `MigrationRunner`
   already enforces this — carry it forward unchanged).
 - The new schema must build from an **empty** database (Phase 3B gate).
+
+
+---
+
+## 10 · Implementation facts discovered during Phase 3B
+
+Recorded per §3B.14 — these are platform realities found by building it, not
+design changes.
+
+### MariaDB has no native JSON type
+`JSON` is an **alias for LONGTEXT** plus an automatic `json_valid()` CHECK
+constraint. `information_schema.COLUMNS.DATA_TYPE` therefore reports
+`longtext`, not `json`. Verified: **27 `json_valid` CHECK constraints** exist in
+the built schema. This is correct behaviour, not drift — MySQL 8 differs. The
+schema validator treats `json ≡ longtext` for this reason.
+
+### DDL is not transactional
+`CREATE TABLE` cannot be rolled back by a transaction on MariaDB. The migration
+engine therefore applies statements individually, records the exact failing
+statement index, marks the migration `failed` in the ledger, and refuses to
+continue. Partial state is reported rather than hidden. Data-only operations
+(the seeder) *do* run in a transaction. Proven by the controlled-failure test:
+a 2-statement failure left `_t_partial` created, `_t_broken` absent, ledger
+`FAILED`, and the next run blocked.
+
+### `before` and `after` are reserved words
+`audit_logs.before` / `.after` must be backtick-quoted. Found by an actual
+migration failure during the first fresh run.
+
+### Built schema (measured)
+| Metric | Value |
+|---|---|
+| Tables | 59 (+1 migration ledger = 60) |
+| Indexes | 189 |
+| Foreign keys | 51 |
+| Initial size | ~3.0 MB |
+| Migration time | 247–274 ms |
+| Seed time | 76–81 ms |
+| Full `fresh` wall time | ~390 ms |
+
+### Deliberate absences of a foreign key (§3B.5)
+| Column | Why no FK |
+|---|---|
+| `security_events.user_id` | events must survive deletion of the actor, or the trail can be erased by deleting the user |
+| `audit_logs.actor_id` | same reason |
+| `content_versions.entity_id` | polymorphic; history must outlive a hard-deleted entity |
+| `media_usage.entity_id` | polymorphic across page/project/article/builder_node |
+| `rate_limits.bucket` | pure counter, no entity |

@@ -1,0 +1,171 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+
+/**
+ * AV OS CLI (Phase 3A/3B).
+ *
+ *   php cli/avos migrate [--dry-run]   apply pending migrations
+ *   php cli/avos status                migration ledger state
+ *   php cli/avos rollback [--steps=N]  roll back using @DOWN sections
+ *   php cli/avos fresh                 drop all tables, migrate, seed
+ *   php cli/avos reset                 drop all tables only
+ *   php cli/avos seed                  system seed data (idempotent)
+ *   php cli/avos health                boot + database diagnostics
+ *   php cli/avos schema:validate       compare DB against DATABASE-SCHEMA.md
+ *
+ * Destructive commands (fresh/reset) refuse to run in production.
+ */
+
+$appRoot = dirname(__DIR__);
+require $appRoot . '/app/Autoloader.php';
+AvOS\Autoloader::register($appRoot . '/app');
+
+use AvOS\Bootstrap\Kernel;
+use AvOS\Config\Environment;
+use AvOS\Migration\MigrationRunner;
+use AvOS\Migration\SystemSeeder;
+
+$argvList = $argv ?? [];
+$command  = $argvList[1] ?? 'help';
+$flags    = array_slice($argvList, 2);
+$hasFlag  = static fn(string $f): bool => in_array($f, $flags, true);
+$flagVal  = static function (string $name, string $default) use ($flags): string {
+    foreach ($flags as $f) {
+        if (str_starts_with($f, "--{$name}=")) return substr($f, strlen($name) + 3);
+    }
+    return $default;
+};
+
+$kernel = Kernel::boot($appRoot, sendHeaders: false);
+$db     = $kernel->db();
+$runner = new MigrationRunner($db, $appRoot . '/database/next/migrations');
+
+$isProd = $kernel->environment->isProduction();
+$guardDestructive = static function (string $cmd) use ($isProd): void {
+    if ($isProd) {
+        fwrite(STDERR, "Refusing to run `{$cmd}` in production.\n");
+        exit(1);
+    }
+};
+
+$line = static fn(string $s = '') => print($s . PHP_EOL);
+
+switch ($command) {
+    case 'migrate': {
+        $dry = $hasFlag('--dry-run');
+        $t0 = microtime(true);
+        $r = $runner->migrate($dry);
+        $line();
+        foreach ($r['skipped'] as $s) $line("  skip    {$s}");
+        foreach ($r['applied'] as $a) $line("  applied {$a}");
+        if ($r['failed'] !== null) {
+            $line();
+            $line('  MIGRATION FAILED');
+            foreach ($r['failed'] as $k => $v) $line("    {$k}: {$v}");
+            $line();
+            exit(1);
+        }
+        $ms = (int)round((microtime(true) - $t0) * 1000);
+        $line();
+        $line(sprintf('  %d applied · %d already present · %d ms%s',
+            count($r['applied']), count($r['skipped']), $ms, $dry ? ' (dry run)' : ''));
+        $line();
+        break;
+    }
+
+    case 'status': {
+        $rows = $runner->status();
+        $line();
+        $line(sprintf('  %-34s %-14s %s', 'MIGRATION', 'STATE', 'APPLIED AT'));
+        $line('  ' . str_repeat('-', 74));
+        $bad = 0;
+        foreach ($rows as $r) {
+            if (!in_array($r['state'], ['applied', 'pending'], true)) $bad++;
+            $line(sprintf('  %-34s %-14s %s', $r['migration'], $r['state'], $r['applied_at'] ?? '—'));
+        }
+        $line('  ' . str_repeat('-', 74));
+        $pending = count(array_filter($rows, static fn($r) => $r['state'] === 'pending'));
+        $line(sprintf('  %d migrations · %d pending · %d problems', count($rows), $pending, $bad));
+        $line();
+        exit($bad > 0 ? 1 : 0);
+    }
+
+    case 'rollback': {
+        $guardDestructive('rollback');
+        $steps = (int)$flagVal('steps', '1');
+        $line();
+        foreach ($runner->rollback($steps) as [$name, $outcome]) $line("  {$name}: {$outcome}");
+        $line();
+        break;
+    }
+
+    case 'reset': {
+        $guardDestructive('reset');
+        $n = $runner->dropAll();
+        $line(PHP_EOL . "  dropped {$n} tables from `{$db->databaseName()}`" . PHP_EOL);
+        break;
+    }
+
+    case 'fresh': {
+        $guardDestructive('fresh');
+        $runner->createDatabaseIfMissing();
+        $dropped = $runner->dropAll();
+        $t0 = microtime(true);
+        $r = $runner->migrate(false);
+        if ($r['failed'] !== null) {
+            $line(PHP_EOL . '  MIGRATION FAILED');
+            foreach ($r['failed'] as $k => $v) $line("    {$k}: {$v}");
+            exit(1);
+        }
+        $migrateMs = (int)round((microtime(true) - $t0) * 1000);
+        $t1 = microtime(true);
+        $seed = (new SystemSeeder($db))->run();
+        $seedMs = (int)round((microtime(true) - $t1) * 1000);
+        $tables = (int)$db->scalar(
+            'SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=?', [$db->databaseName()]
+        );
+        $line();
+        $line("  dropped     {$dropped} tables");
+        $line('  applied     ' . count($r['applied']) . " migrations ({$migrateMs} ms)");
+        $line("  seeded      {$seed['permissions']} permissions · {$seed['roles']} roles · "
+            . "{$seed['settings']} settings · {$seed['navigation']} nav groups ({$seedMs} ms)");
+        $line("  tables now  {$tables}");
+        $line();
+        break;
+    }
+
+    case 'seed': {
+        $seed = (new SystemSeeder($db))->run();
+        $line(PHP_EOL . '  seeded: ' . json_encode($seed) . PHP_EOL);
+        break;
+    }
+
+    case 'health': {
+        $status = $kernel->safeStatus();
+        $line(PHP_EOL . json_encode($status, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL);
+        exit($status['database']['ok'] ? 0 : 1);
+    }
+
+    case 'schema:validate': {
+        require $appRoot . '/app/Migration/SchemaValidator.php';
+        $report = (new AvOS\Migration\SchemaValidator($db, $appRoot . '/database/next/migrations'))->validate();
+        $line();
+        $line("  tables expected: {$report['expected_tables']} · present: {$report['present_tables']}");
+        foreach (['missing_tables', 'unexpected_tables', 'missing_columns', 'missing_indexes'] as $k) {
+            $items = $report[$k];
+            $line(sprintf('  %-20s %d%s', $k, count($items), $items ? ': ' . implode(', ', array_slice($items, 0, 8)) : ''));
+        }
+        $line();
+        exit($report['ok'] ? 0 : 1);
+    }
+
+    default:
+        $line();
+        $line('  AV OS CLI');
+        $line('    migrate [--dry-run] · status · rollback [--steps=N]');
+        $line('    fresh · reset · seed · health · schema:validate');
+        $line();
+        $line('  environment: ' . $kernel->environment->name());
+        $line();
+}
