@@ -490,3 +490,154 @@ Not built, because no approved table represents them:
 Implemented, because the schema does represent them: `project → client`,
 `article → category`, `article → tag`, `content → author`,
 `content → page_route`.
+
+---
+
+# Phase 3F — IMPLEMENTED (media & asset engine)
+
+## Amendment A10 — Phase 3E route-count assertion scoped
+
+Phase 3F adds public media reads under `/api/v1/content/media`, which is the
+public prefix amendment A7 established. That inflated the Phase 3E test's
+"58 content routes" count to 60. The frozen Phase 3E **test file** was scoped to
+exclude `/media`; no Phase 3E **runtime** code changed. Recorded because 3E is
+frozen — the same situation as amendment A3 in Phase 3D.
+
+## Amendment A11 — `script` added to `media.kind`
+
+The approved ENUM covered image/video/audio/document/model/texture/shader/font/
+other. §3F.2 requires a SCRIPT class and it had no home. `MODEL_3D` maps onto
+the existing `model` value rather than adding a synonym.
+
+## Amendment A12 — `media.visibility`
+
+New `ENUM('public','private') DEFAULT 'public'`. Required by §3F.24. It does not
+merely hide an asset: a private asset gets **no published copy and no
+derivatives**, so no public byte exists to be guessed at.
+
+## Amendment A13 — `media_variants.purpose` gains `xlarge`
+
+The approved vocabulary had four image purposes (thumb/card/hero/full). §3F.10
+asks for a five-step ladder, so `xlarge` completes it without introducing a
+second naming convention:
+
+| Brief | Approved purpose | Width |
+|---|---|---|
+| thumbnail | `thumb` | 320 |
+| small | `card` | 640 |
+| medium | `hero` | 1280 |
+| large | `full` | 1920 |
+| xlarge | `xlarge` | 2560 |
+
+## Amendment A14 — additional media columns (migration 012)
+
+| Table | Added |
+|---|---|
+| `media` | `visibility` `extension` `public_path` `crop`(JSON) `meta`(JSON) `version` `replaced_by` `uploaded_by` |
+| `media_variants` | `hash` `storage_path` |
+
+Plus FKs to `users` and `media`, and `idx_media_visibility` / `idx_variant_format`.
+**No table was created or dropped — still 60 tables.**
+
+## Permissions — NO new permission (§3F.27)
+
+`media.read`, `media.write` and `media.delete` already existed in the Phase 2
+seeder and are used unchanged. **Permission count stays at 49.**
+
+| Role | read | write | delete |
+|---|---|---|---|
+| Owner / Administrator | ✅ | ✅ | ✅ |
+| Media Manager | ✅ | ✅ | ✅ |
+| Editor | ✅ | ✅ | ❌ |
+| Content Manager | ✅ | ✅ | ❌ |
+| SEO Manager | ❌ | ❌ | ❌ |
+
+## Storage layout (§3F.5)
+
+```
+PRIVATE  <AV_PRIVATE_DIR>/storage/media/YYYY/MM/xx/<24-hex>.<ext>   ALL originals
+PUBLIC   <appRoot>/public-next/assets/media/YYYY/MM/xx/<24-hex>[-purpose-width].<fmt>
+```
+
+* `xx` = first two characters of the storage name → 256 buckets, so no directory
+  ever holds the whole library.
+* The storage name is `sha256(contentHash + salt)` truncated to 24 hex
+  characters: deterministic (re-import is idempotent), unguessable without the
+  salt, and containing **no database id and no original filename**.
+* The original filename survives only as metadata.
+* Originals are **never** web-reachable. A public asset gets a published copy
+  (hard-linked when the filesystem allows, copied otherwise — the method used is
+  reported, not assumed).
+* Resolution order: `AV_MEDIA_STORAGE_DIR` / `AV_MEDIA_PUBLIC_DIR` →
+  `AV_PRIVATE_DIR/storage` → `<appRoot>/storage`. Never `public_html/`.
+
+## Public asset URLs (§3F.25)
+
+`/assets/media/2026/08/ab/<name>-hero-1280.webp` — a plain static URL served by
+the web server, not PHP. No `.php`, no `.html`, no filesystem path, no database
+id. No second URL engine was created.
+
+## Upload security (§3F.6, §3F.7)
+
+Eight ordered checks, first failure wins: size → filename shape → deny list on
+**every dotted part** → allow-list → sniffed MIME → magic signature → content
+scan → full decode. `Security\UploadValidator::BLOCKED_EXT` remains the single
+deny list; `Media\MimeRegistry` imports it and a test asserts the two never
+contradict.
+
+## Capability reporting (§3F.8, §3F.11, §3F.14)
+
+`GET /api/v1/media/capabilities`. Every format claim is proven by **encoding a
+1×1 pixel at runtime**, not inferred from `extension_loaded()`. A derivative row
+exists only when its bytes exist, so an AVIF that failed to encode is never
+advertised.
+
+## Asset versioning behaviour (§3F.23) — the documented choice
+
+A replacement is a **new asset row**. The old row is retained, marked
+`replaced_by`, and soft-deleted **only when nothing references it**. Existing
+content keeps pointing at the old id and therefore renders exactly what it
+rendered before.
+
+Overwriting bytes in place was rejected: it would mutate every published page
+using the asset, retroactively and invisibly.
+
+## IMPLEMENTED endpoints (16 new · 84 total)
+
+### Public
+| Method | Path |
+|---|---|
+| GET | `/api/v1/content/media` |
+| GET | `/api/v1/content/media/{id}` |
+
+### Authenticated
+| Method | Path | Permission |
+|---|---|---|
+| GET | `/api/v1/media` | `media.read` |
+| POST | `/api/v1/media` | `media.write` |
+| GET | `/api/v1/media/capabilities` | `media.read` |
+| GET | `/api/v1/media/orphans` | `media.read` |
+| GET | `/api/v1/media/{id}` | `media.read` |
+| PUT / PATCH | `/api/v1/media/{id}` | `media.write` |
+| POST | `/api/v1/media/{id}/replace` | `media.write` |
+| POST | `/api/v1/media/{id}/restore` | `media.write` |
+| DELETE | `/api/v1/media/{id}` `?force=1` | `media.delete` |
+| GET | `/api/v1/media/{id}/usage` | `media.read` |
+| POST | `/api/v1/media/{id}/usage` | `media.write` |
+| DELETE | `/api/v1/media/{id}/usage` | `media.write` |
+| GET | `/api/v1/media/{id}/download` | public asset: none · private: `media.read` |
+
+Upload accepts `multipart/form-data` **or** `{filename, content_base64}` JSON.
+`/download` is the only endpoint that returns bytes rather than the envelope;
+every guard runs before a single byte is emitted.
+
+## Deferred (documented, not built)
+
+| Item | Status |
+|---|---|
+| Relational `media_tags` | **DEFERRED** — no table; shader tags live in `meta.tags` |
+| Video transcoding at upload | **DEFERRED to Phase 3P** — too slow for a shared-hosting request; the service exists for the queue to drive |
+| Poster-frame derivatives | **DEFERRED to Phase 3P** — implemented in `TranscodeService`, not wired into upload |
+| Automated orphan cleanup | **DEFERRED to a maintenance phase** — §3F.22 requires report-only |
+| Derivatives for private assets | **NOT PLANNED** — a public derivative of a private asset defeats the point |
+| S3 / external DAM | **FORBIDDEN** by the locked architecture |

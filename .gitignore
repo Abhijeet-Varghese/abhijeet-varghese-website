@@ -50,3 +50,9 @@ avos-php/database/next/dumps/
 /_avosnext/
 *.sql.gz
 *.dump
+
+# Phase 3F — generated media artefacts. Originals live outside the repo in the
+# private storage root; these are the public derivatives the app writes at
+# runtime and must never be committed.
+/avos-php/public-next/assets/media/
+/avos-php/storage/media/

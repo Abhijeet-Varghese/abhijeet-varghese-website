@@ -266,8 +266,13 @@ try {
 
 if ($api !== null) {
     $routes = $api->router()->registered();
+    // Scoped to the CONTENT ENGINE. Phase 3F legitimately adds public media
+    // reads under the same /api/v1/content/ prefix (amendment A7 established
+    // that prefix as the public surface), so they are excluded here rather
+    // than inflating a Phase 3E count. Recorded as amendment A10.
     $content = array_values(array_filter($routes, static fn(string $r): bool =>
-        preg_match('#/api/v1/(content|pages|projects|articles|experience)#', $r) === 1));
+        preg_match('#/api/v1/(content|pages|projects|articles|experience)#', $r) === 1
+        && !str_contains($r, '/media')));
     E::eq('58 content routes registered', count($content), 58);
 
     $publicRoutes = array_values(array_filter($content, static fn(string $r): bool =>

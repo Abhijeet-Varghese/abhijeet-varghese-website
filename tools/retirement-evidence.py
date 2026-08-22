@@ -61,6 +61,13 @@ ENTRY_GLOBS = [
     "tests/next/content.php",           # Phase 3E test suite
     "tests/next/content-http.php",      # Phase 3E real-HTTP suite
     "tests/next/dev-router.php",        # dev-only `php -S` router, never shipped
+    # --- Phase 3F: media & asset engine. Registered per the §3D.23/§3F.35
+    # standing requirement. The media API mounts on the existing Phase 3D front
+    # controller, so no new front controller is added — but the two new test
+    # entry points must be declared or the analyzer marks the whole media
+    # engine unreachable and recommends deleting it.
+    "tests/next/media.php",             # Phase 3F test suite
+    "tests/next/media-http.php",        # Phase 3F real-HTTP suite
 ]
 
 

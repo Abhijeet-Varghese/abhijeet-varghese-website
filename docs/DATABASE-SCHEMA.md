@@ -432,3 +432,36 @@ dropping `pages.excerpt` by hand and confirming the gate reported it.
 MariaDB has **no native JSON type**: `JSON` is `LONGTEXT` + an automatic
 `json_valid()` CHECK, and `information_schema` reports `longtext`. The
 validator treats `json ≡ longtext`. The new JSON columns behave the same way.
+
+---
+
+## §12 · Phase 3F additions (migration 012)
+
+`012_media_engine.sql` extends the media tables by `ALTER`. **No table created
+or dropped — still 60 tables (+ ledger = 61).**
+
+| Table | Columns added | ENUM widened |
+|---|---|---|
+| `media` | `visibility` `extension` `public_path` `crop`(JSON) `meta`(JSON) `version` `replaced_by` `uploaded_by` | `kind` gains `script` |
+| `media_variants` | `hash` `storage_path` | `purpose` gains `xlarge` |
+
+FKs: `media.replaced_by → media(id) ON DELETE SET NULL`,
+`media.uploaded_by → users(id) ON DELETE SET NULL`.
+Indexes: `idx_media_visibility`, `idx_media_replaced`, `idx_variant_format`.
+
+### Load-bearing constraints
+
+* **`uq_media_hash`** makes byte-identical duplicates structurally impossible.
+  Re-uploading the same bytes returns the existing row (DOMAIN-MODEL §3) rather
+  than storing a second copy; a soft-deleted match is revived.
+* **`uq_variant (media_id, purpose, format, width)`** makes derivative
+  generation idempotent — a regenerate upserts rather than accumulating rows.
+* **No variant row exists without bytes on disk.** There is deliberately no
+  "pending" or "failed" variant state: a format that failed to encode simply
+  has no row, which is what keeps the API's format reporting truthful.
+
+### Storage is not in the database
+
+`media.storage_path` is relative to the PRIVATE store and is never returned to
+a public client. `media.public_path` is relative to the public store and is
+empty for private assets. Neither column ever holds an absolute path.

@@ -31,11 +31,20 @@ use AvOS\Domain\Content\RouteRepository;
 use AvOS\Domain\Content\TaxonomyRepository;
 use AvOS\Domain\Content\VersionRepository;
 use AvOS\Domain\Content\VersionService;
+use AvOS\Domain\Media\AssetRepository;
+use AvOS\Domain\Media\AssetService;
+use AvOS\Domain\Media\AssetUsageService;
+use AvOS\Domain\Media\DerivativeService;
+use AvOS\Domain\Media\DownloadService;
+use AvOS\Domain\Media\OrphanService;
+use AvOS\Domain\Media\UsageRepository;
+use AvOS\Domain\Media\VariantRepository;
 use AvOS\Domain\System\SettingsRepository;
 use AvOS\Domain\System\SystemService;
 use AvOS\Errors\AppException;
 use AvOS\Http\Controllers\AuthController;
 use AvOS\Http\Controllers\ContentController;
+use AvOS\Http\Controllers\MediaController;
 use AvOS\Http\Controllers\PublicContentController;
 use AvOS\Http\Controllers\SystemController;
 use AvOS\Http\Middleware\AuthMiddleware;
@@ -46,6 +55,11 @@ use AvOS\Http\Middleware\SecurityHeadersMiddleware;
 use AvOS\Http\Request;
 use AvOS\Http\Router;
 use AvOS\Identity\EmailIdentity;
+use AvOS\Media\FileNaming;
+use AvOS\Media\Image\ImageProcessorFactory;
+use AvOS\Media\MetadataExtractor;
+use AvOS\Media\Storage\StorageManager;
+use AvOS\Media\Video\VideoProbe;
 use AvOS\Identity\UserRepository;
 use AvOS\Rbac\Authorizer;
 use AvOS\Security\DbRateLimiter;
@@ -81,6 +95,13 @@ final class ApiKernel
     public readonly EventDispatcher $eventDispatcher;
     public readonly CacheInvalidatorInterface $cacheInvalidator;
     public readonly \AvOS\Security\AuditLogger $auditLogger;
+
+    // ---- Phase 3F media & asset engine -------------------------------
+    public readonly StorageManager $storage;
+    public readonly AssetService $media;
+    public readonly AssetUsageService $mediaUsage;
+    public readonly OrphanService $mediaOrphans;
+    public readonly DownloadService $downloads;
 
     private readonly Router $router;
 
@@ -149,6 +170,35 @@ final class ApiKernel
         );
         $this->publicContent = new PublicContentService($this->content, $routes, $refs);
 
+        // ---------------- Phase 3F media & asset engine ----------------
+        // Storage roots come from configuration, never hardcoded, and never
+        // point inside the legacy public_html tree.
+        $this->storage = StorageManager::fromConfig($cfg, $kernel->appRoot);
+
+        // The naming salt is derived from the encryption key so a storage path
+        // cannot be predicted from a file's hash alone. It is a derivation, not
+        // the key itself, and it is never logged or returned.
+        $naming = new FileNaming(hash('sha256', 'avos-media-path|' . (string)$cfg->get('security.enc_key', '')));
+
+        $assetRepo = new AssetRepository($db);
+        $variantRepo = new VariantRepository($db);
+        $usageRepo = new UsageRepository($db);
+        $videoProbe = new VideoProbe();
+
+        $derivatives = new DerivativeService(
+            $this->storage, $variantRepo, new ImageProcessorFactory(), $naming,
+        );
+
+        $this->media = new AssetService(
+            $db, $assetRepo, $variantRepo, $usageRepo, $this->storage, $derivatives,
+            new MetadataExtractor($videoProbe), $videoProbe, $naming,
+            $this->auditLogger, $this->cacheInvalidator, $this->authz,
+            AssetService::resolveMaxBytes($db), $ctx->requestId,
+        );
+        $this->mediaUsage = new AssetUsageService($assetRepo, $usageRepo);
+        $this->mediaOrphans = new OrphanService($assetRepo, $variantRepo, $usageRepo, $this->storage);
+        $this->downloads = new DownloadService($assetRepo, $this->storage, $this->authz, $this->auditLogger);
+
         $this->router = $this->buildRouter();
     }
 
@@ -200,8 +250,69 @@ final class ApiKernel
             [$authMw->required(), $perm->owner()]);
 
         $this->registerContentRoutes($r, $authMw, $perm);
+        $this->registerMediaRoutes($r, $authMw, $perm);
 
         return $r;
+    }
+
+    /**
+     * Phase 3F media routes (§3F.26).
+     *
+     * Naming follows API-CONTRACT §2, which already reserved `media/` with
+     * `[media.*]` permissions — no new convention and no new permission.
+     *
+     * The public/authenticated split is the same PATH split Phase 3E
+     * established, so it stays testable from the router's own inventory:
+     *   /api/v1/content/media/*   public, published metadata for public assets
+     *   /api/v1/media/*           session + permission
+     *
+     * `/api/v1/media/{id}/download` is the one route that may serve non-JSON.
+     * It is authenticated-optional because a PUBLIC asset is downloadable by
+     * anyone; DownloadService fails closed for private ones.
+     */
+    private function registerMediaRoutes(Router $r, AuthMiddleware $authMw, PermissionMiddleware $perm): void
+    {
+        $c = new MediaController($this->media, $this->mediaUsage, $this->mediaOrphans, $this->downloads);
+        $auth = $authMw->required();
+
+        // ---------------- PUBLIC (public assets only) ----------------
+        $r->get('/api/v1/content/media', fn(Request $q) => $c->publicIndex($q));
+        $r->get('/api/v1/content/media/{id}', fn(Request $q) => $c->publicShow($q));
+
+        // ---------------- AUTHENTICATED MANAGEMENT ----------------
+        $r->get('/api/v1/media', fn(Request $q) => $c->index($q),
+            [$auth, $perm->permission('media.read')]);
+        $r->get('/api/v1/media/capabilities', fn(Request $q) => $c->capabilities($q),
+            [$auth, $perm->permission('media.read')]);
+        $r->get('/api/v1/media/orphans', fn(Request $q) => $c->orphans($q),
+            [$auth, $perm->permission('media.read')]);
+        $r->post('/api/v1/media', fn(Request $q) => $c->upload($q),
+            [$auth, $perm->permission('media.write')]);
+
+        $r->get('/api/v1/media/{id}', fn(Request $q) => $c->show($q),
+            [$auth, $perm->permission('media.read')]);
+        $r->patch('/api/v1/media/{id}', fn(Request $q) => $c->update($q),
+            [$auth, $perm->permission('media.write')]);
+        $r->put('/api/v1/media/{id}', fn(Request $q) => $c->update($q),
+            [$auth, $perm->permission('media.write')]);
+        $r->post('/api/v1/media/{id}/replace', fn(Request $q) => $c->replace($q),
+            [$auth, $perm->permission('media.write')]);
+        $r->post('/api/v1/media/{id}/restore', fn(Request $q) => $c->restore($q),
+            [$auth, $perm->permission('media.write')]);
+        $r->delete('/api/v1/media/{id}', fn(Request $q) => $c->destroy($q),
+            [$auth, $perm->permission('media.delete')]);
+
+        $r->get('/api/v1/media/{id}/usage', fn(Request $q) => $c->usage($q),
+            [$auth, $perm->permission('media.read')]);
+        $r->post('/api/v1/media/{id}/usage', fn(Request $q) => $c->attach($q),
+            [$auth, $perm->permission('media.write')]);
+        $r->delete('/api/v1/media/{id}/usage', fn(Request $q) => $c->detach($q),
+            [$auth, $perm->permission('media.write')]);
+
+        // Binary delivery. Marked so handle() knows not to wrap it in JSON.
+        $r->get('/api/v1/media/{id}/download',
+            fn(Request $q) => new BinaryDownload($c->prepareDownload($q)),
+            [$authMw->optional()]);
     }
 
     /**
@@ -294,11 +405,18 @@ final class ApiKernel
 
     public function router(): Router { return $this->router; }
 
-    /** Full lifecycle with a single error boundary. */
-    public function handle(Request $request): ApiResult
+    /**
+     * Full lifecycle with a single error boundary.
+     *
+     * A BinaryDownload short-circuits the JSON envelope, but only AFTER every
+     * guard has run — the descriptor is built before any byte is emitted, so an
+     * authorization failure still returns a normal error response.
+     */
+    public function handle(Request $request): ApiResult|BinaryDownload
     {
         try {
             $result = $this->router->dispatch($request);
+            if ($result instanceof BinaryDownload) return $result;
             return $result instanceof ApiResult
                 ? $result
                 : ApiResult::ok($result, $request->requestId);
