@@ -24,8 +24,30 @@ name: Deploy React/Vite Staging (safe)
 # exactly matching the structure Hostinger has been serving.
 #
 # NEVER triggers from `main`. NEVER touches `main`.
-# The legacy deploy-staging.yml (main → abhijeetvarghese/ → hostinger) has been
-# retired so a main push can no longer overwrite hostinger with the old frontend.
+#
+# ---------------------------------------------------------------------------
+# CORRECTION (verified 2026-08-22): the note previously here claimed the legacy
+# `deploy-staging.yml` had been "retired so a main push can no longer overwrite
+# hostinger with the old frontend". That was NOT true. Measured against the
+# live repository:
+#
+#   main  contains ONLY .github/workflows/deploy-staging.yml  ("Build Staging
+#         Website") — still ACTIVE, triggers on push→main AND workflow_dispatch,
+#         and runs `git push origin deploy-tmp:hostinger --force` with no
+#         backend tests, no §103 gate, no retirement analyzer and no identity
+#         guard.
+#
+# So a push to `main` — or a click of ITS "Run workflow" button — will
+# force-overwrite `hostinger` with an ungated package. Disable that workflow
+# (Actions → Build Staging Website → ⋯ → Disable workflow) before relying on
+# the guarantees below.
+#
+# MANUAL DISPATCH: this workflow already declares `workflow_dispatch`, but the
+# "Run workflow" button will NOT appear for it while the file is absent from
+# the repository default branch (`main`) — GitHub only surfaces that control
+# for workflows present on the default branch. Until the file is added there,
+# the push trigger below is the only way to start this pipeline.
+# ---------------------------------------------------------------------------
 # ============================================================================
 
 on:
