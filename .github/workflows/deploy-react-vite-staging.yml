@@ -100,7 +100,7 @@ jobs:
       DB_USER: avos_ci
       AVOS_TEST_HOST: 127.0.0.1
       AVOS_TEST_USER: avos_ci
-      AVOS_MIN_TESTS: '1181'    # current verified baseline; a shrink fails CI
+      AVOS_MIN_TESTS: '1218'    # current verified baseline; a shrink fails CI
 
     steps:
       - name: Checkout

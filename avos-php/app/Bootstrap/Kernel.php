@@ -32,6 +32,9 @@ final class Kernel
 
     private ?Connection $db = null;
 
+    /** Set only on the CLI when the resolved database target is unsafe. */
+    public ?string $targetFault = null;
+
     private function __construct(
         public readonly string $appRoot,
         public readonly RequestContext $context,
@@ -73,8 +76,26 @@ final class Kernel
         if (!is_dir($logDir)) @mkdir($logDir, 0775, true);
         (new ErrorHandler($context, $config->isDebug(), $logDir . '/php-error.log'))->register();
 
-        // --- production guards ------------------------------------------
-        $config->assertProductionSafe($environment);
+        // --- boot guards --------------------------------------------------
+        // Production AND staging both enforce the configuration boundaries;
+        // a public host does not get a weaker standard because of its name.
+        $config->assertBootSafe($environment);
+        // Fail closed before anything can touch the wrong schema.
+        //
+        // On the CLI this is recorded rather than fatal: `db:verify` exists to
+        // DIAGNOSE exactly this fault, and a boot that dies before it can run
+        // leaves the operator with a stack trace instead of an answer. Every
+        // CLI command that writes (migrate, seed, fresh, reset, rollback,
+        // owner:init) re-asserts the guard itself, so nothing can reach the
+        // wrong database anyway.
+        $targetFault = null;
+        try {
+            (new \AvOS\Database\TargetGuard($config))->assertSafeTarget('boot');
+        } catch (\AvOS\Errors\ConfigurationException $e) {
+            if (!$context->isCli) throw $e;
+            $targetFault = $e->getMessage();
+            fwrite(STDERR, "WARNING: {$targetFault}\n");
+        }
 
         // --- security defaults -------------------------------------------
         $sessionCfg = new SessionConfig(
@@ -89,7 +110,9 @@ final class Kernel
         date_default_timezone_set((string)$config->get('app.timezone', 'UTC'));
         mb_internal_encoding('UTF-8');
 
-        return self::$instance = new self($appRoot, $context, $resolver, $config, $environment, $sessionCfg);
+        $kernel = new self($appRoot, $context, $resolver, $config, $environment, $sessionCfg);
+        $kernel->targetFault = $targetFault;
+        return self::$instance = $kernel;
     }
 
     /**

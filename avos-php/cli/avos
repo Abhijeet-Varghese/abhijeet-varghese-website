@@ -49,10 +49,24 @@ $guardDestructive = static function (string $cmd) use ($isProd): void {
     }
 };
 
+// Amendment A17. Kernel::boot() already refuses an unsafe target, so reaching
+// this point means the guard passed; schema-writing commands re-assert it
+// anyway, because the cost of being wrong once is a polluted legacy database.
+$targetGuard = new AvOS\Database\TargetGuard($kernel->config);
+$guardTarget = static function (string $cmd) use ($targetGuard): void {
+    try {
+        $targetGuard->assertSafeTarget("`{$cmd}`");
+    } catch (Throwable $e) {
+        fwrite(STDERR, $e->getMessage() . "\n");
+        exit(1);
+    }
+};
+
 $line = static fn(string $s = '') => print($s . PHP_EOL);
 
 switch ($command) {
     case 'migrate': {
+        $guardTarget('migrate');
         $dry = $hasFlag('--dry-run');
         $t0 = microtime(true);
         $r = $runner->migrate($dry);
@@ -92,6 +106,7 @@ switch ($command) {
     }
 
     case 'rollback': {
+        $guardTarget('rollback');
         $guardDestructive('rollback');
         $steps = (int)$flagVal('steps', '1');
         $line();
@@ -101,6 +116,7 @@ switch ($command) {
     }
 
     case 'reset': {
+        $guardTarget('reset');
         $guardDestructive('reset');
         $n = $runner->dropAll();
         $line(PHP_EOL . "  dropped {$n} tables from `{$db->databaseName()}`" . PHP_EOL);
@@ -108,6 +124,7 @@ switch ($command) {
     }
 
     case 'fresh': {
+        $guardTarget('fresh');
         $guardDestructive('fresh');
         $runner->createDatabaseIfMissing();
         $dropped = $runner->dropAll();
@@ -136,9 +153,59 @@ switch ($command) {
     }
 
     case 'seed': {
+        $guardTarget('seed');
         $seed = (new SystemSeeder($db))->run();
         $line(PHP_EOL . '  seeded: ' . json_encode($seed) . PHP_EOL);
         break;
+    }
+
+    /**
+     * db:verify — safe pre-migration diagnostics.
+     *
+     * Answers "is this the NEW database?" without printing a single reusable
+     * value: identifiers are masked, secrets are booleans, and the two database
+     * names are compared by fingerprint. Exit 1 when the target is not proven
+     * safe, so it can gate a migration in a script.
+     */
+    case 'db:verify': {
+        $report = $targetGuard->report();
+
+        // The ledger check CREATES avos_migrations if it is missing, so it must
+        // never run against a target that has not been proven safe.
+        $ledger = ['inspected' => false, 'reason' => 'target not proven safe'];
+        if ($targetGuard->isSafe()) try {
+            $ledger = ['inspected' => true, 'ledger_table_exists' => false, 'applied' => 0, 'pending' => 0, 'problems' => 0];
+            $rows = $runner->status();
+            $ledger['ledger_table_exists'] = (int)$db->scalar(
+                'SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=? AND TABLE_NAME=?',
+                [$db->databaseName(), 'avos_migrations'],
+            ) > 0;
+            $ledger['applied']  = count(array_filter($rows, static fn($r) => $r['state'] === 'applied'));
+            $ledger['pending']  = count(array_filter($rows, static fn($r) => $r['state'] === 'pending'));
+            $ledger['problems'] = count(array_filter($rows, static fn($r) => !in_array($r['state'], ['applied', 'pending'], true)));
+            $ledger['tables_present'] = (int)$db->scalar(
+                'SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=?', [$db->databaseName()]
+            );
+        } catch (Throwable $e) {
+            $ledger['error'] = 'ledger unreadable: ' . $e->getCode();
+        }
+
+        $health = $db->health();
+        $report['database_reachable'] = (bool)($health['ok'] ?? false);
+        $report['migration_ledger']   = $ledger;
+
+        $line(PHP_EOL . json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL);
+
+        if ($report['verdict'] !== AvOS\Database\TargetGuard::OK) {
+            fwrite(STDERR, "TARGET NOT SAFE: {$report['verdict']} — do not migrate.\n");
+            exit(1);
+        }
+        if (!$report['database_reachable']) {
+            fwrite(STDERR, "Database unreachable.\n");
+            exit(1);
+        }
+        $line('  VERDICT: safe to migrate — target is the new database, not the legacy one.' . PHP_EOL);
+        exit(0);
     }
 
     case 'health': {
@@ -170,6 +237,7 @@ switch ($command) {
      * reach argv, shell history, a process list or a log.
      */
     case 'owner:init': {
+        $guardTarget('owner:init');
         $bootstrap = new AvOS\Identity\OwnerBootstrap(
             new AvOS\Identity\UserRepository($db, new AvOS\Auth\PasswordHasher()),
             AvOS\Identity\EmailIdentity::fromConfig($kernel->config),
@@ -233,6 +301,7 @@ switch ($command) {
         $line('  AV OS CLI');
         $line('    migrate [--dry-run] · status · rollback [--steps=N]');
         $line('    fresh · reset · seed · health · schema:validate');
+        $line('    db:verify                             safe pre-migration target check');
         $line('    owner:init [--status] [--name=NAME]   first owner account');
         $line();
         $line('  environment: ' . $kernel->environment->name());

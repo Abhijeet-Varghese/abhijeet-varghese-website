@@ -111,6 +111,16 @@ final class Config
             ],
 
             'config_meta' => [
+                // Where the environment name came from. `staging` is a
+                // deliberate decision that must live in the private config, not
+                // in a committed file — this makes that auditable.
+                'env_source'              => (string)(getenv('APP_ENV') ?: '') !== ''
+                    ? 'environment'
+                    : (isset($fileVars['env']) ? 'private-config' : 'default'),
+                // The LEGACY database name, kept only so the target guard can
+                // prove the new runtime is not pointed at it. Never rendered.
+                'legacy_db_name'          => (string)($dbLegacy['name'] ?? ''),
+                'legacy_db_user'          => (string)($dbLegacy['user'] ?? ''),
                 // WHICH variable in the private file supplied the credentials.
                 // A name, never a value — proves the new runtime is on its own
                 // database rather than silently sharing the legacy one.
@@ -194,6 +204,36 @@ final class Config
         if ($problems !== []) {
             throw new ConfigurationException(
                 "AV OS is not configured for production:\n - " . implode("\n - ", $problems)
+            );
+        }
+    }
+
+    /**
+     * Boot guard for EVERY environment (amendment A17).
+     *
+     * `staging` is a deliberate decision for a PUBLIC host, so it keeps the
+     * production safety boundaries: real credentials, a non-empty password, no
+     * development credentials, a strong encryption key, and the web-root checks
+     * when strict mode is on.
+     *
+     * One item is deliberately not enforced outside production: "no
+     * configuration file was found". CI and local development configure the
+     * runtime purely from environment variables and write no file anywhere;
+     * demanding a file there would only push secrets onto disk. Every value the
+     * file would have carried is still checked.
+     */
+    public function assertBootSafe(Environment $env): void
+    {
+        if ($env->is(Environment::LOCAL) || $env->isTesting()) return;
+        if ($env->isProduction()) { $this->assertProductionSafe($env); return; }
+
+        $problems = array_values(array_filter(
+            $this->productionProblems(),
+            static fn(string $p): bool => $p !== 'no configuration file was found',
+        ));
+        if ($problems !== []) {
+            throw new ConfigurationException(
+                "AV OS is not safely configured for {$env->name()}:\n - " . implode("\n - ", $problems)
             );
         }
     }

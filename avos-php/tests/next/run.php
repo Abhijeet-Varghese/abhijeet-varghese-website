@@ -199,6 +199,118 @@ putenv('AV_DEBUG=1');
 T::ok('AV_DEBUG=1 cannot switch debug on in production', $mk($good, 'production')->isDebug() === false);
 putenv('AV_DEBUG=');
 
+/* ==================== 3A.5 DATABASE TARGET GUARD (A17) ================== */
+T::group('3A.5 database target guard');
+
+$tg = static fn(array $vars, string $env = 'staging'): \AvOS\Database\TargetGuard
+    => new \AvOS\Database\TargetGuard($mk($vars, $env));
+
+$legacyOnly = ['db' => $legacyDb, 'encKey' => str_repeat('k', 40)];
+$separate   = ['db' => $legacyDb, 'dbNext' => ['name' => 'next_db'], 'encKey' => str_repeat('k', 40)];
+$sameName   = ['db' => $legacyDb, 'dbNext' => ['name' => 'legacy_db'], 'encKey' => str_repeat('k', 40)];
+
+T::eq('a separate $dbNext database is a safe target', $tg($separate)->verdict(), \AvOS\Database\TargetGuard::OK);
+T::eq('$dbNext pointing at the legacy name is refused', $tg($sameName)->verdict(), \AvOS\Database\TargetGuard::LEGACY);
+T::ok('the legacy target is detected case-insensitively',
+    $tg(['db' => $legacyDb, 'dbNext' => ['name' => 'LEGACY_DB'], 'encKey' => str_repeat('k', 40)])->isLegacyTarget());
+T::eq('$db without $dbNext is ambiguous, never assumed', $tg($legacyOnly)->verdict(), \AvOS\Database\TargetGuard::AMBIGUOUS);
+T::ok('$db without $dbNext also resolves onto the legacy database', $tg($legacyOnly)->isLegacyTarget());
+T::eq('no database at all is reported as missing',
+    $tg(['encKey' => str_repeat('k', 40)])->verdict(), \AvOS\Database\TargetGuard::MISSING);
+T::ok('environment-only configuration is not ambiguous (no legacy block exists)',
+    $tg(['dbNext' => ['name' => 'next_db'], 'encKey' => str_repeat('k', 40)])->isSafe());
+
+$refuses = static function (\AvOS\Database\TargetGuard $g): string {
+    try { $g->assertSafeTarget('`migrate`'); return 'allowed'; }
+    catch (\AvOS\Errors\ConfigurationException) { return 'refused'; }
+    catch (Throwable $e) { return $e::class; }
+};
+T::eq('migrations are refused against the legacy database', $refuses($tg($sameName)), 'refused');
+T::eq('migrations are refused when the target is unstated', $refuses($tg($legacyOnly)), 'refused');
+T::eq('migrations are refused when no database is configured',
+    $refuses($tg(['encKey' => str_repeat('k', 40)])), 'refused');
+T::eq('migrations are allowed against a stated separate database', $refuses($tg($separate)), 'allowed');
+T::eq('a safe target throws nothing', (function () use ($tg, $separate) {
+    try { $tg($separate)->assertSafeTarget('`migrate`'); return 'ok'; } catch (Throwable) { return 'threw'; }
+})(), 'ok');
+
+$msg = (function () use ($tg, $sameName) {
+    try { $tg($sameName)->assertSafeTarget('`migrate`'); return ''; } catch (Throwable $e) { return $e->getMessage(); }
+})();
+T::ok('the refusal message names no database', !str_contains($msg, 'legacy_db') && !str_contains($msg, 'lp'));
+
+$rep = $tg($separate)->report();
+T::eq('report states the verdict', $rep['verdict'], \AvOS\Database\TargetGuard::OK);
+T::eq('report proves the target is not the legacy database', $rep['resolved_is_legacy_database'], false);
+T::eq('report proves the target was stated explicitly', $rep['target_unambiguous'], true);
+T::eq('report exposes the profile name', $rep['db_profile'], 'dbNext');
+T::ok('report fingerprints differ for different databases',
+    $rep['target_fingerprint'] !== $rep['legacy_fingerprint']);
+T::ok('report fingerprints match when the target IS the legacy database',
+    (function () use ($tg, $sameName) { $r = $tg($sameName)->report(); return $r['target_fingerprint'] === $r['legacy_fingerprint']; })());
+T::ok('report never contains a raw database name, user or password',
+    !in_array('legacy_db', array_map('strval', $rep), true)
+    && !in_array('next_db', array_map('strval', $rep), true)
+    && !in_array('legacy_u', array_map('strval', $rep), true)
+    && !in_array('lp', array_map('strval', $rep), true));
+T::eq('secrets are reported as booleans only', [$rep['db_password_set'], $rep['enc_key_set'], $rep['enc_key_strong']], [true, true, true]);
+
+T::eq('short identifiers are masked entirely', \AvOS\Database\TargetGuard::mask('abcd'), '••••');
+T::ok('long identifiers keep only the ends recognisable',
+    \AvOS\Database\TargetGuard::mask('u747717869_avos_next') === 'u747' . str_repeat('•', 12) . 'next');
+T::eq('an unset identifier says so', \AvOS\Database\TargetGuard::mask(''), '(unset)');
+T::eq('a fingerprint is 12 hex characters', strlen(\AvOS\Database\TargetGuard::fingerprint('x')), 12);
+T::ok('a fingerprint is not reversible to the value',
+    !str_contains(\AvOS\Database\TargetGuard::fingerprint('legacy_db'), 'legacy'));
+
+// --- environment source is auditable ------------------------------------
+$appEnvWas = getenv('APP_ENV');
+putenv('APP_ENV=');
+T::eq('APP_ENV from the private config is reported as such',
+    $mk($separate + ['env' => 'staging'], 'staging')->get('config_meta.env_source'), 'private-config');
+putenv('APP_ENV=staging');
+T::eq('APP_ENV from the environment is reported as such',
+    $mk($separate, 'staging')->get('config_meta.env_source'), 'environment');
+putenv('APP_ENV=');
+T::eq('an unstated environment is reported as default',
+    $mk($separate, 'production')->get('config_meta.env_source'), 'default');
+if ($appEnvWas !== false) putenv('APP_ENV=' . $appEnvWas);
+
+// --- staging keeps the production boundaries (A17) -----------------------
+$bootProblem = static function (array $vars, string $env) use ($mk): string {
+    try { $mk($vars, $env)->assertBootSafe(new Environment($env)); return 'ok'; }
+    catch (Throwable $e) { return 'refused'; }
+};
+T::eq('staging refuses an empty database password',
+    $bootProblem(['db' => ['host' => 'h', 'name' => 'n', 'user' => 'u', 'pass' => ''], 'encKey' => str_repeat('k', 40)], 'staging'), 'refused');
+T::eq('staging refuses a weak encryption key',
+    $bootProblem(['db' => ['host' => 'h', 'name' => 'n', 'user' => 'u', 'pass' => 'p'], 'encKey' => 'short'], 'staging'), 'refused');
+T::eq('staging refuses development credentials',
+    $bootProblem(['db' => ['host' => 'h', 'name' => 'n', 'user' => 'avos', 'pass' => 'p'], 'encKey' => str_repeat('k', 40)], 'staging'), 'refused');
+T::eq('staging accepts a fully configured host', $bootProblem($good, 'staging'), 'ok');
+T::eq('local development is not subject to the boot guard',
+    $bootProblem(['db' => ['host' => 'h', 'name' => '', 'user' => '', 'pass' => '']], 'local'), 'ok');
+// The file-found requirement is the ONE production check staging drops — CI and
+// local runs configure everything from the environment and write no secrets to
+// disk. Proven with a resolver that genuinely finds no file.
+$noFileRoot = sys_get_temp_dir() . '/avos_nofile_' . bin2hex(random_bytes(4));
+@mkdir($noFileRoot . '/app', 0775, true);
+putenv('AV_CONFIG_FILE='); putenv('AV_PRIVATE_DIR=');
+$noFileCfg = Config::build(new ConfigResolver($noFileRoot . '/app'), $good, new Environment('staging'));
+T::ok('a missing config file is still REPORTED as a problem',
+    in_array('no configuration file was found', $noFileCfg->productionProblems(), true));
+T::eq('staging boots without a config file when the environment supplies everything',
+    (function () use ($noFileCfg) {
+        try { $noFileCfg->assertBootSafe(new Environment('staging')); return 'ok'; }
+        catch (Throwable) { return 'refused'; }
+    })(), 'ok');
+T::eq('production still refuses to boot without a config file',
+    (function () use ($noFileRoot, $good) {
+        $c = Config::build(new ConfigResolver($noFileRoot . '/app'), $good, new Environment('production'));
+        try { $c->assertBootSafe(new Environment('production')); return 'ok'; }
+        catch (Throwable) { return 'refused'; }
+    })(), 'refused');
+
 /* ============================ 3A · SECURITY PRIMITIVES ================== */
 T::group('3A.6 security primitives');
 

@@ -726,3 +726,51 @@ to run the real migration engine on shared hosting. It ships with the standard
 private-directory deny file (`Require all denied`, `php_flag engine off`,
 `RemoveHandler .php`), so it is unreachable and non-executable over HTTP; it is
 usable only as `php cli/avos …` over SSH. `tests/` still never ships.
+
+## Amendment A17 — staging keeps the production boundaries; database target guard
+
+**Staging is a decision, not a discount.** `next.abhijeetvarghese.com` runs
+`APP_ENV=staging`, declared **only** in the private config (`$env = 'staging'`),
+never in a committed file. `Config::assertBootSafe()` now enforces the full
+production checklist in `staging` as well: real credentials, non-empty password,
+no development credentials, 32+ character encryption key, and the web-root
+checks when strict mode is on.
+
+Exactly **one** production check is dropped outside production: *"no
+configuration file was found"*. CI and local development configure the runtime
+entirely from environment variables and write no secrets to disk; demanding a
+file there would only create one. Every value the file would have carried is
+still verified. `local` and `testing` are unguarded as before.
+
+`Config::config_meta.env_source` reports `environment` | `private-config` |
+`default`, so "who decided this is staging?" is answerable without reading files.
+
+**`AvOS\Database\TargetGuard`** decides whether the resolved database is safe:
+
+| Verdict | Meaning |
+|---|---|
+| `ok` | a stated, separate database |
+| `ambiguous-no-dbNext` | `$db` exists, `$dbNext` does not — the operator never stated which database the new runtime owns |
+| `resolved-to-legacy-database` | the resolved name equals the legacy name (case-insensitive) |
+| `no-database-configured` | nothing to connect to |
+
+Enforcement:
+
+* **HTTP** — `Kernel::boot()` refuses: HTTP 500 `CONFIGURATION_ERROR`, fail-closed.
+* **CLI** — the fault is recorded and printed as a WARNING instead of killing
+  the process, because `db:verify` exists to diagnose precisely this and a boot
+  that dies first leaves the operator with a stack trace instead of an answer.
+  Every writing command (`migrate`, `seed`, `fresh`, `reset`, `rollback`,
+  `owner:init`) re-asserts the guard and exits 1.
+* `db:verify` does **not** read the migration ledger unless the target is safe —
+  `MigrationRunner::status()` calls `ensureLedger()`, which would `CREATE TABLE`
+  in the wrong database.
+
+`php cli/avos db:verify` is the pre-migration report: environment and its
+source, config source, both web-root booleans, `db_profile`, masked host / name
+/ user, `db_password_set`, `enc_key_set`, `enc_key_strong`, `owner_email_set`
+with its source, a 12-hex fingerprint of the target **and** of the legacy name so
+they can be compared, `resolved_is_legacy_database`, `target_unambiguous`,
+database reachability, and the ledger state. Identifiers are masked
+(`u747••••••••••••next`), secrets are booleans, and nothing reusable is printed.
+Exit 0 only on verdict `ok` with the database reachable.
