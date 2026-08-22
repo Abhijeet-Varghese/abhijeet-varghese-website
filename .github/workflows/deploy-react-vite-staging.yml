@@ -202,6 +202,10 @@ jobs:
           BAD=$(find "$PKG" -type f \( -name '*.sql' -o -name '*.sql.gz' -o -name '*.bak' -o -name '*.log' \
                 -o -name '*.map' -o -name '*.pem' -o -name '*.key' \) -not -path "$PKG/database/*" | head -n1)
           test -z "$BAD" || { echo "sensitive artefact in package: $BAD"; exit 1; }
+          # no credential literals may ship in the package (§88 §2)
+          if grep -rInE "getenv\('DB_PASS'\) \?: '[^']+'|getenv\('AV_ENC_KEY'\) \?: '[^']+'" "$PKG" ; then
+            echo "credential literal in deployment package"; exit 1
+          fi
           echo "§88 package security guarantees: OK"
           echo "flat package assembled (branch root = web root)"
 

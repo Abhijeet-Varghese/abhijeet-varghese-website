@@ -15,24 +15,75 @@ define('AV_ROOT', dirname(__DIR__, 2));                    // .../avos-php
 define('AV_PUBLIC', getenv('AV_PUBLIC_DIR') ?: AV_ROOT . '/public_html');
 
 /**
- * PRIVATE ROOT (§88 §2) — writable/secret state that must never be reachable
- * over HTTP. Resolution order:
- *   1. AV_PRIVATE_DIR env (hPanel → PHP → environment variables)
- *   2. <parent of web root>/avos-private   ← preferred on Hostinger shared,
- *      where git deployment can only write inside the web root
- *   3. AV_ROOT/storage                     ← legacy in-web-root fallback,
- *      which is why the deny rules and per-directory .htaccess still ship
- * Fallback (3) is NOT considered secure on its own; deployment docs instruct
- * creating (2) manually once, which git deployment cannot do for us.
+ * PRIVATE ROOT (§88) — secret + writable state that must never be reachable
+ * over HTTP.
+ *
+ * IMPORTANT: "one level above AV_ROOT" is NOT automatically private. On this
+ * account the staging web root is /home/uXXXXXXXX/public_html/next, so
+ * dirname(AV_ROOT) is /home/uXXXXXXXX/public_html — still served over HTTP.
+ * Every candidate is therefore validated with av_path_is_web_exposed().
+ *
+ * Resolution order:
+ *   1. AV_PRIVATE_DIR env (hPanel → PHP → environment variables)  ← preferred
+ *   2. nearest ancestor .../avos-private that is NOT web-exposed
+ *   3. AV_ROOT/storage  ← LEGACY, inside the web root. Retained so an
+ *      un-migrated deployment keeps working; reported as insecure by
+ *      av_config_security() and rejected when AV_REQUIRE_PRIVATE_CONFIG=1.
  */
-$__priv = getenv('AV_PRIVATE_DIR') ?: '';
-if ($__priv === '') {
-    $__candidate = dirname(AV_ROOT) . '/avos-private';
-    $__priv = is_dir($__candidate) ? $__candidate : AV_ROOT . '/storage';
+
+/**
+ * True when $path sits inside a directory that a web server publishes.
+ * Conservative: any `public_html` / `htdocs` / `www` / `public` path segment,
+ * or anything at or below the application root, counts as exposed.
+ */
+function av_path_is_web_exposed(string $path, string $appRoot): bool
+{
+    $p = rtrim(str_replace('\\', '/', $path), '/');
+    $r = rtrim(str_replace('\\', '/', $appRoot), '/');
+    if ($p === $r || strpos($p . '/', $r . '/') === 0) return true;      // at/below web root
+    foreach (['public_html', 'htdocs', 'www', 'public'] as $seg) {
+        if (preg_match('#(^|/)' . preg_quote($seg, '#') . '(/|$)#', $p)) return true;
+    }
+    return false;
 }
+
+$__priv = '';
+$__privSource = 'none';
+
+// (1) explicit environment configuration
+$__envPriv = getenv('AV_PRIVATE_DIR') ?: '';
+if ($__envPriv !== '' && is_dir($__envPriv)) {
+    $__priv = $__envPriv;
+    $__privSource = 'AV_PRIVATE_DIR';
+}
+
+// (2) nearest non-exposed ancestor containing avos-private/
+if ($__priv === '') {
+    $__dir = AV_ROOT;
+    for ($__i = 0; $__i < 6; $__i++) {
+        $__parent = dirname($__dir);
+        if ($__parent === $__dir) break;
+        $__dir = $__parent;
+        $__cand = $__dir . '/avos-private';
+        if (is_dir($__cand) && !av_path_is_web_exposed($__cand, AV_ROOT)) {
+            $__priv = $__cand;
+            $__privSource = 'ancestor';
+            break;
+        }
+    }
+}
+
+// (3) legacy in-web-root storage
+if ($__priv === '') {
+    $__priv = AV_ROOT . '/storage';
+    $__privSource = 'legacy-in-webroot';
+}
+
 define('AV_PRIVATE', rtrim($__priv, '/'));
-define('AV_PRIVATE_IS_OUTSIDE_WEBROOT', strpos(AV_PRIVATE, AV_ROOT . '/') !== 0);
-unset($__priv, $__candidate);
+define('AV_PRIVATE_SOURCE', $__privSource);
+define('AV_PRIVATE_IS_OUTSIDE_WEBROOT', !av_path_is_web_exposed(AV_PRIVATE, AV_ROOT));
+unset($__priv, $__privSource, $__envPriv, $__dir, $__parent, $__cand, $__i);
+
 define('AV_BACKEND', AV_ROOT . '/backend');
 define('AV_INSTALL', AV_ROOT . '/install');
 define('AV_STORAGE', AV_PRIVATE_IS_OUTSIDE_WEBROOT ? AV_PRIVATE : AV_ROOT . '/storage');
@@ -72,30 +123,104 @@ $turnstile = ['site_key' => getenv('TURNSTILE_SITE_KEY') ?: '', 'secret_key' => 
 // it may override $env, $db, $encKey, $siteUrl, $turnstile, $sessionHours.
 // AV_SKIP_LOCAL_CONFIG=1 bypasses it — used only to simulate a pristine
 // production boot (CI/tests). Never set in real deployments.
-// Search order puts the out-of-web-root locations FIRST so a hardened install
-// is preferred over a legacy in-web-root file, even if both exist.
-$__cfgCandidates = array_filter([
-    getenv('AV_CONFIG_FILE') ?: '',
-    dirname(AV_ROOT) . '/avos-private/config.local.php',
-    dirname(AV_ROOT) . '/config.local.php',
-    AV_ROOT . '/config.local.php',            // legacy, in web root (deny-protected)
-]);
+/**
+ * PRIVATE CONFIG RESOLUTION (§88 — configuration outside the web root)
+ *
+ * Priority:
+ *   1. AV_CONFIG_FILE          explicit absolute path (hPanel env var)
+ *   2. AV_PRIVATE/config.local.php   the resolved, validated private root
+ *   3. nearest non-web-exposed ancestor .../avos-private/config.local.php
+ *   4. AV_ROOT/config.local.php      LEGACY, inside the web root — deprecated
+ *
+ * (4) exists only so an un-migrated deployment keeps serving. It is reported
+ * as insecure and is refused outright when AV_REQUIRE_PRIVATE_CONFIG=1.
+ * No credential ever lives in source control or in the deployment package.
+ */
 $__cfgFile = '';
-foreach ($__cfgCandidates as $__c) { if (is_file($__c)) { $__cfgFile = $__c; break; } }
+$__cfgSource = 'none';
+
+$__envCfg = getenv('AV_CONFIG_FILE') ?: '';
+if ($__envCfg !== '') {
+    if (is_file($__envCfg) && is_readable($__envCfg)) {
+        $__cfgFile = $__envCfg;
+        $__cfgSource = 'AV_CONFIG_FILE';
+    } else {
+        // Explicit misconfiguration must be loud, never silently downgraded.
+        $__cfgSource = 'AV_CONFIG_FILE_INVALID';
+    }
+}
+
+if ($__cfgFile === '' && $__cfgSource !== 'AV_CONFIG_FILE_INVALID') {
+    $__try = [];
+    if (defined('AV_PRIVATE')) $__try[] = [AV_PRIVATE . '/config.local.php', 'AV_PRIVATE'];
+    $__d = AV_ROOT;
+    for ($__i = 0; $__i < 6; $__i++) {
+        $__p = dirname($__d);
+        if ($__p === $__d) break;
+        $__d = $__p;
+        $__try[] = [$__d . '/avos-private/config.local.php', 'ancestor:avos-private'];
+        $__try[] = [$__d . '/config.local.php', 'ancestor'];
+    }
+    $__try[] = [AV_ROOT . '/config.local.php', 'legacy-in-webroot'];
+
+    foreach ($__try as [$__cand, $__src]) {
+        if (!is_file($__cand)) continue;
+        if ($__src !== 'legacy-in-webroot' && av_path_is_web_exposed($__cand, AV_ROOT)) continue;
+        $__cfgFile = $__cand;
+        $__cfgSource = $__src;
+        break;
+    }
+}
+
 define('AV_CONFIG_PATH', $__cfgFile);
-define('AV_CONFIG_OUTSIDE_WEBROOT', $__cfgFile !== '' && strpos($__cfgFile, AV_ROOT . '/') !== 0);
+define('AV_CONFIG_SOURCE', $__cfgSource);
+define('AV_CONFIG_OUTSIDE_WEBROOT', $__cfgFile !== '' && !av_path_is_web_exposed($__cfgFile, AV_ROOT));
+
+if ($__cfgSource === 'AV_CONFIG_FILE_INVALID') {
+    http_response_code(500);
+    header('Content-Type: text/plain; charset=utf-8');
+    // Deliberately does NOT echo the path — it can reveal the account layout.
+    exit("AV OS configuration error: AV_CONFIG_FILE is set but not readable.\n");
+}
+
 if (getenv('AV_SKIP_LOCAL_CONFIG') !== '1' && $__cfgFile !== '') {
     require $__cfgFile;
 }
-unset($__cfgCandidates, $__c, $__cfgFile);
+unset($__cfgFile, $__cfgSource, $__envCfg, $__try, $__cand, $__src, $__d, $__p, $__i);
 
 if (!defined('AV_ENV')) define('AV_ENV', $env);
 // local/development/staging = verbose debugging · production = sanitized errors
 if (!defined('AV_DEBUG')) define('AV_DEBUG', in_array($env, ['local', 'development', 'staging'], true));
 
+/**
+ * Configuration security self-report. Returns booleans and categories ONLY —
+ * never a secret value, never a length that could aid guessing.
+ */
+function av_config_security(): array
+{
+    return [
+        'config_source'          => AV_CONFIG_SOURCE,
+        'config_outside_webroot' => AV_CONFIG_OUTSIDE_WEBROOT,
+        'private_source'         => AV_PRIVATE_SOURCE,
+        'private_outside_webroot'=> AV_PRIVATE_IS_OUTSIDE_WEBROOT,
+        'db_configured'          => !empty(AV_DB['name']) && !empty(AV_DB['user']),
+        'db_password_set'        => AV_DB['pass'] !== '',
+        'enc_key_set'            => AV_ENC_KEY !== '',
+        'enc_key_strong'         => strlen(AV_ENC_KEY) >= 32,
+        'strict_mode'            => (bool)(getenv('AV_REQUIRE_PRIVATE_CONFIG') === '1'),
+    ];
+}
+
 // ---- production guard: refuse insecure defaults ----
 if (AV_ENV === 'production') {
     $insecure = [];
+    // Opt-in strictness: once the private config has been provisioned, set
+    // AV_REQUIRE_PRIVATE_CONFIG=1 so an in-web-root config can never be used.
+    if (getenv('AV_REQUIRE_PRIVATE_CONFIG') === '1') {
+        if (!AV_CONFIG_OUTSIDE_WEBROOT)  $insecure[] = 'configuration file is inside the web root';
+        if (!AV_PRIVATE_IS_OUTSIDE_WEBROOT) $insecure[] = 'private storage is inside the web root';
+    }
+    if (AV_CONFIG_PATH === '') $insecure[] = 'no configuration file found';
     if (empty($db['name']) || empty($db['user'])) $insecure[] = 'database credentials not configured';
     if ($db['pass'] === 'aV0s_d3v_9xKq2mN7' || $db['user'] === 'avos') $insecure[] = 'default database credentials detected';
     if (strlen($encKey) < 32) $insecure[] = 'AV_ENC_KEY must be set (32+ chars)';

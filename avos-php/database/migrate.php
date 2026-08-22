@@ -16,9 +16,27 @@ $root = dirname(__DIR__);
 $fresh = in_array('--fresh', $argv, true);
 $list = in_array('--list', $argv, true);
 
-$db = ['host' => getenv('DB_HOST') ?: '127.0.0.1', 'name' => getenv('DB_NAME') ?: 'avos',
-       'user' => getenv('DB_USER') ?: 'avos', 'pass' => getenv('DB_PASS') ?: 'aV0s_d3v_9xKq2mN7'];
-if (is_file($root . '/config.local.php')) require $root . '/config.local.php';
+// No credential literals in source (§88 §2). Defaults are empty; real values
+// come from the environment or the PRIVATE config file, resolved with the same
+// out-of-web-root priority the application uses.
+$db = ['host' => getenv('DB_HOST') ?: '127.0.0.1', 'name' => getenv('DB_NAME') ?: '',
+       'user' => getenv('DB_USER') ?: '', 'pass' => getenv('DB_PASS') ?: ''];
+
+$cfgCandidates = array_filter([
+    getenv('AV_CONFIG_FILE') ?: '',
+    (getenv('AV_PRIVATE_DIR') ?: '') ? rtrim(getenv('AV_PRIVATE_DIR'), '/') . '/config.local.php' : '',
+    dirname($root, 2) . '/avos-private/config.local.php',
+    dirname($root) . '/avos-private/config.local.php',
+    dirname($root) . '/config.local.php',
+    $root . '/config.local.php',        // legacy, inside the web root
+]);
+foreach ($cfgCandidates as $cfg) {
+    if (is_file($cfg)) { require $cfg; break; }
+}
+if (empty($db['name']) || empty($db['user'])) {
+    fwrite(STDERR, "Database is not configured. Set DB_* environment variables or provide a private config.local.php.\n");
+    exit(1);
+}
 require $root . '/backend/core/MigrationRunner.php';
 
 $pdo = new PDO("mysql:host={$db['host']};charset=utf8mb4", $db['user'], $db['pass'], [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
