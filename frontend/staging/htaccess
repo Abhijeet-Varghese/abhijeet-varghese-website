@@ -69,8 +69,19 @@ ErrorDocument 404 /404.html
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
-  # /media/* → private-storage media server
-  RewriteRule ^media/(.+)$ media.php?f=$1 [L,QSA]
+    # /api/v1/* → the NEW AV OS API front controller (Phase 3D–3F).
+    #
+    # Mounted at api/v1/index.php. The guard on the first condition stops the
+    # rewrite re-entering .htaccess and looping back onto itself. REQUEST_URI is
+    # preserved, which is what the router reads, so path parameters survive.
+    #
+    # The legacy unversioned /api/* surface is deliberately left untouched and
+    # continues to be served by api/index.php.
+    RewriteCond %{REQUEST_URI} !^/api/v1/index\.php$
+    RewriteRule ^api/v1(?:/.*)?$ api/v1/index.php [L,QSA]
+
+    # /media/* → private-storage media server
+    RewriteRule ^media/(.+)$ media.php?f=$1 [L,QSA]
 
   # /admin and /admin/ → admin login (admin has no directory index)
   RewriteRule ^admin/?$ admin/login.php [L]

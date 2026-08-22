@@ -389,6 +389,23 @@ jobs:
           cp -r avos-php/site-template "$PKG/"
           mkdir -p "$PKG/storage"                 # empty writable runtime skeleton
 
+          # 4b) NEW AV OS runtime (Phase 3A-3F). Without this the new backend is
+          # packaged nowhere and /api/v1/* cannot resolve on the server.
+          #
+          # `app/` is library code and must never be fetched directly; it gets a
+          # deny file like every other private directory. The front controller is
+          # mounted at api/v1/index.php, which is exactly what its own
+          # dirname(__DIR__, 2) root resolution expects in a flat package.
+          #
+          # The legacy unversioned /api/* surface is untouched: api/index.php and
+          # everything under it ship exactly as before.
+          cp -r avos-php/app "$PKG/"
+          cp avos-php/scripts-security/private-dir.htaccess "$PKG/app/.htaccess"
+          mkdir -p "$PKG/api/v1"
+          cp avos-php/public-next/api/index.php "$PKG/api/v1/index.php"
+          # cli/ and tests/ are development entry points and are deliberately
+          # NOT shipped.
+
           # 5) hard guarantees
           test -f "$PKG/index.html"                 || { echo "no web-root index"; exit 1; }
           test -d "$PKG/assets"                     || { echo "no hashed assets"; exit 1; }
@@ -397,6 +414,24 @@ jobs:
           test -f "$PKG/.htaccess"                  || { echo ".htaccess missing"; exit 1; }
           test -d "$PKG/backend" && test -d "$PKG/includes" || { echo "backend/includes missing"; exit 1; }
           test -f "$PKG/os/index.html"              || { echo "React admin (os/) missing"; exit 1; }
+          # --- new AV OS runtime must be present and correctly wired ---------
+          test -f "$PKG/app/Autoloader.php"         || { echo "new runtime app/ missing"; exit 1; }
+          test -f "$PKG/app/Bootstrap/ApiKernel.php" || { echo "new runtime ApiKernel missing"; exit 1; }
+          test -f "$PKG/api/v1/index.php"           || { echo "new API front controller missing"; exit 1; }
+          test -f "$PKG/app/.htaccess"              || { echo "app/ deny file missing"; exit 1; }
+          grep -q 'Require all denied' "$PKG/app/.htaccess" || { echo "app/ deny rule missing"; exit 1; }
+          test -f "$PKG/api/index.php"              || { echo "legacy api entry lost"; exit 1; }
+          grep -q 'api/v1/index.php' "$PKG/.htaccess" || { echo "/api/v1 rewrite missing"; exit 1; }
+          # the front controller must resolve app/ from its mounted location
+          php -r '
+            $root = dirname("'"$PKG"'/api/v1", 2);
+            if (!is_file($root . "/app/Autoloader.php")) { fwrite(STDERR, "front controller cannot resolve app/\n"); exit(1); }
+            echo "  new API front controller resolves app/ correctly\n";
+          '
+          # development-only entry points must never ship
+          test ! -d "$PKG/cli"                      || { echo "cli/ leaked into package"; exit 1; }
+          test ! -d "$PKG/tests"                    || { echo "tests/ leaked into package"; exit 1; }
+          test ! -d "$PKG/public-next"              || { echo "public-next/ leaked into package"; exit 1; }
           test -d "$PKG/os/assets"                  || { echo "React admin assets missing"; exit 1; }
           test ! -e "$PKG/config.local.php"         || { echo "config.local.php leaked"; exit 1; }
           test ! -d "$PKG/css" && test ! -d "$PKG/js" || { echo "legacy css/js leaked"; exit 1; }
@@ -439,9 +474,12 @@ jobs:
           echo "── html route count ──"
           find _deploy -maxdepth 2 -name '*.html' | wc -l
           echo "── PHP engine dirs ──"
-          for d in backend includes database site-template api admin install; do
+          for d in backend includes database site-template api admin install app api/v1; do
             test -d "_deploy/$d" && echo "  ✓ $d" || echo "  ✗ MISSING $d"
           done
+          echo "── new AV OS runtime ──"
+          echo "  app/ php files : $(find _deploy/app -name '*.php' | wc -l)"
+          echo "  api/v1 entry   : $(test -f _deploy/api/v1/index.php && echo present || echo MISSING)"
 
       - name: Upload staging artifact (SFTP fallback)
         uses: actions/upload-artifact@v4
