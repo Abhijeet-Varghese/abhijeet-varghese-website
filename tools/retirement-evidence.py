@@ -175,6 +175,12 @@ def main() -> None:
                                    "avos-php/public_html/admin/**/*.php",
                                    "avos-php/public_html/admin/**/*.html"],
         "cron+cli": ["avos-php/backend/cron/*.php", "avos-php/backend/scripts/*.php"],
+        "php-templates": ["avos-php/site-template/**/*.html", "avos-php/site-template/**/*.php"],
+        "database-scripts": ["avos-php/database/*.php", "avos-php/database/**/*.sql"],
+        "deployment": [".github/workflows/*.yml", "frontend/staging/*"],
+        "redirects+routes": ["frontend/src/routes/*.json", "frontend/dist/_redirects.htaccess"],
+        "generated-content": ["avos-data/*.json"],
+        "documentation": ["docs/**/*.md", "README.md"],
     }
     per_consumer: dict[str, set[str]] = {}
     for label, globs in consumer_sources.items():
@@ -212,16 +218,29 @@ def main() -> None:
         is_entry = f in entries
         r = f in reached
         ext = externally_referenced(f)
-        if is_entry:
-            verdict, why = "KEEP", "entry point"
+        # ---- Phase 1 five-way classification -------------------------------
+        # Consumer evidence has priority over reachability (per brief).
+        legacy_admin_only = f.as_posix().find("public_html/admin/") >= 0
+        is_legacy_engine = any(k in rel for k in (
+            "publish/PublishEngine", "site-template", "integrations/", "ai/AiProviders"))
+        if is_entry and legacy_admin_only:
+            verdict, why = "REWRITE", "legacy admin entry point — replaced by /os/"
+        elif legacy_admin_only:
+            verdict, why = "ARCHIVE", "legacy admin runtime — delete only after /os/ parity"
+        elif is_entry:
+            verdict, why = "KEEP", "live entry point"
+        elif is_legacy_engine:
+            verdict, why = "REWRITE", "legacy engine slated for replacement"
+        elif rel.startswith("backend/core/") or rel.startswith("backend/config/") or rel.startswith("identity"):
+            verdict, why = "KEEP", "hardened core — carry forward"
         elif r and ext:
-            verdict, why = "KEEP", f"reachable ({reached_via.get(f,'')}) + externally referenced"
+            verdict, why = "MIGRATE", f"reachable + externally referenced ({reached_via.get(f,'')})"
         elif r:
-            verdict, why = "KEEP", f"reachable ({reached_via.get(f,'')})"
+            verdict, why = "MIGRATE", f"reachable ({reached_via.get(f,'')})"
         elif ext:
-            verdict, why = "REVIEW", "not reachable but externally referenced"
+            verdict, why = "ARCHIVE", "unreachable but externally referenced"
         else:
-            verdict, why = "RETIRE-CANDIDATE", "unreachable from every entry point, no external reference"
+            verdict, why = "DELETE", "unreachable from every entry point, no consumer, no reference"
         rows.append({"file": rel, "loc": len(read(f).splitlines()), "verdict": verdict, "evidence": why})
 
     # ---- report ------------------------------------------------------------ #
@@ -233,14 +252,14 @@ def main() -> None:
     for r in rows:
         by[r["verdict"]].append(r)
 
-    for v in ("RETIRE-CANDIDATE", "REVIEW", "KEEP"):
+    for v in ("DELETE", "ARCHIVE", "REWRITE", "MIGRATE", "KEEP"):
         group = by[v]
         print(f"\n{v}  ({len(group)} files, {sum(g['loc'] for g in group):,} LOC)")
         print("-" * 100)
-        for g in sorted(group, key=lambda x: -x["loc"])[: 40 if v != "KEEP" else 12]:
+        for g in sorted(group, key=lambda x: -x["loc"])[: 40 if v in ("DELETE", "ARCHIVE", "REWRITE") else 10]:
             print(f"  {g['file']:<58} {g['loc']:>6}  {g['evidence'][:60]}")
-        if v == "KEEP" and len(group) > 12:
-            print(f"  … and {len(group)-12} more")
+        if v in ("KEEP", "MIGRATE") and len(group) > 10:
+            print(f"  … and {len(group)-10} more")
 
     print("\n" + "=" * 100)
     print(f"ROUTE DEMAND — declared by backend: {len(declared)} · called by frontend/admin: {len(used_routes)}")

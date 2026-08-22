@@ -1,3 +1,4 @@
+import { PUBLIC_EMAIL } from '@/config/identity';
 /**
  * Homepage content — extracted verbatim from the production index.html and
  * typed. This is the CMS-snapshot shape the Vite build consumes (see the PHP
@@ -300,7 +301,7 @@ export const CONTACT = {
   micro: [
     { label: 'Working', value: 'Worldwide · IST hours' },
     { label: 'Responds', value: 'Within 24 hours, personally' },
-    { label: 'Email', value: 'hi@abhijeetvarghese.com', href: 'mailto:hi@abhijeetvarghese.com' },
+    { label: 'Email', value: PUBLIC_EMAIL, href: `mailto:${PUBLIC_EMAIL}` },
     { label: 'Call / WhatsApp', value: '+91-96940 80706', href: 'tel:+919694080706' },
   ],
 };

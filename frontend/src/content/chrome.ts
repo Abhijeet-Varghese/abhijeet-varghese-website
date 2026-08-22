@@ -1,4 +1,5 @@
 import type { ChromeData, SocialLink } from '@/types';
+import { PUBLIC_EMAIL } from '@/config/identity';
 
 /**
  * Shared site chrome (nav + footer). This mirrors the production chrome that
@@ -61,8 +62,8 @@ export const CHROME: ChromeData = {
   cta: { label: 'Start a conversation', href: '/contact' },
   footer: {
     line: 'Making ambitious ideas impossible to misunderstand.',
-    email: 'hi@abhijeetvarghese.com',
-    emailHref: 'mailto:hi@abhijeetvarghese.com',
+    email: PUBLIC_EMAIL,
+    emailHref: `mailto:${PUBLIC_EMAIL}`,
     phone: '+91-96940 80706',
     phoneHref: 'tel:+919694080706',
     availability: 'Available for select projects — 2026',

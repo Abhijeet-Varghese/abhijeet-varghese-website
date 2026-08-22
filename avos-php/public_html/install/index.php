@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!filter_var($adminEmail, FILTER_VALIDATE_EMAIL)) $errors[] = 'Enter a valid admin email.';
     if (!$createPass && strlen($pass) < 12) $errors[] = 'Password must be at least 12 characters.';
     if (!$createPass && $pass !== $pass2) $errors[] = 'Passwords do not match.';
-    if (empty(AV_DB['name']) || empty(AV_DB['user'])) $errors[] = 'Database not configured — create config.local.php at the AV OS root first (see DEPLOY-HOSTINGER-PHP.md).';
+    if (empty(AV_DB['name']) || empty(AV_DB['user'])) $errors[] = 'Database not configured — create config.local.php at the AV OS root first (see docs/DEPLOY-HOSTINGER-PHP.md).';
 
     if (!$errors) {
         $res = Installer::run([

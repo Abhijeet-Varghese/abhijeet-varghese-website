@@ -1,5 +1,6 @@
 import type { SeoData } from '@/types';
 import { normalizeHref } from '@/routes/registry';
+import { PUBLIC_EMAIL } from '@/config/identity';
 
 /** Canonical production origin (SEO absolute URLs). */
 export const SITE_ORIGIN = 'https://abhijeetvarghese.com';
@@ -44,7 +45,7 @@ export const HOME_SEO: SeoData = {
     jobTitle: 'Creative Systems Leader',
     description:
       'Multidisciplinary creative systems leader with 12+ years across experience design, enterprise innovation, immersive technology and AI-enabled creative production.',
-    email: 'mailto:hi@abhijeetvarghese.com',
+    email: `mailto:${PUBLIC_EMAIL}`,
     telephone: '+91-96940 80706',
     image: `${SITE_ORIGIN}/assets/logo.png`,
     // What this person is an authority on. This is the property that

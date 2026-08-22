@@ -115,6 +115,13 @@ jobs:
         run: python3 scripts/acceptance-urls.py dist
         working-directory: frontend
 
+      # §3: the private owner identity must never reach a client artifact.
+      # AV_OWNER_EMAIL is a repository secret; the literal is never in the repo.
+      - name: Identity leak guard (private email)
+        env:
+          AV_OWNER_EMAIL: ${{ secrets.AV_OWNER_EMAIL }}
+        run: python3 tools/identity-leak-guard.py frontend/dist admin/dist avos-php/public_html
+
       - name: Secret scan (frontend + admin)
         run: |
           if grep -rInE 'sk-[A-Za-z0-9]{20,}|AIza[0-9A-Za-z_-]{20,}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{30,}|github_pat_|sk-or-|-----BEGIN (RSA|OPENSSH|PRIVATE) KEY|client_secret|OPENROUTER|DB_PASSWORD|SMTP_PASS' frontend/dist/ admin/dist/ ; then
@@ -207,6 +214,11 @@ jobs:
             echo "credential literal in deployment package"; exit 1
           fi
           echo "§88 package security guarantees: OK"
+
+      - name: Identity leak guard (deployment package)
+        env:
+          AV_OWNER_EMAIL: ${{ secrets.AV_OWNER_EMAIL }}
+        run: python3 tools/identity-leak-guard.py _deploy
           echo "flat package assembled (branch root = web root)"
 
       - name: Inspect deployment package

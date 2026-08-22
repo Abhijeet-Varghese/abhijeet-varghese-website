@@ -1,3 +1,4 @@
+import { PUBLIC_EMAIL } from '@/config/identity';
 /**
  * Static (non-interactive) contact form — the no-JS / SSR fallback.
  *
@@ -164,7 +165,7 @@ export function StaticContactForm() {
         <p id="doneSummary" />
         <p className="book__done-note">I&apos;ll confirm the requested time by email within 24 hours.</p>
         <div className="done__actions">
-          <a className="btn btn--ghost book__ghost" id="doneMail" href="mailto:hi@abhijeetvarghese.com">
+          <a className="btn btn--ghost book__ghost" id="doneMail" href={`mailto:${PUBLIC_EMAIL}`}>
             Send a note by email
           </a>
           <button className="btn btn--accent" type="button" id="bookAgain">
@@ -173,7 +174,7 @@ export function StaticContactForm() {
         </div>
       </div>
       <p className="book__fine">
-        Prefer writing? <a className="book__fine-link" href="mailto:hi@abhijeetvarghese.com">hi@abhijeetvarghese.com</a> ·{' '}
+        Prefer writing? <a className="book__fine-link" href={`mailto:${PUBLIC_EMAIL}`}>hi@abhijeetvarghese.com</a> ·{' '}
         <a className="book__fine-link" href="tel:+919694080706">+91-96940 80706</a>
       </p>
     </div>

@@ -237,6 +237,14 @@ define('AV_SESSION_HOURS', $sessionHours);
 define('AV_ENC_KEY', $encKey);
 define('AV_SITE_URL', $siteUrl);
 define('AV_TURNSTILE', $turnstile);
+
+// ---- email identities (§3) ------------------------------------------------
+// PUBLIC address is safe in source. The OWNER address is private and must come
+// from the private config ($ownerEmail) or the environment — never from source,
+// so CI can assert its literal absence from the whole repository.
+define('AV_PUBLIC_EMAIL', isset($publicEmail) && $publicEmail ? $publicEmail : 'hi@abhijeetvarghese.com');
+define('AV_PUBLIC_NOREPLY', isset($publicNoReply) && $publicNoReply ? $publicNoReply : 'no-reply@abhijeetvarghese.com');
+define('AV_OWNER_EMAIL', isset($ownerEmail) && $ownerEmail ? $ownerEmail : (getenv('AV_OWNER_EMAIL') ?: ''));
 define('AV_FRONTEND_DIR', isset($frontendDir) ? $frontendDir : (getenv('AV_FRONTEND_DIR') ?: ''));
 
 // ---- frontend mode ----

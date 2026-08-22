@@ -3,6 +3,7 @@ import { useSiteChrome } from '@/lib/scroll';
 import { useHomeMotion } from '@/lib/home-motion';
 import { useContent } from '@/content/provider';
 import { Arrow } from '@/components/Arrow';
+import { PUBLIC_EMAIL } from '@/config/identity';
 
 /**
  * Case Studies index (production `case-studies.html`) — narrative collection
@@ -72,7 +73,7 @@ export function CaseStudiesPage() {
           <p className="clients__note" data-reveal style={{ marginTop: 'clamp(60px,9vh,110px)' }}>
             Detailed case studies — problem framing, process, artefacts and measurable outcomes — are shared personally
             rather than published.{' '}
-            <a className="link-arrow" href="mailto:hi@abhijeetvarghese.com?subject=Case%20study%20deep%20dive">
+            <a className="link-arrow" href={`mailto:${PUBLIC_EMAIL}?subject=Case%20study%20deep%20dive`}>
               Request the deep dive <Arrow />
             </a>
           </p>

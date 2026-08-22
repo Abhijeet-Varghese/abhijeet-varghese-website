@@ -30,7 +30,7 @@ final class Installer
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Enter a valid admin email.';
         if (!$createPass && strlen($pass) < 12) $errors[] = 'Password must be at least 12 characters.';
-        if (empty(AV_DB['name']) || empty(AV_DB['user'])) $errors[] = 'Database not configured — create config.local.php first (see DEPLOY-HOSTINGER-PHP.md).';
+        if (empty(AV_DB['name']) || empty(AV_DB['user'])) $errors[] = 'Database not configured — create config.local.php first (see docs/DEPLOY-HOSTINGER-PHP.md).';
         if ($errors) return ['ok' => false, 'errors' => $errors, 'temp_pass' => '', 'email' => $email];
 
         try {

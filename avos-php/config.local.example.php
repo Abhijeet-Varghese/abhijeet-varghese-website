@@ -38,3 +38,12 @@ $siteUrl = 'https://abhijeetvarghese.com';
 //   'site_key' => '0x4AAAA...',
 //   'secret_key' => '0x4AAAA...',
 // ];
+
+// ---- email identities -------------------------------------------------
+// PUBLIC — client-facing, safe to expose.
+$publicEmail   = 'hi@abhijeetvarghese.com';
+$publicNoReply = 'no-reply@abhijeetvarghese.com';
+
+// PRIVATE OWNER — internal only. Never committed, never sent to a client.
+// Used for admin auth, security alerts, recovery and internal notifications.
+$ownerEmail = '';   // e.g. 'owner@example.com'

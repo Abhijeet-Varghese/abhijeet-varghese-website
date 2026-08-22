@@ -1,5 +1,6 @@
 import type { SeoData } from '@/types';
 import type { LegalSection } from '@/types/domain';
+import { PUBLIC_EMAIL } from '@/config/identity';
 
 const SITE = 'https://abhijeetvarghese.com';
 const KEYWORDS =
@@ -183,7 +184,7 @@ export const PRIVACY: LegalSection[] = [
   },
   {
     heading: '5. Your rights',
-    body: 'You can ask what data I hold about you, ask for it to be corrected, or ask for it to be deleted — at any time, no forms, just write: hi@abhijeetvarghese.com',
+    body: `You can ask what data I hold about you, ask for it to be corrected, or ask for it to be deleted — at any time, no forms, just write: ${PUBLIC_EMAIL}`,
   },
   {
     heading: '6. Changes',
@@ -217,7 +218,7 @@ export const TERMS: LegalSection[] = [
   },
   {
     heading: '5. Contact',
-    body: 'Questions about these terms? hi@abhijeetvarghese.com. Last revised: August 2026.',
+    body: `Questions about these terms? ${PUBLIC_EMAIL}. Last revised: August 2026.`,
   },
 ];
 

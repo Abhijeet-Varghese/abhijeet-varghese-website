@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { PUBLIC_EMAIL } from '@/config/identity';
 
 /**
  * On-site contact / booking widget — custom calendar + time slots, submits to
@@ -216,7 +217,7 @@ export function ContactBook() {
         }
         if (lr.ok && body && body.status !== 'spam') saved = true;
         else if (lr.status === 429)
-          errText = 'Too many submissions — please try again in a few minutes, or email hi@abhijeetvarghese.com.';
+          errText = `Too many submissions — please try again in a few minutes, or email ${PUBLIC_EMAIL}.`;
         else if (body && (body.error || body.message)) errText = String(body.error || body.message);
       } catch {
         saved = false;
@@ -534,7 +535,7 @@ export function ContactBook() {
         <p id="doneSummary">{doneSummary}</p>
         <p className="book__done-note">I&apos;ll confirm the requested time by email within 24 hours.</p>
         <div className="done__actions">
-          <a className="btn btn--ghost book__ghost" id="doneMail" href="mailto:hi@abhijeetvarghese.com">
+          <a className="btn btn--ghost book__ghost" id="doneMail" href={`mailto:${PUBLIC_EMAIL}`}>
             Send a note by email
           </a>
           <button className="btn btn--accent" type="button" id="bookAgain" onClick={reset}>
@@ -543,7 +544,7 @@ export function ContactBook() {
         </div>
       </div>
       <p className="book__fine">
-        Prefer writing? <a className="book__fine-link" href="mailto:hi@abhijeetvarghese.com">hi@abhijeetvarghese.com</a> ·{' '}
+        Prefer writing? <a className="book__fine-link" href={`mailto:${PUBLIC_EMAIL}`}>hi@abhijeetvarghese.com</a> ·{' '}
         <a className="book__fine-link" href="tel:+919694080706">+91-96940 80706</a>
       </p>
     </div>

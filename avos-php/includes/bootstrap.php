@@ -6,6 +6,7 @@ require __DIR__ . '/../backend/config/config.php';
 
 spl_autoload_register(function (string $class): void {
     $map = [
+        'Identity' => '/backend/identity/Identity.php',
         'Database' => '/backend/core/Database.php',
         'MigrationRunner' => '/backend/core/MigrationRunner.php',
         'Installer' => '/backend/core/Installer.php',
