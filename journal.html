@@ -44,8 +44,8 @@
       </a>
       <ul class="nav-links">
         <li><a href="story.html">Story</a></li>
-        <li><a href="experience.html">Experience</a></li>
-        <li><a href="case-studies.html">Case Studies</a></li>
+        <li><a href="experience/">Experience</a></li>
+        <li><a href="case-studies/">Case Studies</a></li>
         <li><a href="portfolio.html">Portfolio</a></li>
       </ul>
       <a class="btn btn--accent btn--small" href="contact.html">Start a conversation</a>
@@ -65,8 +65,8 @@
       <nav aria-label="Mobile">
         <ul class="mobile-menu__list">
           <li><a href="story.html"><em>01</em>Story</a></li>
-          <li><a href="experience.html"><em>02</em>Experience</a></li>
-          <li><a href="case-studies.html"><em>03</em>Case Studies</a></li>
+          <li><a href="experience/"><em>02</em>Experience</a></li>
+          <li><a href="case-studies/"><em>03</em>Case Studies</a></li>
           <li><a href="portfolio.html"><em>04</em>Portfolio</a></li>
         </ul>
         <div class="mobile-menu__actions">
@@ -118,8 +118,8 @@
         <p class="footer__label">Menu</p>
         <ul class="footer__links">
           <li><a href="story.html">Story</a></li>
-<li><a href="experience.html">Experience</a></li>
-<li><a href="case-studies.html">Case Studies</a></li>
+<li><a href="experience/">Experience</a></li>
+<li><a href="case-studies/">Case Studies</a></li>
 <li><a href="portfolio.html">Portfolio</a></li>
 <li><a href="contact.html">Start a conversation</a></li>
 <li><a href="assets/Abhijeet-Varghese-Resume.pdf">Download résumé</a></li>
@@ -219,7 +219,7 @@
     var m = null;
     if ((m = p.match(/\/essay-[^\/]+\.html/))) { avTrack({ event_type: "essay_view", path: p, content: m[0] }); }
     else if ((m = p.match(/\/journal-[^\/]+\.html/))) { avTrack({ event_type: "journal_view", path: p, content: m[0] }); }
-    else if ((m = p.match(/\/case-studies\.html/)) || (m = p.match(/\/case-study-[^\/]+\.html/)) || (m = p.match(/\/experience-design\/[^\/]+\/?/))) { avTrack({ event_type: "case_study_view", path: p, content: m[0] }); }
+    else if ((m = p.match(/\/case-studies\/[^\/]+\/?/)) || (m = p.match(/\/case-studies\//)) || (m = p.match(/\/case-study-[^\/]+\.html/)) || (m = p.match(/\/experience-design\/[^\/]+\/?/))) { avTrack({ event_type: "case_study_view", path: p, content: m[0] }); }
     else if (p.indexOf("experience") !== -1) { avTrack({ event_type: "project_view", path: p }); }
     // contact intent (form page focus)
     var cf = document.getElementById("contactForm") || document.getElementById("bookForm");
