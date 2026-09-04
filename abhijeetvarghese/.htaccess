@@ -44,5 +44,13 @@ ErrorDocument 404 /404.html
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteRule ^case\-study\-enterprise\-technology\-made\-understandable\.html/?$ /experience-design/orange-business-executive-briefing-center/ [R=301,L]
+  # Case Studies + Experience clean URLs (legacy flat pages -> canonical directories)
+  RewriteRule ^case-studies\.html/?$ /case-studies/ [R=301,L]
+  RewriteRule ^experience\.html/?$ /experience/ [R=301,L]
+  # Legacy case-study pages -> canonical clean URLs (no chains)
+  RewriteRule ^case-study-enterprise-technology-made-understandable\.html/?$ /case-studies/orange-business/ [R=301,L]
+  RewriteRule ^experience-design/orange-business-executive-briefing-center/?$ /case-studies/orange-business/ [R=301,L]
+  RewriteRule ^case-study-intuitive-experiences-for-industrial-environments\.html/?$ /case-studies/bharat-petroleum-corporation-limited/ [R=301,L]
+  RewriteRule ^case-study-immersive-solutions-for-the-indian-army\.html/?$ /case-studies/indian-army/ [R=301,L]
+  RewriteRule ^experience-design/bpcl-palakkad/?$ /case-studies/bharat-petroleum-corporation-limited/ [R=301,L]
 </IfModule>
