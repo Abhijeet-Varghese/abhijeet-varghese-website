@@ -1429,9 +1429,21 @@ html { scroll-padding-top: 96px; }
   scale: 1 !important;
   background: #05070D;
 }
+/* Preserve the complete authored Bharat Petroleum Corporation Limited
+   thumbnail (brand artwork: logo, title, tagline and callouts) so the
+   artwork is never cropped. Same treatment as the Orange Business card. */
+#case-prj-2 .case__panel img[src$="case-bpcl.webp"],
+.portfolio-piece--2 .portfolio-piece__media img[src$="case-bpcl.webp"] {
+  object-fit: contain;
+  object-position: center;
+  transform: none !important;
+  scale: 1 !important;
+  background: #05070D;
+}
 @media (max-width: 700px) {
   .case__card-cta { width: 100%; justify-content: center; }
   #case-prj-1 .case__panel img[src$="case-orange-experience-in-action.webp"] { object-position: center top; }
+  #case-prj-2 .case__panel img[src$="case-bpcl.webp"] { object-position: center top; }
 }
 
 /* ============================================================
