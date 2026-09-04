@@ -418,7 +418,7 @@ html.js.reveal-failsafe:not(.js-ok) [data-reveal="img"] img { transform: scale(1
   position: relative; overflow: hidden;
   border-radius: 22px; border: 1px solid var(--cl);
   background: #0B1430;
-  aspect-ratio: 16 / 8.6;
+  aspect-ratio: 16 / 9;   /* case-study thumbnail is 16:9 across the whole site */
 }
 .case__panel picture, .case__panel img { position: absolute; inset: 0; width: 100%; height: 100%; }
 .case__panel img { object-fit: cover; }
@@ -763,7 +763,7 @@ html.js.reveal-failsafe:not(.js-ok) [data-reveal="img"] img { transform: scale(1
   .cap__index { display: none; }
   .cap h3 { max-width: 100%; }
 
-  .case__panel { aspect-ratio: 16 / 10.5; }
+  .case__panel { aspect-ratio: 16 / 9; }
   .case__meta { grid-template-columns: repeat(2, 1fr); }
 
   .ai__grid, .focus__grid, .chapter__head--split, .contact__grid { grid-template-columns: 1fr; gap: 34px; }
@@ -823,7 +823,7 @@ html.js.reveal-failsafe:not(.js-ok) [data-reveal="img"] img { transform: scale(1
   .cap-list { gap: 14px; }
 
   .case { margin-top: 90px; }
-  .case__panel { aspect-ratio: 4 / 4.6; }
+  .case__panel { aspect-ratio: 16 / 9; }
   .case__card { position: absolute; left: 12px; right: 12px; bottom: 12px; padding: 18px; border-radius: 14px; }
   .case__kicker { margin-bottom: 10px; }
   .case__client { font-size: 1.5rem; }
@@ -1572,8 +1572,8 @@ body.portfolio-page { background: #05070D; color: #EFF0EA; }
   background: #0A0E18; border: 1px solid rgba(12,19,48,.12);
   box-shadow: 0 32px 70px -48px rgba(12,19,48,.5);
 }
-.portfolio-piece--1 .portfolio-piece__media { aspect-ratio: 16 / 10; }
-.portfolio-piece--2 .portfolio-piece__media { aspect-ratio: 4 / 5; }
+.portfolio-piece--1 .portfolio-piece__media { aspect-ratio: 16 / 9; }
+.portfolio-piece--2 .portfolio-piece__media { aspect-ratio: 16 / 9; }
 .portfolio-piece--3 .portfolio-piece__media { aspect-ratio: 16 / 9; }
 .portfolio-piece__media img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.1s var(--ease-out), filter .8s var(--ease); }
 .portfolio-piece__link:hover .portfolio-piece__media img { transform: scale(1.035); filter: saturate(1.06) contrast(1.03); }
@@ -1653,8 +1653,7 @@ body.portfolio-page { background: #05070D; color: #EFF0EA; }
   .portfolio-index__head > span { text-align: left; }
   .portfolio-index__grid { display: grid; grid-template-columns: 1fr; gap: 74px; }
   .portfolio-piece--1, .portfolio-piece--2, .portfolio-piece--3 { grid-column: 1; grid-row: auto; margin-top: 0; }
-  .portfolio-piece--1 .portfolio-piece__media, .portfolio-piece--3 .portfolio-piece__media { aspect-ratio: 4 / 3; }
-  .portfolio-piece--2 .portfolio-piece__media { aspect-ratio: 4 / 4.5; }
+  .portfolio-piece--1 .portfolio-piece__media, .portfolio-piece--2 .portfolio-piece__media, .portfolio-piece--3 .portfolio-piece__media { aspect-ratio: 16 / 9; }
   .portfolio-practice__inner { grid-template-columns: 1fr; gap: 54px; }
   .portfolio-practice header { position: static; }
   .portfolio-practice li { grid-template-columns: 34px 1fr; }
@@ -4022,17 +4021,19 @@ body.about-page ::selection { background: rgba(110, 168, 255, 0.32); color: #EFF
 .case__client {
   order: 0;                       /* neutralise the legacy kicker stacking rule */
   color: var(--azure-hi);
-  font-size: 6.2cqw; font-weight: 600;
-  letter-spacing: -0.022em; line-height: 1.05;
-  text-wrap: balance; margin: 0 0 2.2cqw;
+  font-size: clamp(1rem, 4.9cqw, 2rem);   /* auto-fit — stays on one line, never wraps/truncates */
+  font-weight: 600;
+  letter-spacing: -0.022em; line-height: 1.15;
+  max-width: none; white-space: nowrap; margin: 0 0 2.2cqw;
 }
 
 /* FIELD 03 — description (project) */
 .case__title {
-  font-size: 3.1cqw; font-weight: 500;
+  font-size: clamp(0.6rem, 3.1cqw, 1.05rem);  /* auto-fit — single line; lower floor so cqw governs */
+  font-weight: 500;
   letter-spacing: -0.01em; line-height: 1.42;
   color: rgba(239, 240, 234, 0.94);
-  text-wrap: balance; margin: 0;
+  max-width: none; white-space: nowrap; margin: 0;   /* drop legacy 30ch cap so it fits one line */
 }
 
 /* anchored footer — work discipline + action, pinned to the card bottom */
