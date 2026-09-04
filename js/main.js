@@ -64,6 +64,108 @@
   const summaryTx = $("#bookSummaryText");
   const cfNote    = $("#cfNote");
 
+  /* ---- International mobile: searchable country-code selector ---- */
+  const ccBtn       = $("#cfCc");
+  const ccFlag      = $("#cfCcFlag");
+  const ccCode      = $("#cfCcCode");
+  const ccPop       = $("#cfCcPop");
+  const ccList      = $("#cfCcList");
+  const ccValue     = $("#cfCcValue");
+  const cfMobile    = $("#cfMobile");
+  const cfPhoneFull = $("#cfPhoneFull");
+  const phoneWrap   = $("#cfPhoneWrap");
+  const countries   = (window.AV_COUNTRIES || []).map(c => ({ iso2: c[0], name: c[1], dial: c[2] }));
+  const ccEsc = s => String(s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+  const ccFlagFor = iso2 => {
+    const u = String(iso2).toUpperCase();
+    return /^[A-Z]{2}$/.test(u)
+      ? String.fromCodePoint(0x1F1E6 + u.charCodeAt(0) - 65, 0x1F1E6 + u.charCodeAt(1) - 65)
+      : "🏳️";
+  };
+  let ccSel = "in", ccDial = "+91", ccOpen = false, ccActive = -1, ccShown = [];
+  let ccSuppressUntil = 0;   // ms — ignore the residual button click right after a pick
+  const ccNat = () => (cfMobile ? cfMobile.value.replace(/[^\d]/g, "") : "");
+  const refreshPhoneFull = () => {
+    const nat = ccNat();
+    cfPhoneFull.value = nat ? ("+" + ccDial.replace(/\D/g, "") + nat) : "";
+  };
+  const ccRender = () => {
+    ccShown = countries;
+    ccActive = ccShown.length ? 0 : -1;
+    ccList.innerHTML = ccShown.map((c, i) =>
+      `<li class="cf-cc-opt${c.iso2 === ccSel ? " is-selected" : ""}${i === ccActive ? " is-active" : ""}" role="option" aria-selected="${c.iso2 === ccSel}" data-i="${i}" tabindex="${i === ccActive ? 0 : -1}" aria-label="${ccEsc(c.name)}, ${ccEsc(c.dial)}">` +
+      `<span class="cf-cc-opt__flag" aria-hidden="true">${ccFlagFor(c.iso2)}</span>` +
+      `<span class="cf-cc-opt__dial">${ccEsc(c.dial)}</span></li>`).join("");
+  };
+  const focusActive = () => {
+    const opts = $$(".cf-cc-opt", ccList);
+    if (ccActive >= 0 && opts[ccActive]) {
+      opts[ccActive].focus({ preventScroll: true });
+      opts[ccActive].scrollIntoView({ block: "nearest" });
+    }
+  };
+  const ccOpenPop = () => {
+    ccOpen = true;
+    ccPop.hidden = false;
+    ccBtn.setAttribute("aria-expanded", "true");
+    ccRender();
+    focusActive();
+  };
+  const ccClosePop = refocus => {
+    ccOpen = false;
+    ccPop.hidden = true;
+    ccBtn.setAttribute("aria-expanded", "false");
+    if (refocus) refocus.focus();
+  };
+  const ccPick = i => {
+    const c = ccShown[i];
+    if (!c) return;
+    ccSel = c.iso2; ccDial = c.dial;
+    ccFlag.textContent = ccFlagFor(c.iso2);
+    ccCode.textContent = c.dial;
+    ccValue.value = c.dial;
+    refreshPhoneFull();
+    ccClosePop(cfMobile);
+    ccSuppressUntil = Date.now() + 250;   // hold the toggle so the closing popover
+                                          // doesn't hand a second click to the button
+  };
+  const ccSetIso = iso2 => {
+    const c = countries.find(x => x.iso2 === iso2);
+    if (!c) return;
+    ccSel = c.iso2; ccDial = c.dial;
+    ccFlag.textContent = ccFlagFor(c.iso2);
+    ccCode.textContent = c.dial;
+    ccValue.value = c.dial;
+    refreshPhoneFull();
+  };
+  if (ccBtn && ccPop) {
+    ccBtn.addEventListener("click", () => {
+      if (Date.now() < ccSuppressUntil) return;   // stray click from the closing popover
+      ccOpen ? ccClosePop(ccBtn) : ccOpenPop();
+    });
+    ccBtn.addEventListener("keydown", e => {
+      if (e.key === "ArrowDown" || e.key === "Enter") { e.preventDefault(); ccOpenPop(); }
+    });
+    ccList.addEventListener("keydown", e => {
+      if (e.key === "Escape") { e.preventDefault(); ccClosePop(ccBtn); }
+      else if (e.key === "ArrowDown") { e.preventDefault(); ccActive = Math.min(ccActive + 1, ccShown.length - 1); ccRender(); focusActive(); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); ccActive = Math.max(ccActive - 1, 0); ccRender(); focusActive(); }
+      else if (e.key === "Home") { e.preventDefault(); ccActive = 0; ccRender(); focusActive(); }
+      else if (e.key === "End") { e.preventDefault(); ccActive = ccShown.length - 1; ccRender(); focusActive(); }
+      else if (e.key === "Enter") { e.preventDefault(); if (ccActive >= 0) ccPick(ccActive); }
+      else if (e.key === "Tab") { ccClosePop(); }
+    });
+    ccList.addEventListener("click", e => {
+      const li = e.target.closest(".cf-cc-opt");
+      if (li) { e.stopPropagation(); ccPick(+li.dataset.i); }
+    });
+    cfMobile.addEventListener("input", refreshPhoneFull);
+    document.addEventListener("click", e => {
+      if (ccOpen && !phoneWrap.contains(e.target)) ccClosePop(ccBtn);
+    });
+    ccSetIso("in");  // sensible default — the site's market; the user can always change it
+  }
+
   let chosenSlot = null;
   let selectedDate = null;
   let dateOpen = false;
@@ -277,7 +379,9 @@
   const readForm = () => ({
     name: $("#cfName").value.trim(),
     email: $("#cfEmail").value.trim(),
-    phone: $("#cfMobile").value.trim(),
+    country_code: ($("#cfCcValue") ? $("#cfCcValue").value : "+91").trim(),
+    phone_number: ($("#cfMobile") ? $("#cfMobile").value.replace(/[^\d]/g, "") : ""),
+    full_phone_number: ($("#cfPhoneFull") ? $("#cfPhoneFull").value.trim() : ""),
     org: $("#cfOrg").value.trim(),
     msg: $("#cfMsg").value.trim()
   });
@@ -287,7 +391,7 @@
     "&body=" + encodeURIComponent([
       `Name: ${f.name}`,
       `Email: ${f.email}`,
-      `Mobile: ${f.phone || "—"}`,
+      `Mobile: ${f.full_phone_number || "—"}`,
       `Organization: ${f.org || "—"}`,
       `Requested slot: ${fmtLong(selectedDate)} at ${chosenSlot} IST`,
       f.msg ? `Context notes:\n${f.msg}` : ""
@@ -300,8 +404,9 @@
     let ok = true;
     if (!f.name) { flagCf($("#cfName")); ok = false; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) { flagCf($("#cfEmail")); ok = false; }
-    const phoneClean = f.phone.replace(/[\s\-\(\)\.\/]/g, "");
-    if (!(f.phone && /^\+?\d{7,15}$/.test(phoneClean))) { flagCf($("#cfMobile")); ok = false; }
+    // international mobile: full E.164 must be valid (7–15 digits after '+')
+    const goodPhone = /^\+[1-9]\d{6,14}$/.test(f.full_phone_number) && f.phone_number.length >= 4;
+    if (!goodPhone) { flagCf(phoneWrap); ok = false; }
     if (!selectedDate) { dateTrigger.classList.add("is-flagged"); openDate(); ok = false; }
     if (!chosenSlot) { slotBox.classList.add("is-flagged"); ok = false; }
     if (!ok) {
@@ -326,7 +431,9 @@
     const leadPayload = {
       name: f.name,
       email: f.email,
-      phone: f.phone,
+      country_code: f.country_code,
+      phone_number: f.phone_number,
+      full_phone_number: f.full_phone_number,
       organization: f.org,
       message: [
         f.msg,
