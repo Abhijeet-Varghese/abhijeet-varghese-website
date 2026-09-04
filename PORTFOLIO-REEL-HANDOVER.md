@@ -457,5 +457,17 @@ Regression suites were re-run **after** the removal — see §10, all still gree
    COMING SOON state disappears by itself.
 2. Add scenes to the `.pf-runway__track`. The counter, progress bar, framing and pin
    length all derive from the DOM — never hard-code the count.
+3. Mirror every changed file into **both** `avos-php/site-template/` and
+   `avos-php/public_html/site/` (see the table at the top).
+re re-run **after** the removal — see §10, all still green.
+
+---
+
+## 14 — Adding work later
+
+1. Push entries into `moreWork` in `js/portfolio-reel.js` (schema documented there). The
+   COMING SOON state disappears by itself.
+2. Add scenes to the `.pf-runway__track`. The counter, progress bar, framing and pin
+   length all derive from the DOM — never hard-code the count.
 3. Mirror the three files into `avos-php/site-template/` and
    `avos-php/public_html/site/` (see the table at the top).

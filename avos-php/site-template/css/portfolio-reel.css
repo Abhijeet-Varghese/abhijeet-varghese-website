@@ -273,7 +273,17 @@ body.portfolio-page { background: #05070D; }
   transform: translate(-50%, -50%) scale(1.05);
 }
 .pf-player__poster:focus-visible { outline: 2px solid var(--azure); outline-offset: -4px; }
-.pf-player iframe { position: absolute; inset: 0; border: 0; }
+/* An iframe is a REPLACED element. `position:absolute; inset:0` alone does NOT
+   stretch it the way it stretches a div — with width/height left on auto it
+   falls back to the 300x150 intrinsic size and the over-constrained right/
+   bottom offsets are ignored, rendering a small frame in the top-left corner.
+   The explicit width/height below is REQUIRED, not redundant. Do not remove. */
+.pf-player iframe,
+[data-pf-player] iframe {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  border: 0; display: block;
+}
 
 .pf-film__caption {
   display: flex; align-items: baseline; justify-content: space-between; gap: 28px;
