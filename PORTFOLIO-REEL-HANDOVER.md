@@ -359,6 +359,7 @@ Harness in `/home/user/qa` (Playwright + axe-core). Current run: **114 checks, 0
 | `a11y.js` | 0 violations | axe-core at desktop and mobile |
 | `routes.js` | 11 routes | Every other route 200 with no horizontal overflow |
 | `smooth.js` | — | Median 16.7 ms, p95 33.4 ms, worst 49.9 ms, **0 frames >50 ms**, **0 layout shifts** |
+| `seo.js` | **75 / 75** | §28 SEO brief: one H1, heading hierarchy, title/description length + content, single canonical, robots, complete OG + Twitter, JSON-LD `@graph` and `@id` wiring, raw-HTML crawlability (JS never run), image alt/lazy policy, case-study anchors, internal-link resolution, overflow at 3 widths |
 
 Integrity checks:
 
@@ -451,23 +452,106 @@ Regression suites were re-run **after** the removal — see §10, all still gree
 
 ---
 
-## 14 — Adding work later
+## 14 — Organic SEO layer
+
+SEO is integrated into the architecture, not layered on top of the design.
+**No visual design, animation or existing section content changed.** The
+Practice Spectrum, Clients and Case Study card system are untouched.
+
+### Metadata
+
+| | Value |
+|---|---|
+| Title (47 ch) | `Abhijeet Varghese — Creative Director Portfolio` |
+| Description (157 ch) | `Creative Director Abhijeet Varghese works across experience design, immersive environments, motion, animation and visual storytelling. Explore selected work.` |
+| Canonical | `https://abhijeetvarghese.com/portfolio.html` (single) |
+| Robots | `index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1` |
+
+`<meta name="keywords">` was **removed** — Google ignores it and it read as
+stuffing. `og:image:width/height/alt`, `og:locale` and `twitter:image:alt` were
+added. No `twitter:site`: no verified handle exists anywhere on the site, and
+inventing one is not acceptable.
+
+### H1 — the one change inside the display type
+
+The H1 renders **Creative / Director / Portfolio** on three lines and
+previously never contained the name. A screen-reader-only span was appended
+**last**, so the accessible name reads
+*"Creative Director Portfolio — Abhijeet Varghese"*.
+
+> **Why last, not first.** The reveal is keyed to `.pf-line:nth-child(1|2|3)`
+> with delays `0.34s / 0.44s / 0.56s`. Inserting anything *before* the lines
+> shifts those indices and silently breaks the stagger. Appending after them
+> keeps the contract intact. Verified: child indices still `1,2,3`, delays
+> still `0.34 / 0.44 / 0.56s`.
+
+This needs a `.pf-sr` utility (added to the page stylesheet) because the site
+has no global `sr-only` class — only a homepage-scoped `.hp-hero__seo`.
+
+### Structured data
+
+The two disconnected blocks (CollectionPage + VideoObject) became **one
+`@graph`** wired by stable `@id`, so entities consolidate instead of
+duplicating:
+
+```
+WebSite  <--isPartOf--  WebPage + CollectionPage  --about-->  Person
+                              ^
+                        isPartOf|
+                          VideoObject --author--> Person
+```
+
+The `Person` `@id` (`https://abhijeetvarghese.com/#person`) was also added to
+`index.html`, which already carried the canonical Person record — consolidating
+rather than creating a second, competing entity. All five `sameAs` profiles
+were copied verbatim from `index.html`; nothing invented.
+
+Also fixed: the Army CreativeWork said `about: "Defence & Immersive"` while the
+visible card said **Defence & Government**. Schema now matches reality.
+
+`uploadDate` is deliberately **absent** — no trustworthy date exists, and
+fabricating one is worse than omitting it.
+
+### Content
+
+One editorial sentence added to the Context section, using the existing
+`.pf-lede` class so it inherits the current typography exactly:
+
+> *Abhijeet Varghese is a creative director and experience designer working
+> across brand, motion, spatial and immersive work — shaping complex ideas into
+> experiences people can read at a glance.*
+
+This closes a real gap: before this the name appeared **nowhere in the body
+copy**. Nothing fabricated; COMING SOON stays empty.
+
+### Verified
+
+`node qa/seo.js` — **75 / 75**. Covers one H1, no skipped heading levels,
+title/description length and content, single canonical, no noindex, complete
+OG + Twitter, JSON-LD parses with all five node types and correct `@id`
+wiring, no invented uploadDate, crawlability from **raw HTML with JS never
+executed**, image alt/width/height/lazy policy, descriptive case-study anchors,
+all 17 internal links resolving, no horizontal overflow at three widths.
+
+No regressions: cards 84/84, qc 30/30, 0 axe violations, 16:9 deviation
+0.0000, CLS 0.0000, 0 frames >50 ms.
+
+### Needs external verification
+
+1. **Rich Results Test / Search Console** — run the live URL through Google's
+   validators. Local tests prove validity, not Google's acceptance.
+2. **`uploadDate`** — add once the real YouTube publish date is known.
+3. **Sitemap `lastmod`** — `sitemap.xml` carries none anywhere; adding it is a
+   site-wide architecture change, out of scope. Portfolio is already present
+   at priority `0.9`.
+
+---
+
+## 15 — Adding work later
 
 1. Push entries into `moreWork` in `js/portfolio-reel.js` (schema documented there). The
    COMING SOON state disappears by itself.
 2. Add scenes to the `.pf-runway__track`. The counter, progress bar, framing and pin
    length all derive from the DOM — never hard-code the count.
 3. Mirror every changed file into **both** `avos-php/site-template/` and
-   `avos-php/public_html/site/` (see the table at the top).
-re re-run **after** the removal — see §10, all still green.
-
----
-
-## 14 — Adding work later
-
-1. Push entries into `moreWork` in `js/portfolio-reel.js` (schema documented there). The
-   COMING SOON state disappears by itself.
-2. Add scenes to the `.pf-runway__track`. The counter, progress bar, framing and pin
-   length all derive from the DOM — never hard-code the count.
-3. Mirror the three files into `avos-php/site-template/` and
    `avos-php/public_html/site/` (see the table at the top).
