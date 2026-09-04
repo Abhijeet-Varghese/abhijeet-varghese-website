@@ -1,123 +1,115 @@
-# Case Study Card System — Refinement Report
+# Global Case Study Card System — Refinement Report (v2)
 
-Refined the Case Studies listing card UI so all three cards read as **ONE component / THREE projects**,
-not three independently sized cards. Page-scoped so the homepage Featured Work cards (which share the
-`.case__*` class names) keep their own documented treatment.
+Rebuilt the Case Study card as a **single global system**, no longer scoped to the
+`/case-studies/` listing. The same `CaseStudyCard` now renders identically everywhere a
+Case Study appears as a card — most importantly the **homepage Featured Work** section,
+which previously used a different, content-sized treatment.
 
 ---
 
-## A. COMPONENT
+## A. ALL CASE STUDY CARD LOCATIONS
 
-One card component, three data records. No per-project components.
+| Location | Component (before) | Dimension (before) | Component (after) |
+|---|---|---|---|
+| `/case-studies/` listing (3 cards) | new `.case__*` (page-scoped) | 481 × 283 | **global CaseStudyCard** |
+| Homepage → Featured Work (3 cards) | old `.case__*` (varied) | 429/560/394 × … | **global CaseStudyCard** |
+| Portfolio page | `.portfolio-piece` editorial index (asymmetric tiles, index numerals, "View project ↗") | variable | **distinct index — NOT a card** (kept as its own deliberate visual language) |
+| Case-study detail pages | immersive layouts (`why-cards`, `closing-media`) | n/a | **no cards** |
+| Experience pages | separate system | n/a | **kept separate** |
 
-- The listing markup was refactored into a single, repeatable structure
-  (`.case__card > .case__card__in > [cat · client · title · foot[work · CTA]]`).
-- All geometry/typography lives in **one page-scoped rule set** under `body.case-listing`.
-- Content is the only thing that varies per card; the box is content-INDEPENDENT
-  (fixed width + `aspect-ratio`, container-query typography).
+The only true **card** instances were the listing and homepage; both now share the global card.
 
-The card receives: client category, client name, description, work category, image, URL.
+## B. COMPONENT
 
-## B. CARD DIMENSIONS
+One global card style, reused by both HTML pages (no JS, no per-project components):
+
+- Markup: `.case__card > .case__card__in > [ .case__cat · .case__client · .case__title ·
+  .case__card__foot[ .case__work · .case__card-cta ] ]`
+- CSS: a single global rule set in `css/styles.css` (§ **CASE STUDY CARD — GLOBAL SYSTEM**),
+  applied to `.case__*` (no page scoping). Verified these classes are used **only** for
+  case-study cards site-wide, so they are safe to style globally.
+- Data model: `CaseStudyCard(clientCategory, clientName, description, workCategory, image, href)`.
+
+The surrounding **section** layout stays context-specific (homepage keeps its split header +
+sequential image panels; the listing keeps its own structure) — only the CARD is identical.
+
+## C. CARD DIMENSIONS
 
 | Breakpoint | Card (w × h) |
 |---|---|
-| 1280px (locked desktop target) | **481 × 283** |
+| 1280px (locked target) | **481 × 283** |
 | 1024px | 410 × 241 |
 | 768px | 340 × 200 |
 | 390px (mobile) | 324px fluid width, natural height |
 
-- Desktop geometry is `width: clamp(340px, 40vw, 481px)` + `aspect-ratio: 481/283`.
-- Content length (long client name / description / work category) **cannot** change card size.
-- Mobile relaxes to fluid width / natural height (no forced 481px), preserving order, hierarchy,
-  padding logic, typography and CTA.
+Geometry is content-independent: `width: clamp(340px, 40vw, 481px)` + `aspect-ratio: 481/283`;
+container-query (`cqw`) typography scales the card as one unit, so the long Bharat Petroleum
+Corporation Limited name / description / work category can never change its footprint.
 
-## C. CONTENT — five-field hierarchy
+## D. COPY — final
 
-Every card follows the locked order:
-
-1. **Category of client / business** (eyebrow)
-2. **Client name** (primary display headline)
-3. **Description** (project)
-4. **Category of work** (secondary metadata)
-5. **Explore case study →** (CTA, anchored to bottom)
-
-## D. COPY — exact final
-
-| 01 · Category (client) | Orange Business · **Executive Technology & Telecom** |
-|---|---|
-| 02 · Client | **Orange Business** |
-| 03 · Description | New Executive Briefing Center |
-| 04 · Work | Experience Design · Creative Technology |
-| 05 · CTA | Explore case study → |
-
-| 01 · Category (client) | Bharat Petroleum Corporation Limited · **Energy & Industrial** |
-|---|---|
-| 02 · Client | **Bharat Petroleum Corporation Limited** (wraps to 2 lines) |
-| 03 · Description | Intuitive Experiences for Industrial Environments |
-| 04 · Work | Experience Design · Spatial Visualization |
-| 05 · CTA | Explore case study → |
-
-| 01 · Category (client) | Indian Army · **Defence & Government** |
-|---|---|
-| 02 · Client | **Indian Army** |
-| 03 · Description | Immersive Solutions for Mission-Critical Environments |
-| 04 · Work | Immersive Experience · Creative Technology |
-| 05 · CTA | Explore case study → |
+| 01 · Category | 02 · Client | 03 · Description | 04 · Work | 05 · CTA |
+|---|---|---|---|---|
+| Telecom & Digital Services | **Orange Business** | New Executive Briefing Center | Experience Design · Creative Technology | Explore case study → |
+| Energy & Industrial | **Bharat Petroleum Corporation Limited** (2 lines) | Intuitive Experiences for Industrial Environments | Experience Design · Spatial Visualization | Explore case study → |
+| Defence & Government | **Indian Army** | Immersive Solutions for Mission-Critical Environments | Immersive Experience · Creative Technology | Explore case study → |
 
 ## E. FILES CHANGED
 
-- `abhijeetvarghese/case-studies/index.html` — refactored 3 cards to the shared component; added `body.case-listing`.
-- `abhijeetvarghese/css/styles.css` — appended page-scoped card-system rule set.
-- `avos-php/public_html/site/case-studies/index.html` — mirror of the above.
-- `avos-php/public_html/site/css/styles.css` — mirror of the above.
+- `abhijeetvarghese/css/styles.css` — converted the card rule set from `body.case-listing`-scoped to **global**.
+- `abhijeetvarghese/index.html` — replaced 3 Featured Work cards with the same global CaseStudyCard.
+- `abhijeetvarghese/case-studies/index.html` — updated Orange category to "Telecom & Digital Services".
+- `avos-php/public_html/site/` × (3) — mirrors of the above.
 
-(No files deleted; no images touched; no new dependencies.)
+(No files deleted; no images touched; no new dependencies; no JS changes.)
 
-## F. URL VERIFICATION
+## F. HOMEPAGE
+
+**Confirmed.** Featured Work now renders the **same** global CaseStudyCard as the listing
+(verified identical dimensions/hierarchy/CTA at all breakpoints). Surrounding section layout intact.
+
+## G. CASE STUDIES
+
+**Confirmed.** `/case-studies/` uses the same global CaseStudyCard (481 × 283 desktop).
+
+## H. RELATED SECTIONS
+
+**Confirmed.** Full sweep found no other Case Study card instances. The Portfolio page's
+`.portfolio-piece` is a distinct editorial *index* (asymmetric tiles, index numerals, "View
+project ↗"), and the case-detail `case-coming` block is a placeholder — neither is a
+Case Study card and neither was converted. Experience stays a separate system.
+
+## I. URL VERIFICATION
 
 - Orange Business → `case-studies/orange-business/` → **PASS**
 - Bharat Petroleum Corporation Limited → `case-studies/bharat-petroleum-corporation-limited/` → **PASS**
 - Indian Army → `case-studies/indian-army/` → **PASS**
 
-No `/experience-design/`, no `/bpcl/`, no `/case-studies/bpcl/`, no `/case-studies/army/`.
+## J. FULL-NAME VERIFICATION
 
-## G. RESPONSIVE VERIFICATION
+**PASS** — no visible "BPCL" on any card. The only "bpcl" occurrence is the asset **filename**
+`case-bpcl.webp` (internal technical identifier; alt text uses the full name).
 
-- 1280px → **PASS** (481×283 ×3, no clip/overflow)
-- 1024px → **PASS** (410×241 ×3)
-- 768px → **PASS** (340×200 ×3)
-- 390px → **PASS** (fluid, no overflow, full name wraps cleanly, CTA accessible)
+## K. BUILD
 
-## H. BUILD
+**PASS** — only HTML/CSS changed; static site, no build step required; `node --check` passes on all JS.
 
-**PASS** — CSS/HTML only, no JS changes; `node --check` passes on all JS.
-No production build step is required for this static site; HTTP smoke test of all routes returned 200.
+## L. CONSOLE
 
-## I. CONSOLE
+**PASS** — zero console errors beyond the pre-existing static-preview `/api/analytics` 501s (present on every page; no AV OS backend in preview).
 
-**PASS** — 0 errors beyond the pre-existing `/api/analytics/track` 501s (static preview has no AV OS backend; present on every page before this change). No request failures.
+## M. BROKEN LINKS
 
-## J. BROKEN LINKS / ASSETS
+**PASS** — all card `href`s resolve to canonical case-study paths; routing-aware crawl found no broken internal references.
 
-**PASS** — all card links resolve to relative case-study paths; image `src` unchanged. Routing-aware link crawl found 0 broken internal references.
+## N. DESKTOP VISUAL QA
 
-## K. FULL-NAME CHECK
+**PASS** — 1280px: all cards 481×283 (both pages); 1024px: 410×241; 768px: 340×200. No clipping, no overflow.
 
-**PASS** — No visible "BPCL". The only occurrence is the asset **filename** `case-bpcl.webp` (an internal technical identifier, explicitly permitted); its `alt` text uses the full client name. All three cards display full names:
-`Orange Business`, `Bharat Petroleum Corporation Limited`, `Indian Army`.
+## O. MOBILE VISUAL QA
 
-## L. VISUAL QA
+**PASS** — 390px: fluid width, no horizontal overflow, no clipping, full Bharat Petroleum Corporation Limited wraps to clean two lines, CTA accessible.
 
-- All three cards same physical size (481×283): **PASS**
-- All three visually consistent (geometry/border/radius/padding/bg/hierarchy/CTA): **PASS**
-- Bharat Petroleum Corporation Limited fits elegantly (2-line wrap, optical, not squeezed): **PASS**
-- CTA alignment consistent (anchored to bottom, identical): **PASS**
+## P. REGRESSION TEST
 
-### Do-not list compliance
-
-- Did not enlarge the BPCL card · did not shorten the name · no BPCL visible copy
-- One component + three data records (no separate components) · no content-dependent card heights
-- No per-card margins · no site redesign · thumbnails untouched · no image regeneration
-- URLs unchanged · none moved into Experience · no new visual system · no added copy/metrics
-- No new dependencies
+**PASS** — homepage layout, nav, animations, and non-Case-Study sections all intact; all routes 200, no overflow; Experience and Portfolio unchanged.
