@@ -277,6 +277,7 @@
   const readForm = () => ({
     name: $("#cfName").value.trim(),
     email: $("#cfEmail").value.trim(),
+    phone: $("#cfMobile").value.trim(),
     org: $("#cfOrg").value.trim(),
     msg: $("#cfMsg").value.trim()
   });
@@ -286,6 +287,7 @@
     "&body=" + encodeURIComponent([
       `Name: ${f.name}`,
       `Email: ${f.email}`,
+      `Mobile: ${f.phone || "—"}`,
       `Organization: ${f.org || "—"}`,
       `Requested slot: ${fmtLong(selectedDate)} at ${chosenSlot} IST`,
       f.msg ? `Context notes:\n${f.msg}` : ""
@@ -298,6 +300,8 @@
     let ok = true;
     if (!f.name) { flagCf($("#cfName")); ok = false; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) { flagCf($("#cfEmail")); ok = false; }
+    const phoneClean = f.phone.replace(/[\s\-\(\)\.\/]/g, "");
+    if (!(f.phone && /^\+?\d{7,15}$/.test(phoneClean))) { flagCf($("#cfMobile")); ok = false; }
     if (!selectedDate) { dateTrigger.classList.add("is-flagged"); openDate(); ok = false; }
     if (!chosenSlot) { slotBox.classList.add("is-flagged"); ok = false; }
     if (!ok) {
@@ -322,6 +326,7 @@
     const leadPayload = {
       name: f.name,
       email: f.email,
+      phone: f.phone,
       organization: f.org,
       message: [
         f.msg,

@@ -486,21 +486,26 @@ final class ApiController
             curl_close($ch);
             if (empty($res['success'])) Response::error('Spam check failed', 422, 'SPAM_BLOCKED');
         }
-        // email throttle
-        $email = Input::email($d);
-        if ($email !== '') {
-            $k = 'lead-email:' . md5($email);
-            if (!RateLimiter::allow($k, 5, 3600)) Response::error('Too many submissions from this email', 429, 'RATE_LIMITED');
-        }
+        // Mandatory fields: name, mobile number, email (server-side — not just browser).
         $name = Input::str($d, 'name', 150);
         if ($name === '') Response::error('Name required', 422, 'VALIDATION_ERROR');
+        $email = Input::email($d);
+        if ($email === '') Response::error('A valid email address is required', 422, 'VALIDATION_ERROR');
+        // email throttle (only when a real address is present)
+        $k = 'lead-email:' . md5($email);
+        if (!RateLimiter::allow($k, 5, 3600)) Response::error('Too many submissions from this email', 429, 'RATE_LIMITED');
+        // mobile number — required; normalized (strip separators) before storage
+        $phoneRaw = Input::str($d, 'phone', 60);
+        if ($phoneRaw === '') $phoneRaw = Input::str($d, 'mobile', 60);
+        $phone = self::normalizePhone($phoneRaw);
+        if ($phone === '') Response::error('Mobile number required', 422, 'VALIDATION_ERROR');
         if (strlen(Input::str($d, 'message', 5000)) > 4000) Response::error('Message too long', 422, 'VALIDATION_ERROR');
 
         $leadData = [
             'name' => $name,
             'company' => Input::str($d, 'company', 150) ?: Input::str($d, 'organization', 150),
             'email' => $email,
-            'phone' => Input::str($d, 'phone', 40),
+            'phone' => $phone,
             'lead_type' => Input::str($d, 'project_type', 60) ?: Input::str($d, 'type', 60),
             'message' => Input::str($d, 'message', 4000),
             'source' => Input::str($d, 'source', 60) ?: 'website',
@@ -565,6 +570,28 @@ final class ApiController
             ErrorModel::log('lead_email_queue', $e->getMessage(), 'POST');
         }
         Response::json(['ok' => true, 'id' => $id, 'status' => 'new', 'score' => $leadData['score']], 201);
+    }
+
+    /**
+     * Normalize an international phone number for storage.
+     * Accepts common formats (+91 98765 43210, +1 415 555 0123, 9876543210),
+     * strips non-digit separators, keeps an optional leading '+', and enforces
+     * a reasonable E.164-like length (7–15 digits). Returns '' for empty or
+     * clearly invalid input so the caller can reject it.
+     */
+    private static function normalizePhone(string $p): string
+    {
+        $p = trim((string)$p);
+        if ($p === '') return '';
+        $clean = preg_replace('/[\s\-\(\)\.\/]+/', '', $p);
+        $hasPlus = str_starts_with($clean, '+');
+        $clean = preg_replace('/\D+/', '', $clean);
+        if ($hasPlus) $clean = '+' . $clean;
+        if ($clean === '' || $clean === '+') return '';
+        $len = strlen(ltrim($clean, '+'));
+        if ($len < 7 || $len > 15) return '';
+        if (!preg_match('/^\+?\d+$/', $clean)) return '';
+        return $clean;
     }
 
     /* ---------- public form submissions ---------- */
