@@ -3980,89 +3980,94 @@ body.about-page ::selection { background: rgba(110, 168, 255, 0.32); color: #EFF
   position: absolute; z-index: 2;
   right: clamp(16px, 2.8vw, 38px); bottom: clamp(16px, 2.8vw, 38px);
   width: clamp(340px, 40vw, 481px);
-  aspect-ratio: 481 / 283;               /* locked geometry — never content-driven */
   container-type: inline-size;
   display: flex; flex-direction: column;
   padding: 0;                            /* the inner sets proportional padding in cqw */
-  background: linear-gradient(180deg, rgba(6, 12, 28, 0.88) 0%, rgba(6, 12, 28, 0.74) 100%);
-  -webkit-backdrop-filter: blur(20px) saturate(135%); backdrop-filter: blur(20px) saturate(135%);
-  border: 1px solid rgba(148, 170, 230, 0.24);
-  border-radius: 18px;
+  /* editorial surface, not a SaaS box — quiet, restrained, no glow */
+  background: rgba(9, 15, 34, 0.72);
+  -webkit-backdrop-filter: blur(16px) saturate(120%); backdrop-filter: blur(16px) saturate(120%);
+  border: 1px solid rgba(148, 170, 230, 0.12);
+  border-radius: 12px;
   color: #EFF0EA;
   overflow: hidden;
-  box-shadow: 0 32px 76px -44px rgba(0, 0, 0, 0.72), 0 0 0 1px rgba(110, 168, 255, 0.03);
+  box-shadow: 0 22px 54px -36px rgba(0, 0, 0, 0.72);
   transition: border-color 0.4s var(--ease), box-shadow 0.4s var(--ease);
 }
 .case__card:hover {
-  border-color: rgba(148, 170, 230, 0.44);
-  box-shadow: 0 36px 88px -46px rgba(0, 0, 0, 0.78), 0 0 42px -22px rgba(110, 168, 255, 0.30);
+  border-color: rgba(148, 170, 230, 0.28);
+  box-shadow: 0 26px 60px -40px rgba(0, 0, 0, 0.82);
 }
 
-/* content area — fills the card box, with proportional (cqw) padding.
-   It stays in normal flow so the card's height is never forced by the
-   absolute inner; the box height comes from aspect-ratio (desktop) or
-   content (mobile), and the footer pins to the bottom via flex. */
+/* content area — a compact editorial caption block. A deliberate grid:
+   ROW 1 category · ROW 2 client + project (one tight unit) ·
+   ROW 3 work-category (left) + CTA (right). Fixed spacing between groups —
+   no space-between, no content-driven stretching. */
 .case__card__in {
-  flex: 1;
   display: flex; flex-direction: column;
   min-width: 0;
-  padding: 6.6cqw 6cqw 5.2cqw;
+  padding: 6.1cqw 6.1cqw 5cqw;
 }
 
 /* FIELD 01 — category of client / business (eyebrow · metadata) */
 .case__cat {
-  font-size: 2.2cqw; font-weight: 600;
-  letter-spacing: 0.22em; text-transform: uppercase;
-  color: rgba(150, 160, 190, 0.88);
-  line-height: 1.3; margin-bottom: 2.4cqw;
+  font-size: 2cqw; font-weight: 600;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: rgba(150, 160, 190, 0.72);
+  line-height: 1.3; margin: 0 0 2.6cqw;
 }
 
 /* FIELD 02 — client name (primary display headline) */
 .case__client {
   order: 0;                       /* neutralise the legacy kicker stacking rule */
   color: var(--azure-hi);
-  font-size: clamp(1rem, 4.9cqw, 2rem);   /* auto-fit — stays on one line, never wraps/truncates */
+  font-size: clamp(0.95rem, 4.7cqw, 1.9rem);   /* auto-fit — stays on one line, never wraps/truncates */
   font-weight: 600;
-  letter-spacing: -0.022em; line-height: 1.15;
-  max-width: none; white-space: nowrap; margin: 0 0 2.2cqw;
+  letter-spacing: -0.02em; line-height: 1.12;
+  max-width: none; white-space: nowrap; margin: 0 0 1.2cqw;   /* tight — client+project read as ONE unit */
 }
 
 /* FIELD 03 — description (project) */
 .case__title {
-  font-size: clamp(0.6rem, 3.1cqw, 1.05rem);  /* auto-fit — single line; lower floor so cqw governs */
+  font-size: clamp(0.6rem, 2.9cqw, 1rem);  /* auto-fit — single line; lower floor so cqw governs */
   font-weight: 500;
-  letter-spacing: -0.01em; line-height: 1.42;
-  color: rgba(239, 240, 234, 0.94);
-  max-width: none; white-space: nowrap; margin: 0;   /* drop legacy 30ch cap so it fits one line */
+  letter-spacing: -0.01em; line-height: 1.4;
+  color: rgba(239, 240, 234, 0.9);
+  max-width: none; white-space: nowrap; margin: 0;
 }
 
-/* anchored footer — work discipline + action, pinned to the card bottom */
+/* ROW 3 — metadata (left) + action (right) on the same line, a deliberate
+   horizontal tension. Fixed medium gap above separates the info group from
+   the metadata group. */
 .case__card__foot {
-  margin-top: auto;
-  border-top: 1px solid rgba(148, 170, 230, 0.18);
-  padding-top: 2.4cqw;
+  margin-top: 5.2cqw;             /* project → metadata: medium, structural gap */
+  border-top: 1px solid rgba(148, 170, 230, 0.14);
+  padding-top: 2cqw;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 2.4cqw;
 }
 
-/* FIELD 04 — category of work (secondary metadata) */
+/* FIELD 04 — category of work (secondary metadata — quiet, left) */
 .case__work {
-  font-size: 2.15cqw; font-weight: 600;
-  letter-spacing: 0.18em; text-transform: uppercase;
-  color: rgba(150, 160, 190, 0.74);
-  line-height: 1.3; margin-bottom: 1.8cqw;
+  font-size: 1.9cqw; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: rgba(150, 160, 190, 0.6);
+  line-height: 1.3; margin: 0;
+  flex: 0 1 auto; min-width: 0;
 }
 
-/* FIELD 05 — CTA (identical across all three) */
+/* FIELD 05 — CTA (text + arrow, no button chrome, right-anchored) */
 .case__card-cta {
-  display: inline-flex; align-items: center; gap: 1.4cqw;
-  min-height: 7.6cqw; padding: 0.8cqw 0;
-  font-size: 2.9cqw; font-weight: 600; letter-spacing: 0.01em;
+  display: inline-flex; align-items: center; gap: 1.1cqw;
+  flex: none; white-space: nowrap;
+  padding: 0.4cqw 0;
+  font-size: 2.5cqw; font-weight: 600; letter-spacing: 0.01em;
   color: var(--azure-hi, #6EA8FF);
   background: transparent; border: 0; border-radius: 0;
-  transition: color 0.3s var(--ease), gap 0.3s var(--ease), transform 0.3s var(--ease);
+  transition: color 0.3s var(--ease), gap 0.3s var(--ease);
 }
 .case__card-cta:hover { color: #fff; background: transparent; transform: none; box-shadow: none; }
 .case__card-cta .btn__arrow {
-  width: 1.5em; height: 1.5em; flex: none;
+  width: 1.4em; height: 1.4em; flex: none;
   transition: transform 0.3s var(--ease);
 }
 .case__card-cta:hover .btn__arrow { transform: translateX(0.28em); }
@@ -4072,12 +4077,25 @@ body.about-page ::selection { background: rgba(110, 168, 255, 0.32); color: #EFF
   .case__card { right: clamp(14px, 2.6vw, 30px); bottom: clamp(14px, 2.6vw, 30px); }
 }
 
-/* ---- responsive: mobile — fluid width, natural height, no clipping ---- */
+/* ---- responsive: mobile — fluid width, natural height, no clipping.
+   The bottom metadata/CTA row can no longer share one line on a narrow
+   frame, so it stacks as a controlled column: quiet metadata above,
+   CTA anchored right. Hierarchy preserved. ---- */
 @media (max-width: 700px) {
   .case__card {
     left: 12px; right: 12px; bottom: 12px; top: auto;
     width: auto; height: auto; aspect-ratio: auto;
   }
+  .case__card__in { padding: 5.4cqw 5.4cqw 4.4cqw; }
+  .case__cat { margin-bottom: 2.2cqw; }
+  .case__client { margin-bottom: 1cqw; }
+  .case__card__foot {
+    margin-top: 4.4cqw;
+    flex-direction: column; align-items: stretch;
+    gap: 1.6cqw;
+  }
+  .case__work { width: 100%; }
+  .case__card-cta { align-self: flex-end; }
 }
 @media (max-width: 360px) {
   .case__card { left: 10px; right: 10px; bottom: 10px; }
