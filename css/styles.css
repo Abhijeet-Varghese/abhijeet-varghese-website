@@ -1421,8 +1421,8 @@ html { scroll-padding-top: 96px; }
 /* Preserve the complete authored Orange Business thumbnail—including its
    embedded case-study typography—across every listing aspect ratio. The
    black source canvas makes the small contain gutters visually disappear. */
-#case-prj-1 .case__panel img[src$="case-orange-experience-in-action.webp"],
-.portfolio-piece--1 .portfolio-piece__media img[src$="case-orange-experience-in-action.webp"] {
+#case-prj-1 .case__panel img[src*="case-orange-experience-in-action.webp"],
+.portfolio-piece--1 .portfolio-piece__media img[src*="case-orange-experience-in-action.webp"] {
   object-fit: contain;
   object-position: center;
   transform: none !important;
@@ -1432,8 +1432,8 @@ html { scroll-padding-top: 96px; }
 /* Preserve the complete authored Bharat Petroleum Corporation Limited
    thumbnail (brand artwork: logo, title, tagline and callouts) so the
    artwork is never cropped. Same treatment as the Orange Business card. */
-#case-prj-2 .case__panel img[src$="case-bpcl.webp"],
-.portfolio-piece--2 .portfolio-piece__media img[src$="case-bpcl.webp"] {
+#case-prj-2 .case__panel img[src*="case-bpcl.webp"],
+.portfolio-piece--2 .portfolio-piece__media img[src*="case-bpcl.webp"] {
   object-fit: contain;
   object-position: center;
   transform: none !important;
@@ -1442,8 +1442,8 @@ html { scroll-padding-top: 96px; }
 }
 @media (max-width: 700px) {
   .case__card-cta { width: 100%; justify-content: center; }
-  #case-prj-1 .case__panel img[src$="case-orange-experience-in-action.webp"] { object-position: center top; }
-  #case-prj-2 .case__panel img[src$="case-bpcl.webp"] { object-position: center top; }
+  #case-prj-1 .case__panel img[src*="case-orange-experience-in-action.webp"] { object-position: center top; }
+  #case-prj-2 .case__panel img[src*="case-bpcl.webp"] { object-position: center top; }
 }
 
 /* ============================================================
