@@ -137,6 +137,8 @@ CREATE TABLE IF NOT EXISTS leads (
   name VARCHAR(150) NOT NULL,
   company VARCHAR(150) DEFAULT '',
   email VARCHAR(190) DEFAULT '',
+  country_code VARCHAR(8) NOT NULL DEFAULT '',
+  phone_number VARCHAR(20) NOT NULL DEFAULT '',
   phone VARCHAR(40) DEFAULT '',
   lead_type VARCHAR(60) DEFAULT '',
   message TEXT,

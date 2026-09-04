@@ -16,6 +16,9 @@
  */
 final class ApiController
 {
+    /** Valid international dialing codes (ITU-T E.164 country calling codes). */
+    private const VALID_PHONE_CC = ['+1','+7','+20','+27','+30','+31','+32','+33','+34','+36','+39','+40','+41','+43','+44','+45','+46','+47','+48','+49','+51','+52','+53','+54','+55','+56','+57','+58','+60','+61','+62','+63','+64','+65','+66','+81','+82','+84','+86','+90','+91','+92','+93','+94','+95','+98','+211','+212','+213','+216','+218','+220','+221','+222','+223','+224','+225','+226','+227','+228','+229','+230','+231','+232','+233','+234','+235','+236','+237','+238','+239','+240','+241','+242','+243','+244','+245','+246','+248','+249','+250','+251','+252','+253','+254','+255','+256','+257','+258','+260','+261','+262','+263','+264','+265','+266','+267','+268','+269','+290','+291','+297','+298','+299','+350','+351','+352','+353','+354','+355','+356','+357','+358','+359','+370','+371','+372','+373','+374','+375','+376','+377','+378','+380','+381','+382','+383','+385','+386','+387','+389','+420','+421','+423','+500','+501','+502','+503','+504','+505','+506','+507','+508','+509','+590','+591','+592','+593','+594','+595','+596','+597','+598','+599','+670','+672','+673','+674','+675','+676','+677','+678','+679','+680','+681','+682','+683','+685','+686','+687','+688','+689','+690','+691','+692','+850','+852','+853','+855','+856','+880','+886','+960','+961','+962','+963','+964','+965','+966','+967','+968','+970','+971','+972','+973','+974','+975','+976','+977','+992','+993','+994','+995','+996','+998'];
+
     public static function handle(): void
     {
         $method = $_SERVER['REQUEST_METHOD'];
@@ -494,17 +497,19 @@ final class ApiController
         // email throttle (only when a real address is present)
         $k = 'lead-email:' . md5($email);
         if (!RateLimiter::allow($k, 5, 3600)) Response::error('Too many submissions from this email', 429, 'RATE_LIMITED');
-        // mobile number — required; normalized (strip separators) before storage
-        $phoneRaw = Input::str($d, 'phone', 60);
-        if ($phoneRaw === '') $phoneRaw = Input::str($d, 'mobile', 60);
-        $phone = self::normalizePhone($phoneRaw);
-        if ($phone === '') Response::error('Mobile number required', 422, 'VALIDATION_ERROR');
+        // mobile number — required; country code + national number + full E.164,
+        // normalized (strip separators). Also accepts a legacy full 'phone'/'mobile'.
+        $phoneParts = self::resolvePhone($d);
+        if ($phoneParts === null) Response::error('A valid mobile number is required', 422, 'VALIDATION_ERROR');
+        [$countryCode, $phoneNumber, $phone] = $phoneParts;
         if (strlen(Input::str($d, 'message', 5000)) > 4000) Response::error('Message too long', 422, 'VALIDATION_ERROR');
 
         $leadData = [
             'name' => $name,
             'company' => Input::str($d, 'company', 150) ?: Input::str($d, 'organization', 150),
             'email' => $email,
+            'country_code' => $countryCode,
+            'phone_number' => $phoneNumber,
             'phone' => $phone,
             'lead_type' => Input::str($d, 'project_type', 60) ?: Input::str($d, 'type', 60),
             'message' => Input::str($d, 'message', 4000),
@@ -555,7 +560,8 @@ final class ApiController
                 'admin_url' => AV_SITE_URL . '/admin/',
                 'calendly_url' => $siteSettings['calendlyUrl'] ?? '',
                 'name' => $name, 'email' => $email,
-                'phone' => $leadData['phone'], 'company' => $leadData['company'],
+                'phone' => $leadData['phone'], 'country_code' => $leadData['country_code'] ?? '',
+                'phone_number' => $leadData['phone_number'] ?? '', 'company' => $leadData['company'],
                 'project_type' => $leadData['lead_type'], 'source' => $leadData['source'],
                 'message' => $leadData['message'],
             ];
@@ -573,12 +579,59 @@ final class ApiController
     }
 
     /**
-     * Normalize an international phone number for storage.
-     * Accepts common formats (+91 98765 43210, +1 415 555 0123, 9876543210),
-     * strips non-digit separators, keeps an optional leading '+', and enforces
-     * a reasonable E.164-like length (7–15 digits). Returns '' for empty or
-     * clearly invalid input so the caller can reject it.
+     * Resolve the phone into [country_code, phone_number(national), full_phone_number(E.164)].
+     * Accepts three-part payload (country_code + phone_number + full_phone_number) as the
+     * primary path, and falls back to a legacy full 'phone'/'mobile' E.164 string.
+     * Returns null when the number is missing or clearly invalid so the caller rejects it.
      */
+    private static function resolvePhone(array $d): ?array
+    {
+        $cc = Input::str($d, 'country_code', 8);
+        $pn = Input::str($d, 'phone_number', 25);
+        $fullRaw = Input::str($d, 'full_phone_number', 30);
+        // Legacy single-field numeric payloads (full E.164 with optional '+')
+        if ($fullRaw === '') $fullRaw = Input::str($d, 'phone', 60) ?: Input::str($d, 'mobile', 60);
+
+        // Normalise the country code to digits (validate it is a known calling code).
+        $ccDigits = '';
+        if ($cc !== '') {
+            $ccDigits = preg_replace('/\D+/', '', $cc);
+            $ccClean = '+' . $ccDigits;
+            if (!in_array($ccClean, self::VALID_PHONE_CC, true)) return null;   // unknown/nonsense cc
+            $cc = $ccClean;
+        }
+
+        // Prefer an explicit full E.164; otherwise assemble from cc + national.
+        $full = self::normalizePhone($fullRaw);
+        if ($full === '') {
+            $pnDigits = preg_replace('/\D+/', '', $pn);
+            if ($pnDigits === '' || $ccDigits === '') return null;
+            $full = '+' . $ccDigits . $pnDigits;
+        }
+
+        if (!self::isValidE164($full)) return null;
+
+        // Enforce the country code matches the leading digits of the full number.
+        $fullDigits = ltrim($full, '+');
+        if ($cc !== '' && !str_starts_with($fullDigits, $ccDigits)) return null;
+
+        // Derive reported country code / national number if not supplied separately.
+        if ($cc === '') {
+            $known = null;
+            foreach (self::VALID_PHONE_CC as $vc) {
+                $vd = ltrim($vc, '+');
+                if (str_starts_with($fullDigits, $vd) && ($known === null || strlen($vd) > strlen($known))) $known = $vd;
+            }
+            if ($known === null) return null;
+            $cc = '+' . $known;
+            $ccDigits = $known;
+        }
+        $national = ltrim($full, '+');
+        $national = substr($national, strlen($ccDigits));
+        return [$cc, $national, $full];
+    }
+
+    /** Normalize a raw phone string to a leading-'+' digits-only E.164 form. Returns '' if invalid. */
     private static function normalizePhone(string $p): string
     {
         $p = trim((string)$p);
@@ -592,6 +645,13 @@ final class ApiController
         if ($len < 7 || $len > 15) return '';
         if (!preg_match('/^\+?\d+$/', $clean)) return '';
         return $clean;
+    }
+
+    /** E.164 shape check: optional '+', then 7–15 national/country digits, no letters/separators. */
+    private static function isValidE164(string $full): bool
+    {
+        $digits = ltrim($full, '+');
+        return preg_match('/^[1-9]\d{6,14}$/', $digits) === 1;
     }
 
     /* ---------- public form submissions ---------- */

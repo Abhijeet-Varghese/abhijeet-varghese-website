@@ -102,12 +102,12 @@ final class LeadModel
     public static function create(array $l): int
     {
         Database::q(
-            "INSERT INTO leads (name, company, email, phone, lead_type, message, source, page, referrer,
+            "INSERT INTO leads (name, company, email, country_code, phone_number, phone, lead_type, message, source, page, referrer,
                                 utm_source, utm_medium, utm_campaign, utm_term, utm_content,
                                 status, score, tags, notes)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-            [$l['name'], $l['company'] ?? '', $l['email'] ?? '', $l['phone'] ?? '', $l['lead_type'] ?? '',
-             $l['message'] ?? '', $l['source'] ?? '', $l['page'] ?? '', $l['referrer'] ?? '',
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            [$l['name'], $l['company'] ?? '', $l['email'] ?? '', $l['country_code'] ?? '', $l['phone_number'] ?? '', $l['phone'] ?? '',
+             $l['lead_type'] ?? '', $l['message'] ?? '', $l['source'] ?? '', $l['page'] ?? '', $l['referrer'] ?? '',
              $l['utm_source'] ?? '', $l['utm_medium'] ?? '', $l['utm_campaign'] ?? '',
              $l['utm_term'] ?? '', $l['utm_content'] ?? '',
              $l['status'] ?? 'new', $l['score'] ?? 50,
@@ -152,7 +152,7 @@ final class LeadModel
 
     public static function update(int $id, array $d): void
     {
-        $fields = ['name','company','email','phone','lead_type','message','source','status','score','notes'];
+        $fields = ['name','company','email','country_code','phone_number','phone','lead_type','message','source','status','score','notes'];
         $sets = [];
         $params = [];
         foreach ($fields as $f) {

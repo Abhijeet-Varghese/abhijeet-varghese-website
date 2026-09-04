@@ -985,6 +985,35 @@ html.js.reveal-failsafe:not(.js-ok) [data-reveal="img"] img { transform: scale(1
 .cf-note { text-align: center; font-size: 12.5px; color: #59617A; line-height: 1.6; }
 .cf-note.is-set { color: #1E4390; }
 
+/* --- International mobile: country selector + phone (one field) --- */
+/* the label housing the phone field carries an extra "(optional)" hint row on its
+   sibling, so align its content to the bottom — this keeps the phone composite the
+   same height as the standard input and level with the Organisation field. */
+.cf label:has(> .cf-phone) { align-content: end; }
+.cf-phone { position: relative; display: flex; align-items: center; min-height: 48px; box-sizing: border-box; border: 1px solid rgba(12, 19, 48, 0.16); border-radius: 10px; background: #FBFAF6; transition: border-color 0.3s var(--ease), box-shadow 0.3s var(--ease), background 0.3s var(--ease); }
+.cf-phone:focus-within { border-color: #2E5AAC; background: #fff; box-shadow: 0 0 0 3px rgba(46, 90, 172, 0.15); }
+.cf-phone.is-invalid { border-color: #C23B3B; box-shadow: 0 0 0 3px rgba(194, 59, 59, 0.12); }
+.cf .cf-cc { flex: 0 0 auto; display: flex; align-items: center; gap: 7px; margin: 0; padding: 0 12px; background: transparent; border: 0; border-radius: 10px 0 0 10px; font: inherit; font-size: 15px; font-weight: 600; letter-spacing: 0.01em; color: #0C1330; cursor: pointer; white-space: nowrap; }
+.cf .cf-cc:hover { background: rgba(12, 19, 48, 0.03); }
+.cf .cf-cc:focus-visible { outline: 2px solid #2E5AAC; outline-offset: -2px; }
+.cf .cf-cc__flag { font-size: 18px; line-height: 1; font-weight: 400; color: inherit; }
+.cf .cf-cc__code { font-variant-numeric: tabular-nums; font-weight: 600; color: #0C1330; }
+.cf .cf-cc__chev { color: rgba(89, 97, 122, 0.65); flex: none; }
+.cf .cf-phone__divider { flex: 0 0 1px; align-self: stretch; background: rgba(12, 19, 48, 0.14); }
+.cf .cf-phone input[type="tel"] { flex: 1 1 auto; min-width: 0; margin: 0; border: 0; background: transparent; border-radius: 0 10px 10px 0; min-height: 48px; padding: 13px 15px; font: inherit; font-weight: 400; font-size: 16px; color: #0C1330; }
+.cf .cf-phone input[type="tel"]:focus { outline: none; border-color: transparent; background: transparent; box-shadow: none; }
+.cf .cf-phone input[type="tel"]::placeholder { color: rgba(89, 97, 122, 0.55); }
+/* country dropdown (anchored to the field, scrollable) */
+.cf-cc-pop { position: absolute; top: calc(100% + 8px); left: 0; z-index: 40; width: min(124px, 80vw); background: #fff; border: 1px solid rgba(12, 19, 48, 0.14); border-radius: 14px; box-shadow: 0 18px 44px rgba(12, 19, 48, 0.18); overflow: hidden; }
+.cf-cc-list { max-height: 240px; overflow-y: auto; margin: 0; padding: 6px; list-style: none; }
+.cf .cf-cc-opt { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 400; color: #0C1330; }
+.cf .cf-cc-opt:focus { outline: none; }
+.cf .cf-cc-opt:hover { background: rgba(12, 19, 48, 0.04); }
+.cf .cf-cc-opt.is-active { background: rgba(46, 90, 172, 0.10); }
+.cf .cf-cc-opt.is-selected { background: #2E5AAC; color: #fff; }
+.cf .cf-cc-opt__flag { font-size: 18px; line-height: 1; font-weight: 400; color: inherit; }
+.cf .cf-cc-opt__dial { flex: 1 1 auto; text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; color: inherit; opacity: 0.8; }
+
 /* ============================================================
    SOCIAL LINKS
    ============================================================ */
