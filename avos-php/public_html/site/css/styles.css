@@ -4005,7 +4005,7 @@ body.about-page ::selection { background: rgba(110, 168, 255, 0.32); color: #EFF
 .case__card__in {
   display: flex; flex-direction: column;
   min-width: 0;
-  padding: 6.1cqw 6.1cqw 5cqw;
+  padding: 6cqw 6cqw 4.4cqw;
 }
 
 /* FIELD 01 — category of client / business (eyebrow · metadata) */
@@ -4039,28 +4039,30 @@ body.about-page ::selection { background: rgba(110, 168, 255, 0.32); color: #EFF
    horizontal tension. Fixed medium gap above separates the info group from
    the metadata group. */
 .case__card__foot {
-  margin-top: 5.2cqw;             /* project → metadata: medium, structural gap */
-  border-top: 1px solid rgba(148, 170, 230, 0.14);
-  padding-top: 2cqw;
+  margin-top: 2.6cqw;             /* project → metadata: structural gap (481px card ≈ 12px) */
+  border-top: 1px solid rgba(148, 170, 230, 0.16);
+  padding-top: 2.2cqw;
   display: flex; align-items: center; justify-content: space-between;
   gap: 2.4cqw;
 }
 
-/* FIELD 04 — category of work (secondary metadata — quiet, left) */
+/* FIELD 04 — category of work (secondary metadata — quiet, left).
+   nowrap keeps every card's bottom row to a single line so all three
+   cards stay the SAME height (the longest work label never wraps). */
 .case__work {
-  font-size: 1.9cqw; font-weight: 600;
+  font-size: 2cqw; font-weight: 600;
   letter-spacing: 0.14em; text-transform: uppercase;
-  color: rgba(150, 160, 190, 0.6);
+  color: rgba(150, 160, 190, 0.62);
   line-height: 1.3; margin: 0;
-  flex: 0 1 auto; min-width: 0;
+  white-space: nowrap; flex: 0 1 auto; min-width: 0;
 }
 
 /* FIELD 05 — CTA (text + arrow, no button chrome, right-anchored) */
 .case__card-cta {
   display: inline-flex; align-items: center; gap: 1.1cqw;
   flex: none; white-space: nowrap;
-  padding: 0.4cqw 0;
-  font-size: 2.5cqw; font-weight: 600; letter-spacing: 0.01em;
+  min-height: 0; padding: 0;       /* no residual 44px tap target — row hugs its text */
+  font-size: 2.6cqw; font-weight: 600; letter-spacing: 0.01em;
   color: var(--azure-hi, #6EA8FF);
   background: transparent; border: 0; border-radius: 0;
   transition: color 0.3s var(--ease), gap 0.3s var(--ease);
