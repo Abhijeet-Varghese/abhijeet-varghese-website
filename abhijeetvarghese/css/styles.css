@@ -4006,7 +4006,7 @@ body.about-page ::selection { background: rgba(110, 168, 255, 0.32); color: #EFF
   flex: 1;
   display: flex; flex-direction: column;
   min-width: 0;
-  padding: 6.6cqw 6cqw 5.2cqw;
+  padding: 6.4cqw 6.4cqw 6cqw;   /* top = image→category; bottom = CTA→card edge */
 }
 
 /* FIELD 01 — category of client / business (eyebrow · metadata) */
@@ -4014,7 +4014,7 @@ body.about-page ::selection { background: rgba(110, 168, 255, 0.32); color: #EFF
   font-size: 2.2cqw; font-weight: 600;
   letter-spacing: 0.22em; text-transform: uppercase;
   color: rgba(150, 160, 190, 0.88);
-  line-height: 1.3; margin-bottom: 2.4cqw;
+  line-height: 1.3; margin-bottom: 3.3cqw;   /* category → client: small, attached */
 }
 
 /* FIELD 02 — client name (primary display headline) */
@@ -4024,7 +4024,7 @@ body.about-page ::selection { background: rgba(110, 168, 255, 0.32); color: #EFF
   font-size: clamp(1rem, 4.9cqw, 2rem);   /* auto-fit — stays on one line, never wraps/truncates */
   font-weight: 600;
   letter-spacing: -0.022em; line-height: 1.15;
-  max-width: none; white-space: nowrap; margin: 0 0 2.2cqw;
+  max-width: none; white-space: nowrap; margin: 0 0 1.6cqw;   /* client → project: very small, one unit */
 }
 
 /* FIELD 03 — description (project) */
@@ -4036,11 +4036,15 @@ body.about-page ::selection { background: rgba(110, 168, 255, 0.32); color: #EFF
   max-width: none; white-space: nowrap; margin: 0;   /* drop legacy 30ch cap so it fits one line */
 }
 
-/* anchored footer — work discipline + action, pinned to the card bottom */
+/* INFO AREA — metadata group + action group, sharing the remaining card height.
+   Grows to fill the card (no space-between), so the CTA bottom-anchors to the
+   same zone on every card; the single flexible zone is the work → CTA gap. */
 .case__card__foot {
-  margin-top: auto;
-  border-top: 1px solid rgba(148, 170, 230, 0.18);
-  padding-top: 2.4cqw;
+  flex: 1;
+  display: flex; flex-direction: column;
+  margin-top: 0;
+  border-top: 1px solid rgba(148, 170, 230, 0.18);   /* divider: project text → metadata group */
+  padding-top: 6.4cqw;                                 /* project → work category: deliberate medium gap */
 }
 
 /* FIELD 04 — category of work (secondary metadata) */
@@ -4048,13 +4052,14 @@ body.about-page ::selection { background: rgba(110, 168, 255, 0.32); color: #EFF
   font-size: 2.15cqw; font-weight: 600;
   letter-spacing: 0.18em; text-transform: uppercase;
   color: rgba(150, 160, 190, 0.74);
-  line-height: 1.3; margin-bottom: 1.8cqw;
+  line-height: 1.3; margin-bottom: 0;
 }
 
 /* FIELD 05 — CTA (identical across all three) */
 .case__card-cta {
   display: inline-flex; align-items: center; gap: 1.4cqw;
   min-height: 7.6cqw; padding: 0.8cqw 0;
+  margin-top: auto;                                   /* work → CTA: largest structural gap, bottom-anchored */
   font-size: 2.9cqw; font-weight: 600; letter-spacing: 0.01em;
   color: var(--azure-hi, #6EA8FF);
   background: transparent; border: 0; border-radius: 0;
@@ -4078,6 +4083,10 @@ body.about-page ::selection { background: rgba(110, 168, 255, 0.32); color: #EFF
     left: 12px; right: 12px; bottom: 12px; top: auto;
     width: auto; height: auto; aspect-ratio: auto;
   }
+  /* card is content-heighted on mobile → margin-top:auto has no space to fill,
+     so give the action group an explicit gap. */
+  .case__card__foot { padding-top: 5.2cqw; }
+  .case__card-cta { margin-top: 5.2cqw; }
 }
 @media (max-width: 360px) {
   .case__card { left: 10px; right: 10px; bottom: 10px; }
