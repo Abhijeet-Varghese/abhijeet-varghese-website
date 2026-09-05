@@ -359,7 +359,8 @@ Harness in `/home/user/qa` (Playwright + axe-core). Current run: **114 checks, 0
 | `a11y.js` | 0 violations | axe-core at desktop and mobile |
 | `routes.js` | 11 routes | Every other route 200 with no horizontal overflow |
 | `smooth.js` | — | Median 16.7 ms, p95 33.4 ms, worst 49.9 ms, **0 frames >50 ms**, **0 layout shifts** |
-| `seo.js` | **75 / 75** | §28 SEO brief: one H1, heading hierarchy, title/description length + content, single canonical, robots, complete OG + Twitter, JSON-LD `@graph` and `@id` wiring, raw-HTML crawlability (JS never run), image alt/lazy policy, case-study anchors, internal-link resolution, overflow at 3 widths |
+| `designlock.js` | **0 diffs** | Renders pre-change vs current and diffs every element's rect + computed style at 3 viewports x 3 scroll positions; A-vs-A control sets the noise floor — proves SEO changes are visually inert |
+| `seo.js` | **86 / 86** | §28 SEO brief: one H1, heading hierarchy, title/description length + content, single canonical, robots, complete OG + Twitter, JSON-LD `@graph` and `@id` wiring, raw-HTML crawlability (JS never run), image alt/lazy policy, case-study anchors, internal-link resolution, overflow at 3 widths |
 
 Integrity checks:
 
@@ -463,7 +464,7 @@ Practice Spectrum, Clients and Case Study card system are untouched.
 | | Value |
 |---|---|
 | Title (47 ch) | `Abhijeet Varghese — Creative Director Portfolio` |
-| Description (157 ch) | `Creative Director Abhijeet Varghese works across experience design, immersive environments, motion, animation and visual storytelling. Explore selected work.` |
+| Description (154 ch) | `Creative Director Abhijeet Varghese — experience, immersive, spatial and digital design, motion, animation and visual storytelling. Explore the portfolio.` |
 | Canonical | `https://abhijeetvarghese.com/portfolio.html` (single) |
 | Robots | `index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1` |
 
@@ -496,9 +497,11 @@ duplicating:
 
 ```
 WebSite  <--isPartOf--  WebPage + CollectionPage  --about-->  Person
-                              ^
-                        isPartOf|
-                          VideoObject --author--> Person
+                              ^  ^
+                    isPartOf|    |breadcrumb
+                          |      v
+                    VideoObject  BreadcrumbList (Home > Portfolio)
+                     --author--> Person
 ```
 
 The `Person` `@id` (`https://abhijeetvarghese.com/#person`) was also added to
@@ -509,8 +512,17 @@ were copied verbatim from `index.html`; nothing invented.
 Also fixed: the Army CreativeWork said `about: "Defence & Immersive"` while the
 visible card said **Defence & Government**. Schema now matches reality.
 
-`uploadDate` is deliberately **absent** — no trustworthy date exists, and
-fabricating one is worse than omitting it.
+### Video metadata — verified, not invented
+
+`uploadDate` and `duration` were added only after being read off YouTube's own
+JSON-LD for `R1O0VanJfTo`: `uploadDate 2023-11-01`, `lengthSeconds 176` ->
+`duration PT2M56S`. The title was confirmed via the official oEmbed endpoint.
+Nothing here is assumed.
+
+> Note: YouTube's own title is *"Creative Director Portfolio **2025** |..."*.
+> The page keeps 2025 out of its metadata per the evergreen decision in §12, so
+> the schema `name` intentionally differs slightly from the YouTube title.
+> Renaming the video on YouTube would align them perfectly.
 
 ### Content
 
@@ -524,12 +536,47 @@ One editorial sentence added to the Context section, using the existing
 This closes a real gap: before this the name appeared **nowhere in the body
 copy**. Nothing fabricated; COMING SOON stays empty.
 
+### Image alt text
+
+Rewritten to describe the actual subject. Notably
+`Orange Business ... — Experience in Action case-study thumbnail` became
+*"Interactive experience installation at the Orange Business Executive
+Briefing Center"* — alt text should never say "thumbnail" or "image of".
+No image, dimension, `object-fit` or `object-position` was touched.
+
+### Case-study link labels
+
+Each card link carries a descriptive `aria-label`
+(`"View the Bharat Petroleum Corporation Limited case study — Intuitive
+Experiences for Industrial Environments"`). The **visible CTA is unchanged** —
+still `VIEW CASE STUDY →`.
+
+### Performance
+
+The above-the-fold reel poster gained `fetchpriority="high"` (it is the LCP
+candidate). No visual change. The player is already poster-first, so YouTube
+costs nothing until clicked.
+
+### Design lock
+
+`node qa/designlock.js` renders the committed pre-change page beside the
+current one and diffs **every element's** geometry, typography, colour and
+spacing at 3 viewports x 3 scroll positions: **0 real differences.**
+
+Two anti-noise measures, because naive comparison gives false positives:
+numeric style values compare with a 0.01 tolerance (reveal animations are
+still microscopically settling), and opacity is ignored on elements with a
+running animation (`.pf-soon__dot` runs `pfPulse 2.8s infinite`, so its
+sampled opacity is pure animation phase). An A-vs-A control run establishes
+the noise floor each time.
+
 ### Verified
 
-`node qa/seo.js` — **75 / 75**. Covers one H1, no skipped heading levels,
+`node qa/seo.js` — **86 / 86**. Covers one H1, no skipped heading levels,
 title/description length and content, single canonical, no noindex, complete
 OG + Twitter, JSON-LD parses with all five node types and correct `@id`
-wiring, no invented uploadDate, crawlability from **raw HTML with JS never
+wiring, verified video metadata, breadcrumb, descriptive link labels,
+crawlability from **raw HTML with JS never
 executed**, image alt/width/height/lazy policy, descriptive case-study anchors,
 all 17 internal links resolving, no horizontal overflow at three widths.
 
@@ -540,7 +587,9 @@ No regressions: cards 84/84, qc 30/30, 0 axe violations, 16:9 deviation
 
 1. **Rich Results Test / Search Console** — run the live URL through Google's
    validators. Local tests prove validity, not Google's acceptance.
-2. **`uploadDate`** — add once the real YouTube publish date is known.
+2. **Align the YouTube title** — the video is still called
+   *"Creative Director Portfolio 2025"* on YouTube. Renaming it there would
+   match the page's evergreen metadata exactly.
 3. **Sitemap `lastmod`** — `sitemap.xml` carries none anywhere; adding it is a
    site-wide architecture change, out of scope. Portfolio is already present
    at priority `0.9`.
