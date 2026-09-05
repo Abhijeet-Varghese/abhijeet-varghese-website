@@ -604,3 +604,75 @@ No regressions: cards 84/84, qc 30/30, 0 axe violations, 16:9 deviation
    length all derive from the DOM — never hard-code the count.
 3. Mirror every changed file into **both** `avos-php/site-template/` and
    `avos-php/public_html/site/` (see the table at the top).
+
+---
+
+## 16 — How this ships, and how to restore the workspace
+
+### Deployment is automatic — do not hand-edit `hostinger`
+
+`.github/workflows/deploy-staging.yml` triggers on every push to **`main`**:
+
+```yaml
+on:
+  push:
+    branches: [ main ]
+...
+git subtree split --prefix=abhijeetvarghese --branch=deploy-tmp
+git push origin deploy-tmp:hostinger --force
+```
+
+So `hostinger` is a **CI-generated artifact**, not a branch to edit. Pushing to
+`main` is the whole deployment step; anything pushed to `hostinger` by hand is
+overwritten on the next run.
+
+Two consequences worth remembering:
+
+1. **Only `abhijeetvarghese/` reaches the live site.** The `avos-php/` mirrors
+   and the docs in the repo root are the source for the PHP CMS and internal
+   reference — they are not deployed.
+2. Because the split rewrites history, the `hostinger` commit SHA will never
+   match the `main` SHA. Identify it by **commit subject**, not hash.
+
+Verified after this pass: `origin/hostinger` carried the subject *"Second SEO
+pass on the Portfolio page…"*, and the deployed `portfolio.html` contained the
+new title, `0` × "2025", `fetchpriority="high"`, all three case-study
+`aria-label`s, and the full schema graph with `uploadDate` and `duration`.
+
+### Restoring the workspace after a sandbox reset
+
+A reset wipes running processes, `node_modules`, the Playwright browsers,
+`/tmp`, and — because they are excluded from workspace snapshots —
+`.git/config` and `~/.git-credentials`. **The repo working tree always
+survives**, so no work is ever lost; only the environment is.
+
+```bash
+GITHUB_TOKEN=<pat> bash /home/user/restore-env.sh
+```
+
+Restores git identity, the `origin` remote, credentials, the chromium system
+libraries, node packages and the browser — about 16 seconds. The token is
+written only to `~/.git-credentials` (mode 0600) and is never stored in the
+workspace. Then start the preview server:
+
+```bash
+python3 /home/user/serve.py 8000     # serves repo/abhijeetvarghese, '/' -> portfolio.html
+```
+
+### QA harness
+
+`/home/user/qa/` is workspace tooling and is **not** tracked by git, so it
+survives resets via the workspace snapshot.
+
+| Script | Guards |
+|---|---|
+| `seo.js` (86) | metadata, schema graph, raw-HTML crawlability, images, links |
+| `cards.js` (84) | the whole §32 case-study card spec |
+| `qc.js` (30) | routes, reduced motion, overflow, console, assets |
+| `film.js` | the 300x150 replaced-element iframe bug |
+| `designlock.js` | renders pre-change vs current, diffs every element |
+| `a11y.js` | axe-core at desktop and mobile |
+
+`designlock.js` compares `HEAD`'s `portfolio.html` against the working tree. It
+is only meaningful while the working tree has uncommitted changes — once
+committed it compares two identical files and trivially reports 0.
