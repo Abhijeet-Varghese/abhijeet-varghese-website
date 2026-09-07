@@ -19,6 +19,8 @@ define('AV_VERSIONS', AV_STORAGE . '/versions');
 define('AV_LOGS', AV_STORAGE . '/logs');
 define('AV_BACKUPS', AV_STORAGE . '/backups');
 define('AV_TEMPLATE', AV_ROOT . '/site-template');          // canonical frontend template
+define('AV_TEMPLATE_DIR', AV_BACKEND . '/publish/templates'); // canonical bespoke page templates
+define('AV_TEMPLATE_SITE_DIR', AV_TEMPLATE);                 // asset template (css/js/assets) used by registry checks
 define('AV_SITE_OUT', AV_ROOT . '/public_html/site');       // generated public site
 
 // ---- app ----

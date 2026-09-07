@@ -4,4 +4,4 @@ Disallow: /admin/
 Disallow: /api/
 Disallow: /install/
 
-Sitemap: https://abhijeetvarghese.com/sitemap.xml
+Sitemap: http://localhost:8092/sitemap.xml

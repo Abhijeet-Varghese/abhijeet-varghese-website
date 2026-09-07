@@ -68,6 +68,10 @@ final class ApiController
                 $action === 'publish' && $a === 'preflight' && $method === 'POST' => self::requireAuth('publish', fn() => self::publishPreflight()),
                 $action === 'publish' && $a === 'diff' && $method === 'GET' => self::requireAuth('content.read', fn() => self::publishDiff()),
                 $action === 'publish' && $method === 'POST' && !$a => self::requireAuth('publish', fn() => self::publish()),
+                // Authoritative template registry (shared with PublishEngine).
+                $action === 'templates' && $method === 'GET' && !$a => self::requireAuth('content.read', fn() => self::templatesList()),
+                // True page preview — rendered with the same renderer as publish.
+                $action === 'preview' && $a === 'page' && $b && $method === 'GET' => self::requireAuth('content.read', fn() => self::pagePreview((string)$b)),
                 $action === 'deployments' && $method === 'GET' => self::requireAuth('content.read', fn() => self::deployments()),
                 $action === 'redirects' && $method === 'GET' => self::requireAuth('settings.read', fn() => self::redirects()),
                 $action === 'redirects' && $method === 'POST' => self::requireAuth('settings.write', fn() => self::redirectSave(0)),
@@ -2064,6 +2068,38 @@ Answer concisely and helpfully. Never invent facts. Suggest actions the user can
             Response::json($report);
         } catch (Throwable $e) {
             Response::error('Pre-flight failed: ' . (AV_DEBUG ? $e->getMessage() : 'build validation failed'), 500, 'PREFLIGHT_FAILED');
+        }
+    }
+
+    /** Authoritative list of renderable page/project templates for the admin UI. */
+    private static function templatesList(): void
+    {
+        Response::json([
+            'pages'    => array_values(TemplateRegistry::pageTemplates()),
+            'projects' => array_values(TemplateRegistry::projectTemplates()),
+        ]);
+    }
+
+    /**
+     * Render a single page through the SAME PublishEngine path used by a real
+     * publish (renderPage → registry dispatch → renderer). Output is HTML for
+     * an authenticated preview iframe. Drafts are allowed (content.read) but
+     * the response is noindex, no-store, analytics-neutralised and carries a
+     * <base> so relative assets resolve against the real site URL.
+     */
+    private static function pagePreview(string $slug): void
+    {
+        $slug = preg_replace('/[^a-z0-9\-_]/i', '', $slug);
+        if ($slug === '' || $slug === null) Response::error('Invalid slug', 400, 'BAD_SLUG');
+        try {
+            $engine = new PublishEngine(ContentStore::all());
+            $html = $engine->renderPagePreview((string)$slug, true);
+            header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+            header('Pragma: no-cache');
+            header('X-Robots-Tag: noindex, nofollow, noarchive');
+            Response::html($html);
+        } catch (Throwable $e) {
+            Response::error('Preview failed: ' . (AV_DEBUG ? $e->getMessage() : 'render failed'), 500, 'PREVIEW_FAILED');
         }
     }
 

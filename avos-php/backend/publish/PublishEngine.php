@@ -1175,6 +1175,88 @@ HTML;
         ]);
     }
 
+    /* ============================================================
+       FOR RECRUITERS — cinematic executive creative-leadership
+       profile. This is a first-class CMS page: the publisher
+       regenerates for-recruiters.html from the static template
+       below on every publish, so the design can never be overwritten
+       by a generic block render. Scoped under body.rp via
+       css/for-recruiters.css + js/for-recruiters.js (synced from the
+       frontend template). Copy/content lives in the template file and
+       is the canonical source.
+       ============================================================ */
+    private function renderRecruiters(array $page, array $s, array $nav): string
+    {
+        $templateFile = __DIR__ . '/templates/for-recruiters.html';
+        if (!is_file($templateFile)) {
+            throw new RuntimeException('Recruiters page template missing: ' . $templateFile);
+        }
+        $html = (string)file_get_contents($templateFile);
+        $siteUrl = rtrim(AV_SITE_URL, '/');
+
+        // Person + membership structured data (factual, no invented claims).
+        $structuredData = json_encode([
+            '@context' => 'https://schema.org',
+            '@type' => 'ProfilePage',
+            'name' => 'For Recruiters — ' . ($s['siteName'] ?? 'Abhijeet Varghese'),
+            'url' => $siteUrl . '/for-recruiters.html',
+            'inLanguage' => 'en',
+            'mainEntity' => [
+                '@type' => 'Person',
+                'name' => $s['siteName'] ?? 'Abhijeet Varghese',
+                'jobTitle' => 'Creative Director & Experience Designer',
+                'url' => $siteUrl . '/',
+                'description' => 'Multidisciplinary creative leader working across creative direction, experience design, immersive/XR, digital experiences, content, creative technology, strategy and AI-assisted creative production.',
+                'knowsAbout' => ['Creative Direction', 'Experience Design', 'Immersive / XR', 'Digital Experiences', 'Content & Story', 'Creative Technology', 'Spatial Experience', 'Production & Delivery', 'Generative AI workflows'],
+                'memberOf' => [
+                    '@type' => 'Organization',
+                    'name' => 'AVGC-XR Rajasthan',
+                    'description' => 'Professional Member — AVGC-XR Rajasthan',
+                ],
+            ],
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG);
+
+        return strtr($html, [
+            '{{SITE_URL}}' => $siteUrl,
+            '{{ASSET_VERSION}}' => $this->assetVersion(),
+            '{{STRUCTURED_DATA}}' => $structuredData ?: '{}',
+            '{{SITE_CHROME}}' => $this->chrome($s, $nav, null, ''),
+            '{{SITE_FOOTER}}' => $this->footer($s, $nav, ''),
+            // Per-page asset manifest — page-scoped CSS/JS declared once, in the
+            // registry, versioned with the same content hash as global assets.
+            '{{PAGE_CSS}}' => $this->pageAssetTags('Recruiters', 'css'),
+            '{{PAGE_JS}}' => $this->pageAssetTags('Recruiters', 'js'),
+            // Analytics is auto-injected before </body> by injectAnalytics().
+            '{{ANALYTICS}}' => '',
+        ]);
+    }
+
+    /**
+     * Render <link>/<script> tags for a page template's declared assets,
+     * resolved from the TemplateRegistry manifest and versioned with the
+     * shared content hash. Global assets (styles.css/main.js) are owned by
+     * head()/shell() and are never duplicated here.
+     *
+     * @param string $tplKey  registry page-template key
+     * @param string $kind    'css' | 'js'
+     */
+    private function pageAssetTags(string $tplKey, string $kind): string
+    {
+        $reg = TemplateRegistry::page($tplKey);
+        if ($reg === null) return '';
+        $v = $this->assetVersion();
+        $out = [];
+        foreach (($reg['assets'][$kind] ?? []) as $rel) {
+            $href = $this->esc($rel . '?v=' . $v);
+            if ($kind === 'css') {
+                $out[] = '  <link rel="stylesheet" href="' . $href . '">';
+            } else {
+                $out[] = '  <script src="' . $href . '" defer></script>';
+            }
+        }
+        return implode("\n", $out);
+    }
+
     /** Published placeholder that preserves the project URL and factual metadata. */
     private function renderComingSoonCaseStudy(array $p, array $s, array $nav): string
     {
@@ -1239,10 +1321,22 @@ HTML;
     /** Dedicated case-study page — every project gets its own URL (no more anchor-only). */
     private function renderCaseStudy(array $p, array $s, array $nav): string
     {
-        if (!empty($p['comingSoon'])) {
+        // Registry gate — resolve + validate the effective project template.
+        $projKey = TemplateRegistry::resolveProjectKey($p);
+        $projReg = TemplateRegistry::project($projKey);
+        $ctx = 'project "' . ($p['id'] ?? '?') . '" (' . ($p['client'] ?? 'case study') . ')';
+        if ($projReg === null) {
+            throw new RuntimeException("Unsupported case-study template \"$projKey\" $ctx. Available: "
+                . implode(', ', array_keys(TemplateRegistry::projectTemplates())));
+        }
+        $deps = TemplateRegistry::validateProject($p, $ctx);
+        if ($deps) {
+            throw new RuntimeException("Case-study template \"$projKey\" $ctx failed validation: " . implode('; ', $deps));
+        }
+        if ($projKey === 'coming-soon') {
             return $this->renderComingSoonCaseStudy($p, $s, $nav);
         }
-        if (($p['caseStudyTemplate'] ?? '') === 'orange-business-ebc' || ($p['id'] ?? '') === 'prj-1') {
+        if ($projKey === 'orange-business-ebc') {
             return $this->renderOrangeBusinessCaseStudy($p, $s, $nav);
         }
         $siteUrl = AV_SITE_URL;
@@ -1317,18 +1411,42 @@ HTML;
 
     private function renderPage(array $page, array $s, array $nav): string
     {
-        // About page — long-form editorial narrative (one continuous story).
-        if (($page['template'] ?? '') === 'About') {
-            return $this->renderAbout($page, $s, $nav);
+        $slug = (string)($page['slug'] ?? 'unknown');
+        $title = (string)($page['title'] ?? $slug);
+        $tplKey = (string)($page['template'] ?? 'Page');
+
+        // ---- TEMPLATE REGISTRY GATE -------------------------------------
+        // Every published page must reference a known, fully-resolvable
+        // template. Dedicated/static templates NEVER silently downgrade to
+        // generic blocks — a broken or unknown template aborts the build
+        // (the atomic publish then rolls back, leaving the live site intact).
+        $reg = TemplateRegistry::page($tplKey);
+        if ($reg === null) {
+            throw new RuntimeException(sprintf(
+                'Page "%s" (slug: %s) uses unsupported template "%s". Available page templates: %s',
+                $title, $slug, $tplKey, implode(', ', array_keys(TemplateRegistry::pageTemplates()))
+            ));
         }
-        // Experience page — editorial employment record.
-        if (($page['template'] ?? '') === 'Experience') {
-            return $this->renderExperience($page, $s, $nav);
+        // Dedicated renderers/templates have hard dependencies — verify them.
+        $deps = TemplateRegistry::validatePage($tplKey, "page \"$slug\"");
+        if ($deps) {
+            throw new RuntimeException(sprintf(
+                'Page "%s" (slug: %s) template "%s" failed validation: %s',
+                $title, $slug, $tplKey, implode('; ', $deps)
+            ));
         }
-        // Portfolio — visual index, distinct from the narrative Case Studies page.
-        if (($page['template'] ?? '') === 'Portfolio') {
-            return $this->renderPortfolio($page, $s, $nav);
+
+        // ---- DEDICATED TEMPLATE DISPATCH --------------------------------
+        // Dedicated renderer methods are dispatched from the single registry
+        // so this switch and the admin never drift apart.
+        $renderer = $reg['renderer'] ?? null;
+        if ($reg['kind'] === 'static' || ($reg['kind'] === 'method' && $renderer !== null)) {
+            if ($renderer !== null && method_exists($this, $renderer)) {
+                return $this->$renderer($page, $s, $nav);
+            }
         }
+
+        // ---- GENERIC BLOCK RENDER (intentional fallback) ----------------
         $siteUrl = AV_SITE_URL;
         $body = [];
         $i = 1;
@@ -1358,6 +1476,57 @@ HTML;
         $ld = json_encode(['@context' => 'https://schema.org', '@type' => 'WebPage', 'name' => $page['title'], 'url' => $siteUrl . '/' . $page['slug'] . '.html', 'inLanguage' => 'en']);
         return $this->shell($s, $nav, $title, $desc, $page['slug'] . '.html', $this->join($body), $page['slug'], 'website', null, $ld);
     }
+
+    /* ============================================================
+       PREVIEW — render a single page with the EXACT same code path
+       used by publish (no forked renderer). $preview injects:
+         • <base> so relative assets resolve,
+         • noindex meta (drafts must never be indexed),
+         • no analytics (preview is not production).
+       ============================================================ */
+    public function renderPagePreview(string $slug, bool $includeDrafts = true): string
+    {
+        $s = $this->site['settings'] ?? [];
+        $nav = $this->site['nav'] ?? [];
+        $found = null;
+        foreach (($this->site['pages'] ?? []) as $p) {
+            if (($p['slug'] ?? '') === $slug) { $found = $p; break; }
+        }
+        if ($found === null) {
+            if ($slug === '' || $slug === 'home' || $slug === 'index') {
+                $html = $this->renderHomepage();
+            } else {
+                throw new RuntimeException('Preview: no page found with slug "' . $slug . '"');
+            }
+        } else {
+            if (!$includeDrafts && ($found['status'] ?? 'published') !== 'published') {
+                throw new RuntimeException('Preview: page "' . $slug . '" is not published');
+            }
+            $html = $this->renderPage($found, $s, $nav);
+        }
+        return $this->wrapPreview($html, $slug);
+    }
+
+    /** Add preview-only <head> signals without changing the renderer output. */
+    private function wrapPreview(string $html, string $slug): string
+    {
+        // Relative site-root base so relative asset links (css/js/fonts/images)
+        // resolve against the SAME host that served the preview (dev or prod),
+        // never a hard-coded scheme/host. The preview URL is served at the site
+        // root path (/api/preview/page/…), so '/' resolves every top-level
+        // asset exactly as on the published page.
+        $injection = '<base href="/">' . "\n"
+            . '  <meta name="robots" content="noindex,nofollow,noarchive">' . "\n"
+            . '  <meta name="x-avos-preview" content="1">' . "\n";
+        if (str_contains($html, '<head>')) {
+            $html = preg_replace('/<head>/i', "<head>\n" . $injection, $html, 1);
+        }
+        // neutralise any analytics tracking in preview (defensive; analytics is
+        // normally only injected during the on-disk publish, never in preview).
+        $html = str_replace('api/analytics/track', 'api/analytics/track-preview-disabled', $html);
+        return $html;
+    }
+
 
     /* ============================================================
        PORTFOLIO — visual work index, deliberately distinct from the
@@ -2545,6 +2714,29 @@ HTML;
         $prevOut = $this->out;
         $this->out = $dir;
         $pages = 0; $articles = 0;
+
+        // ---- Pre-render template validation --------------------------------
+        // Fail fast (before a single file is written) if any due page/project
+        // references an unknown/unresolvable template. Throwing here aborts the
+        // build into staging only — production is never touched and the atomic
+        // swap/rollback in publish() leaves the live site intact.
+        foreach (($site['pages'] ?? []) as $p) {
+            if (!$this->isDue($p)) continue;
+            $slug0 = $p['slug'] ?? '';
+            if ($slug0 === '' || $slug0 === 'home' || $slug0 === 'index') continue;
+            $tplKey = (string)($p['template'] ?? 'Page');
+            $errs = TemplateRegistry::validatePage($tplKey, "page \"" . ($p['title'] ?? $slug0) . "\"");
+            if ($errs) {
+                throw new RuntimeException('Template validation failed for /' . $slug0 . '.html: ' . implode('; ', $errs));
+            }
+        }
+        foreach (($site['projects'] ?? []) as $p) {
+            if (!$this->isDue($p) || ($p['status'] ?? 'published') !== 'published') continue;
+            $errs = TemplateRegistry::validateProject($p, 'project "' . ($p['id'] ?? '?') . '"');
+            if ($errs) {
+                throw new RuntimeException('Template validation failed for case study "' . ($p['id'] ?? '?') . '": ' . implode('; ', $errs));
+            }
+        }
 
         file_put_contents($dir . '/index.html', $this->renderHomepage());
         foreach (($site['pages'] ?? []) as $p) {

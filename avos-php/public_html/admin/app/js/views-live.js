@@ -265,6 +265,17 @@
       })));
     };
     const editInfo = (pg, rerender) => {
+      // Authoritative templates come from the same registry PublishEngine uses.
+      // Fallback list keeps the modal working if the endpoint is unreachable.
+      const tplOptions = (tpls) => {
+        const cur = pg.template || "Page";
+        const known = new Set(tpls.map(t => t.key));
+        let opts = tpls.map(t => `<option value="${esc(t.key)}" ${cur === t.key ? "selected" : ""}>${esc(t.key)} — ${esc(t.display)}</option>`).join("");
+        if (!known.has(cur)) {
+          opts = `<option value="${esc(cur)}" selected>⚠ ${esc(cur)} — unrecognised template</option>` + opts;
+        }
+        return opts;
+      };
       const m = modal({
         title: "Page info",
         body: `
@@ -274,13 +285,44 @@
             <div class="field"><label>Status</label><select class="f-st">${["published", "draft", "hidden"].map(s => `<option ${pg.status === s ? "selected" : ""}>${s}</option>`).join("")}</select></div>
             <div class="field"><label>SEO title</label><input class="f-seo" value="${esc((pg.seo || {}).title || "")}"></div>
           </div>
-          <div class="field" style="margin-top:12px"><label>SEO description</label><textarea class="f-desc" rows="2">${esc((pg.seo || {}).desc || "")}</textarea></div>`,
+          <div class="field" style="margin-top:12px">
+            <label>Template <span class="hint">— must match a renderer the publisher supports</span></label>
+            <select class="f-tpl"><option>Loading templates…</option></select>
+            <p class="hint" data-tpl-note style="margin-top:4px"></p>
+          </div>
+          <div class="field" style="margin-top:12px"><label>SEO description</label><textarea class="f-desc" rows="2">${esc((pg.seo || {}).desc || "")}</textarea></div>
+          <div style="margin-top:14px"><button class="btn btn--sm btn--soft" data-preview>${icon("eye", 13)} Preview (publisher render)</button></div>`,
         actions: `<button class="btn btn--ghost" data-c>Cancel</button><button class="btn btn--primary" data-s>Save</button>`
+      });
+      // Populate template <select> from the registry API (single source of truth).
+      AV.api.get("/api/templates").then(r => {
+        const tpls = (r && r.pages) || (r && r.data && r.data.pages) || [];
+        const sel = $(".f-tpl", m.el);
+        if (!tpls.length) { sel.innerHTML = tplOptions([{ key: "Page", display: "Standard page" }]); return; }
+        sel.innerHTML = tplOptions(tpls);
+        const note = $("[data-tpl-note]", m.el);
+        const cur = pg.template || "Page";
+        const t = tpls.find(x => x.key === cur);
+        if (t) note.textContent = (t.dedicated ? "Dedicated renderer · " : "Generic blocks · ") + (t.kind === "static" ? "canonical template" : t.kind);
+        else note.textContent = "Unrecognised template — publishing will FAIL until corrected.";
+        sel.addEventListener("change", () => {
+          const nt = tpls.find(x => x.key === sel.value);
+          note.textContent = nt ? ((nt.dedicated ? "Dedicated renderer · " : "Generic blocks · ") + (nt.kind === "static" ? "canonical template" : nt.kind)) : "";
+        });
+      }).catch(() => {
+        $(".f-tpl", m.el).innerHTML = tplOptions([{ key: "Page", display: "Standard page — generic blocks" }]);
+      });
+      $("[data-preview]", m.el).addEventListener("click", () => {
+        // True preview: same PublishEngine renderer as a real publish.
+        const url = "/api/preview/page/" + encodeURIComponent(pg.slug);
+        window.open(url, "avos-preview-" + pg.slug, "noopener");
       });
       $("[data-c]", m.el).addEventListener("click", m.close);
       $("[data-s]", m.el).addEventListener("click", () => {
         pg.title = $(".f-t", m.el).value; pg.slug = $(".f-s", m.el).value.replace(/\.html$/, "").replace(/[^a-z0-9-]/gi, "-").toLowerCase();
         pg.status = $(".f-st", m.el).value;
+        const tplSel = $(".f-tpl", m.el);
+        if (tplSel && tplSel.value && tplSel.value !== "Loading templates…") pg.template = tplSel.value;
         pg.seo = pg.seo || {}; pg.seo.title = $(".f-seo", m.el).value; pg.seo.desc = $(".f-desc", m.el).value;
         pg.updated = "Just now"; S.save(); toast("Page saved — publish to apply"); m.close(); rerender();
       });
