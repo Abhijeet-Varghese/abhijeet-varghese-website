@@ -1240,6 +1240,48 @@ HTML;
      * @param string $tplKey  registry page-template key
      * @param string $kind    'css' | 'js'
      */
+    /**
+     * Portfolio — cinematic film reel (current frontend implementation).
+     *
+     * This is a static canonical template ported verbatim from the
+     * authoritative frontend source (abhijeetvarghese/portfolio.html). The reel
+     * markup, chapter structure, project cards, navigation, footer and the rich
+     * inline JSON-LD (@graph with VideoObject) are preserved exactly — they are
+     * part of the design and not CMS blocks. The nav/footer are intentionally
+     * baked into the template (not {{SITE_CHROME}}/{{SITE_FOOTER}}) because they
+     * carry the current clean URLs (experience/, case-studies/) which the CMS
+     * chrome()/footer() helpers do not yet emit; substituting them would regress
+     * those links. Only environment placeholders are resolved.
+     */
+    private function renderPortfolioReel(array $page, array $s, array $nav): string
+    {
+        $templateFile = __DIR__ . '/templates/portfolio-reel.html';
+        if (!is_file($templateFile)) {
+            throw new RuntimeException('Portfolio reel template missing: ' . $templateFile);
+        }
+        $html = (string)file_get_contents($templateFile);
+        $siteUrl = rtrim(AV_SITE_URL, '/');
+
+        // The reel template keeps its CSS/JS tags at column 0 (matching the
+        // authoritative frontend markup exactly), so strip the 2-space indent the
+        // shared pageAssetTags() helper adds.
+        $pageCss = preg_replace('/^  /m', '', $this->pageAssetTags('PortfolioReel', 'css'));
+        $pageJs = preg_replace('/^  /m', '', $this->pageAssetTags('PortfolioReel', 'js'));
+
+        // Resolve the empty {{ANALYTICS}} marker (on its own line) without leaving
+        // a blank line; injectAnalytics() inserts the real snippet before </body>.
+        $html = preg_replace('/{{ANALYTICS}}\n?/', '', $html);
+
+        return strtr($html, [
+            '{{SITE_URL}}' => $siteUrl,
+            '{{ASSET_VERSION}}' => $this->assetVersion(),
+            // Per-page asset manifest — reel CSS/JS declared once in the registry,
+            // versioned with the same content hash as global assets.
+            '{{PAGE_CSS}}' => $pageCss,
+            '{{PAGE_JS}}' => $pageJs,
+        ]);
+    }
+
     private function pageAssetTags(string $tplKey, string $kind): string
     {
         $reg = TemplateRegistry::page($tplKey);

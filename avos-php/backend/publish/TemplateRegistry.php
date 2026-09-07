@@ -43,6 +43,20 @@ final class TemplateRegistry
                     'js'  => ['js/for-recruiters.js'],
                 ],
             ],
+            'PortfolioReel' => [
+                'key'         => 'PortfolioReel',
+                'display'     => 'Portfolio — cinematic film reel',
+                'kind'        => 'static',
+                'renderer'    => 'renderPortfolioReel',
+                'file'        => 'portfolio-reel.html',
+                'bodyClass'   => 'portfolio-page',
+                'status'      => 'active',
+                'dedicated'   => true,
+                'assets'      => [
+                    'css' => ['css/portfolio-reel.css'],
+                    'js'  => ['js/portfolio-reel.js'],
+                ],
+            ],
             'About' => [
                 'key'       => 'About',
                 'display'   => 'About / Story — long-form editorial',
