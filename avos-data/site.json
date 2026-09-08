@@ -946,7 +946,7 @@
                             "prj-2",
                             "prj-3"
                         ],
-                        "note": "Detailed case studies — problem framing, process, artefacts and measurable outcomes — are shared personally rather than published.",
+                        "note": "Deeper project details, strategic decks, walkthrough videos and references are shared directly with prospective clients and partners under mutual confidentiality.",
                         "mailto": "hi@abhijeetvarghese.com"
                     }
                 }
@@ -1406,7 +1406,7 @@
             "id": "prj-1",
             "title": "Orange Business New Executive Briefing Center",
             "client": "Orange Business",
-            "industry": "Experience Design & Creative Technology",
+            "industry": "Telecom & Digital Services",
             "status": "published",
             "year": "2025",
             "featured": true,
@@ -1430,17 +1430,23 @@
                 "title": "Orange Business Experience Center & Executive Briefing Center | Abhijeet Varghese",
                 "desc": "Explore Abhijeet Varghese's Orange Business Executive Briefing Center in Mumbai — a physical-digital experience combining experience strategy, interactive media, XR, VR, creative technology, spatial experience and enterprise collaboration.",
                 "keywords": "Orange Business Executive Briefing Center, experience design, creative technology, interactive media, XR, VR, spatial experience, Mumbai"
-            }
+            },
+            "clientCategory": "Telecom & Digital Services",
+            "cardTitle": "New Executive Briefing Center",
+            "workCategory": "Experience Design · Creative Technology",
+            "imageWidth": 1536,
+            "imageHeight": 1024,
+            "parallax": "0"
         },
         {
             "id": "prj-2",
             "title": "Intuitive Experiences for Industrial Environments",
-            "client": "BPCL",
+            "client": "Bharat Petroleum Corporation Limited",
             "industry": "Energy & Industrial",
             "status": "published",
             "year": "2025",
             "featured": true,
-            "comingSoon": true,
+            "comingSoon": false,
             "comingSoonLabel": "Full case study coming soon",
             "image": "media/case-bpcl.webp",
             "summary": "Designing intuitive experiences for complex industrial environments.",
@@ -1454,13 +1460,23 @@
                 "title": "Intuitive Experiences for Industrial Environments — Abhijeet Varghese",
                 "desc": "Designing intuitive experiences for complex industrial environments.",
                 "keywords": "BPCL, Energy & Industrial, Design Strategy & Experience Lead, case study, Abhijeet Varghese"
-            }
+            },
+            "clientCategory": "Energy & Industrial",
+            "cardTitle": "Intuitive Experiences for Industrial Environments",
+            "workCategory": "Experience Design · Spatial Visualization",
+            "imageAlt": "Bharat Petroleum Corporation Limited — Energy & Industrial engagement",
+            "imageWidth": 1672,
+            "imageHeight": 941,
+            "parallax": "0.05",
+            "caseStudyTemplate": "bpcl-case-study",
+            "_legacyComingSoon": true,
+            "slug": "bharat-petroleum-corporation-limited"
         },
         {
             "id": "prj-3",
             "title": "Immersive Solutions for the Indian Army",
             "client": "Indian Army",
-            "industry": "Defence & Immersive",
+            "industry": "Defence & Government",
             "status": "published",
             "year": "2025",
             "featured": true,
@@ -1478,7 +1494,15 @@
                 "title": "Immersive Solutions for the Indian Army — Abhijeet Varghese",
                 "desc": "Creating immersive solutions where clarity, precision and execution matter most.",
                 "keywords": "Indian Army, Defence & Immersive, Creative Lead — Immersive Solutions, case study, Abhijeet Varghese"
-            }
+            },
+            "clientCategory": "Defence & Government",
+            "cardTitle": "Immersive Solutions for Mission-Critical Environments",
+            "workCategory": "Immersive Experience · Creative Technology",
+            "imageAlt": "Indian Army — Defence & Immersive engagement",
+            "imageWidth": 1536,
+            "imageHeight": 1024,
+            "parallax": "0.05",
+            "slug": "indian-army"
         },
         {
             "id": "prj-4",

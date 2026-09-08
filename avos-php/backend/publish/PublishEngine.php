@@ -291,6 +291,7 @@ final class PublishEngine
   <meta name="twitter:image" content="{$siteUrl}/{$ogImage}">
   <link rel="icon" type="image/png" href="{$this->esc($favicon)}">
   <link rel="stylesheet" href="css/styles.css?v={$cacheBust}">
+  <link rel="stylesheet" href="css/tokens.css">
   <script>
     document.documentElement.className += " js";
     setTimeout(function () {
@@ -543,9 +544,60 @@ HTML;
 HTML;
     }
 
-    private function secWork(array $sec): string
+    /**
+     * Render a single Case Study card + meta row (canonical 1:1 component).
+     * Strict 5-field schema: clientCategory, clientName, description, workCategory, cta.
+     */
+    private function renderCaseArticle(array $p, int $index = 0): string
     {
         $arrow = self::ARROW;
+        $id = (string)($p['id'] ?? ('prj-' . ($index + 1)));
+        $img = $this->media($p['image'] ?? '');
+        $imgAlt = (string)($p['imageAlt'] ?? (($p['client'] ?? '') . ' — ' . ($p['industry'] ?? '') . ' engagement'));
+        $width = (int)($p['imageWidth'] ?? ($id === 'prj-2' ? 1672 : 1536));
+        $height = (int)($p['imageHeight'] ?? ($id === 'prj-2' ? 941 : 1024));
+        $parallax = isset($p['parallax']) ? (string)$p['parallax'] : (!empty($p['preserveFrame']) ? '0' : '0.05');
+
+        $category = (string)($p['clientCategory'] ?? $p['category'] ?? $p['industry'] ?? '');
+        $client = (string)($p['client'] ?? '');
+        $title = (string)($p['cardTitle'] ?? $p['title'] ?? '');
+        $workCategory = (string)($p['workCategory'] ?? $p['work'] ?? $p['industry'] ?? '');
+
+        $href = $this->caseStudyFile($p);
+
+        $challenge = (string)$this->v($p, 'challenge', '');
+        $approach = (string)$this->v($p, 'approach', '');
+        $role = (string)$this->v($p, 'role', '');
+        $outcome = (string)$this->v($p, 'outcome', '');
+
+        return <<<HTML
+        <article class="case" id="case-{$this->esc($id)}">
+          <figure class="case__panel" data-parallax="{$parallax}" data-reveal="img">
+            <picture><img src="{$this->esc($img)}" alt="{$this->esc($imgAlt)}" width="{$width}" height="{$height}" loading="lazy" decoding="async"></picture>
+            <figcaption class="case__card" data-reveal>
+              <div class="case__card__in">
+                <p class="case__cat">{$this->esc($category)}</p>
+                <h3 class="case__client">{$this->esc($client)}</h3>
+                <p class="case__title">{$this->esc($title)}</p>
+                <div class="case__card__foot">
+                  <p class="case__work">{$this->esc($workCategory)}</p>
+                  <a class="case__card-cta" href="{$this->esc($href)}">Explore case study {$arrow}</a>
+                </div>
+              </div>
+            </figcaption>
+          </figure>
+          <dl class="case__meta case__meta--row" data-reveal-group>
+            <div data-reveal><dt>Problem</dt><dd>{$this->esc($challenge)}</dd></div>
+            <div data-reveal><dt>Approach</dt><dd>{$this->esc($approach)}</dd></div>
+            <div data-reveal><dt>Role</dt><dd>{$this->esc($role)}</dd></div>
+            <div data-reveal><dt>Outcome</dt><dd>{$this->esc($outcome)}</dd></div>
+          </dl>
+        </article>
+HTML;
+    }
+
+    private function secWork(array $sec): string
+    {
         $cases = [];
         $projects = $this->site['projects'] ?? [];
         $byId = [];
@@ -553,28 +605,7 @@ HTML;
         foreach (($sec['projectIds'] ?? []) as $i => $id) {
             $p = $byId[$id] ?? null;
             if (!$p) continue;
-            $img = $this->media($p['image'] ?? '');
-            $imgAlt = (string)($p['imageAlt'] ?? (($p['client'] ?? '') . ' — ' . ($p['industry'] ?? '') . ' engagement'));
-            $parallax = !empty($p['preserveFrame']) ? '0' : '0.05';
-            $num = str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT);
-            $cases[] = <<<HTML
-        <article class="case" id="case-{$this->esc($p['id'])}">
-          <figure class="case__panel" data-parallax="{$parallax}" data-reveal="img">
-            <picture><img src="{$this->esc($img)}" alt="{$this->esc($imgAlt)}" width="1536" height="1024" loading="lazy" decoding="async"></picture>
-            <figcaption class="case__card" data-reveal>
-              <p class="case__kicker"><span>{$this->esc($this->v($p, 'industry', ''))}</span><span class="case__client">{$this->esc($this->v($p, 'client', ''))}</span></p>
-              <h3 class="case__title">{$this->esc($this->v($p, 'title', ''))}</h3>
-              <a class="case__card-cta" href="{$this->esc($this->caseStudyFile($p))}">Explore case study {$arrow}</a>
-            </figcaption>
-          </figure>
-          <dl class="case__meta case__meta--row" data-reveal-group>
-            <div data-reveal><dt>Problem</dt><dd>{$this->esc($this->v($p, 'challenge', ''))}</dd></div>
-            <div data-reveal><dt>Approach</dt><dd>{$this->esc($this->v($p, 'approach', ''))}</dd></div>
-            <div data-reveal><dt>Role</dt><dd>{$this->esc($this->v($p, 'role', ''))}</dd></div>
-            <div data-reveal><dt>Outcome</dt><dd>{$this->esc($this->v($p, 'outcome', ''))}</dd></div>
-          </dl>
-        </article>
-HTML;
+            $cases[] = $this->renderCaseArticle($p, $i);
         }
         return <<<HTML
     <section class="chapter work t-light" id="work">
@@ -1058,7 +1089,6 @@ HTML;
 
     private function blockCases(array $b): string
     {
-        $arrow = self::ARROW;
         $cases = [];
         $projects = $this->site['projects'] ?? [];
         $byId = [];
@@ -1066,28 +1096,7 @@ HTML;
         foreach (($b['content']['projectIds'] ?? []) as $i => $id) {
             $p = $byId[$id] ?? null;
             if (!$p) continue;
-            $img = $this->media($p['image'] ?? '');
-            $imgAlt = (string)($p['imageAlt'] ?? (($p['client'] ?? '') . ' — ' . ($p['industry'] ?? '') . ' engagement'));
-            $parallax = !empty($p['preserveFrame']) ? '0' : '0.05';
-            $num = str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT);
-            $cases[] = <<<HTML
-        <article class="case" id="case-{$this->esc($p['id'])}">
-          <figure class="case__panel" data-parallax="{$parallax}" data-reveal="img">
-            <picture><img src="{$this->esc($img)}" alt="{$this->esc($imgAlt)}" width="1536" height="1024" loading="lazy" decoding="async"></picture>
-            <figcaption class="case__card" data-reveal>
-              <p class="case__kicker"><span>{$this->esc($this->v($p, 'industry', ''))}</span><span class="case__client">{$this->esc($this->v($p, 'client', ''))}</span></p>
-              <h3 class="case__title">{$this->esc($this->v($p, 'title', ''))}</h3>
-              <a class="case__card-cta" href="{$this->esc($this->caseStudyFile($p))}">Explore case study {$arrow}</a>
-            </figcaption>
-          </figure>
-          <dl class="case__meta case__meta--row" data-reveal-group>
-            <div data-reveal><dt>Problem</dt><dd>{$this->esc($this->v($p, 'challenge', ''))}</dd></div>
-            <div data-reveal><dt>Approach</dt><dd>{$this->esc($this->v($p, 'approach', ''))}</dd></div>
-            <div data-reveal><dt>Role</dt><dd>{$this->esc($this->v($p, 'role', ''))}</dd></div>
-            <div data-reveal><dt>Outcome</dt><dd>{$this->esc($this->v($p, 'outcome', ''))}</dd></div>
-          </dl>
-        </article>
-HTML;
+            $cases[] = $this->renderCaseArticle($p, $i);
         }
         $note = !empty($b['content']['mailto'])
             ? '<a class="link-arrow" href="mailto:' . $this->esc($b['content']['mailto']) . '?subject=Case%20study%20deep%20dive">Request the deep dive ' . self::ARROW . '</a>'
@@ -1183,20 +1192,14 @@ HTML;
     /** Stable public route for a project's dedicated case-study page. */
     private function caseStudyFile(array $p): string
     {
-        $custom = trim((string)($p['caseStudyPath'] ?? ''));
-        // Backward-compatible fallback for content stores created before the
-        // Orange Business long-form case-study fields were introduced.
-        if ($custom === '' && ($p['id'] ?? '') === 'prj-1') {
-            $custom = 'experience-design/orange-business-executive-briefing-center/';
-        }
-        if ($custom !== '') {
-            $custom = ltrim((string)preg_replace('#/+#', '/', $custom), '/');
-            if (!str_contains($custom, '..')) return $custom;
+        $slug = RouteRegistry::projectSlug($p);
+        if ($slug !== '') {
+            return 'case-studies/' . $slug . '/';
         }
         $slug = (string)($p['slug'] ?? '');
         if ($slug === '') $slug = $this->slugify((string)($p['title'] ?? ''));
         if ($slug === '') $slug = (string)($p['id'] ?? 'prj');
-        return 'case-study-' . $slug . '.html';
+        return 'case-studies/' . $slug . '/';
     }
 
     /** Filesystem destination for a public case-study route. */
