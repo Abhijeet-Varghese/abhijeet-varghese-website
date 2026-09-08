@@ -131,7 +131,7 @@ WEBSITE CHANGE → edit abhijeetvarghese/ → commit → deploy workflow → liv
 
 - **Backups:** use the admin **Backup** button → writes a full JSON package to
   `storage/backups/` (download it regularly; keep it off the server).
-- **Agents / integrations:** `php /home/u123456789/backend/scripts/agent-runner.php`
+- **Agents / integrations / frontend→CMS sync:** `php /home/u123456789/backend/scripts/agent-runner.php` (also mirrors the static site into the CMS whenever its files change)
   every minute; `integration-sync.php` every 15 min; `cron/maintenance.php` +
   `cron/lead-inactivity.php` daily.
 

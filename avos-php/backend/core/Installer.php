@@ -27,6 +27,7 @@ final class Installer
         $pass = (string)($opts['password'] ?? '');
         $createPass = !empty($opts['create_pass']);
         $tempPass = '';
+        $warnings = [];
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Enter a valid admin email.';
         if (!$createPass && strlen($pass) < 12) $errors[] = 'Password must be at least 12 characters.';
@@ -65,6 +66,17 @@ final class Installer
                 }
             }
 
+            // 2b. mirror the static frontend into the store (frontend = source of truth).
+            //     Runs after the optional JSON seed so ids/notes carry over; never fatal.
+            if (!$errors && defined('AV_SITE_DIR') && is_file(AV_SITE_DIR . '/index.html')) {
+                try {
+                    // install.php loads only config + this class; pull in the runtime autoloader for SiteSync's deps
+                    if (!class_exists('SiteSync')) require_once AV_ROOT . '/includes/bootstrap.php';
+                    $sync = SiteSync::run(null, true, 'install');
+                    if (!$sync['ok']) $warnings[] = 'Frontend sync skipped: ' . implode('; ', $sync['warnings']);
+                } catch (Throwable $e) { $warnings[] = 'Frontend sync skipped: ' . $e->getMessage(); }
+            }
+
             // 3. admin user (hashed, forced change on first login)
             if (!$errors) {
                 $finalPass = $createPass ? bin2hex(random_bytes(12)) : $pass;
@@ -80,7 +92,7 @@ final class Installer
             }
 
             if ($errors) return ['ok' => false, 'errors' => $errors, 'temp_pass' => '', 'email' => $email];
-            return ['ok' => true, 'errors' => [], 'temp_pass' => $tempPass, 'email' => $email, 'migrations' => $res];
+            return ['ok' => true, 'errors' => [], 'warnings' => $warnings, 'temp_pass' => $tempPass, 'email' => $email, 'migrations' => $res];
         } catch (Throwable $e) {
             return ['ok' => false, 'errors' => ['Install failed: ' . $e->getMessage()], 'temp_pass' => '', 'email' => $email];
         }

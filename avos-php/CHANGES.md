@@ -3,6 +3,40 @@
      renames. Keep AV_VERSION = 2.4.20; bump the asset cache-bust when
      frontend files change; release tarballs stay AVOS-2.4.20-*. -->
 
+## v2.4.20-r5 · ONE SOURCE OF TRUTH — FRONTEND → CMS AUTO-SYNC
+
+User directive: frontend changes must reach the backend automatically; one source of
+truth. Decision: the static files in `abhijeetvarghese/` are the truth; the CMS
+`content_store` is a derived mirror. Sync is strictly one-way (nothing is written back).
+
+**Added** — `backend/core/SiteSync.php` (`fingerprint()`, `needsSync()`,
+`runIfChanged()`, `run($userId, $force, $reason)`): parses `index.html`, every public
+page, `case-studies/*/index.html`, `essay-*`/`journal-*`, `search-index.json` and
+`assets/` with DOMDocument/XPath + JSON-LD and derives `settings · nav · clients · media ·
+pages · projects · articles · seo · sections · downloads`. Stable id matching, cms-only
+records kept as draft, per-key canonical-JSON diff (no version churn), idempotent, `Lock`
+guarded, audited + notification. Change detection = content hash of text sources +
+size/mtime of binaries in `site_settings.frontend_sync` (5 ms; full parse ≈ 60 ms).
+Triggers: `agent-runner.php` step 0 (auto, every minute, independent of AI kill switch);
+`GET|POST /api/system/sync-frontend` (`content.read`/`content.write`, `{force}`);
+`backend/scripts/sync-frontend.php [--force|--status|--json]`; forced sync at install.
+`/api/status` → `frontend_sync {synced_at,in_sync,files}`. Admin: Website view gains a
+"Frontend → CMS sync" card + **Sync from site** button; derived views show a
+"Mirrored from the static site" banner (`AV.derivedBanner`, core.js).
+
+**Data effects of the first sync** — stale `nav` hrefs (`experience.html`,
+`case-studies.html`) → clean URLs; projects gain `slug`/`caseStudyPath`/`url`/
+`legacyPaths`/`services`/`cardTitle`/`location` for all three live case studies
+(prj-2 title now the BPCL Palakkad JSON-LD name); non-site projects/articles/downloads
+demoted to draft (`source: cms-only`); media library enumerates all 57 site assets;
+seo rows cover all 22 public URLs; Experience `job` blocks rebuilt from the page with
+stable ids (`j-<company>-<startYear>`).
+
+**Docs / tests** — `docs/static-frontend.md` "One source of truth" section;
+`tests/frontend_sync.sh` (24 checks: idempotence, derived counts vs site, change →
+sync → restore, runner auto-trigger, one-way guarantee, API auth) — 24/24;
+`admin_sweep` 48/48.
+
 ## v2.4.20-r4 · STATIC FRONTEND IS THE FINAL FRONTEND
 
 User directive: treat `abhijeetvarghese/` as the final frontend; remove the other

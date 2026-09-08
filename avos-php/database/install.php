@@ -40,6 +40,7 @@ if (!$res['ok']) {
     exit(1);
 }
 echo "Install complete.\n";
+foreach ($res['warnings'] ?? [] as $w) echo "  ! $w\n";
 echo "  Admin email: {$res['email']}\n";
 if ($res['temp_pass'] !== '') {
     echo "  Temporary password: {$res['temp_pass']}\n";

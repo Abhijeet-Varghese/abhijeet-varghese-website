@@ -28,6 +28,61 @@ abhijeetvarghese/
 Redirects live in the frontend's own `.htaccess` (the seven legacy `.html` /
 `experience-design/*` URLs → clean case-study directories). Add new redirects there.
 
+## One source of truth — frontend → CMS sync
+
+Every content collection in the CMS that describes the website is **derived from the
+static files, automatically and one-way**. Change the HTML → the CMS follows. Nothing
+in the CMS is ever written back to `abhijeetvarghese/`.
+
+```
+abhijeetvarghese/ (files)  ──SiteSync──▶  content_store
+  index.html                              settings · nav · clients · sections
+  *.html, experience/, case-studies/      pages · projects · articles · seo
+  search-index.json                       (page types / titles / tags)
+  assets/                                 media · downloads
+```
+
+| Store key | Derived from |
+|---|---|
+| `settings` | brand name, `.hp-hero__tagline`, `mailto:`/`tel:`, availability, favicon/logo, `og:image`, meta description/keywords, footer **Social** column |
+| `nav` | `nav.site-nav__inner` links (+ `.btn` = CTA), `footer .footer__col` columns, `.footer__copy` |
+| `clients` | `#clients img[src*="logos/"]` (name from `alt`, logo file name) |
+| `sections` | every `main > section[id]` of `index.html` — kicker, h2, lede, theme, plus per-section fields (hero roles/CTAs/marquee, capabilities, featured `projectIds`, `essayIds`, journey eras, AI copy/chips, focus lists, contact micro-facts) |
+| `pages` | every public page that is not a case study / essay / journal — `<title>`, meta, canonical, h1; the Experience page's `job` blocks are rebuilt from `article.exp-job`; other block lists are kept as authored |
+| `projects` | `#work article.case` cards (client, industry, services, problem/approach/role/outcome, thumbnail) joined with each `case-studies/<slug>/index.html` (JSON-LD name/description/location, `<title>`, `og:image`, canonical); legacy redirect stubs → `legacyPaths` |
+| `articles` | `essay-*.html` / `journal-*.html` — title, `.chapter__tag` → category + read time, JSON-LD `datePublished`, hero image, lede → excerpt, `.prose` paragraphs → body |
+| `seo` | one row per public URL — title, description, keywords, canonical, og:image, h1, incoming-link count, heuristic score |
+| `media` | every image / pdf / video under `assets/` (dimensions via `getimagesize`, alt text harvested from the pages) — served to the admin via `/media/<path>` |
+| `downloads` | `assets/*.pdf` |
+
+Rules:
+
+- **Ids are stable.** Existing records are matched by slug / path / title / client, so
+  `prj-1`, `art-3`, `p-story`, `c7` keep their ids across syncs and versions stay readable.
+- **Nothing is deleted.** A record that exists only in the CMS is kept, marked
+  `source: "cms-only"` and demoted to `draft` (it is not on the site, so it is not live).
+- **Writes happen only on real change.** Each key is compared as canonical JSON; only
+  changed keys get a new `versions` row (note: `sync from static frontend (<reason>)`).
+- **Idempotent.** A forced re-run on an unchanged site writes nothing.
+
+### Triggers
+
+| Trigger | How |
+|---|---|
+| Automatic | `backend/scripts/agent-runner.php` (the per-minute cron) calls `SiteSync::runIfChanged()` first thing — a 5 ms fingerprint (content hash of html/json/xml/css/js, size+mtime of binaries) stored in `site_settings.frontend_sync`; the full parse (~60 ms) runs only when the fingerprint changed. Works even when AI agents are paused. |
+| Admin | **Website → Sync from site** (`POST /api/system/sync-frontend`, `content.write`; `{"force":true}` re-derives everything). `GET /api/system/sync-frontend` shows last sync / in-sync state; `/api/status` carries a `frontend_sync` summary. |
+| CLI | `php backend/scripts/sync-frontend.php [--force] [--status] [--json]` |
+| Install | `database/install.php` runs a forced sync after seeding, so a fresh install already mirrors the site. |
+
+Every run is audited (`action: sync`, entity `frontend`) and, when something changed,
+posts an admin notification listing the updated keys. Views that show derived data
+(Homepage Builder, Pages, Navigation, Projects, Case Studies, Clients, Thinking, Journal,
+Media, SEO, Downloads, Settings) carry a "Mirrored from the static site" banner.
+
+Editing those collections in the admin is still allowed — it is working data for agents
+and SEO tools — but the next site change overwrites the derived fields. To change the
+public website, edit the HTML.
+
 ## What AV OS does for the site at runtime
 
 | Frontend feature | Backend endpoint | Notes |

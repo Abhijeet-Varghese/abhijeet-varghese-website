@@ -5,6 +5,8 @@
  *   * * * * * php /path/to/backend/scripts/agent-runner.php >> /path/to/storage/logs/agent-runner.log 2>&1
  *
  * Pipeline per run (lightweight, exits fast):
+ *   0. static frontend → CMS mirror (SiteSync::runIfChanged — fingerprint only
+ *      unless files under AV_SITE_DIR changed; runs even when AI is paused)
  *   1. flock (no concurrent runs)
  *   2. global kill-switch check (PAUSE ALL AI)
  *   3. seed the agent registry if empty
@@ -29,6 +31,17 @@ $started = microtime(true);
 $done = [];
 
 try {
+    // 0. static frontend → CMS mirror (cheap fingerprint; full parse only when files changed)
+    try {
+        $sync = SiteSync::runIfChanged('cron');
+        if ($sync !== null) {
+            printf("[agent-runner] %s — frontend changed → CMS synced (%s) in %d ms\n", date('c'),
+                implode(',', array_keys(array_filter($sync['keys'], fn($k) => $k['changed']))) ?: 'no data changes', $sync['duration_ms']);
+        }
+    } catch (Throwable $e) {
+        fwrite(STDERR, '[agent-runner] frontend sync failed: ' . $e->getMessage() . "\n");
+    }
+
     // kill switch
     if (AgentSettings::isGloballyPaused()) {
         printf("[agent-runner] %s — AI agents paused (global kill switch). exit\n", date('c'));

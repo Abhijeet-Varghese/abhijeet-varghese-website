@@ -1264,28 +1264,46 @@
   R.register("publishing", () => `
     <div class="view__head">
       <div><h1 class="view__title">Website</h1>
-      <p class="view__desc">The public website is the hand-authored static frontend, served exactly as committed — no template layer, no HTML generator, nothing to publish from here.</p></div>
+      <p class="view__desc">The public website is the hand-authored static frontend, served exactly as committed. Every change to its files is mirrored into this CMS automatically — the frontend is the single source of truth.</p></div>
       <div class="view__head-actions">
         <a class="btn btn--ghost" href="/" target="_blank" rel="noopener">${icon("send")} Open website</a>
-        <button class="btn btn--primary" data-crawl>${icon("search")} Run SEO crawl</button>
+        <button class="btn btn--soft" data-crawl>${icon("search")} Run SEO crawl</button>
+        <button class="btn btn--primary" data-sync>${icon("refresh")} Sync from site</button>
       </div>
     </div>
-    <div class="card" style="margin-bottom:16px">
-      <div class="card__head"><p class="card__title">Status</p><span class="chip" id="siteChip">…</span></div>
-      <div class="card__body" id="siteBody" style="font-size:12.5px"></div>
+    <div class="grid grid-2" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card__head"><p class="card__title">Static site</p><span class="chip" id="siteChip">…</span></div>
+        <div class="card__body" id="siteBody" style="font-size:12.5px"></div>
+      </div>
+      <div class="card">
+        <div class="card__head"><p class="card__title">Frontend → CMS sync</p><span class="chip" id="syncChip">…</span></div>
+        <div class="card__body" id="syncBody" style="font-size:12.5px"></div>
+      </div>
     </div>
     <div class="card">
-      <div class="card__head"><p class="card__title">How changes reach the site</p></div>
+      <div class="card__head"><p class="card__title">How changes reach the site — and the CMS</p></div>
       <div class="card__body" style="font-size:12.5px;line-height:1.9;color:var(--ink-3)">
         Edit the files in the frontend folder (HTML · css/styles.css · js/main.js · assets/) → commit → the deploy workflow
         pushes the <code>abhijeetvarghese/</code> folder to Hostinger. Redirects and cache rules live in the frontend's own
         <code>.htaccess</code>.<br>
+        <b>One source of truth.</b> The per-minute runner fingerprints the frontend folder; when any file changes it re-reads the
+        HTML, <code>search-index.json</code> and <code>assets/</code> and updates <code>pages · projects · articles · nav ·
+        settings · clients · media · seo · sections · downloads</code> here (each update is versioned — see Versions). The sync is
+        one-way: nothing in this CMS is ever written back to the site. Items that exist only in the CMS are kept as
+        <em>draft</em> (source: cms-only).<br>
         AV OS keeps serving what the site needs at runtime: <code>POST /api/public/lead</code> (booking form → CRM),
         <code>POST /api/analytics/track</code> (first-party analytics) and the admin tools around them (leads, meetings,
-        SEO crawler, agents). Content collections in this CMS are working data for those tools — they do not render pages.
+        SEO crawler, agents).
       </div>
     </div>`);
   R.after("publishing", view => {
+    const rowsHTML = rows => rows.map(([k, v]) => `
+        <div style="display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid var(--line)">
+          <span style="color:var(--ink-3);flex:none">${esc(k)}</span>
+          <span style="text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(String(v))}">${esc(String(v))}</span>
+        </div>`).join("");
+    const fmt = iso => iso ? String(iso).slice(0, 19).replace("T", " ") : "never";
     const load = async () => {
       const r = await AV.api.get("/api/status");
       const d = r.data || {};
@@ -1293,19 +1311,39 @@
       const ok = d.public_site === true;
       chip.textContent = ok ? "🟢 SERVING" : "MISSING";
       chip.className = "chip " + (ok ? "chip--ok" : "chip--danger");
-      const rows = [
+      $("#siteBody", view).innerHTML = rowsHTML([
         ["Mode", "static frontend"],
         ["Folder", d.site_dir || "—"],
         ["index.html present", ok ? "yes" : "no"],
         ["AV OS version", d.version || "—"],
         ["Environment", d.environment || "—"],
-      ];
-      $("#siteBody", view).innerHTML = rows.map(([k, v]) => `
-        <div style="display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid var(--line)">
-          <span style="color:var(--ink-3);flex:none">${esc(k)}</span>
-          <span style="text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(String(v))}</span>
-        </div>`).join("");
+      ]);
+      const s = await AV.api.get("/api/system/sync-frontend");
+      const st = s.data || {};
+      const sc = $("#syncChip", view);
+      sc.textContent = st.in_sync ? "IN SYNC" : (st.synced_at ? "CHANGES PENDING" : "NEVER SYNCED");
+      sc.className = "chip " + (st.in_sync ? "chip--ok" : "chip--warn");
+      $("#syncBody", view).innerHTML = rowsHTML([
+        ["Direction", "frontend → CMS (one-way)"],
+        ["Last sync", fmt(st.synced_at) + (st.reason ? " · " + st.reason : "")],
+        ["Files fingerprinted", st.current_files || st.files || 0],
+        ["Newest file", fmt(st.newest_file_now || st.newest_file)],
+        ["Last changed keys", (st.changed_keys || []).join(", ") || "—"],
+        ["Total runs", st.runs || 0],
+        ["Auto-trigger", "agent-runner cron (every minute)"],
+      ]);
     };
+    $("[data-sync]", view).addEventListener("click", async () => {
+      const btn = $("[data-sync]", view);
+      btn.disabled = true; btn.innerHTML = `${icon("refresh")} Syncing…`;
+      const r = await AV.api.send("/api/system/sync-frontend", "POST", { force: true });
+      btn.disabled = false; btn.innerHTML = `${icon("refresh")} Sync from site`;
+      if (!r.ok) { toast((r.error && r.error.message) || "Sync failed", "error"); return; }
+      const changed = Object.entries(r.data.keys || {}).filter(([, v]) => v.changed).map(([k]) => k);
+      toast(changed.length ? `Synced from site — updated ${changed.join(", ")} (${r.data.duration_ms} ms)` : `Already in sync (${r.data.duration_ms} ms)`, "accent");
+      await AV.api.pull();
+      load();
+    });
     $("[data-crawl]", view).addEventListener("click", async () => {
       const btn = $("[data-crawl]", view);
       btn.disabled = true; btn.innerHTML = `${icon("search")} Crawling…`;

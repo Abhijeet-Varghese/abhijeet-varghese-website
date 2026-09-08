@@ -9,6 +9,7 @@ spl_autoload_register(function (string $class): void {
         'Database' => '/backend/core/Database.php',
         'MigrationRunner' => '/backend/core/MigrationRunner.php',
         'Installer' => '/backend/core/Installer.php',
+        'SiteSync' => '/backend/core/SiteSync.php',
         'Auth' => '/backend/core/Auth.php',
         'Response' => '/backend/core/Response.php',
         'Input' => '/backend/core/Response.php',

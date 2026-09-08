@@ -435,12 +435,46 @@
   };
 
   /* ---------- Render view ---------- */
+  /* Views whose data is DERIVED from the static frontend (one-way sync).
+     Editing here is working data for agents/SEO; the public site changes only
+     when the frontend files change. */
+  const DERIVED_VIEWS = {
+    homepage: "sections", pages: "pages", navigation: "nav", projects: "projects", casestudies: "projects",
+    clients: "clients", thinking: "articles", journal: "articles", media: "media", seo: "seo", downloads: "downloads", settings: "settings"
+  };
+  const derivedBanner = (id) => {
+    const key = DERIVED_VIEWS[id];
+    if (!key) return "";
+    return `<div class="derived-banner" role="note" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px;padding:9px 14px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;background:var(--surface-2);font-size:12.5px;color:var(--ink-3)">
+      <span style="flex:none;display:inline-flex;color:var(--accent)">${icon("refresh", 14)}</span><span style="flex:1 1 420px;min-width:0"><b style="color:var(--ink)">Mirrored from the static site.</b> <code>${key}</code> is re-derived automatically whenever the frontend files in <code>abhijeetvarghese/</code> change — edit the HTML there to change the public site. Edits made here are working data for agents and SEO tools and will be overwritten by the next site change.</span>
+      <a href="#publishing" style="flex:none;margin-left:auto;white-space:nowrap;font-weight:600;color:var(--accent)">Sync status →</a>
+    </div>`;
+  };
+  AV.derivedBanner = derivedBanner;
+
   const render = () => {
     const id = current?.id || "dashboard";
     renderSidebar();
     $("#crumbLabel").textContent = AV.router.title(id);
     const view = $("#view");
-    view.innerHTML = routes[id] ? routes[id](current.params) : `<p>Missing view</p>`;
+    let html = routes[id] ? routes[id](current.params) : `<p>Missing view</p>`;
+    const banner = derivedBanner(id);
+    if (banner) {
+      // place the banner right after the view header when there is one, else on top
+      const i = html.indexOf('<div class="view__head">');
+      if (i >= 0) {
+        // find the end of the header block: the first "</div>\n" that closes .view__head at depth 0
+        let depth = 0, j = i, end = -1;
+        const re = /<div\b|<\/div>/g; re.lastIndex = i;
+        let m;
+        while ((m = re.exec(html))) {
+          depth += m[0] === "</div>" ? -1 : 1;
+          if (depth === 0) { end = m.index + m[0].length; break; }
+        }
+        html = end > 0 ? html.slice(0, end) + banner + html.slice(end) : banner + html;
+      } else html = banner + html;
+    }
+    view.innerHTML = html;
     if (afterFns[id]) afterFns[id](view);
     view.scrollTop = 0;
   };

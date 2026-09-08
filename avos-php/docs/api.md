@@ -16,7 +16,9 @@ e.g. media in use) · 419 (CSRF) · 422 (validation) · 429 (rate limited) · 50
 
 | Endpoint | Purpose |
 |---|---|
-| `GET /api/status` | health: database, storage, static site presence (`site`, `site_dir`, `public_site`), version |
+| `GET /api/status` | health: database, storage, static site presence (`site`, `site_dir`, `public_site`), `frontend_sync {synced_at,in_sync,files}`, version |
+| `GET /api/system/sync-frontend` | frontend → CMS sync state (last sync, fingerprint, in_sync, changed keys) — `content.read` |
+| `POST /api/system/sync-frontend` | run the sync now; body `{"force":true}` re-derives every key — `content.write`; audited |
 | `GET /api/site` | full site document (public read) |
 | `GET /api/pages` / `/api/pages/{slug}` | pages |
 | `GET /api/projects` / `/api/projects/{slug}` | projects / case studies |

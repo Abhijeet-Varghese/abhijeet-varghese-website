@@ -64,7 +64,7 @@ to publish — the site is live as deployed.
 
 ## 7. Cron (optional but recommended)
 
-- `* * * * *  php /home/uXXXXXX/avos/backend/scripts/agent-runner.php` — AI agents / scheduled jobs
+- `* * * * *  php /home/uXXXXXX/avos/backend/scripts/agent-runner.php` — frontend → CMS sync (when `abhijeetvarghese/` files change) + AI agents / scheduled jobs
 - `*/15 * * * * php /home/uXXXXXX/avos/backend/scripts/integration-sync.php`
 - daily: `php /home/uXXXXXX/avos/backend/cron/lead-inactivity.php`, `php …/backend/cron/maintenance.php`
 

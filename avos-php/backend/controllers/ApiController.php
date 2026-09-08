@@ -256,6 +256,8 @@ final class ApiController
                 $action === 'agents' && $a && $b === 'run' && $method === 'POST' => self::requireAuth('ai.write', fn() => self::agentRun($a)),
                 $action === 'status' && $method === 'GET' => self::status(),
                 $action === 'system' && $a === 'doctor' && $method === 'GET' => self::requireAuth('settings.read', fn() => self::systemDoctor()),
+                $action === 'system' && $a === 'sync-frontend' && $method === 'GET' => self::requireAuth('content.read', fn() => self::syncFrontendStatus()),
+                $action === 'system' && $a === 'sync-frontend' && $method === 'POST' => self::requireAuth('content.write', fn() => self::syncFrontendRun()),
                 $action === 'system' && $a === 'backup-settings' && $method === 'GET' => self::requireAuth('settings.read', fn() => self::backupSettingsGet()),
                 $action === 'system' && $a === 'backup-settings' && $method === 'PUT' => self::requireAuth('settings.write', fn() => self::backupSettingsSave()),
                 // ---------- V2.4: Integration Hub ----------
@@ -1356,8 +1358,43 @@ password=" . $db['pass'] . "
             'authed' => (bool)$u,
             'user' => $u ? ['name' => $u['name'], 'role' => $u['role_name']] : null,
             'public_site' => $siteOk,
+            'site' => 'static',
+            'frontend_sync' => self::frontendSyncSummary(),
             'timestamp' => date('c'),
         ]);
+    }
+
+    /* ---------- static frontend → CMS sync ---------- */
+    private static function frontendSyncSummary(): array
+    {
+        try {
+            $st = SiteSync::state();
+            return ['synced_at' => $st['synced_at'] ?? null, 'in_sync' => !SiteSync::needsSync(), 'files' => $st['files'] ?? 0];
+        } catch (Throwable $e) {
+            return ['synced_at' => null, 'in_sync' => false, 'files' => 0];
+        }
+    }
+
+    private static function syncFrontendStatus(): void
+    {
+        $st = SiteSync::state();
+        $fp = SiteSync::fingerprint();
+        $st['current_hash'] = $fp['hash'];
+        $st['current_files'] = $fp['files'];
+        $st['newest_file_now'] = $fp['newest'];
+        $st['in_sync'] = ($st['hash'] ?? '') === $fp['hash'];
+        $st['direction'] = 'frontend → cms';
+        $st['keys'] = SiteSync::KEYS;
+        Response::json($st);
+    }
+
+    private static function syncFrontendRun(): void
+    {
+        $d = Input::body() ?: [];
+        $force = !empty($d['force']);
+        $r = SiteSync::run(Auth::user()['id'] ?? null, $force, 'admin');
+        if (!$r['ok']) Response::error(implode('; ', $r['warnings']) ?: 'Sync failed', 500, 'SYNC_FAILED');
+        Response::json($r);
     }
 
 /* ============================================================
