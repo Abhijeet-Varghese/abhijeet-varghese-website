@@ -333,6 +333,7 @@ AV.seed = {
 AV.api = {
   connected: false,
   _timer: null,
+  _pending: false,   // a debounced PUT is scheduled or in flight
   csrf: "",
   /* fetch with session CSRF header + auth handling */
   async _req(url, opts = {}) {
@@ -385,9 +386,11 @@ AV.api = {
   },
   cancelPush() {
     clearTimeout(this._timer);
+    this._pending = false;
   },
   push() {
     clearTimeout(this._timer);
+    this._pending = true;
     this._timer = setTimeout(async () => {
       try {
         const body = Object.assign({}, AV.store.state);
@@ -395,6 +398,7 @@ AV.api = {
         const r = await this._req("/api/content", { method: "PUT", body: JSON.stringify(body) });
         if (r.status === 409) {
           this.connected = true;
+          this._pending = false;
           if (AV.emitStatus) AV.emitStatus("conflict");
           try {
             const p = await r.json();
@@ -412,6 +416,8 @@ AV.api = {
       } catch (e) {
         this.connected = false;
         if (AV.emitStatus) AV.emitStatus("save-failed");
+      } finally {
+        this._pending = false;
       }
     }, 600);
   },

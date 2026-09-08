@@ -75,7 +75,11 @@ Rules:
 | Install | `database/install.php` runs a forced sync after seeding, so a fresh install already mirrors the site. |
 
 Every run is audited (`action: sync`, entity `frontend`) and, when something changed,
-posts an admin notification listing the updated keys. Views that show derived data
+posts an admin notification listing the updated keys. Open admin tabs follow along:
+they poll `/api/status` once a minute (and when the tab regains focus) and re-pull the
+store when `frontend_sync.synced_at` moves, so nobody works on stale mirrored data. If
+a tab still saves over a fresh sync, the versioned store rejects it with a 409 that
+names the cause ("the static website changed and 'pages' was re-synced from it"). Views that show derived data
 (Homepage Builder, Pages, Navigation, Projects, Case Studies, Clients, Thinking, Journal,
 Media, SEO, Downloads, Settings) carry a "Mirrored from the static site" banner.
 

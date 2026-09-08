@@ -60,7 +60,8 @@ else
   sleep 1
 fi
 
-# 6. agent watcher (AI agents / integrations every 60s — no site publishing:
+# 6. agent watcher (every 60s: frontend→CMS sync when abhijeetvarghese/ changes,
+#    then AI agents / integrations — no site publishing:
 #    the public website is the static frontend, served as-is)
 if [ "$WATCH" = "1" ]; then
   if pgrep -f "scripts/agent-runner.php" >/dev/null 2>&1; then

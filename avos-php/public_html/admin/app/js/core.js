@@ -516,6 +516,33 @@
     applyTheme();
   }
 
+  /* ---------- Live follow: the static site is the source of truth.
+     Poll the cheap /api/status every 60 s; when the frontend→CMS sync stamp
+     changes (site edited → runner synced), re-pull the store and re-render
+     the current view so open tabs never show stale mirrored data. Skipped
+     while a local save is pending or a modal is open. ---------- */
+  let lastSyncStamp = null;
+  const followSite = async () => {
+    try {
+      if (document.hidden) return;
+      const r = await AV.api.get("/api/status");
+      const fs = r && r.data && r.data.frontend_sync;
+      if (!fs) return;
+      const stamp = fs.synced_at || "";
+      if (lastSyncStamp === null) { lastSyncStamp = stamp; return; }
+      if (stamp === lastSyncStamp) return;
+      lastSyncStamp = stamp;
+      if (AV.api._pending || $(".modal-backdrop")) return;   // don't clobber in-flight edits
+      const ok = await AV.api.pull();
+      if (!ok) return;
+      render();
+      toast("Website changed — content re-synced from the static site", "accent", 4500);
+    } catch (e) { /* silent */ }
+  };
+  setInterval(followSite, 60000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) followSite(); });
+  AV.followSite = followSite;
+
   window.addEventListener("hashchange", () => {
     const raw = location.hash.slice(1);
     if (!raw || raw === lastRawHash) return;

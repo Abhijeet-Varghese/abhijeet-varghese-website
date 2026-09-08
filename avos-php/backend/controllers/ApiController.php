@@ -719,7 +719,12 @@ final class ApiController
                 $v = Database::one("SELECT COALESCE(MAX(version),0) v FROM versions WHERE entity='store' AND entity_id=?", [$key]);
                 $serverVer = (int)($v['v'] ?? 0);
                 if ((int)$clientVer !== $serverVer) {
-                    Response::error("Content was modified by another session ($key: your v{$clientVer}, server v{$serverVer}) — reload to see changes, then save again.", 409, 'VERSION_CONFLICT');
+                    $last = Database::one("SELECT note FROM versions WHERE entity='store' AND entity_id=? ORDER BY version DESC LIMIT 1", [$key]);
+                    $bySync = str_starts_with((string)($last['note'] ?? ''), 'sync from static frontend');
+                    $why = $bySync
+                        ? "the static website changed and '$key' was re-synced from it"
+                        : "another session saved first";
+                    Response::error("Content was modified — $why ($key: your v{$clientVer}, server v{$serverVer}). Reload to see the current data, then re-apply your change.", 409, 'VERSION_CONFLICT');
                 }
             }
         }

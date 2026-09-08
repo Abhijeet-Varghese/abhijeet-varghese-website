@@ -65,8 +65,11 @@ R=$(curl -s -b $CJ -X PUT $BASE/api/content -H "Content-Type: application/json" 
 check "content saved" '"ok":true' "$R"
 DBT=$(mysql -uavos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT data FROM content_store WHERE key_name='sections';" 2>/dev/null | grep -c 'E2E')
 check "verified in database" "1" "$DBT"
+# v1 = install-time sync from the static frontend, v2 = this save
 V=$(mysql -uavos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT COUNT(*) FROM versions WHERE entity='store' AND entity_id='sections';" 2>/dev/null)
-check "version created" "1" "$V"
+check "version created (install sync + save)" "2" "$V"
+VN=$(mysql -uavos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT note FROM versions WHERE entity='store' AND entity_id='sections' AND version=1;" 2>/dev/null)
+check "v1 is the frontend sync" "sync from static frontend" "$VN"
 
 echo "== 7. PREVIEW (draft renderer via API) =="
 # content preview is served by the same engine; verify page list endpoint works
@@ -118,7 +121,8 @@ L=$(mysql -uavos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT name,status,score,utm_cam
 check "lead in CRM table" "E2E Visitor" "$L"
 check "lead has utm campaign" "e2e-campaign" "$L"
 # automation + notification fired for high-value lead
-N=$(mysql -uavos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT COUNT(*) FROM notifications;" 2>/dev/null)
+# excludes the "Frontend synced into CMS" notification from the install-time sync
+N=$(mysql -uavos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT COUNT(*) FROM notifications WHERE title NOT LIKE 'Frontend synced%';" 2>/dev/null)
 check "automation notification fired (push + rule)" "2" "$N"
 A=$(mysql -uavos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT COUNT(*) FROM automation_runs;" 2>/dev/null)
 check "automation run logged" "1" "$A"

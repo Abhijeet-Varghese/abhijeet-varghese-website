@@ -32,10 +32,20 @@ demoted to draft (`source: cms-only`); media library enumerates all 57 site asse
 seo rows cover all 22 public URLs; Experience `job` blocks rebuilt from the page with
 stable ids (`j-<company>-<startYear>`).
 
+**Live follow (admin)** — open admin tabs poll `/api/status` every 60 s (and on
+tab focus); when `frontend_sync.synced_at` changes they re-pull the store and re-render
+the current view with a toast ("Website changed — content re-synced"), skipped while a
+save is pending or a modal is open (`AV.followSite`, `AV.api._pending`). A stale tab
+that still saves gets a 409 whose message now says *the static website changed and
+'<key>' was re-synced from it* instead of "another session saved first".
+`start.sh` watcher comment updated (the 60 s loop now also performs the sync).
+
 **Docs / tests** — `docs/static-frontend.md` "One source of truth" section;
 `tests/frontend_sync.sh` (24 checks: idempotence, derived counts vs site, change →
 sync → restore, runner auto-trigger, one-way guarantee, API auth) — 24/24;
-`admin_sweep` 48/48.
+`admin_sweep` 48/48; `e2e_fresh.sh` adjusted for the install-time sync (v1 of every
+key is the frontend sync; sync notification excluded from the automation count) —
+140/140; `journeys.sh` 16/16; `failure_modes.sh` 19/20 (known timing race).
 
 ## v2.4.20-r4 · STATIC FRONTEND IS THE FINAL FRONTEND
 
