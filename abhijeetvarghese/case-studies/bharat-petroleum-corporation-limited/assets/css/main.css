@@ -342,7 +342,9 @@ a{ color:inherit; text-decoration:none; }
 .areas{ display:grid; gap:1px; margin-top:clamp(30px,4vw,52px); background:var(--line-light); grid-template-columns:repeat(2,1fr); }
 .areas article{ background:var(--paper); padding:clamp(20px,2.6vw,32px); }
 .areas .n{ font-family:var(--mono); font-size:.5rem; letter-spacing:.2em; color:var(--blue); }
-.areas h3{ margin:12px 0 10px; font-size:clamp(1rem,1.5vw,1.24rem); letter-spacing:-.022em; font-weight:650; text-transform:uppercase; }
+.areas h3{ margin:12px 0 10px; font-size:clamp(1rem,1.5vw,1.24rem); letter-spacing:-.022em; font-weight:650; text-transform:uppercase; overflow-wrap:anywhere; }
+.areas article{ min-width:0; }
+@media (max-width:480px){ .areas{ grid-template-columns:1fr; } }
 .areas p{ color:var(--text-2); font-size:.9rem; line-height:1.55; }
 
 /* ─────────────────────────── 07 · OUTCOME ─────────────────────────── */

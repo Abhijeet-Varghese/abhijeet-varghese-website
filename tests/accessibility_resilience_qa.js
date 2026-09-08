@@ -118,7 +118,17 @@ const PAGES = [
         const style = getComputedStyle(node);
         return style.display !== 'none' && style.visibility !== 'hidden' && node.getClientRects().length;
       })
-      .map(node => ({ node, rect: node.getBoundingClientRect() }))
+      .map(node => {
+        // effective tap target = element box ∪ any positioned ::after hit-slop (invisible, layout-neutral)
+        const r = node.getBoundingClientRect(); const rect = { width: r.width, height: r.height };
+        const ps = getComputedStyle(node, '::after');
+        if (ps.content !== 'none' && ps.position === 'absolute' && getComputedStyle(node).position !== 'static') {
+          const h = parseFloat(ps.height); const l = parseFloat(ps.left) || 0; const rr = parseFloat(ps.right) || 0;
+          if (h > rect.height) rect.height = h;
+          if (!Number.isNaN(l) && !Number.isNaN(rr)) rect.width = Math.max(rect.width, r.width - l - rr);
+        }
+        return { node, rect };
+      })
       .filter(({ rect }) => rect.width < 40 || rect.height < 40)
       .slice(0, 8)
       .map(({ node, rect }) => `${node.tagName}.${node.className}:${Math.round(rect.width)}×${Math.round(rect.height)}`));

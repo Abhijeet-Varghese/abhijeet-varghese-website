@@ -33,6 +33,7 @@ const VIEWPORTS = [[390,844],[768,1024],[1366,600],[1440,700],[1920,800],[3440,1
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       const result = await page.evaluate(() => {
         const rect = element => {
+          if (!element) return { left:0,right:0,top:0,bottom:0,width:0,height:0 };
           const r = element.getBoundingClientRect();
           return { left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height };
         };
@@ -66,10 +67,6 @@ const VIEWPORTS = [[390,844],[768,1024],[1366,600],[1440,700],[1920,800],[3440,1
           const actions=rect(document.querySelector('.hp-hero__actions')); const avail=rect(document.querySelector('.hp-hero__avail'));
           shortHero={actionsBottom:actions.bottom,availBottom:avail.bottom};
         }
-        if(document.body.classList.contains('portfolio-page')){
-          const foot=rect(document.querySelector('.portfolio-hero__foot')); const next=rect(document.querySelector('.portfolio-index'));
-          shortHero={footBottom:foot.bottom,nextTop:next.top};
-        }
         if(document.body.classList.contains('about-page')){
           const footer=rect(document.querySelector('.about-prologue__footer')); shortHero={skipBottom:footer.bottom};
         }
@@ -90,9 +87,8 @@ const VIEWPORTS = [[390,844],[768,1024],[1366,600],[1440,700],[1920,800],[3440,1
       if(result.overlaps.length)issues.push(`${at}: section overlap ${result.overlaps.join('|')}`);
       if(result.headingIssues.length)issues.push(`${at}: heading geometry ${result.headingIssues.join('|')}`);
       if(result.mediaCollisions.length)issues.push(`${at}: ${result.mediaCollisions.join('|')}`);
-      if(result.h1.top<result.nav.bottom+4 && result.h1.bottom>result.nav.top)issues.push(`${at}: H1 collides with navigation`);
+      if(result.nav.height>0&&result.h1.top<result.nav.bottom+4 && result.h1.bottom>result.nav.top)issues.push(`${at}: H1 collides with navigation`);
       if(width>=1081&&height<=800&&path==='/'&&(result.shortHero.actionsBottom>height-24||result.shortHero.availBottom>height-16))issues.push(`${at}: homepage primary actions below first frame`);
-      if(width>=901&&height<=640&&path==='/portfolio.html'&&result.shortHero.footBottom>result.shortHero.nextTop-8)issues.push(`${at}: portfolio proof strip obscured by next section`);
       if(width>=701&&height<=640&&path==='/story.html'&&result.shortHero.skipBottom>height-4)issues.push(`${at}: story CTA clipped`);
     }
   }

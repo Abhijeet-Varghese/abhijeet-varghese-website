@@ -3,6 +3,31 @@
      renames. Keep AV_VERSION = 2.4.20; bump the asset cache-bust when
      frontend files change; release tarballs stay AVOS-2.4.20-*. -->
 
+## v2.4.20-r8 · TOUCH TARGETS + BPCL NARROW-VIEWPORT FIX + SUITE HARDENING
+
+**Site**
+- Case-card "Explore case study" CTA: an invisible, layout-neutral `::after` hit-slop
+  gives the text link a 44 px tap target on touch devices (was 13 px). Visual unchanged;
+  verified with `elementFromPoint` 18 px below the text → still the CTA.
+- Contact form country-code button stretches to the field height (52 px; was 24 px).
+- BPCL case study: the four leadership `<h3>`s ("TEAM COORDINATION", "VENDOR MANAGEMENT")
+  escaped the viewport at 280–320 px (+62 / +22 px horizontal overflow). Grid cells now
+  `min-width:0` with `overflow-wrap:anywhere`, single column ≤480 px. Stylesheet
+  fingerprint bumped.
+
+**Tests**
+- `full_site_responsive_qa`: ignore the BPCL optional-MP4 HEAD probe (404 by design) and
+  don't count IntersectionObserver-deferred `data-src` images as "broken".
+- `visual_precision_qa`: tolerate pages without `.site-nav__inner` (BPCL sub-site); drop
+  the stale `.portfolio-hero__foot` / `.portfolio-index` assertion (pre-reel markup).
+- `accessibility_resilience_qa`: effective tap target = element box ∪ positioned
+  `::after` hit-slop.
+- Result: full responsive (24 × 25 + sweeps + DPR) · visual precision (86 sections) ·
+  accessibility resilience · browser compat (Chromium/Firefox/WebKit) all ALL CLEAN —
+  first time every Playwright suite in the battery is green.
+- New thumbnails also verified at 390 px mobile (home, case-studies, portfolio reel,
+  Indian Army hero): full artwork, no cropping.
+
 ## v2.4.20-r7 · NEW INDIAN ARMY + ORANGE BUSINESS THUMBNAILS
 
 Replaced the two case-study thumbnails site-wide with the new branded artwork (both

@@ -30,6 +30,8 @@ const SWEEP_PAGES = ['/', '/story.html', '/experience/', '/case-studies/', '/por
   let currentPath = '';
   page.on('pageerror', error => issues.push(`${currentPath}: JS ${error.message}`));
   page.on('requestfailed', request => {
+    // the BPCL sub-site probes for an optional walkthrough MP4 (HEAD → 404 → player not mounted, by design)
+    if (/\/assets\/video\/walkthrough\.mp4$/.test(request.url())) return;
     if (request.url().includes('/api/analytics/track')) return;
     issues.push(`${currentPath}: request failed ${request.url()} (${request.failure()?.errorText || 'unknown'})`);
   });
@@ -119,6 +121,8 @@ const SWEEP_PAGES = ['/', '/story.html', '/experience/', '/case-studies/', '/por
     await page.waitForTimeout(80);
     const broken = await page.evaluate(() => [...document.images]
       .filter(image => image.complete && image.naturalWidth === 0)
+      // images still waiting on an IntersectionObserver (data-src, no src yet) are not broken
+      .filter(image => image.getAttribute('src') || image.currentSrc)
       .map(image => image.currentSrc || image.src));
     if (broken.length) issues.push(`${path}: broken images ${broken.join(', ')}`);
   }
