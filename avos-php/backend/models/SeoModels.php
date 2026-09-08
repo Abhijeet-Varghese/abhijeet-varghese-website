@@ -234,19 +234,103 @@ final class KeywordModel
    ============================================================ */
 final class SeoCrawlerModel
 {
+    /**
+     * Every public HTML document of the static website (recursive — the site
+     * uses clean-URL directories such as /case-studies/orange-business/index.html).
+     * Tiny legacy redirect stubs (meta-refresh pages kept for old URLs) are skipped.
+     * @return string[] absolute file paths
+     */
+    public static function siteHtmlFiles(): array
+    {
+        $dir = AV_SITE_DIR;
+        if (!is_dir($dir)) return [];
+        $out = [];
+        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS));
+        foreach ($it as $f) {
+            if (!$f->isFile() || strtolower($f->getExtension()) !== 'html') continue;
+            $rel = substr($f->getPathname(), strlen($dir) + 1);
+            if (preg_match('#(^|/)(node_modules|\.git)/#', $rel)) continue;
+            if (self::isRedirectStub($f->getPathname())) continue;
+            $out[] = $f->getPathname();
+        }
+        sort($out);
+        return $out;
+    }
+
+    /** Public URL path for a file inside the static site (index.html → directory URL). */
+    public static function urlFor(string $file): string
+    {
+        $rel = ltrim(str_replace('\\', '/', substr($file, strlen(AV_SITE_DIR))), '/');
+        if ($rel === 'index.html') return '/';
+        if (str_ends_with($rel, '/index.html')) return '/' . substr($rel, 0, -strlen('index.html'));
+        return '/' . $rel;
+    }
+
+    public static function isRedirectStub(string $file): bool
+    {
+        if (filesize($file) > 2048) return false;
+        $head = (string)file_get_contents($file, false, null, 0, 2048);
+        return stripos($head, 'http-equiv="refresh"') !== false;
+    }
+
+    /** Resolve an href found in $file to an absolute file path inside the site (null if external/anchor). */
+    public static function resolveHref(string $file, string $href): ?string
+    {
+        if ($href === '' || str_starts_with($href, '#') || preg_match('#^(https?:|mailto:|tel:|data:|javascript:|//)#i', $href)) return null;
+        $path = parse_url($href, PHP_URL_PATH);
+        if ($path === null || $path === '' ) return null;
+        $base = str_starts_with($path, '/') ? AV_SITE_DIR : dirname($file);
+        $abs = $base . '/' . ltrim($path, '/');
+        $abs = preg_replace('#/+#', '/', $abs);
+        // normalise ../ segments without requiring the target to exist
+        $parts = [];
+        foreach (explode('/', $abs) as $seg) {
+            if ($seg === '..') array_pop($parts); elseif ($seg !== '.' && $seg !== '') $parts[] = $seg;
+        }
+        $abs = '/' . implode('/', $parts);
+        if (str_ends_with($path, '/') || is_dir($abs)) $abs = rtrim($abs, '/') . '/index.html';
+        return $abs;
+    }
+
+    /**
+     * Incoming internal link counts for every public page of the static site.
+     * @return array<string,int> url path => number of other pages linking to it
+     */
+    public static function incomingLinks(): array
+    {
+        $pages = self::siteHtmlFiles();
+        $counts = [];
+        foreach ($pages as $f) $counts[self::urlFor($f)] = 0;
+        foreach ($pages as $f) {
+            $html = (string)file_get_contents($f);
+            if (!preg_match_all('/href="([^"#]+)"/i', $html, $m)) continue;
+            $seen = [];
+            foreach ($m[1] as $h) {
+                $t = self::resolveHref($f, $h);
+                if ($t === null || $t === $f) continue;
+                if (!is_file($t) && is_file($t . '.html')) $t .= '.html';
+                $u = self::urlFor($t);
+                if (!isset($counts[$u]) || isset($seen[$u])) continue;
+                $seen[$u] = true;
+                $counts[$u]++;
+            }
+        }
+        return $counts;
+    }
+
     public static function crawl(?int $userId = null): array
     {
-        $siteDir = AV_SITE_OUT;
-        $pages = glob($siteDir . '/*.html') ?: [];
+        $siteDir = AV_SITE_DIR;
+        $pages = self::siteHtmlFiles();
         $issues = [];
         $files = [];
-        foreach ($pages as $f) $files[basename($f)] = true;
+        foreach ($pages as $f) $files[$f] = true;
 
         $titles = []; $descs = []; $h1count = []; $canonMap = [];
         foreach ($pages as $f) {
             $name = basename($f);
             $html = (string)file_get_contents($f);
-            $url = '/' . $name;
+            $url = self::urlFor($f);
             $add = function (string $type, string $sev, string $detail) use (&$issues, $url): void {
                 $issues[] = ['url' => $url, 'issue_type' => $type, 'severity' => $sev, 'detail' => mb_substr($detail, 0, 480)];
             };
@@ -278,7 +362,7 @@ final class SeoCrawlerModel
             preg_match('/<link rel="canonical" href="([^"]*)"/i', $html, $m);
             $canon = $m[1] ?? '';
             if ($canon === '') $add('missing_canonical', 'critical', 'No canonical URL');
-            elseif (!str_ends_with($canon, $url)) $add('canonical_mismatch', 'warning', "Canonical $canon ≠ page $url");
+            elseif (rtrim((string)parse_url($canon, PHP_URL_PATH), '/') !== rtrim($url, '/')) $add('canonical_mismatch', 'warning', "Canonical $canon ≠ page $url");
             if ($canon !== '') $canonMap[$canon][] = $url;
             // OG image
             preg_match('/<meta property="og:image" content="([^"]*)"/i', $html, $m);
@@ -292,18 +376,16 @@ final class SeoCrawlerModel
                 }
                 if (preg_match('/src="([^"]+)"/i', $img, $ms)) {
                     $src = $ms[1];
-                    if (!str_starts_with($src, 'data:') && !str_starts_with($src, 'http')) {
-                        $p = $siteDir . '/' . ltrim(parse_url($src, PHP_URL_PATH) ?: $src, '/');
-                        if (!is_file($p)) $add('broken_image', 'critical', "Missing asset $src");
-                    }
+                    $p = self::resolveHref($f, $src);
+                    if ($p !== null && !is_file($p)) $add('broken_image', 'critical', "Missing asset $src");
                 }
             }
-            // broken internal links
-            if (preg_match_all('/href="([^"#]+\.html)"/i', $html, $ml)) {
+            // broken internal links (clean URLs + .html, relative or absolute)
+            if (preg_match_all('/href="([^"#]+)"/i', $html, $ml)) {
                 foreach (array_unique($ml[1]) as $href) {
-                    if (str_starts_with($href, 'http')) continue;
-                    $t = basename(parse_url($href, PHP_URL_PATH) ?: '');
-                    if ($t !== '' && !isset($files[$t]) && $t !== basename($url)) {
+                    $t = self::resolveHref($f, $href);
+                    if ($t === null) continue;
+                    if (!is_file($t) && !(is_file($t . '.html'))) {
                         $add('broken_internal_link', 'warning', "Links to missing $href");
                     }
                 }
@@ -319,14 +401,13 @@ final class SeoCrawlerModel
         $linked = [];
         foreach ($pages as $f) {
             $html = (string)file_get_contents($f);
-            if (preg_match_all('/href="([^"#]+\.html)"/i', $html, $ml)) {
-                foreach ($ml[1] as $h) $linked[basename(parse_url($h, PHP_URL_PATH) ?: '')] = true;
+            if (preg_match_all('/href="([^"#]+)"/i', $html, $ml)) {
+                foreach ($ml[1] as $h) { $t = self::resolveHref($f, $h); if ($t !== null && $t !== $f) $linked[$t] = true; }
             }
         }
         foreach ($pages as $f) {
-            $n = basename($f);
-            if ($n === '404.html') continue;
-            if (!isset($linked[$n])) $issues[] = ['url' => '/' . $n, 'issue_type' => 'orphan_page', 'severity' => 'info', 'detail' => 'Not linked from any other page'];
+            if (basename($f) === '404.html' || basename($f) === 'search.html') continue;
+            if (!isset($linked[$f])) $issues[] = ['url' => self::urlFor($f), 'issue_type' => 'orphan_page', 'severity' => 'info', 'detail' => 'Not linked from any other page'];
         }
 
         // canonical collision detection: two pages must never share one canonical

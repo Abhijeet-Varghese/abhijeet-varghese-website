@@ -73,8 +73,6 @@ $st = Database::q("DELETE FROM content_metrics");
 $removed[] = "content metrics: {$st->rowCount()}";
 $st = Database::q("DELETE FROM media WHERE original_name LIKE '%test%' OR original_name LIKE '%pixel%' OR original_name LIKE '%playwright%' OR folder='E2E'");
 $removed[] = "test media rows: {$st->rowCount()}";
-$st = Database::q("DELETE FROM redirects");
-$removed[] = "redirects (demo): {$st->rowCount()}";
 $st = Database::q("DELETE FROM api_keys WHERE name LIKE '%test%' OR name LIKE '%Playwright%'");
 $removed[] = "test api keys: {$st->rowCount()}";
 $st = Database::q("DELETE FROM sessions");
@@ -85,8 +83,6 @@ $st = Database::q("DELETE FROM audit_logs");
 $removed[] = "audit logs (test noise): {$st->rowCount()}";
 $st = Database::q("DELETE FROM versions");
 $removed[] = "versions (test history): {$st->rowCount()}";
-$st = Database::q("DELETE FROM deployments");
-$removed[] = "deployments: {$st->rowCount()}";
 $st = Database::q("DELETE FROM system_errors");
 $removed[] = "system errors: {$st->rowCount()}";
 $st = Database::q("DELETE FROM knowledge_items");
@@ -117,12 +113,6 @@ foreach (glob(AV_UPLOADS . '/E2E/*') ?: [] as $f) { @unlink($f); }
 $removed[] = "uploads/E2E files: cleaned";
 foreach (glob(AV_BACKUPS . '/*') ?: [] as $f) { @unlink($f); }
 $removed[] = "backups: cleaned";
-foreach (glob(AV_STORAGE . '/deployments/*') ?: [] as $d) {
-    $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($d, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST);
-    foreach ($it as $f) { $f->isDir() ? @rmdir($f->getPathname()) : @unlink($f->getPathname()); }
-    @rmdir($d);
-}
-$removed[] = "deployment snapshots: cleaned";
 foreach (glob(AV_CACHE . '/rl-*.json') ?: [] as $f) { @unlink($f); }
 $removed[] = "rate-limit cache: cleaned";
 foreach (glob(AV_LOGS . '/*') ?: [] as $f) { @unlink($f); }

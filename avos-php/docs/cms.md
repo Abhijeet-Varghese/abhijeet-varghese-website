@@ -26,26 +26,27 @@ from the Versions screen; restoring never destroys history.
   Forms (+ export), Bookings, Leads (scoring, UTM attribution), SEO center (real content-health
   audit + AI-assisted metadata), Analytics (first-party).
 - **Intelligence** — AI Studio (real provider chat, usage charts, SEO assistant), AI Copilot
-  (tool router), Knowledge, Design System (tokens → CSS variables at publish).
-- **System** — Publishing (deployment history + rollback), Versions, Users, Email Templates (+test),
+  (tool router), Knowledge, Design System (reference brand tokens — the site's CSS is authored in `css/styles.css`).
+- **System** — Website (static-site status + SEO crawl), Versions, Users, Email Templates (+test),
   Notifications, Platform (webhooks, API keys, feature flags, knowledge, errors, email log, sites),
   Health, Security, Settings, Backups (create/list/restore/download/delete), Integrations, Logs.
 
 ## Page builder / case study builder
 
 Pages and case studies are structured content: sections/blocks with typed components (hero, prose,
-image, gallery, stats, quote, CTA, …). The publish engine renders the same structured content to the
-static site — the CMS editor and the public renderer share one source of truth.
+image, gallery, stats, quote, CTA, …). They are **working data** for the CRM, SEO tools, proposals and
+agents. The public website is the hand-authored static frontend (`abhijeetvarghese/`) — it is not
+rendered from this content. See `docs/static-frontend.md`.
 
 ## SEO
 
 Per-entity `seo {title, desc, keywords, og_image}`. SEO center: content-health audit (missing titles,
 descriptions, alt text, duplicates, stale/thin content) with a live score, AI-assisted generation
-(draft → human save → publish). sitemap.xml + robots.txt regenerated at publish.
+(draft → human save). The technical crawl (`POST /api/seo/audit`) audits the static site's HTML;
+`sitemap.xml` + `robots.txt` ship with the frontend.
 
 ## Design system
 
-Settings → Design System: accent color, radius, shadow, spacing, container width, fonts. At publish
-these become `css/tokens.css` CSS variables (`--color-primary`, `--radius-card`, `--space-section`,
-`--container-width`, `--font-body`, `--font-accent`). The approved visual identity is not redesigned —
-only tokenized.
+Intelligence → Design System: accent color, radius, shadow, spacing, container width, fonts — a
+reference/preview of the brand tokens. The website's CSS lives in `abhijeetvarghese/css/styles.css`
+and is edited directly; the tokens are documentation, not a build input.

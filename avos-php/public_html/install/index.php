@@ -16,7 +16,7 @@ if (is_file(__DIR__ . '/.installed')) {
 }
 
 // config.php loads config.local.php itself (outside web root, never committed)
-require $root . '/backend/config/config.php';   // defines AV_DB, AV_ROOT, AV_ENC_KEY …
+require_once $root . '/backend/config/config.php';   // defines AV_DB, AV_ROOT, AV_ENC_KEY …
 require $root . '/backend/core/MigrationRunner.php';
 require $root . '/backend/core/Installer.php';
 

@@ -15,7 +15,7 @@ curl -s -c $CJ -X POST $BASE/api/auth/login -H "Content-Type: application/json" 
 CSRF=$(curl -s -b $CJ $BASE/api/session | php -r '$d=json_decode(stream_get_contents(STDIN),true); echo $d["data"]["csrf"];')
 
 echo "== JOURNEY C — CRM: lead → score → qualify → meeting → proposal → project =="
-R=$(curl -s -X POST $BASE/api/public/lead -H "Content-Type: application/json" -d "{\"name\":\"Journey Lead\",\"email\":\"journey-$(date +%s)@test.dev\",\"company\":\"JourneyCorp\",\"project_type\":\"experience centre\",\"message\":\"journey test\",\"utm_source\":\"linkedin\",\"utm_campaign\":\"j-campaign\",\"website\":\"\"}")
+R=$(curl -s -X POST $BASE/api/public/lead -H "Content-Type: application/json" -d "{\"name\":\"Journey Lead\",\"email\":\"journey-$(date +%s)@test.dev\",\"phone\":\"+919876500001\",\"company\":\"JourneyCorp\",\"project_type\":\"experience centre\",\"message\":\"journey test\",\"utm_source\":\"linkedin\",\"utm_campaign\":\"j-campaign\",\"website\":\"\"}")
 LID=$(echo "$R" | php -r '$d=json_decode(stream_get_contents(STDIN),true); echo $d["data"]["id"];')
 SC=$(echo "$R" | php -r '$d=json_decode(stream_get_contents(STDIN),true); echo $d["data"]["score"];')
 [ "$SC" -ge 70 ] && ok "lead scored ≥70 for experience centre ($SC)" || bad "lead score" "$SC"
@@ -38,7 +38,7 @@ PRJ=$(echo "$R" | php -r '$d=json_decode(stream_get_contents(STDIN),true); echo 
 R=$(curl -s -b $CJ -X POST $BASE/api/business/milestones/$PRJ -H "Content-Type: application/json" -H "X-CSRF-Token: $CSRF" -d '{"title":"Strategy sign-off","due_at":"2026-09-01","status":"pending"}')
 chk '"ok":true' "$R" "milestone added"
 
-echo "== JOURNEY D — Content: create project → SEO → preview → publish =="
+echo "== JOURNEY D — Content: create project → version → SEO crawl of the static site =="
 R=$(curl -s -b $CJ $BASE/api/content)
 php -r '
 $d = json_decode(stream_get_contents(STDIN), true);
@@ -56,8 +56,8 @@ R=$(curl -s -b $CJ -X PUT $BASE/api/content -H "Content-Type: application/json" 
 chk '"ok":true' "$R" "project draft saved to database"
 V=$(mysql -uavos -paV0s_d3v_9xKq2mN7 avos -N -e "SELECT COUNT(*) FROM versions WHERE entity='store' AND entity_id='projects';" 2>/dev/null)
 [ "$V" -ge 1 ] && ok "version created for projects" || bad "versions" "$V"
-R=$(curl -s -b $CJ -X POST $BASE/api/publish/preflight -H "X-CSRF-Token: $CSRF" -d '{}')
-chk '"ok":true' "$R" "pre-flight passes with draft present (draft not published)"
+R=$(curl -s -b $CJ -X POST $BASE/api/seo/audit -H "X-CSRF-Token: $CSRF" -d '{}')
+chk '"pages_crawled"' "$R" "SEO crawler audits the static frontend"
 
 echo "== JOURNEY G — AI: copilot draft → save draft =="
 R=$(curl -s -b $CJ -X POST $BASE/api/copilot -H "Content-Type: application/json" -H "X-CSRF-Token: $CSRF" -d '{"query":"Create a draft case study from the Orange Business project"}')
@@ -65,10 +65,13 @@ chk 'Draft case study structure' "$R" "copilot drafts case study from project (n
 R=$(curl -s -b $CJ -X POST $BASE/api/copilot -H "Content-Type: application/json" -H "X-CSRF-Token: $CSRF" -d '{"query":"Which case studies are missing SEO?"}')
 chk 'missing SEO' "$R" "copilot lists SEO gaps"
 
-echo "== JOURNEY F — Rollback (already covered in E2E; quick re-verify) =="
-curl -s -b $CJ $BASE/api/deployments > /dev/null
-R=$(curl -s -b $CJ $BASE/api/deployments | php -r '$d=json_decode(stream_get_contents(STDIN),true); $x=$d["data"][0]??[]; echo ($x["status"]??"") . " deploys=" . count($d["data"]??[]);')
-chk 'live' "$R" "deployment history present"
+echo "== JOURNEY F — Static frontend is the public site =="
+R=$(curl -s $BASE/api/status)
+chk '"site":"static"' "$R" "status reports static frontend"
+CODE=$(curl -s -o /dev/null -w "%{http_code}" -b $CJ $BASE/api/deployments)
+chk '404' "$CODE" "deployments API removed"
+CODE=$(curl -s -o /dev/null -w "%{http_code}" $BASE/case-studies/orange-business/)
+chk '200' "$CODE" "clean case-study URL served"
 
 echo
 echo "============================================="

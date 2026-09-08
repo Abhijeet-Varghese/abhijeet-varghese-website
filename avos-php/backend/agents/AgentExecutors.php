@@ -178,23 +178,8 @@ final class AgentExecutors
     private static function internalLinks(): array
     {
         $weak = [];
-        $siteDir = AV_SITE_OUT;
-        $pages = glob($siteDir . '/*.html') ?: [];
-        $links = [];
-        foreach ($pages as $f) {
-            $html = (string)file_get_contents($f);
-            if (preg_match_all('/href="([^"#]+\.html)"/i', $html, $m)) {
-                foreach ($m[1] as $h) {
-                    if (str_starts_with($h, 'http')) continue;
-                    $t = basename(parse_url($h, PHP_URL_PATH) ?: '');
-                    if ($t !== '') $links[$t] = ($links[$t] ?? 0) + 1;
-                }
-            }
-        }
-        foreach ($pages as $f) {
-            $n = basename($f);
-            $c = $links[$n] ?? 0;
-            if ($c === 0 && $n !== '404.html' && $n !== 'index.html') $weak[] = '/' . $n;
+        foreach (SeoCrawlerModel::incomingLinks() as $url => $c) {
+            if ($c === 0 && $url !== '/' && $url !== '/404.html') $weak[] = $url;
         }
         foreach ($weak as $w) AgentMemory::remember('internal-links', ['context' => 'orphan', 'observation' => "$w has zero internal links", 'decision' => 'add links from related pages', 'action' => 'recommend', 'result' => 'link from related article/page', 'metric' => 'incoming=0', 'confidence' => 80]);
         return ['ok' => true, 'actions' => count($weak), 'output' => ['orphans' => $weak], 'tokens' => 0, 'cost' => 0];
@@ -709,15 +694,15 @@ final class AgentExecutors
         return ['ok' => true, 'actions' => count($slow), 'output' => ['checks' => $checks, 'note' => 'LCP/INP/CLS need a browser (CrUX API when key available) — server-side TTFB + size measured here'], 'tokens' => 0, 'cost' => 0];
     }
 
-    /* ============ ACCESSIBILITY INTELLIGENCE (static audit of generated site) ============ */
+    /* ============ ACCESSIBILITY INTELLIGENCE (static audit of the website) ============ */
     private static function accessibility(): array
     {
         $issues = 0;
-        $files = glob(AV_SITE_OUT . '/*.html') ?: [];
+        $files = SeoCrawlerModel::siteHtmlFiles();
         $report = [];
-        foreach (array_slice($files, 0, 20) as $f) {
+        foreach (array_slice($files, 0, 40) as $f) {
             $html = (string)file_get_contents($f);
-            $path = basename($f);
+            $path = SeoCrawlerModel::urlFor($f);
             $doc = @new DOMDocument();
             @$doc->loadHTML($html);
             $xp = new DOMXPath($doc);

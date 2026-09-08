@@ -801,7 +801,7 @@
         if (idx < 0) { toast("Item not found", "error"); return; }
         arr[idx].seo = { ...(arr[idx].seo || {}), title, desc, keywords: $(".f-k", ml.el).value.split(",").map(k => k.trim()).filter(Boolean) };
         const r = await AV.api.send("/api/content", "PUT", { [key]: arr });
-        if (r.ok) { toast("DATABASE SAVED — publish to apply"); ml.close(); load(); }
+        if (r.ok) { toast("DATABASE SAVED"); ml.close(); load(); }
         else toast("SAVE FAILED", "error");
       });
     };

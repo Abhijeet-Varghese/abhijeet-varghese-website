@@ -29,9 +29,9 @@ $sessionHours = 12;
 
 // ---- site ----
 $siteUrl = 'https://abhijeetvarghese.com';
-// Optional: frontend source folder for live sync (backend pulls its css/js/assets).
-// Default when unset: the 'abhijeetvarghese' folder next to avos-php, or AV_FRONTEND_DIR.
-// \$frontendDir = '/home/uXXXXXX/frontend';
+// Public website folder — the static frontend, served as-is (no generator).
+// Default when unset: the 'abhijeetvarghese' folder next to avos-php, or AV_SITE_DIR.
+// $siteDir = '/home/uXXXXXX/public_html';
 
 // ---- optional: Cloudflare Turnstile for public forms ----
 // $turnstile = [

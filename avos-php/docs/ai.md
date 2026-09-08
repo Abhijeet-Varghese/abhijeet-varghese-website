@@ -14,7 +14,7 @@
   never serialized to the browser; `has_key` flag only.
 - Every request logged in `ai_requests` (provider, action, model, tokens, ok) → real usage charts in
   AI Studio (`/api/ai/usage`).
-- **AI output is always a DRAFT requiring human approval — never auto-published.**
+- **AI output is always a DRAFT requiring human approval — it never touches the static website.**
 - No key configured? Provider chat returns a clean `AI_ERROR` message; Copilot's database tools keep
   working (they don't need a key).
 
@@ -22,7 +22,7 @@
 
 - Chat: real `POST /api/ai/generate` (rate-limited 60/h, logged). Provider selector reflects real config.
 - SEO assistant: pick entity type → scan shows items actually missing SEO metadata → AI drafts title +
-  description → human edits → **save to database** (`PUT /api/content`) → publish applies it.
+  description → human edits → **save to database** (`PUT /api/content`). Applying copy to the live site is a frontend edit + deploy.
 - Usage: calls, failures, tokens, per-day bars, per-provider, per-action — all from `ai_requests`.
 
 ## AI Copilot (tool router)
@@ -31,7 +31,7 @@
 validation, permission checks and audit logging. No arbitrary SQL/PHP/fs/shell.
 
 Tools: recent leads · SEO gaps (missing metadata) · draft case study from a project · top projects ·
-unpublished pages · content health/dashboard snapshot · pipeline summary · publish next. Falls back
+draft pages · content health/dashboard snapshot · pipeline summary · what to do next. Falls back
 to provider chat when the query doesn't match a tool.
 
 ## Knowledge base

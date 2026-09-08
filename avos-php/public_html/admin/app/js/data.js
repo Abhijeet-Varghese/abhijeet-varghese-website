@@ -327,8 +327,9 @@ AV.seed = {
 };
 
 /* ---------- Backend API layer ----------
-   The CMS talks to the AV OS server: content store (GET/PUT), publish
-   (POST) and uploads. Falls back to localStorage when offline. */
+   The CMS talks to the AV OS server: content store (GET/PUT) and uploads.
+   Falls back to localStorage when offline. The public website is static —
+   there is no publish step. */
 AV.api = {
   connected: false,
   _timer: null,
@@ -404,12 +405,7 @@ AV.api = {
         this.connected = r.ok;
         if (r.ok) {
           const p = await r.json().catch(() => ({}));
-          if (p.data && p.data.auto_published) {
-            if (AV.emitStatus) AV.emitStatus("published");
-            if (AV.toast) AV.toast("Saved — public site auto-published", "accent", 2400);
-          } else if (AV.emitStatus) {
-            AV.emitStatus("saved");
-          }
+          if (AV.emitStatus) AV.emitStatus("saved");
         } else if (AV.emitStatus) {
           AV.emitStatus("save-failed");
         }
@@ -418,20 +414,6 @@ AV.api = {
         if (AV.emitStatus) AV.emitStatus("save-failed");
       }
     }, 600);
-  },
-  async publish() {
-    if (AV.emitStatus) AV.emitStatus("publishing");
-    try {
-      const r = await this._req("/api/publish", { method: "POST" });
-      const payload = await r.json().catch(() => ({}));
-      const body = payload && payload.data ? payload.data : payload;
-      const ok = r.ok && payload.ok !== false;
-      if (AV.emitStatus) AV.emitStatus(ok ? "published" : "save-failed");
-      return { ok, ...body };
-    } catch (e) {
-      if (AV.emitStatus) AV.emitStatus("save-failed");
-      return { ok: false, error: e.message };
-    }
   },
   async get(path) {
     try {

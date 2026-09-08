@@ -6,7 +6,7 @@ from pathlib import Path
 from bs4 import BeautifulSoup
 
 ROOT = Path(__file__).resolve().parents[1]
-SITE = ROOT / 'avos-php/public_html/site'
+SITE = ROOT / 'abhijeetvarghese'
 SEED = json.loads((ROOT / 'avos-data/site.json').read_text())
 issues = []
 

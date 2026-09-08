@@ -17,7 +17,7 @@
  *   - audit noise for test actions
  *
  * NEVER removes: content (pages/projects/articles/sections), media,
- * email templates, scoring rules, feature flags, deployments history.
+ * email templates, scoring rules, feature flags.
  */
 error_reporting(E_ALL);
 $root = dirname(__DIR__, 2);

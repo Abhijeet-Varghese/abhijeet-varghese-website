@@ -1,12 +1,15 @@
 # AV OS — Plug & Play
 
-The whole point: **start once, then everything stays in sync automatically.**
+The whole point: **start once, and everything just runs.**
 
-- Run the backend → it provisions the database, installs itself, and serves the site.
-- Edit anything in the CMS → the public site regenerates **automatically** (no Publish click).
-- Edit the frontend folder (css/js/images/fonts) → the backend **pulls your changes** into its
-  template and republishes.
-- On Hostinger the same happens via a 1-minute cron job.
+- Run the backend → it provisions the database, installs itself, and serves the
+  static website + admin + API from one port.
+- The public website is the hand-authored static frontend (`abhijeetvarghese/`),
+  served **as-is** — no template, no generator, nothing to publish. Edit → commit →
+  deploy. See `docs/static-frontend.md`.
+- The CMS/CRM/SEO/agents in the admin work *around* the site (leads from the
+  contact form, first-party analytics, SEO crawl of the static files, …).
+- On Hostinger the same runs via a couple of cron lines.
 
 ---
 
@@ -23,11 +26,11 @@ What `start.sh` does automatically:
 1. starts MariaDB if it isn't running
 2. provisions the `avos` database + user (`database/provision.sql`) on first run
 3. creates `config.local.php` from the example if missing
-4. runs migrations (idempotent)
-5. creates the administrator account on first run (prints a temporary password)
-6. starts the backend on **http://localhost:8092** (site + admin + API)
-7. starts the **live-sync watcher**: every 60 s it pulls frontend changes and
-   auto-publishes content changes (log: `storage/logs/auto-publish.log`)
+4. first run: `database/install.php` (schema + seed + admin, prints a temporary
+   password); later runs: `database/migrate.php` (idempotent)
+5. starts the backend on **http://localhost:8092** (static site + admin + API)
+6. starts the **agent watcher**: `agent-runner.php` every 60 s
+   (log: `storage/logs/agent-runner.log`)
 
 URLs: `http://localhost:8092/` (site) · `http://localhost:8092/admin/login.php` (CMS) ·
 `http://localhost:8092/api/status`
@@ -37,10 +40,10 @@ URLs: `http://localhost:8092/` (site) · `http://localhost:8092/admin/login.php`
 ## Local — manual start (equivalent)
 
 ```bash
-php database/migrate.php                      # schema (idempotent)
 php database/install.php --admin-email=you@x.com --generate   # first run only
-php -S 0.0.0.0:8092 router.php                # backend (site + admin + API)
-php backend/scripts/auto-publish.php          # run once, or in a loop / cron
+php database/migrate.php                      # later upgrades (idempotent)
+php -S 0.0.0.0:8092 router.php                # static site + admin + API
+php backend/scripts/agent-runner.php          # run once, or in a loop / cron
 ```
 
 ## Hostinger — plug & play
@@ -48,98 +51,62 @@ php backend/scripts/auto-publish.php          # run once, or in a loop / cron
 Shared hosting is already "always on" — PHP runs via LiteSpeed, MySQL is managed.
 The only setup is one-time:
 
-1. **Upload** the project (web root = `public_html/`, the rest private, per
-   `docs/deployment-hostinger.md`).
-2. **Configure** `config.local.php` (DB credentials, encryption key, `$siteUrl`).
-3. **Visit** `https://abhijeetvarghese.com/install/` once → creates the admin
+1. **Deploy the website** — push to `main`; the GitHub workflow publishes
+   `abhijeetvarghese/` to the `hostinger` branch → web root.
+2. **Upload AV OS** (`avos-php/public_html/*` into the same web root, the rest
+   private, per `docs/deployment-hostinger.md`).
+3. **Configure** `config.local.php` (DB credentials, encryption key, `$siteUrl`,
+   `$siteDir` if the site is not the parent folder).
+4. **Visit** `https://abhijeetvarghese.com/install/` once → creates the admin
    (or SSH: `php database/install.php --admin-email=... --generate`).
-4. **Add one cron job** (hPanel → Advanced → Cron Jobs):
+5. **Cron** (hPanel → Advanced → Cron Jobs):
 
    ```
-   * * * * * php /home/uXXXXXX/avos/backend/scripts/auto-publish.php >> /home/uXXXXXX/avos/storage/logs/auto-publish.log 2>&1
+   * * * * *  php /home/uXXXXXX/avos/backend/scripts/agent-runner.php     >> /home/uXXXXXX/avos/storage/logs/agent-runner.log 2>&1
+   */15 * * * * php /home/uXXXXXX/avos/backend/scripts/integration-sync.php >> /home/uXXXXXX/avos/storage/logs/integration-sync.log 2>&1
    ```
 
-That's it — from then on every CMS save regenerates the live site automatically.
-
-## The sync loop
+## How changes flow
 
 ```
-CMS edit ──► MySQL ──► auto-publish (on save + cron) ──► static site ──► live
-frontend edit (css/js/assets/fonts) ──► sync-frontend ──► site-template ──► publish ──► live
+website edit (html/css/js/assets) ──► git commit ──► deploy workflow ──► live
+CMS edit ──► MySQL content_store (versioned) ──► CRM / SEO / agents / proposals
+visitor form ──► POST /api/public/lead ──► CRM lead ──► automations / notifications
 ```
-
-- **Backend → frontend:** toggle "Live sync" in Settings (default ON; also a
-  feature flag `auto_publish` under Platform → Feature flags). Every save
-  regenerates the site; drafts never leak (the engine only publishes
-  `published`/due entities).
-- **Frontend → backend:** `Sync frontend` button in Settings, or
-  `php backend/scripts/sync-frontend.php`, or automatically every minute by
-  the watcher/cron. It pulls css/js/assets/fonts from the frontend folder
-  (`$frontendDir` in `config.local.php`, default: the `abhijeetvarghese`
-  folder next to `avos-php`) into `site-template/`, then republishes.
-- Content (pages, copy, SEO) is always managed in the CMS — the sync only
-  pulls design assets, it never overwrites your content.
 
 ## Commands
 
 | Command | Purpose |
 |---|---|
-| `./start.sh` / `start.bat` | everything: DB + migrate + install + server + watcher |
-| `php backend/scripts/auto-publish.php` | sync frontend + publish if changed (cron-friendly, flock-safe) |
-| `php backend/scripts/sync-frontend.php` | pull frontend assets into the template (one-shot) |
+| `./start.sh` / `start.bat` | everything: DB + install/migrate + server + agent watcher |
+| `php backend/scripts/agent-runner.php` | run due agent jobs (cron-friendly, flock-safe) |
+| `php backend/scripts/doctor.php` | environment check (site folder, 404 page, .htaccess, DB, storage…) |
 | `php database/migrate.php` | migrations (idempotent, checksummed) |
 | `php database/install.php --admin-email=… --generate` | CLI installer (first run) |
 | `php backend/scripts/remove-dummy-content.php` | strip demo/test data |
 
 ## Troubleshooting
 
-- **"Frontend folder not found"** — set `$frontendDir` in `config.local.php`
-  (or `AV_FRONTEND_DIR`) to the folder that holds your css/js/assets.
-- **Auto-publish disabled but you want it** — Settings → Publishing → Live
-  sync toggle, or Platform → Feature flags → `auto_publish`.
-- **Publish fails** — the live site is untouched; the error is in
-  System → Health → Errors and a notification is created. Fix and save again.
-- **Two instances fighting** — the watcher is flock-protected; only one
-  publish runs at a time.
+- **"Static website folder not found"** — set `$siteDir` in `config.local.php`
+  to the folder that holds `index.html` (default: `../abhijeetvarghese`).
+- **Edits in the CMS don't show on the site** — expected: the site is static.
+  Edit the files in `abhijeetvarghese/` and deploy.
+- **A legacy URL 404s** — add a 301 to `abhijeetvarghese/.htaccess` (and to
+  `avos-php/public_html/.htaccess` + `router.php` so dev/prod stay in sync).
 
-## v2.1 production hardening (this pass)
+## Deployment modes
 
-### Three deployment modes
 | Mode | Env | Debug | Use |
 |---|---|---|---|
 | Local | `APP_ENV=local` or `development` (start.sh sets it) | verbose | `./start.sh` / `start.bat` |
-| Staging | `APP_ENV=staging` | verbose | preview/testing, optional auto-publish |
+| Staging | `APP_ENV=staging` | verbose | preview/testing |
 | Production | `APP_ENV=production` (default) | sanitized | live — refuses insecure defaults, HTTPS enforced |
 
-### Publish pipeline (always safe)
-```
-SAVE → DB COMMIT → VERSION → QUEUE → BUILD STAGING → VALIDATE →
-BACKUP CURRENT (snapshot) → ATOMIC SWAP → POST-PUBLISH HEALTH CHECK →
-MARK PUBLISHED (or AUTO-ROLLBACK + incident)
-```
-- **Zero downtime**: builds go to `storage/cache/stage-XXXX`, validate, then one atomic rename. Failure → live untouched.
-- **Publish queue + debounce**: rapid saves coalesce into one job (`publish_queue` table, statuses queued/processing/completed/failed). Manual "Publish" bypasses the debounce and is synchronous.
-- **Locking**: `storage/locks/{sync,publish}.lock` via flock — concurrent publishes/syncs exit safely (tested).
-- **Version retention**: `Admin → Settings → Publishing → Version retention` (default 10) controls how many production snapshots are kept; backup retention default 5 (JSON + optional mysqldump).
-- **Auto-failure rollback**: post-publish health check (critical routes + sitemap) → any failure restores the previous deployment automatically, logs an incident, notifies the admin.
-
-### Frontend sync (content-aware)
-- SHA-256 per-file manifest (`storage/cache/frontend-manifest.json`) — mtime is not trusted; only real content changes sync.
-- Ownership: frontend source owns css/js/assets/fonts/icons/favicon; the CMS owns all content/navigation/SEO. The sync NEVER touches CMS content.
-- Dry run: `POST /api/sync/frontend?dry_run=1` or `php backend/scripts/sync-frontend.php --check` (added/modified/deleted/unchanged report).
-- Sync loop protection: manifest hashes + sync lock + publish lock + idempotent runs (10 runs without changes → "nothing to do", tested).
-
 ### Operations
-- **Doctor**: `php backend/scripts/doctor.php` + `GET /api/system/doctor` — 21 checks (PHP, PDO, DB, storage, template, frontend, .htaccess, installer lock, encryption key, production guard, HTTPS, cron state…).
-- **Publishing status**: `GET /api/system/publishing` (queue + last publish + failures + health); the admin shell polls it every 15 s and shows LIVE/PUBLISHING/FAILED/ATTENTION; the Publishing view has a Live Sync panel with the same data.
-- **Cron self-health**: `auto-publish-state.json` tracks last check/sync/publish/failures/last error; after 3 consecutive failures the watcher backs off.
-- **Watchdog**: failures ≥ 3 → "NEEDS ATTENTION" in the Publishing view + status chip.
-- **Draft mode**: "Save draft" in the homepage builder sends `publish:false` — DB + version, no publish (race-safe: pending auto-pushes are cancelled first).
-- **Installer**: `/install/` returns "Installation already completed." when locked.
-- **Backups**: `POST /api/backup` now also writes a full `mysqldump` when available (fallback: JSON package); retention enforced; never publicly accessible.
-
-### Failure-injection tests (all green)
-Broken template → publish blocked, live unchanged, queue failed, error logged, notified · concurrent publish → one wins, other requeues · concurrent sync → second exits safely · draft mode → DB saved, site untouched · 100 API calls in 0.92 s · 8 rapid saves → 3 builds (coalesced) · 10 sync runs → idempotent.
+- **Doctor**: `php backend/scripts/doctor.php` + `GET /api/system/doctor` — PHP, PDO, DB, storage, static site folder, 404 page, web-root .htaccess, installer lock, encryption key, production guard, HTTPS, cron state.
+- **Installer**: `/install/` returns 404 when locked.
+- **Backups**: `POST /api/backup` writes a full `mysqldump` when available (fallback: JSON package); retention via Settings → Website & backups (`GET|PUT /api/system/backup-settings`); never publicly accessible.
+- **Locking**: `storage/locks/*.lock` via flock — concurrent agent runs exit safely.
 
 ## v2.2 — SEO + Intelligence layer (master build)
 
@@ -159,7 +126,7 @@ Broken template → publish blocked, live unchanged, queue failed, error logged,
 - Backlinks & competitors tracking (manual entry — no scraping).
 
 **Engagement**: first-party events extended (gallery_open, video_play, scroll_depth,
-external_link, site_search) in the published snippet; engagement scores per page,
+external_link, site_search) in the site's `js/main.js`; engagement scores per page,
 CTA performance (clicks/leads/conversion), conversion funnel (visitor → won).
 
 **Intelligence**: "What should I do next?" engine (SEO opportunities, content decay,
@@ -167,7 +134,7 @@ broken links, missing metadata, high-value leads, unviewed proposals, stale cont
 prioritized); daily brief; weekly growth report; social drafts (LinkedIn/Instagram/X/
 newsletter — DRAFT ONLY, never auto-posted) built from real project data.
 
-**Public site**: search-index.json generated at publish + /search.html (site chrome,
+**Public site**: `search-index.json` + `/search.html` ship with the static frontend (site chrome,
 client-side search over projects/case studies/essays/journal/services); related-content
 section on articles (shared category/tags/title-overlap — never fabricated); sitemap
 includes search.html.

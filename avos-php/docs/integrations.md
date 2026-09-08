@@ -127,8 +127,9 @@ triggers. The public website is never touched by this script.
 7. **YouTube**: nothing — public channel RSS (handle-based resolution).
 8. **Drive/Notion**: service account / token + approved folder/page IDs.
 9. **GA4/GTM/Clarity measurement**: put the public IDs in Integrations → GA4 (measurement
-   ID), GTM (container ID), Clarity (project ID); they are injected into the published
-   site on the next publish. No credentials are embedded.
+   ID), GTM (container ID), Clarity (project ID) for the reporting integrations. The
+   website is static — add the corresponding snippets to the frontend HTML yourself
+   (`abhijeetvarghese/`) if you want them on the page. No credentials are embedded.
 
 ## Honest limits (per current free accounts)
 

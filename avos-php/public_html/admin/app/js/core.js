@@ -162,7 +162,7 @@
       { id: "knowledgegraph", label: "Knowledge & Truth", icon: "layers" }
     ]},
     { group: "System", items: [
-      { id: "publishing", label: "Publishing", icon: "send" },
+      { id: "publishing", label: "Website", icon: "send" },
       { id: "versions", label: "Versions", icon: "clock" },
       { id: "platform", label: "Platform", icon: "zap" },
       { id: "health", label: "Health", icon: "shield" },
@@ -221,7 +221,6 @@
             <div class="pop" id="notifPop" hidden></div>
           </div>
           <span class="chip chip--ok" id="apiStatus" style="display:none;cursor:default" title="Backend connection">${icon("check", 11)} Backend</span>
-          <span class="chip chip--muted" id="pubStatus" style="display:none;cursor:default" title="Publishing status">${icon("send", 11)} LIVE</span>
           <button class="avatar-lg" id="avatarBtn" aria-label="Account">AV</button>
         </header>
         <main class="view" id="view"></main>
@@ -284,13 +283,13 @@
           ${[
             ["Edit my homepage", "Homepage Builder → pick the Hero section → Edit. Change headline, lede, buttons and the portrait image from your media library."],
             ["Change the hero picture", "Homepage Builder → Hero → Edit → tap a thumbnail under “Portrait / hero image”. Upload new images in Media first."],
-            ["Publish the website", "Publishing → Publish (or enable auto-publish in Platform → Feature flags; every save then publishes automatically)."],
-            ["Add a project / case study", "Projects → New project → fill Challenge / Approach / Role / Outcome → Publish. It appears in Featured Work + Case Studies."],
+            ["Change the website", "The public site is the static frontend (abhijeetvarghese/ folder). Edit the HTML/CSS/JS, commit, and the deploy workflow ships it — nothing in this CMS renders pages."],
+            ["Add a project / case study", "Projects → New project → fill Challenge / Approach / Role / Outcome. This is working data for the SEO/agent tools; the public case-study pages are static files."],
             ["See who contacted me", "Leads → the CRM pipeline shows every enquiry, score and follow-up task. Calendly bookings land here automatically."],
             ["Connect Search Console / GA4 / Calendly", "Integrations → find the service → Configure → paste the key/ID → Save + Test. Status only shows CONNECTED after a real check."],
             ["Let the AI agents work", "AI Agents → check the dashboard, run cycles, pause scopes. Agents draft content — nothing publishes without your review."],
-            ["Fix a broken page / roll back", "Publishing → Deployments → Rollback restores the previous live site; Backups → Restore brings back content and leads."],
-            ["Where is everything stored?", "Public site = static files in public_html/site. Content = MySQL (content_store). Uploads = private storage, served via /media."],
+            ["Restore CMS data", "Backups → Restore brings back CMS content, leads and submissions. The website itself is versioned in git."],
+            ["Where is everything stored?", "Public site = static files (abhijeetvarghese/ → web root). CMS data = MySQL (content_store). Uploads = private storage, served via /media."],
           ].map(([q, a]) => `<div><b style="color:var(--ink-1)">${q}</b><p style="color:var(--ink-3);margin-top:2px">${a}</p></div>`).join("")}
         </div>`,
         actions: `<button class="btn btn--ghost" data-c>Close</button>`
@@ -360,15 +359,13 @@
     if ($("#themeBtn")) $("#themeBtn").innerHTML = icon(s.theme === "dark" ? "sun" : "moon");
   };
 
-  /* ---------- Backend status + publish ---------- */
+  /* ---------- Backend status ---------- */
   AV.emitStatus = (state) => {
     const el = $("#apiStatus");
     if (!el) return;
     const states = {
       connected: ["ok", "Database connected"],
-      saved:     ["ok", "DRAFT SAVED — not published"],
-      publishing:["accent", "Publishing…"],
-      published: ["ok", "PUBLISHED"],
+      saved:     ["ok", "SAVED"],
       "local-draft": ["warn", "OFFLINE LOCAL DRAFT"],
       "save-failed": ["danger", "SAVE FAILED"],
       conflict:  ["danger", "CONFLICT — reload or overwrite"],
@@ -376,40 +373,8 @@
     const [cls, label] = states[state] || (AV.api.connected ? states.connected : states["local-draft"]);
     el.style.display = "inline-flex";
     el.className = "chip chip--" + cls;
-    el.innerHTML = `${icon(state === "publishing" ? "refresh" : "check", 11)} ${label}`;
+    el.innerHTML = `${icon("check", 11)} ${label}`;
   };
-  AV.publishSite = async () => {
-    const r = await AV.api.publish();
-    if (r.ok) toast(`Website published — ${r.pages || "?"} pages, ${r.articles || "?"} articles regenerated`, "accent");
-    else toast("Publish failed — " + (r.error || "server unreachable"), "error");
-  };
-
-  /* ---------- publish status chip (poll /api/system/publishing) ---------- */
-  const refreshPubStatus = async () => {
-    const el = $("#pubStatus");
-    if (!el) return;
-    try {
-      const r = await fetch("/api/system/publishing", { credentials: "same-origin" });
-      const d = await r.json();
-      if (!d.ok || !d.data) return;
-      const q = d.data.queue && d.data.queue.current;
-      const ls = d.data.live_sync || {};
-      let label = "LIVE", cls = "chip--ok";
-      if (q && q.status === "processing") { label = "PUBLISHING"; cls = "chip--accent"; }
-      else if (q && q.status === "failed") { label = "FAILED"; cls = "chip--danger"; }
-      else if (ls.failures >= 3) { label = "ATTENTION"; cls = "chip--warn"; }
-      else if (ls.last_publish) {
-        const secs = Math.round((Date.now() - new Date(ls.last_publish.replace(" ", "T")))/1000);
-        if (secs < 120) label = "LIVE · " + secs + "s ago";
-      }
-      el.className = "chip " + cls;
-      el.innerHTML = `${icon("send", 11)} ${label}`;
-      el.style.display = "inline-flex";
-      el.title = ls.last_publish ? "Last published " + ls.last_publish : "Publishing status";
-    } catch (e) { /* keep last state */ }
-  };
-  setInterval(refreshPubStatus, 15000);
-  setTimeout(refreshPubStatus, 2500);
 
   /* ---------- Command palette ---------- */
   const paletteCommands = () => {
@@ -420,7 +385,7 @@
     cmds.push({ t: "Create article", d: "Essay or journal", k: "", icon: "plus", run: () => AV.router.go("thinking", { action: "new" }) });
     cmds.push({ t: "Upload media", d: "Open media library", k: "", icon: "upload", run: () => AV.router.go("media", { action: "upload" }) });
     cmds.push({ t: "Run backup", d: "Snapshot now", k: "", icon: "refresh", run: () => AV.router.go("backups", { action: "backup" }) });
-    cmds.push({ t: "Publish website", d: "Regenerate the live site", k: "\u2318\u21E7P", icon: "send", run: () => AV.publishSite() });
+    cmds.push({ t: "Open website", d: "View the live static site", k: "", icon: "send", run: () => window.open("/", "_blank", "noopener") });
     cmds.push({ t: "Open knowledge search", d: "Ask anything", k: "⌘⇧F", icon: "search", run: () => AV.router.go("knowledge") });
     cmds.push({ t: "Reset demo data", d: "Restore seed content", k: "", icon: "refresh", run: () => { AV.store.reset(); location.reload(); } });
     return cmds;
@@ -485,7 +450,6 @@
     const mod = e.metaKey || e.ctrlKey;
     if (mod && e.key.toLowerCase() === "k") { e.preventDefault(); openPalette(); }
     else if (mod && e.shiftKey && e.key.toLowerCase() === "l") { e.preventDefault(); toggleTheme(); }
-    else if (mod && e.shiftKey && e.key.toLowerCase() === "p") { e.preventDefault(); AV.publishSite(); }
     else if (mod && e.shiftKey && e.key.toLowerCase() === "f") { e.preventDefault(); AV.router.go("knowledge"); }
     else if (mod && e.key.toLowerCase() === "b") { e.preventDefault(); $(".app").classList.toggle("sb-collapsed"); }
     else if (e.key === "Escape") { $(".sb-scrim")?.click(); }

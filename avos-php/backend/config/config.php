@@ -18,8 +18,10 @@ define('AV_CACHE', AV_STORAGE . '/cache');
 define('AV_VERSIONS', AV_STORAGE . '/versions');
 define('AV_LOGS', AV_STORAGE . '/logs');
 define('AV_BACKUPS', AV_STORAGE . '/backups');
-define('AV_TEMPLATE', AV_ROOT . '/site-template');          // canonical frontend template
-define('AV_SITE_OUT', AV_ROOT . '/public_html/site');       // generated public site
+// The public website is the hand-authored static frontend in ../abhijeetvarghese
+// (served as-is — there is no template layer or HTML generator). Override with
+// $siteDir in config.local.php or the AV_SITE_DIR env var.
+define('AV_SITE_DIR_DEFAULT', dirname(AV_ROOT) . '/abhijeetvarghese');
 
 // ---- app ----
 define('AV_NAME', 'AV OS');
@@ -43,7 +45,7 @@ $siteUrl = rtrim(getenv('SITE_URL') ?: 'https://abhijeetvarghese.com', '/');
 $turnstile = ['site_key' => getenv('TURNSTILE_SITE_KEY') ?: '', 'secret_key' => getenv('TURNSTILE_SECRET_KEY') ?: ''];
 
 // Load optional local config FIRST (outside web root, never committed) —
-// it may override $env, $db, $encKey, $siteUrl, $turnstile, $sessionHours.
+// it may override $env, $db, $encKey, $siteUrl, $siteDir, $turnstile, $sessionHours.
 // AV_SKIP_LOCAL_CONFIG=1 bypasses it — used only to simulate a pristine
 // production boot (CI/tests). Never set in real deployments.
 if (getenv('AV_SKIP_LOCAL_CONFIG') !== '1' && is_file(AV_ROOT . '/config.local.php')) {
@@ -73,7 +75,7 @@ define('AV_SESSION_HOURS', $sessionHours);
 define('AV_ENC_KEY', $encKey);
 define('AV_SITE_URL', $siteUrl);
 define('AV_TURNSTILE', $turnstile);
-define('AV_FRONTEND_DIR', isset($frontendDir) ? $frontendDir : (getenv('AV_FRONTEND_DIR') ?: ''));
+define('AV_SITE_DIR', rtrim((string)(isset($siteDir) && $siteDir !== '' ? $siteDir : (getenv('AV_SITE_DIR') ?: AV_SITE_DIR_DEFAULT)), '/'));
 
 // ---- upload limits ----
 define('AV_MAX_UPLOAD_BYTES', (int)(getenv('AV_MAX_UPLOAD_MB') ?: 20) * 1024 * 1024);
@@ -102,7 +104,7 @@ ini_set('display_errors', AV_DEBUG ? '1' : '0');
 ini_set('log_errors', '1');
 ini_set('error_log', AV_LOGS . '/php-error.log');
 
-foreach ([AV_STORAGE, AV_UPLOADS, AV_CACHE, AV_VERSIONS, AV_LOGS, AV_BACKUPS, AV_SITE_OUT] as $dir) {
+foreach ([AV_STORAGE, AV_UPLOADS, AV_CACHE, AV_VERSIONS, AV_LOGS, AV_BACKUPS] as $dir) {
     if (!is_dir($dir)) @mkdir($dir, 0775, true);
 }
 

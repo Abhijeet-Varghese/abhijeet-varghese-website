@@ -5,7 +5,7 @@
  *   php backend/scripts/doctor.php
  *
  * Verifies PHP, extensions, database, storage, config, .htaccess,
- * frontend source, template, publish destination, locks, cron state.
+ * the static website folder, locks, cron state.
  * Exit code 0 = ready, 1 = warnings, 2 = critical failures.
  */
 error_reporting(E_ALL);
@@ -35,10 +35,8 @@ $add('Storage', is_writable(AV_STORAGE), AV_STORAGE);
 $add('Uploads', is_writable(AV_UPLOADS), AV_UPLOADS);
 $add('Backups', is_writable(AV_BACKUPS), AV_BACKUPS);
 $add('Locks', is_writable(AV_STORAGE . '/locks') || (is_dir(AV_STORAGE . '/locks') || @mkdir(AV_STORAGE . '/locks', 0775, true)), AV_STORAGE . '/locks');
-$add('Template', is_dir(AV_TEMPLATE) && is_file(AV_TEMPLATE . '/css/styles.css'), AV_TEMPLATE);
-$fe = AV_FRONTEND_DIR !== '' ? AV_FRONTEND_DIR : (dirname($root) . '/abhijeetvarghese');
-$add('Frontend source', is_dir($fe), $fe);
-$add('Publish destination', is_dir(AV_SITE_OUT), AV_SITE_OUT);
+$add('Static website', is_file(AV_SITE_DIR . '/index.html') && is_file(AV_SITE_DIR . '/css/styles.css'), AV_SITE_DIR);
+$add('Website 404 page', is_file(AV_SITE_DIR . '/404.html'), AV_SITE_DIR . '/404.html');
 $add('Web root .htaccess', is_file(AV_PUBLIC . '/.htaccess'), AV_PUBLIC . '/.htaccess');
 $add('Installer locked', is_file(AV_PUBLIC . '/install/.installed'), '');
 $add('Encryption key', strlen((string)AV_ENC_KEY) >= 32, strlen((string)AV_ENC_KEY) . ' chars');
@@ -46,8 +44,7 @@ $add('Environment', in_array(AV_ENV, ['local', 'development', 'staging', 'produc
 $prodGuard = !(AV_ENV === 'production' && ((($GLOBALS['db']['pass'] ?? '') === 'aV0s_d3v_9xKq2mN7') || (($GLOBALS['db']['user'] ?? '') === 'avos')));
 $add('Production guard', $prodGuard, $prodGuard ? '' : 'default credentials detected');
 $add('HTTPS', AV_ENV !== 'production' || str_starts_with(AV_SITE_URL, 'https://'), AV_SITE_URL);
-$add('Auto-publish flag', FeatureFlagModel::isOn('auto_publish'), '');
-$add('Cron state', is_file(AV_CACHE . '/auto-publish-state.json'), 'state file present');
+$add('Agent cron state', is_file(AV_CACHE . '/agent-runner-state.json'), 'state file present (agent-runner has run)');
 
 echo "AV OS DOCTOR — " . date('c') . "\n";
 echo str_repeat('-', 40) . "\n";

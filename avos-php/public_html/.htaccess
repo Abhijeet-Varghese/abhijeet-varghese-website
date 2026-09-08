@@ -1,5 +1,18 @@
-# AV OS — public root
+# ============================================================
+# AV OS — public web root (Apache / LiteSpeed)
+#
+# Layout of this directory on the server:
+#   index.html, css/, js/, assets/, case-studies/, experience/, …  ← the static
+#                                     frontend (contents of ../abhijeetvarghese)
+#   admin/   api/   install/   media.php   ← AV OS (CMS + API)
+#
+# This file is the single .htaccess for that root: AV OS hardening PLUS the
+# frontend's own rules (clean-URL redirects, 404 page, caching). Keep the
+# redirect block in sync with abhijeetvarghese/.htaccess (the static-only
+# deployment uses that file on its own).
+# ============================================================
 Options -Indexes
+ErrorDocument 404 /404.html
 
 <IfModule mod_headers.c>
   Header always set X-Content-Type-Options "nosniff"
@@ -11,42 +24,71 @@ Options -Indexes
   # CSP — 'unsafe-inline' script/style is required by the self-hosted analytics +
   # GTM snippets; everything else is locked to self or the listed providers.
   Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.googletagmanager.com https://www.google-analytics.com; font-src 'self' data:; connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; frame-src https://calendly.com https://www.youtube.com https://www.youtube-nocookie.com https://www.googletagmanager.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self' https://calendly.com; object-src 'none'; upgrade-insecure-requests"
+  Header merge Vary "Accept-Encoding"
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+  <FilesMatch "\.(?:css|js)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.(?:woff2|avif|webp|jpe?g|png|svg|mp4)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
 </IfModule>
 
-# Block hidden files, SQL dumps, seeds, config
+# Block hidden files, SQL dumps, seeds, config, docs
 <FilesMatch "^\.">
   Require all denied
 </FilesMatch>
-<FilesMatch "\.(sql|md|json|lock|log|bak|sh|env|example)$">
+<FilesMatch "\.(sql|md|lock|log|bak|sh|env|example)$">
   Require all denied
 </FilesMatch>
+# JSON is blocked except the public search index shipped with the frontend
+<FilesMatch "\.json$">
+  Require all denied
+</FilesMatch>
+<Files "search-index.json">
+  Require all granted
+</Files>
+
+RewriteEngine On
 
 # Block access to private paths if they ever land in web root
-RewriteEngine On
 RewriteRule ^(?:backend|includes|storage|database|installer|\.git)/ - [F,L]
 RewriteCond %{REQUEST_URI} (^|/)(config\.local\.php|config\.php|schema\.sql|seed\.php|site\.json)$ [NC]
 RewriteRule ^ - [F,L]
 
-# Generated static site lives in /site — serve it at the web root
-# (homepage, pages, articles, sitemap, robots, 404 — all cached static files)
-RewriteRule ^$ site/index.html [L]
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{REQUEST_URI} !^/(api|admin|install|media)/
-RewriteRule ^(.+)$ site/$1 [L,QSA]
-
 # Media library (admin previews) — served from private storage via media.php
 RewriteRule ^media/(.+)$ media.php?f=$1 [L,QSA]
 
-# Cache static assets
+# ---- static frontend: legacy flat pages → canonical clean URLs (no chains) ----
+RewriteRule ^case-studies\.html/?$ /case-studies/ [R=301,L]
+RewriteRule ^experience\.html/?$ /experience/ [R=301,L]
+RewriteRule ^case-study-enterprise-technology-made-understandable\.html/?$ /case-studies/orange-business/ [R=301,L]
+RewriteRule ^experience-design/orange-business-executive-briefing-center/?$ /case-studies/orange-business/ [R=301,L]
+RewriteRule ^case-study-intuitive-experiences-for-industrial-environments\.html/?$ /case-studies/bharat-petroleum-corporation-limited/ [R=301,L]
+RewriteRule ^case-study-immersive-solutions-for-the-indian-army\.html/?$ /case-studies/indian-army/ [R=301,L]
+RewriteRule ^experience-design/bpcl-palakkad/?$ /case-studies/bharat-petroleum-corporation-limited/ [R=301,L]
+
+# Compress text at the edge; already-compressed media/fonts pass through.
+<IfModule mod_brotli.c>
+  AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css text/javascript application/javascript application/json application/xml image/svg+xml
+</IfModule>
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json application/xml image/svg+xml
+</IfModule>
+
 <IfModule mod_expires.c>
   ExpiresActive On
-  ExpiresByType text/css "access plus 7 days"
-  ExpiresByType application/javascript "access plus 7 days"
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType text/javascript "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 30 days"
   ExpiresByType image/webp "access plus 30 days"
   ExpiresByType image/avif "access plus 30 days"
-  ExpiresByType image/png "access plus 30 days"
   ExpiresByType image/jpeg "access plus 30 days"
+  ExpiresByType image/png "access plus 30 days"
   ExpiresByType image/svg+xml "access plus 30 days"
-  ExpiresByType font/woff2 "access plus 30 days"
+  ExpiresByType video/mp4 "access plus 30 days"
 </IfModule>

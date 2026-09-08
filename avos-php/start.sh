@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # ============================================================
 # AV OS — one-command local start (macOS / Linux)
-#   ./start.sh            → DB + migrations + backend + watcher
-#   ./start.sh --no-watch → skip the live-sync watcher
-# Then open http://localhost:8092 (site) and /admin/login.php
+#   ./start.sh            → DB + migrations + backend + agent watcher
+#   ./start.sh --no-watch → skip the agent watcher
+# Then open http://localhost:8092 (the static website, served from
+# ../abhijeetvarghese) and /admin/login.php
 # ============================================================
 set -u
 cd "$(dirname "$0")"
@@ -41,12 +42,13 @@ if [ ! -f config.local.php ]; then
   rm -f config.local.php.bak
 fi
 
-# 4. migrations + installer (first run creates admin)
-php database/migrate.php
+# 4. installer (first run: migrations + admin) — otherwise just migrate
 if ! mysql -h 127.0.0.1 -u avos -paV0s_d3v_9xKq2mN7 avos -N -e "SELECT COUNT(*) FROM users" 2>/dev/null | grep -q "^[1-9]"; then
-  echo "· creating the administrator account…"
+  echo "· first run: installing schema + administrator account…"
   php database/install.php --admin-email=admin@abhijeetvarghese.com --generate 2>&1 | tail -5
   echo "  (use the printed temporary password, then change it on first login)"
+else
+  php database/migrate.php
 fi
 
 # 5. backend server
@@ -58,13 +60,14 @@ else
   sleep 1
 fi
 
-# 6. live-sync watcher (auto-publish + frontend sync)
+# 6. agent watcher (AI agents / integrations every 60s — no site publishing:
+#    the public website is the static frontend, served as-is)
 if [ "$WATCH" = "1" ]; then
-  if pgrep -f "scripts/auto-publish.php" >/dev/null 2>&1; then
-    echo "· live-sync watcher already running"
+  if pgrep -f "scripts/agent-runner.php" >/dev/null 2>&1; then
+    echo "· agent watcher already running"
   else
-    echo "· starting live-sync watcher (auto-publish + frontend sync every 60s)…"
-    (while true; do php backend/scripts/auto-publish.php >> storage/logs/auto-publish.log 2>&1; php backend/scripts/agent-runner.php >> storage/logs/agent-runner.log 2>&1; sleep 60; done &)
+    echo "· starting agent watcher (agent-runner every 60s)…"
+    (while true; do php backend/scripts/agent-runner.php >> storage/logs/agent-runner.log 2>&1; sleep 60; done &)
   fi
 fi
 

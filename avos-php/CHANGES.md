@@ -3,6 +3,42 @@
      renames. Keep AV_VERSION = 2.4.20; bump the asset cache-bust when
      frontend files change; release tarballs stay AVOS-2.4.20-*. -->
 
+## v2.4.20-r4 · STATIC FRONTEND IS THE FINAL FRONTEND
+
+User directive: treat `abhijeetvarghese/` as the final frontend; remove the other
+frontend code; align the backend to serve and work with the static site.
+
+**Removed** — `backend/publish/*` (PublishEngine, templates), `site-template/`,
+`public_html/site/` (generated output), `backend/scripts/{auto-publish,sync-frontend,
+mirror-site}.php`, `backend/cron/publish-scheduled.php`; API routes `/api/publish*`,
+`/api/deployments*`, `/api/redirects*`, `/api/sync/frontend`, `/api/system/publishing`,
+`/api/system/publish-settings`; models `DeploymentModel`, `PublishQueue`,
+`PublishSettings`, `RedirectModel`; admin publish UI (Publishing view, LIVE/PUBLISHING
+chip + poller, ⌘⇧P, "Publish website" buttons, Sync-frontend button, redirects UI,
+"publish to apply" toasts). Migration `031_static_frontend.sql` drops `publish_queue`,
+`deployments`, `redirects`, the `auto_publish`/`publish_scheduler` flags and the
+`publish` settings row (backup retention → `site_settings 'backup'`).
+
+**Added / changed** — `AV_SITE_DIR` (`$siteDir`, default `../abhijeetvarghese`);
+`router.php` rewritten to serve the static folder with clean-URL dirs, the 7-rule
+301 map, `404.html` and `/api /admin /install /media` routing; single web-root
+`public_html/.htaccess` = AV OS hardening + `/media` rewrite + the frontend's redirect
+and cache rules; `/api/status` reports `site:"static"`, `site_dir`, `public_site`;
+`GET|PUT /api/system/backup-settings` (`BackupSettings`); SEO crawler + SEO/internal-link
+agents scan `AV_SITE_DIR` recursively (clean-URL aware); doctor checks site folder,
+`404.html`, web-root `.htaccess`; admin "Website" view (status + Open website + Run SEO
+crawl); Settings → "Website & backups" card; `start.sh`/`start.bat` run the agent
+watcher instead of the publish watcher; `install.php` lock path fixed to
+`public_html/install/.installed`; config double-load warning fixed (`require_once`).
+
+**Docs** — `docs/static-frontend.md` replaces `docs/publishing.md`; architecture, api,
+deployment, plug-and-play, recovery, cms, ai, automation, authentication, integrations,
+HANDOVER.md and DEPLOY-HOSTINGER-PHP.md updated.
+
+**Tests** — `e2e_fresh.sh` (publish/rollback/auto-publish sections → static-frontend
+assertions; lead payloads carry a phone; portable paths) 139/139; `journeys.sh`,
+`failure_modes.sh` updated; Python QA scripts point at `abhijeetvarghese/`.
+
 ## v2.4.20-r3 · FULL AUDIT + CURSOR/FONT REMOVAL + PORTFOLIO NAV + RESPONSIVE
 
 User directive (5 items):

@@ -3,7 +3,9 @@
 Target: `https://abhijeetvarghese.com` — Hostinger Premium shared hosting (PHP 8.x, MariaDB,
 Apache/LiteSpeed, `.htaccess`). **No Node, Docker, Redis or VPS services required.**
 
-See also the full walkthrough at `/home/user/DEPLOY-HOSTINGER-PHP.md` (same steps, more detail).
+See also the full walkthrough in the repo root `DEPLOY-HOSTINGER-PHP.md` (same steps, more detail).
+The public website is the **static frontend** (`abhijeetvarghese/`, deployed by the GitHub workflow
+to the `hostinger` branch → web root). AV OS (admin + API) sits beside it in the same web root.
 
 ## 1. Create the database
 
@@ -12,13 +14,18 @@ Note the name, user, password.
 
 ## 2. Upload files
 
+- The static website (`abhijeetvarghese/*`) is already at the web root via the `hostinger`
+  deploy branch. Keep it there; AV OS does not generate or overwrite it.
 - Upload everything from `avos-php/public_html/` **into** `public_html/` on Hostinger
-  (so `public_html/api`, `public_html/admin`, `public_html/install` land correctly).
-- Upload the rest of `avos-php/` (backend/, database/, includes/, install/, site-template/,
-  storage/, config.local.example.php, router.php) to a folder **outside** the web root, e.g.
-  `/home/uXXXXXX/avos/` (private — never directly downloadable). If you must keep it under
-  `public_html/`, the included `.htaccess` rules block access to backend/, database/, includes/,
-  storage/ and site-template/.
+  (so `public_html/api`, `public_html/admin`, `public_html/install`, `media.php` land beside the
+  site). `avos-php/public_html/.htaccess` **replaces** the frontend's `.htaccess` at the web root —
+  it contains the same 301 map + caching rules plus the AV OS hardening and `/media` rewrite.
+- Upload the rest of `avos-php/` (backend/, database/, includes/, storage/,
+  config.local.example.php) to a folder **outside** the web root, e.g. `/home/uXXXXXX/avos/`
+  (private — never directly downloadable). If you must keep it under `public_html/`, the included
+  `.htaccess` rules block access to backend/, database/, includes/ and storage/.
+- If the site folder is not the parent of the AV OS folder, set `$siteDir` in `config.local.php`
+  (used by the SEO crawler and doctor).
 
 ## 3. Configure config.local.php
 
@@ -42,23 +49,26 @@ runs all migrations (pure PDO — works even where `exec()` is disabled), import
 creates the Super Admin with forced password change, then **locks itself** (`.installed` marker;
 second visit → 404). Delete the `install/` folder afterwards for belt-and-braces.
 
-## 5. Login & first publish
+## 5. Login
 
-`https://abhijeetvarghese.com/admin/` → change the temporary password → Dashboard shows real state →
-Publishing → **Publish website**. The static site is regenerated into `public_html/site/`.
+`https://abhijeetvarghese.com/admin/` → change the temporary password → Dashboard shows real state.
+The **Website** view shows the static site folder status and runs the SEO crawl; there is nothing
+to publish — the site is live as deployed.
 
 ## 6. Verify
 
-- `https://abhijeetvarghese.com/` — homepage
+- `https://abhijeetvarghese.com/` — homepage (static frontend); `/case-studies/orange-business/` clean URL; `/case-studies.html` → 301
 - `https://abhijeetvarghese.com/api/status` — `{"ok":true,... "status":"healthy" ...}`
 - `https://abhijeetvarghese.com/admin/` — CMS
 - `/api/status` must NOT expose credentials/keys (it never does).
 
 ## 7. Cron (optional but recommended)
 
-Lead-inactivity automation:
-`php /home/uXXXXXX/avos/backend/cron/lead-inactivity.php` — daily. Hostinger: hPanel → Advanced →
-Cron Jobs.
+- `* * * * *  php /home/uXXXXXX/avos/backend/scripts/agent-runner.php` — AI agents / scheduled jobs
+- `*/15 * * * * php /home/uXXXXXX/avos/backend/scripts/integration-sync.php`
+- daily: `php /home/uXXXXXX/avos/backend/cron/lead-inactivity.php`, `php …/backend/cron/maintenance.php`
+
+Hostinger: hPanel → Advanced → Cron Jobs.
 
 ## 8. Upgrades
 
@@ -67,6 +77,6 @@ scratch is intended). Migrations are tracked + idempotent; a failed run is safe 
 
 ## File permissions (Hostinger defaults are fine)
 
-- `storage/` (uploads, cache, logs, backups, deployments): writable by PHP (775).
+- `storage/` (uploads, cache, logs, backups, versions): writable by PHP (775).
 - `public_html/`: 755 dirs / 644 files.
 - Never commit or upload `config.local.php` anywhere public.

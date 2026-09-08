@@ -26,9 +26,9 @@ regenerates a **static, fast, cacheable public website**. Everything runs on Hos
                             │
                          MySQL        (single canonical source of truth)
                             │
-                     PUBLISH ENGINE   (backend/publish/PublishEngine.php)
+                     STATIC FRONTEND  (abhijeetvarghese/ — served as-is)
                             │
-                      STATIC SITE      (public_html/site/ — atomic swap, rollback-safe)
+                      → docs/static-frontend.md
                             │
                  abhijeetvarghese.com
 ```
@@ -38,25 +38,23 @@ regenerates a **static, fast, cacheable public website**. Everything runs on Hos
 | Concern            | Canonical source                                   |
 |--------------------|----------------------------------------------------|
 | Content            | MySQL `content_store` (JSON documents per entity)  |
-| Frontend template  | `site-template/` (approved design, never edited by publish) |
-| Generated site     | `public_html/site/` (regenerated on every publish) |
+| Public website     | `abhijeetvarghese/` — hand-authored static frontend, served as-is (`AV_SITE_DIR`) |
 | Users/auth         | MySQL `users` (relational, bcrypt) — never content_store |
 | Configuration      | `config.local.php` (outside web root; dev-only defaults rejected in production) |
 | Migrations         | `database/migrations/*.sql` (tracked in `schema_migrations`, checksummed, immutable) |
-| Deployment history | MySQL `deployments` (+ site snapshots in `storage/deployments/`) |
 
-## Data flow (publish)
+## Data flow (content)
 
-`MySQL content_store → ContentStore::all() → PublishEngine → site-template → staging dir →
-validateBuild → atomic swap → live site` (+ `sitemap.xml`, `robots.txt`, `css/tokens.css` design tokens,
-first-party analytics snippet). If any step fails: build stops, current live site stays untouched, failure
-logged to `system_errors` and a notification is pushed.
+`Admin → PUT /api/content → content_store (versioned, last 50 per key)`. The CMS
+collections are working data for CRM, SEO, agents and integrations — they do not
+render the public website. The website is the static frontend; see
+`docs/static-frontend.md`.
 
 ## Public vs admin surface
 
 - **Public** (no auth): `/api/site`, `/api/pages(/slug)`, `/api/projects(/slug)`, `/api/posts(/slug)`,
   `POST /api/public/lead`, `POST /api/public/submit`, `POST /api/analytics/track`, `GET /api/v1/*`,
-  `/api/status`. Static HTML/CSS/JS under `public_html/site/`.
+  `/api/status`. The public website itself is the static frontend (`abhijeetvarghese/`).
 - **Admin** (session + CSRF + RBAC): everything else under `/api/…`, served to `/admin/app/`.
 
 ## Security posture
@@ -79,7 +77,6 @@ avos-php/
 │   ├── config/config.php          (constants; reads config.local.php)
 │   ├── core/  Database, Auth, Response(+Input), Pdf
 │   ├── models/ Models.php (v1), BusinessModels.php (v2)
-│   ├── publish/PublishEngine.php
 │   ├── ai/AiProviders.php         (OpenAI / Anthropic / Gemini providers)
 │   ├── controllers/ApiController.php (all routes + handlers)
 │   └── cron/lead-inactivity.php   (Hostinger-cron-compatible sweep)
@@ -90,7 +87,6 @@ avos-php/
 │   ├── admin/  (login.php, change-password.php, app/ SPA)
 │   ├── install/                   (web installer, self-locking)
 │   └── site/                      (generated public site)
-├── site-template/                 (canonical frontend template source)
 └── storage/  uploads, cache, logs, backups, deployments, versions
 ```
 
@@ -104,8 +100,7 @@ avos-php/
   (verified: revoked user's next request → 401).
 - **Conflict detection**: `GET /api/content` returns per-key versions; `PUT` with `base_versions`
   → 409 with server version when another session saved first.
-- **Redirects**: `redirects` table + CRUD API/UI → written to the site `.htaccess` at publish (301/302).
-- **Pre-flight + diff + post-publish verification + auto-rollback**: see publishing.md.
+- **Redirects**: owned by the static frontend's `.htaccess` (and mirrored in `router.php` for dev).
 - **Idempotent public leads**: same email within 24h returns the existing lead + activity entry
   (no duplicate rows), while genuinely different inquiries are never merged.
 - **Security score** (`/api/security-score`, real checks) and **diagnostics** (`/api/diagnostics`:
@@ -114,22 +109,14 @@ avos-php/
   copilot tool-level RBAC.
 - **Automation**: dry-run test mode per rule, loop guard (max 5 executions/request), webhook retry
   (bounded, `POST /api/webhooks/retry-failed`).
-- **Draft safety**: listings (homepage, journal/insights, sitemap page, sitemap.xml) never link or
-  list non-published content; internal-link gate blocks publishing broken listings.
-- **404 + headers**: generated `404.html`, `ErrorDocument`, `X-Frame-Options`/nosniff/Referrer-Policy/
-  Permissions-Policy on the static site, same-origin CORS (no wildcard).
-- **Cron**: `publish-scheduled.php`, `maintenance.php` (retention), `lead-inactivity.php` — all
+- **404 + headers**: the frontend ships `404.html` + `ErrorDocument`; `X-Frame-Options`/nosniff/
+  Referrer-Policy/Permissions-Policy/CSP in the web-root `.htaccess`; same-origin CORS (no wildcard).
+- **Cron**: `agent-runner.php`, `integration-sync.php`, `maintenance.php` (retention), `lead-inactivity.php` — all
   flock-protected, Hostinger cron-compatible.
 
 
 ## Frontend sources (single source of truth)
 
-- `abhijeetvarghese/` — **design source of truth** (approved frontend; edit here).
-- `site-template/` — template snapshot synced from it (`backend/scripts/sync-frontend.php`, hash-manifest based).
-- `public_html/site/` — **generated output** of the publish engine. Never edit by hand; every publish regenerates it.
-
-Editing `public_html/site/*.html` directly will not persist — the publish engine overwrites it. The
-frontend-sync cron (optional) copies css/js/assets/fonts from the design source into the template and
-(if `auto_publish` is enabled) republishes. Auto-publish is a deliberate plug-and-play choice; to
-require a manual publish, disable the `auto_publish` flag (Platform → Feature flags) and use the
-Publishing view.
+- `abhijeetvarghese/` — **the public website**, hand-authored and served as-is. Edit here, commit,
+  deploy (GitHub workflow → `hostinger` branch). Nothing in AV OS generates, copies or rewrites it.
+  Details: `docs/static-frontend.md`.

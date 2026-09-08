@@ -970,7 +970,7 @@
         ["API", s.ok, "API responding"],
         ["Database", s.data?.database === "connected", "MySQL connection"],
         ["Storage", s.data?.storage === "writable", "uploads / cache / logs"],
-        ["Public site", !!s.data?.public_site, "Generated static site exists"],
+        ["Public site", !!s.data?.public_site, "Static website folder present (index.html)"],
         ["Auth", !!s.data?.authed, "Session active"],
         ["Version", true, "v" + (s.data?.version || "?") + " · " + (s.data?.environment || "?")],
       ];
@@ -1260,162 +1260,61 @@
   });
 
   /* ============ PUBLISHING (deployment history + rollback) ============ */
+  /* ============ WEBSITE (static frontend — served as-is) ============ */
   R.register("publishing", () => `
     <div class="view__head">
-      <div><h1 class="view__title">Publishing</h1>
-      <p class="view__desc">Deterministic build → staging → validation → atomic swap. Every publish is recorded; previous deployments can be rolled back; a failed publish auto-rolls back.</p></div>
+      <div><h1 class="view__title">Website</h1>
+      <p class="view__desc">The public website is the hand-authored static frontend, served exactly as committed — no template layer, no HTML generator, nothing to publish from here.</p></div>
       <div class="view__head-actions">
-        <button class="btn btn--ghost" data-preflight>${icon("check")} Pre-flight</button>
-        <button class="btn btn--ghost" data-diff>${icon("copy")} Diff</button>
-        <button class="btn btn--primary" data-publish>${icon("send")} Publish website</button>
+        <a class="btn btn--ghost" href="/" target="_blank" rel="noopener">${icon("send")} Open website</a>
+        <button class="btn btn--primary" data-crawl>${icon("search")} Run SEO crawl</button>
       </div>
     </div>
     <div class="card" style="margin-bottom:16px">
-      <div class="card__head"><p class="card__title">Live sync</p><span class="chip" id="lsChip">…</span></div>
-      <div class="card__body" id="lsBody" style="font-size:12.5px"></div>
-    </div>
-    <div class="card" style="margin-bottom:16px">
-      <div class="card__head"><p class="card__title">Deployment history</p><span class="chip chip--muted">last 20 · snapshots kept: ${esc(AV.pubRetention || 10)}</span></div>
-      <div class="card__body" id="depBody" style="overflow-x:auto"></div>
-    </div>
-    <div class="card" style="margin-bottom:16px">
-      <div class="card__head"><p class="card__title">Redirects</p><span class="chip chip--muted">written to the site .htaccess at publish</span></div>
-      <div class="card__body">
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
-          <input class="input" id="redOld" placeholder="old-url.html" style="flex:1;min-width:150px">
-          <input class="input" id="redNew" placeholder="new-url.html" style="flex:1;min-width:150px">
-          <select class="select" id="redCode" style="min-height:38px"><option value="301">301</option><option value="302">302</option></select>
-          <button class="btn btn--primary" data-red-add>${icon("plus", 13)} Add redirect</button>
-        </div>
-        <div id="redList"></div>
-      </div>
+      <div class="card__head"><p class="card__title">Status</p><span class="chip" id="siteChip">…</span></div>
+      <div class="card__body" id="siteBody" style="font-size:12.5px"></div>
     </div>
     <div class="card">
-      <div class="card__head"><p class="card__title">Pipeline</p></div>
+      <div class="card__head"><p class="card__title">How changes reach the site</p></div>
       <div class="card__body" style="font-size:12.5px;line-height:1.9;color:var(--ink-3)">
-        MySQL content → content snapshot → template rendering (site-template/) → asset copy → HTML generation →
-        css/tokens.css + sitemap.xml + robots.txt + 404.html + .htaccess → validation → staging directory → atomic swap →
-        post-publish health check (critical routes + sitemap) → deployment recorded.
-        <br>If any step fails the build stops, the current live site stays untouched, and the failure is logged.
-        <br>If the post-publish check fails, the previous deployment is restored automatically.
+        Edit the files in the frontend folder (HTML · css/styles.css · js/main.js · assets/) → commit → the deploy workflow
+        pushes the <code>abhijeetvarghese/</code> folder to Hostinger. Redirects and cache rules live in the frontend's own
+        <code>.htaccess</code>.<br>
+        AV OS keeps serving what the site needs at runtime: <code>POST /api/public/lead</code> (booking form → CRM),
+        <code>POST /api/analytics/track</code> (first-party analytics) and the admin tools around them (leads, meetings,
+        SEO crawler, agents). Content collections in this CMS are working data for those tools — they do not render pages.
       </div>
     </div>`);
   R.after("publishing", view => {
     const load = async () => {
-      const r = await AV.api.get("/api/deployments");
-      $("#depBody", view).innerHTML = `<table class="table"><thead><tr><th>#</th><th>Version</th><th>Status</th><th>By</th><th>Note</th><th>Created</th><th></th></tr></thead><tbody>` +
-        (r.data || []).map(d => `
-          <tr>
-            <td>#${d.id}</td>
-            <td><code style="font-size:11.5px">${esc(d.version || "")}</code></td>
-            <td><span class="chip ${d.status === "live" ? "chip--ok" : d.status === "rolled_back" ? "chip--warn" : "chip--muted"}">${esc(d.status)}</span></td>
-            <td style="font-size:12px">${esc(d.user_name || "system")}</td>
-            <td style="font-size:12px">${esc(d.note || "")}</td>
-            <td style="font-size:12px;color:var(--ink-4)">${esc((d.created_at || "").slice(0, 16).replace("T", " "))}</td>
-            <td>${d.status === "live" && d.id > 1 ? `<button class="btn btn--sm btn--danger-soft" data-rollback="${d.id}">Roll back to #${d.id - 1}</button>` : ""}</td>
-          </tr>`).join("") + `</tbody></table>`;
-      $$("[data-rollback]", view).forEach(b => b.addEventListener("click", () => confirmDlg(
-        "Roll back deployment?",
-        "The previous live deployment (site + content) will be restored. Current content becomes a new version — nothing is destroyed.",
-        async () => {
-          const rr = await AV.api.send("/api/publish/rollback", "POST", {});
-          if (rr.ok) { toast(`Rollback complete — restored deployment #${rr.data.restored_deployment}`); load(); }
-          else toast(rr.error && rr.error.message ? rr.error.message : "Rollback failed", "error");
-        })));
-    };
-    const loadRedirects = async () => {
-      const r = await AV.api.get("/api/redirects");
-      $("#redList", view).innerHTML = (r.data || []).map(rd => `
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:12.5px">
-          <span class="chip ${rd.enabled ? "chip--ok" : "chip--muted"}">${rd.status_code}${rd.enabled ? "" : " · off"}</span>
-          <code style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(rd.old_url)} → ${esc(rd.new_url)}</code>
-          <button class="icon-btn" style="width:28px;height:28px" data-red-del="${rd.id}">${icon("trash", 13)}</button>
-        </div>`).join("") || `<p style="color:var(--ink-3)">No redirects.</p>`;
-      $$("[data-red-del]", view).forEach(b => b.addEventListener("click", async () => {
-        await AV.api.send("/api/redirects/" + b.dataset.redDel, "DELETE");
-        loadRedirects();
-      }));
-    };
-    const loadLiveSync = async () => {
-      const r = await AV.api.get("/api/system/publishing");
-      if (!r.ok) return;
-      const d = r.data;
-      const ls = d.live_sync || {};
-      const q = (d.queue && d.queue.current) || null;
-      const chip = $("#lsChip", view);
-      if (q && q.status === "processing") { chip.textContent = "PUBLISHING…"; chip.className = "chip chip--accent"; }
-      else if (q && q.status === "failed") { chip.textContent = "FAILED"; chip.className = "chip chip--danger"; }
-      else if (ls.failures >= 3) { chip.textContent = "NEEDS ATTENTION"; chip.className = "chip chip--warn"; }
-      else { chip.textContent = "🟢 HEALTHY"; chip.className = "chip chip--ok"; }
+      const r = await AV.api.get("/api/status");
+      const d = r.data || {};
+      const chip = $("#siteChip", view);
+      const ok = d.public_site === true;
+      chip.textContent = ok ? "🟢 SERVING" : "MISSING";
+      chip.className = "chip " + (ok ? "chip--ok" : "chip--danger");
       const rows = [
-        ["Last check", ls.last_check || "—"],
-        ["Last sync", ls.last_sync || "—"],
-        ["Last publish", ls.last_publish || "—"],
-        ["Consecutive failures", String(ls.failures || 0)],
-        ["Last error", ls.last_error ? String(ls.last_error).slice(0, 140) : "none"],
+        ["Mode", "static frontend"],
+        ["Folder", d.site_dir || "—"],
+        ["index.html present", ok ? "yes" : "no"],
+        ["AV OS version", d.version || "—"],
+        ["Environment", d.environment || "—"],
       ];
-      $("#lsBody", view).innerHTML = rows.map(([k, v]) => `
+      $("#siteBody", view).innerHTML = rows.map(([k, v]) => `
         <div style="display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid var(--line)">
           <span style="color:var(--ink-3);flex:none">${esc(k)}</span>
-          <span style="text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v)}</span>
-        </div>`).join("") + `
-        <div style="margin-top:10px">
-          <p class="card__title" style="margin-bottom:6px">Publish queue</p>
-          ${(d.queue && d.queue.history || []).slice(0, 6).map(j => `
-            <div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px">
-              <span class="chip ${j.status === "completed" ? "chip--ok" : j.status === "failed" ? "chip--danger" : j.status === "processing" ? "chip--accent" : "chip--muted"}" style="font-size:10px">${esc(j.status)}</span>
-              <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(j.trigger_name || "")} · ${esc(j.note || "")}</span>
-              <span style="color:var(--ink-4);font-size:11px">${esc((j.created_at || "").slice(11, 19))}</span>
-            </div>`).join("") || '<p style="color:var(--ink-3)">No jobs yet.</p>'}
-        </div>`;
+          <span style="text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(String(v))}</span>
+        </div>`).join("");
     };
-    $("[data-red-add]", view).addEventListener("click", async () => {
-      const r = await AV.api.send("/api/redirects", "POST", {
-        old_url: $("#redOld", view).value, new_url: $("#redNew", view).value, status_code: $("#redCode", view).value, enabled: 1
-      });
-      if (r.ok) { toast("Redirect saved — applies at next publish"); $("#redOld", view).value = ""; $("#redNew", view).value = ""; loadRedirects(); }
-      else toast("Redirect failed", "error");
+    $("[data-crawl]", view).addEventListener("click", async () => {
+      const btn = $("[data-crawl]", view);
+      btn.disabled = true; btn.innerHTML = `${icon("search")} Crawling…`;
+      const r = await AV.api.send("/api/seo/audit", "POST", {});
+      btn.disabled = false; btn.innerHTML = `${icon("search")} Run SEO crawl`;
+      if (!r.ok) { toast("Crawl failed", "error"); return; }
+      toast(`Crawl complete — score ${r.data.score}, ${r.data.pages_crawled} pages, ${r.data.issues_found} issue(s)`, "accent");
+      R.go("seo");
     });
-    $("[data-preflight]", view).addEventListener("click", async () => {
-      const btn = $("[data-preflight]", view);
-      btn.disabled = true; btn.innerHTML = `${icon("check")} Building…`;
-      const r = await AV.api.send("/api/publish/preflight", "POST", {});
-      btn.disabled = false; btn.innerHTML = `${icon("check")} Pre-flight`;
-      if (!r.ok) { toast("Pre-flight failed: " + (r.error && r.error.message ? r.error.message : "error"), "error"); return; }
-      const x = r.data;
-      const m = modal({
-        title: "Pre-flight report",
-        body: `<div style="font-size:13px;line-height:2">
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--ink-3)">Pages</span><b>${x.pages}</b></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--ink-3)">Articles</span><b>${x.articles}</b></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--ink-3)">Images</span><b>${x.images}</b></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--ink-3)">SEO errors</span><b style="color:${x.seo_errors ? "var(--warn)" : "var(--ok)"}">${x.seo_errors}</b></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--ink-3)">Warnings (alt text)</span><b>${x.warnings}</b></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--ink-3)">Broken assets / links</span><b style="color:var(--ok)">${x.broken_assets} / ${x.broken_links}</b></div>
-          <p style="font-size:11.5px;color:var(--ink-4);margin-top:8px">Warnings do not block publishing — genuine errors do.</p>
-        </div>`,
-        actions: `<button class="btn btn--primary" data-c>Close</button>`
-      });
-      $("[data-c]", m.el).addEventListener("click", m.close);
-    });
-    $("[data-diff]", view).addEventListener("click", async () => {
-      const r = await AV.api.get("/api/publish/diff");
-      const x = r.data || { collections: {}, total_changes: 0 };
-      const m = modal({
-        title: "Publish diff vs last deployment",
-        body: x.total_changes === 0
-          ? `<p style="color:var(--ok);font-size:13px">No changes since the last publish.</p>`
-          : Object.entries(x.collections).map(([key, c]) => `
-            <p style="font-weight:700;margin:10px 0 4px;text-transform:capitalize">${esc(key)}</p>
-            ${(c.added || []).map(i => `<p style="font-size:12.5px;color:var(--ok)">+ ${esc(i)}</p>`).join("")}
-            ${(c.modified || []).map(i => `<p style="font-size:12.5px;color:var(--warn)">~ ${esc(i)}</p>`).join("")}
-            ${(c.removed || []).map(i => `<p style="font-size:12.5px;color:var(--danger)">− ${esc(i)}</p>`).join("")}`).join(""),
-        actions: `<button class="btn btn--primary" data-c>Close</button>`
-      });
-      $("[data-c]", m.el).addEventListener("click", m.close);
-    });
-    loadRedirects();
-    loadLiveSync();
     load();
   });
 
@@ -1471,7 +1370,7 @@
         "The entity is restored to this version. A new version of the restore is created — history is preserved.",
         async () => {
           const rr = await AV.api.send("/api/versions/" + key + "/restore", "POST", { version: parseInt(b.dataset.restore, 10) });
-          if (rr.ok) { toast("Version restored — publish to apply"); load(); }
+          if (rr.ok) { toast("Version restored"); load(); }
           else toast("Restore failed", "error");
         })));
     };

@@ -105,6 +105,8 @@ try {
         $done[] = $fresh['slug'];
     }
 
+    // heartbeat for the admin doctor (System → Health): proves the cron runs
+    @file_put_contents(AV_CACHE . '/agent-runner-state.json', json_encode(['checked_at' => date('c'), 'ran' => $ran, 'agents' => $done]));
     printf("[agent-runner] %s — %d job(s) executed in %.2fs: %s\n", date('c'), $ran, microtime(true) - $started, $done ? implode(', ', $done) : 'none due');
     exit(0);
 } catch (Throwable $e) {

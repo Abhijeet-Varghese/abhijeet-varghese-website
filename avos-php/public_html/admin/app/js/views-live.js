@@ -140,7 +140,7 @@
     });
     $("[data-save]", view).addEventListener("click", () => {
       S.set("nav", nav);
-      AV.publishSite();
+      toast("Navigation saved");
     });
     render(); wire();
   });
@@ -261,7 +261,7 @@
       $$("[data-edit]", view).forEach(b => b.addEventListener("click", () => editInfo(pages().find(p => p.id === b.dataset.edit), render)));
       $$("[data-del]", view).forEach(b => b.addEventListener("click", () => confirmDlg("Delete page?", "The page and its URL will be removed from the site after publish.", () => {
         S.set("pages", pages().filter(p => p.id !== b.dataset.del));
-        toast("Page deleted — publish to apply"); render();
+        toast("Page deleted"); render();
       })));
     };
     const editInfo = (pg, rerender) => {
@@ -282,7 +282,7 @@
         pg.title = $(".f-t", m.el).value; pg.slug = $(".f-s", m.el).value.replace(/\.html$/, "").replace(/[^a-z0-9-]/gi, "-").toLowerCase();
         pg.status = $(".f-st", m.el).value;
         pg.seo = pg.seo || {}; pg.seo.title = $(".f-seo", m.el).value; pg.seo.desc = $(".f-desc", m.el).value;
-        pg.updated = "Just now"; S.save(); toast("Page saved — publish to apply"); m.close(); rerender();
+        pg.updated = "Just now"; S.save(); toast("Page saved"); m.close(); rerender();
       });
     };
     const layoutEditor = (pg, rerender) => {
@@ -355,7 +355,7 @@
       $("[data-c]", m.el).addEventListener("click", m.close);
       $("[data-save]", m.el).addEventListener("click", () => {
         pg.updated = "Just now"; S.save();
-        toast("Layout saved — publish to apply"); m.close(); rerender();
+        toast("Layout saved"); m.close(); rerender();
       });
       renderBlocks();
     };
@@ -394,10 +394,9 @@
   R.register("settings", () => `
     <div class="view__head">
       <div><h1 class="view__title">Settings</h1>
-      <p class="view__desc">Site identity, favicon, logo, contacts — everything here publishes to the live site.</p></div>
+      <p class="view__desc">Site identity, contacts and brand marks used by AV OS (emails, proposals, agents). The public website is static — its own HTML holds the live values.</p></div>
       <div class="view__head-actions">
-        <button class="btn btn--ghost" data-sync>${icon("refresh")} Sync frontend</button>
-        <button class="btn btn--primary" data-save>${icon("save")} Save & publish</button>
+        <button class="btn btn--primary" data-save>${icon("save")} Save</button>
       </div>
     </div>
     <div class="grid grid-13">
@@ -436,37 +435,16 @@
             <textarea id="stSocial" rows="5">${(S.get("settings").socials || []).map(s => `${s.label},${s.href}`).join("\n")}</textarea></div>
         </div>
         <div class="card" style="padding:20px">
-          <p class="card__title" style="margin-bottom:10px">Publishing</p>
-          <p style="font-size:12.5px;color:var(--ink-3);line-height:1.6">Saving writes to the backend content store. Publishing regenerates every page of the live site — homepage, menu, footer, articles and case studies.</p>
+          <p class="card__title" style="margin-bottom:10px">Website &amp; backups</p>
+          <p style="font-size:12.5px;color:var(--ink-3);line-height:1.6">Saving writes to the AV OS content store (versioned). The public website is the static frontend served as-is — change it in the <code>abhijeetvarghese/</code> folder and deploy.</p>
           <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding:10px 0;border-top:1px solid var(--line)">
-            <div><p style="font-weight:600;font-size:13px">Auto publish (live sync)</p>
-            <p style="font-size:11.5px;color:var(--ink-3)">Every save regenerates the public site automatically — no manual publish needed.</p></div>
-            <label class="toggle" title="Auto-publish on save"><input type="checkbox" id="autoPubToggle"><span class="track"></span><span class="thumb"></span></label>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line)">
-            <div><p style="font-weight:600;font-size:13px">Frontend sync</p>
-            <p style="font-size:11.5px;color:var(--ink-3)">Pulls css/js/images/fonts from the frontend folder into the template, then publishes.</p></div>
-            <label class="toggle" title="Frontend sync"><input type="checkbox" id="fsyncToggle"><span class="track"></span><span class="thumb"></span></label>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line)">
-            <div><p style="font-weight:600;font-size:13px">Post-publish health check</p>
-            <p style="font-size:11.5px;color:var(--ink-3)">Verify critical routes after publish; roll back automatically if broken.</p></div>
-            <label class="toggle" title="Health check"><input type="checkbox" id="hcToggle"><span class="track"></span><span class="thumb"></span></label>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line)">
-            <div><p style="font-weight:600;font-size:13px">Automatic rollback</p>
-            <p style="font-size:11.5px;color:var(--ink-3)">Restore the previous deployment when the health check fails.</p></div>
-            <label class="toggle" title="Automatic rollback"><input type="checkbox" id="rbToggle"><span class="track"></span><span class="thumb"></span></label>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line)">
-            <div><p style="font-weight:600;font-size:13px">Version retention</p>
-            <p style="font-size:11.5px;color:var(--ink-3)">Number of production snapshots kept on disk.</p></div>
-            <input type="number" id="retentionInput" min="2" max="50" style="width:76px;min-height:34px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface-2);padding:4px 8px;font-size:13px">
+            <div><p style="font-weight:600;font-size:13px">Backup retention</p>
+            <p style="font-size:11.5px;color:var(--ink-3)">Number of content/DB backups kept on disk.</p></div>
+            <input type="number" id="backupKeepInput" min="1" max="30" style="width:76px;min-height:34px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface-2);padding:4px 8px;font-size:13px">
           </div>
           <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-            <button class="btn btn--soft btn--sm" data-sync2>${icon("refresh", 12)} Sync frontend now</button>
-            <button class="btn btn--soft btn--sm" data-sync-preview>${icon("eye", 12)} Preview sync</button>
-            <button class="btn btn--primary" style="margin-left:auto" data-publish>${icon("send")} Publish website now</button>
+            <a class="btn btn--soft btn--sm" href="/" target="_blank" rel="noopener">${icon("eye", 12)} Open website</a>
+            <button class="btn btn--soft btn--sm" data-go="backups">${icon("db", 12)} Backups</button>
           </div>
         </div>
       </div>
@@ -489,7 +467,7 @@
               if (kind === "logo") { s.logo = r.src; $("#logoPrev", view).src = r.src; }
               else { s.favicon = r.src; $("#favPrev", view).src = r.src; }
               S.save();
-              toast(kind === "logo" ? "Logo uploaded — publish to apply" : "Favicon uploaded — publish to apply", "accent");
+              toast(kind === "logo" ? "Logo saved" : "Favicon saved", "accent");
             } else toast("Upload failed: " + (r.error || "server unreachable"), "error");
           };
           img.src = URL.createObjectURL(f);
@@ -518,82 +496,21 @@
     };
     $("[data-save]", view).addEventListener("click", async () => {
       collect();
-      // with live sync on, the save itself auto-publishes — avoid a double publish
-      const fl = await AV.api.get("/api/flags");
-      const auto = !!(fl.data || []).find(x => x.flag === "auto_publish" && x.enabled);
-      if (auto) toast("Settings saved — live sync is publishing automatically");
-      else { toast("Settings saved to backend"); AV.publishSite(); }
+      toast("Settings saved");
     });
-    $("[data-publish]", view).addEventListener("click", () => { collect(); AV.publishSite(); });
-    /* Live sync: publishing settings (flags + retention) */
-    const loadPublishSettings = async () => {
-      const r = await AV.api.get("/api/system/publish-settings");
+    /* backup retention (server-side setting) */
+    const loadBackupSettings = async () => {
+      const r = await AV.api.get("/api/system/backup-settings");
       if (!r.ok) return;
-      const flags = (r.data && r.data.flags) || {};
-      const set = (id, flag) => { const t = $(id, view); if (t && flags[flag]) t.checked = !!flags[flag].enabled; };
-      set("#autoPubToggle", "auto_publish");
-      set("#fsyncToggle", "frontend_sync");
-      set("#hcToggle", "post_publish_healthcheck");
-      set("#rbToggle", "automatic_rollback");
-      const ret = $("#retentionInput", view);
-      if (ret && r.data.settings) ret.value = r.data.settings.retention;
-      AV.pubRetention = (r.data.settings && r.data.settings.retention) || 10;
+      const inp = $("#backupKeepInput", view);
+      if (inp && r.data && r.data.settings) inp.value = r.data.settings.db_backups;
     };
-    const savePublishSettings = async (extra) => {
-      const body = {
-        auto_publish: $("#autoPubToggle", view).checked,
-        frontend_sync: $("#fsyncToggle", view).checked,
-        post_publish_healthcheck: $("#hcToggle", view).checked,
-        automatic_rollback: $("#rbToggle", view).checked,
-        retention: parseInt($("#retentionInput", view).value || "10", 10),
-      };
-      const r = await AV.api.send("/api/system/publish-settings", "PUT", Object.assign(body, extra || {}));
-      if (r.ok) toast("Publishing settings saved", "accent");
+    $("#backupKeepInput", view).addEventListener("change", async () => {
+      const r = await AV.api.send("/api/system/backup-settings", "PUT", { db_backups: parseInt($("#backupKeepInput", view).value || "5", 10) });
+      if (r.ok) toast("Backup retention saved", "accent");
       else toast("Save failed", "error");
-    };
-    $("#autoPubToggle", view).addEventListener("change", () => savePublishSettings());
-    $("#fsyncToggle", view).addEventListener("change", () => savePublishSettings());
-    $("#hcToggle", view).addEventListener("change", () => savePublishSettings());
-    $("#rbToggle", view).addEventListener("change", () => savePublishSettings());
-    $("#retentionInput", view).addEventListener("change", () => savePublishSettings());
-    $("[data-sync-preview]", view).addEventListener("click", async () => {
-      const r = await AV.api.send("/api/sync/frontend?dry_run=1", "POST", {});
-      if (!r.ok) { toast(r.error && r.error.message ? r.error.message : "Preview failed", "error"); return; }
-      const lines = (r.data && r.data.output) || [];
-      const m = modal({
-        title: "Frontend sync — preview",
-        body: `<pre style="font-size:12px;white-space:pre-wrap;max-height:360px;overflow-y:auto;background:var(--surface-3);padding:12px;border-radius:10px">${esc(lines.join("\n"))}</pre>`,
-        actions: `<button class="btn btn--ghost" data-c>Close</button><button class="btn btn--primary" data-run>Sync now</button>`
-      });
-      $("[data-c]", m.el).addEventListener("click", m.close);
-      $("[data-run]", m.el).addEventListener("click", () => { m.close(); runSync(); });
     });
-    const runSync = async () => {
-      const btn = $("[data-sync2]", view);
-      if (btn) { btn.disabled = true; btn.innerHTML = `${icon("refresh", 12)} Syncing…`; }
-      const r = await AV.api.send("/api/sync/frontend", "POST", {});
-      if (btn) { btn.disabled = false; btn.innerHTML = `${icon("refresh", 12)} Sync now`; }
-      if (r.ok) {
-        const lines = (r.data && r.data.output) || [];
-        toast("Frontend synced — " + (lines.find(l => l.includes("file(s)")) || "done"));
-        AV.publishSite();
-      } else {
-        toast(r.error && r.error.message ? r.error.message : "Sync failed — is the frontend folder configured?", "error");
-      }
-    };
-    $("[data-sync]", view).addEventListener("click", runSync);
-    $("[data-sync2]", view).addEventListener("click", runSync);
-    loadPublishSettings();
+    $("[data-go]", view)?.addEventListener("click", e => R.go(e.currentTarget.dataset.go));
+    loadBackupSettings();
   });
-
-  /* ============================================================
-     PUBLISH HOOK — any [data-publish] button does the real thing
-     ============================================================ */
-  document.addEventListener("click", e => {
-    const btn = e.target.closest("[data-publish]");
-    if (!btn) return;
-    e.preventDefault();
-    e.stopPropagation();
-    AV.publishSite();
-  }, true);
 })();

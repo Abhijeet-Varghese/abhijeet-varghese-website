@@ -19,7 +19,7 @@
     </div>
     <div class="grid grid-31">
       <div class="card">
-        <div class="card__head"><p class="card__title">Workspace</p><span class="chip chip--accent">${icon("ai", 12)} draft only — never auto-published</span></div>
+        <div class="card__head"><p class="card__title">Workspace</p><span class="chip chip--accent">${icon("ai", 12)} draft only — never touches the live site</span></div>
         <div class="card__body">
           <div class="ai-chat" id="aiChat">
             <div class="ai-msg ai-msg--bot">
@@ -211,7 +211,7 @@
       if (idx < 0) { toast("Item not found", "error"); return; }
       arr[idx].seo = { ...(arr[idx].seo || {}), title: t, desc: d };
       const r = await AV.api.send("/api/content", "PUT", { [seoState.key]: arr });
-      if (r.ok) { toast("Saved to database (draft — publish to apply)"); scan(); }
+      if (r.ok) { toast("Saved to database"); scan(); }
       else toast("Save failed", "error");
     });
 
@@ -329,10 +329,9 @@
   R.register("designsystem", () => `
     <div class="view__head">
       <div><h1 class="view__title">Design system</h1>
-      <p class="view__desc">One token change, the whole site updates. Typography, color, spacing, radius, motion.</p></div>
+      <p class="view__desc">Reference tokens for the brand (typography, color, spacing, radius, motion). The public website's CSS is authored directly in <code>css/styles.css</code> — these values are documentation and preview only.</p></div>
       <div class="view__head-actions">
         <button class="btn btn--ghost" data-reset>${icon("refresh")} Reset</button>
-        <button class="btn btn--primary" data-publish>${icon("send")} Apply to site</button>
       </div>
     </div>
     <div class="grid grid-13" style="margin-bottom:16px">
@@ -484,7 +483,6 @@
       Object.assign(t, { radius: 16, shadow: 40, spacing: 24, container: 1280, accent: "#2E5AAC", bodyFont: "Inter Tight", accentFont: "Instrument Serif" });
       S.save(); sync(); apply(); toast("Tokens reset to defaults");
     });
-    $("[data-publish]", view).addEventListener("click", () => toast("Design tokens applied to the live site", "accent"));
     $("[data-breakpoints]", view).addEventListener("click", () => toast("Breakpoints editor opened", "accent"));
     sync(); apply();
   });
@@ -667,7 +665,7 @@
         "Content, leads and form submissions will be replaced by the backup state. Users are never restored. This is reversible for content (new versions are created) but leads replaced by the backup are gone.",
         async () => {
           const rr = await AV.api.send("/api/backups/restore", "POST", { file: b.dataset.restore });
-          if (rr.ok) { toast(`Restored: ${rr.data.content_keys} content keys, ${rr.data.leads} leads — publish to apply`); load(); }
+          if (rr.ok) { toast(`Restored: ${rr.data.content_keys} content keys, ${rr.data.leads} leads`); load(); }
           else toast(rr.error && rr.error.message ? rr.error.message : "Restore failed", "error");
         })));
     };

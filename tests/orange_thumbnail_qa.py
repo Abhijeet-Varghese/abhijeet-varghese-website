@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Orange Business listing thumbnail preservation and publishing invariant."""
+"""Orange Business listing thumbnail preservation invariant (static frontend)."""
 import json
 import sys
 from pathlib import Path
@@ -8,7 +8,7 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / 'abhijeetvarghese'
-SITE = ROOT / 'avos-php/public_html/site'
+SITE = SOURCE  # the static frontend IS the public site
 NAME = 'case-orange-experience-in-action.webp'
 ALT = 'Orange Business Executive Briefing Center — Experience in Action case-study thumbnail'
 issues = []
@@ -19,7 +19,7 @@ if project.get('image') != f'media/{NAME}': issues.append('canonical project ima
 if project.get('imageAlt') != ALT: issues.append('canonical project image alt differs')
 if project.get('preserveFrame') is not True: issues.append('preserveFrame flag missing')
 
-for root in [SOURCE, ROOT/'avos-php/site-template', SITE]:
+for root in [SOURCE]:
     image_path = root / 'assets' / NAME
     if not image_path.is_file():
         issues.append(f'missing {image_path.relative_to(ROOT)}')

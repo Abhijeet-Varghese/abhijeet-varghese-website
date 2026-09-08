@@ -2,7 +2,7 @@
 /**
  * AV OS — bootstrap: config, autoload, session, providers.
  */
-require __DIR__ . '/../backend/config/config.php';
+require_once __DIR__ . '/../backend/config/config.php';
 
 spl_autoload_register(function (string $class): void {
     $map = [
@@ -21,7 +21,6 @@ spl_autoload_register(function (string $class): void {
         'OpenAiProvider' => '/backend/ai/AiProviders.php',
         'ClaudeProvider' => '/backend/ai/AiProviders.php',
         'GeminiProvider' => '/backend/ai/AiProviders.php',
-        'PublishEngine' => '/backend/publish/PublishEngine.php',
         'ApiController' => '/backend/controllers/ApiController.php',
         'CrmModel' => '/backend/models/BusinessModels.php',
         'BusinessProjectModel' => '/backend/models/BusinessModels.php',
@@ -42,12 +41,10 @@ spl_autoload_register(function (string $class): void {
         'Pdf' => '/backend/core/Pdf.php',
         'Totp' => '/backend/core/Totp.php',
         'SmtpClient' => '/backend/core/SmtpClient.php',
-        'DeploymentModel' => '/backend/models/BusinessModels.php',
         'TrashModel' => '/backend/models/BusinessModels.php',
         'InboundWebhookModel' => '/backend/models/BusinessModels.php',
         'Lock' => '/backend/models/BusinessModels.php',
-        'PublishSettings' => '/backend/models/BusinessModels.php',
-        'PublishQueue' => '/backend/models/BusinessModels.php',
+        'BackupSettings' => '/backend/models/BusinessModels.php',
         'SiteConfig' => '/backend/models/BusinessModels.php',
         'SearchModel' => '/backend/models/BusinessModels.php',
         'KeywordModel' => '/backend/models/SeoModels.php',

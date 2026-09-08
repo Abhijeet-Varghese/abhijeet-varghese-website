@@ -38,8 +38,8 @@ Seeded example: `lead.created` + `score_min:70` → notification + high-priority
 
 ## Notifications
 
-Types: info / success / warning / critical (lead, publish, system). Pushed for: high-value leads,
-meeting scheduling, publish complete/failed, rollback, backup restore, system errors, security
+Types: info / success / warning / critical (lead, content, system). Pushed for: high-value leads,
+meeting scheduling, backup restore, system errors, security
 events. Read/unread, mark-all-read, bell indicator in the shell.
 
 ## Email templates
@@ -56,5 +56,5 @@ server-side; test button queues a real test delivery (status visible in Platform
   stopped (no infinite loops possible).
 - **Webhook retries**: failed deliveries carry `retry_count` + `last_error`;
   `POST /api/webhooks/retry-failed` re-delivers failures (bounded at 3 attempts).
-- **Cron safety**: all cron scripts (lead-inactivity, publish-scheduled, maintenance) are
+- **Cron safety**: all cron scripts (lead-inactivity, maintenance, agent-runner) are
   flock-protected against overlapping runs and record failures.

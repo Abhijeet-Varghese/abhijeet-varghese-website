@@ -6,7 +6,7 @@
  *              GET /api/site · /api/pages(/slug) · /api/projects(/slug) · /api/posts(/slug)
  *              POST /api/public/lead · POST /api/public/submit
  * Admin:       (session + CSRF + per-endpoint RBAC)
- *              GET/PUT /api/content · POST /api/publish
+ *              GET/PUT /api/content (CMS data: leads/CRM/SEO/settings — the public site is static)
  *              POST/PUT /api/media(/id) · GET/PUT/DELETE /api/leads(/id)
  *              GET /api/forms · POST /api/forms/{id}/status · GET /api/forms/export
  *              GET /api/audit · GET /api/versions/{key} · POST /api/versions/{key}/restore
@@ -61,18 +61,8 @@ final class ApiController
 
                 // ---------- ADMIN ----------
                 $action === 'content' && $a === 'bulk' && $method === 'POST' => self::requireAuth('content.write', fn() => self::contentBulk()),
-                $action === 'sync' && $a === 'frontend' && $method === 'POST' => self::requireAuth('settings.write', fn() => self::syncFrontend()),
                 $action === 'content' && $method === 'GET' => self::requireAuth('content.read', fn() => self::content()),
                 $action === 'content' && $method === 'PUT' => self::requireAuth('content.write', fn() => self::saveContent()),
-                $action === 'publish' && $a === 'rollback' && $method === 'POST' => self::requireAuth('publish', fn() => self::publishRollback()),
-                $action === 'publish' && $a === 'preflight' && $method === 'POST' => self::requireAuth('publish', fn() => self::publishPreflight()),
-                $action === 'publish' && $a === 'diff' && $method === 'GET' => self::requireAuth('content.read', fn() => self::publishDiff()),
-                $action === 'publish' && $method === 'POST' && !$a => self::requireAuth('publish', fn() => self::publish()),
-                $action === 'deployments' && $method === 'GET' => self::requireAuth('content.read', fn() => self::deployments()),
-                $action === 'redirects' && $method === 'GET' => self::requireAuth('settings.read', fn() => self::redirects()),
-                $action === 'redirects' && $method === 'POST' => self::requireAuth('settings.write', fn() => self::redirectSave(0)),
-                $action === 'redirects' && $method === 'PUT' && $a => self::requireAuth('settings.write', fn() => self::redirectSave((int)$a)),
-                $action === 'redirects' && $method === 'DELETE' && $a => self::requireAuth('settings.write', fn() => self::redirectDelete((int)$a)),
                 $action === 'security-score' && $method === 'GET' => self::requireAuth('audit.read', fn() => self::securityScore()),
                 $action === 'diagnostics' && $method === 'GET' => self::requireAuth('audit.read', fn() => self::diagnostics()),
                 $action === 'aiprompts' && $method === 'GET' => self::requireAuth('ai.read', fn() => self::aiPrompts()),
@@ -265,10 +255,9 @@ final class ApiController
                 $action === 'agents' && $a && $method === 'PUT' => self::requireAuth('settings.write', fn() => self::agentUpdate($a)),
                 $action === 'agents' && $a && $b === 'run' && $method === 'POST' => self::requireAuth('ai.write', fn() => self::agentRun($a)),
                 $action === 'status' && $method === 'GET' => self::status(),
-                $action === 'system' && $a === 'publishing' && $method === 'GET' => self::requireAuth('content.read', fn() => self::systemPublishing()),
                 $action === 'system' && $a === 'doctor' && $method === 'GET' => self::requireAuth('settings.read', fn() => self::systemDoctor()),
-                $action === 'system' && $a === 'publish-settings' && $method === 'GET' => self::requireAuth('settings.read', fn() => self::publishSettingsGet()),
-                $action === 'system' && $a === 'publish-settings' && $method === 'PUT' => self::requireAuth('settings.write', fn() => self::publishSettingsSave()),
+                $action === 'system' && $a === 'backup-settings' && $method === 'GET' => self::requireAuth('settings.read', fn() => self::backupSettingsGet()),
+                $action === 'system' && $a === 'backup-settings' && $method === 'PUT' => self::requireAuth('settings.write', fn() => self::backupSettingsSave()),
                 // ---------- V2.4: Integration Hub ----------
                 $action === 'integrations' && $method === 'GET' && !$a => self::requireAuth('settings.read', fn() => IntegrationController::index()),
                 $action === 'integrations' && $a === 'agent-graph' && $method === 'GET' => self::requireAuth('settings.read', fn() => IntegrationController::agentGraph()),
@@ -739,77 +728,15 @@ final class ApiController
         }
         Audit::log($uid, 'content_update', 'content', 'document');
 
-        // DRAFT MODE: publish:false saves to the DB + version but never publishes
-        $draftOnly = ($d['publish'] ?? true) === false;
+        // The public website is the static frontend (served as-is); CMS saves
+        // only update the AV OS data store (versioned).
         unset($d['publish']);
-        $resp = ['ok' => true, 'saved' => date('c'), 'draft' => $draftOnly];
-
-        if (!$draftOnly && FeatureFlagModel::isOn('auto_publish')) {
-            // LIVE SYNC through the publish queue (debounced/coalesced + locked)
-            PublishQueue::enqueue('publish', $uid, 'cms_save', 'auto publish after save');
-            $r = PublishQueue::drainAndPublish($uid, 'cms_save');
-            if ($r['ran']) {
-                $resp['auto_published'] = true;
-                $resp['pages'] = $r['pages'];
-                $resp['articles'] = $r['articles'];
-                $resp['publish_job'] = $r['job_id'];
-            } else {
-                $resp['auto_published'] = false;
-                $resp['queued'] = true;   // another publish is running — job will complete it
-            }
-        }
+        $resp = ['ok' => true, 'saved' => date('c')];
         Response::json($resp);
     }
 
-    private static function publish(): void
-    {
-        $dry = ($_GET['dry_run'] ?? '') === '1' || !empty(Input::body()['dry_run']);
-        if ($dry) {
-            // dry-run: build + validate + report, never touch production
-            try {
-                $engine = new PublishEngine(ContentStore::all());
-                Response::json($engine->preflight());
-            } catch (Throwable $e) {
-                Response::error('Pre-flight failed: ' . (AV_DEBUG ? $e->getMessage() : 'build validation failed'), 500, 'PREFLIGHT_FAILED');
-            }
-        }
-        PublishQueue::enqueue('publish', Auth::user()['id'] ?? null, 'manual', 'manual publish');
-        $r = PublishQueue::drainAndPublish(Auth::user()['id'] ?? null, 'manual', true);   // manual = synchronous
-        if (!$r['ran']) {
-            if (!empty($r['error'])) {
-                NotificationModel::push('Publish failed', mb_substr($r['error'], 0, 200), 'error');
-                Response::error('Publish failed: ' . (AV_DEBUG ? $r['error'] : 'build validation failed'), 500, 'PUBLISH_FAILED');
-            }
-            Response::json(['queued' => true, 'note' => 'another publish is in progress — the queued job will complete it']);
-        }
-        NotificationModel::push('Publish complete', "{$r['pages']} pages · {$r['articles']} articles regenerated", 'publish');
-        WebhookModel::dispatch('page.published', ['pages' => $r['pages'], 'articles' => $r['articles']]);
-        // event-driven agents: after a publish, SEO + internal links + social review the new site
-        if (FeatureFlagModel::isOn('ai_agents') && !AgentSettings::isPaused('seo')) {
-            AgentJobs::enqueue('seo', 'run', ['event' => 'page.published'], 'high');
-            AgentJobs::enqueue('internal-links', 'run', ['event' => 'page.published'], 'medium');
-            AgentJobs::enqueue('social', 'run', ['event' => 'page.published'], 'low');
-        }
-        Response::json(['pages' => $r['pages'], 'articles' => $r['articles'], 'publish_job' => $r['job_id'], 'time' => date('c')]);
-    }
 
-    /* ---------- deployment history / rollback ---------- */
-    private static function deployments(): void
-    {
-        Response::json(DeploymentModel::all());
-    }
 
-    private static function publishRollback(): void
-    {
-        try {
-            $r = DeploymentModel::rollback(Auth::user()['id'] ?? null);
-            Response::json($r);
-        } catch (Throwable $e) {
-            ErrorModel::log('error', 'publish_rollback', $e->getMessage());
-            NotificationModel::push('Rollback failed', $e->getMessage(), 'error');
-            Response::error('Rollback failed: ' . (AV_DEBUG ? $e->getMessage() : 'previous deployment unavailable'), 500, 'ROLLBACK_FAILED');
-        }
-    }
 
     /* ---------- admin: media (secure) ---------- */
     private static function mediaList(): void
@@ -1271,7 +1198,7 @@ password=" . $db['pass'] . "
             }
         }
         // backup retention (configurable, default 5)
-        $keep = PublishSettings::get()['db_backups'];
+        $keep = BackupSettings::get()['db_backups'];
         $files = glob(AV_BACKUPS . '/avos-backup-*.json') ?: [];
         usort($files, fn($a, $b) => filemtime($b) <=> filemtime($a));
         foreach (array_slice($files, $keep) as $old) @unlink($old);
@@ -1398,7 +1325,7 @@ password=" . $db['pass'] . "
         $dbOk = true;
         $storageOk = is_writable(AV_STORAGE);
         try { Database::one("SELECT 1"); } catch (Throwable $e) { $dbOk = false; }
-        $publish = is_dir(AV_TEMPLATE) && is_dir(AV_SITE_OUT);
+        $siteOk = is_file(AV_SITE_DIR . '/index.html');
         $media = is_writable(AV_UPLOADS);
         $backup = is_writable(AV_BACKUPS);
         $aiProviders = 0;
@@ -1413,11 +1340,12 @@ password=" . $db['pass'] . "
             if ($p1) $perf = ['avg_ms' => (int)$p1['avg_ms'], 'requests_24h' => (int)$p1['n']];
         } catch (Throwable $e) {}
         Response::json([
-            'status' => ($dbOk && $storageOk && $publish) ? 'healthy' : 'degraded',
+            'status' => ($dbOk && $storageOk && $siteOk) ? 'healthy' : 'degraded',
             'environment' => AV_ENV,
             'database' => $dbOk ? 'connected' : 'error',
             'storage' => $storageOk ? 'writable' : 'readonly',
-            'publish' => $publish ? 'ready' : 'template missing',
+            'site' => $siteOk ? 'static' : 'missing',
+            'site_dir' => AV_SITE_DIR,
             'media' => $media ? 'writable' : 'readonly',
             'email' => 'mail() available',
             'ai' => $aiReady ? 'configured' : 'no provider keys',
@@ -1427,7 +1355,7 @@ password=" . $db['pass'] . "
             'version' => AV_VERSION,
             'authed' => (bool)$u,
             'user' => $u ? ['name' => $u['name'], 'role' => $u['role_name']] : null,
-            'public_site' => is_file(AV_SITE_OUT . '/index.html'),
+            'public_site' => $siteOk,
             'timestamp' => date('c'),
         ]);
     }
@@ -2024,77 +1952,11 @@ Answer concisely and helpfully. Never invent facts. Suggest actions the user can
        ============================================================ */
 
     /* ---------- redirect manager ---------- */
-    private static function redirects(): void
-    {
-        Response::json(Database::all("SELECT * FROM redirects ORDER BY id DESC"));
-    }
 
-    private static function redirectSave(int $id): void
-    {
-        $d = Input::body();
-        $oldUrl = trim(Input::str($d, 'old_url', 500), '/');
-        $newUrl = trim(Input::str($d, 'new_url', 500), '/');
-        $status = ($d['status_code'] ?? '301') === '302' ? '302' : '301';
-        if ($oldUrl === '' || $newUrl === '') Response::error('old_url and new_url required', 422, 'VALIDATION_ERROR');
-        if ($id > 0) {
-            Database::q("UPDATE redirects SET old_url=?, new_url=?, status_code=?, enabled=? WHERE id=?",
-                [$oldUrl, $newUrl, $status, (int)($d['enabled'] ?? 1), $id]);
-        } else {
-            Database::q("INSERT INTO redirects (old_url, new_url, status_code, enabled) VALUES (?,?,?,?)",
-                [$oldUrl, $newUrl, $status, (int)($d['enabled'] ?? 1)]);
-            $id = (int)Database::pdo()->lastInsertId();
-        }
-        Audit::log(Auth::user()['id'], $id ? 'redirect_update' : 'redirect_create', 'redirect', (string)$id);
-        Response::json(['ok' => true, 'id' => $id]);
-    }
 
-    private static function redirectDelete(int $id): void
-    {
-        Database::q("DELETE FROM redirects WHERE id=?", [$id]);
-        Audit::log(Auth::user()['id'], 'redirect_delete', 'redirect', (string)$id);
-        Response::json(['ok' => true]);
-    }
 
     /* ---------- publish pre-flight (build + validate, no switch) ---------- */
-    private static function publishPreflight(): void
-    {
-        try {
-            $engine = new PublishEngine(ContentStore::all());
-            $report = $engine->preflight();
-            Response::json($report);
-        } catch (Throwable $e) {
-            Response::error('Pre-flight failed: ' . (AV_DEBUG ? $e->getMessage() : 'build validation failed'), 500, 'PREFLIGHT_FAILED');
-        }
-    }
 
-    /* ---------- publish diff (current content vs last deployment) ---------- */
-    private static function publishDiff(): void
-    {
-        $live = DeploymentModel::live();
-        $current = ContentStore::all();
-        $report = ['collections' => [], 'total_changes' => 0];
-        $prev = $live && $live['content_snapshot'] ? (json_decode((string)$live['content_snapshot'], true) ?: []) : [];
-        foreach (['sections', 'pages', 'projects', 'articles', 'nav', 'clients', 'testimonials'] as $key) {
-            $a = $prev[$key] ?? [];
-            $b = $current[$key] ?? [];
-            $byId = fn(array $arr) => array_column($arr, null, 'id');
-            $ma = $byId(is_array($a) ? $a : []);
-            $mb = $byId(is_array($b) ? $b : []);
-            $added = []; $removed = []; $modified = [];
-            foreach ($mb as $id => $item) {
-                $ha = isset($ma[$id]) ? md5(json_encode($ma[$id])) : null;
-                $hb = md5(json_encode($item));
-                if ($ha === null) $added[] = $item['title'] ?? $id;
-                elseif ($ha !== $hb) $modified[] = $item['title'] ?? $id;
-            }
-            foreach ($ma as $id => $item) if (!isset($mb[$id])) $removed[] = $item['title'] ?? $id;
-            if ($added || $removed || $modified) {
-                $report['collections'][$key] = ['added' => $added, 'removed' => $removed, 'modified' => $modified];
-                $report['total_changes'] += count($added) + count($removed) + count($modified);
-            }
-        }
-        Response::json($report);
-    }
 
     /* ---------- security score (real checks, no fabrication) ---------- */
     private static function securityScore(): void
@@ -2194,7 +2056,6 @@ Answer concisely and helpfully. Never invent facts. Suggest actions the user can
             $sys['queues'] = [
                 'jobs_queued' => (int)Database::one("SELECT COUNT(*) n FROM ai_agent_jobs WHERE status='queued'")['n'],
                 'jobs_running' => (int)Database::one("SELECT COUNT(*) n FROM ai_agent_jobs WHERE status='running'")['n'],
-                'publish_queue' => (int)Database::one("SELECT COUNT(*) n FROM publish_queue WHERE status IN ('queued','processing')")['n'],
             ];
             $sys['ai'] = ['configured' => (int)Database::one("SELECT COUNT(*) n FROM ai_providers WHERE api_key_enc IS NOT NULL AND api_key_enc != ''")['n'] > 0,
                           'daily_cost' => AgentSettings::dailyAiCost(), 'monthly_cost' => AgentSettings::monthlyAiCost(),
@@ -2204,7 +2065,7 @@ Answer concisely and helpfully. Never invent facts. Suggest actions the user can
             $sys['tables'] = (int)Database::one("SELECT COUNT(*) n FROM information_schema.tables WHERE table_schema=?", [AV_DB['name']])['n'];
             $sys['migrations'] = (int)Database::one("SELECT COUNT(*) n FROM schema_migrations")['n'];
             $sys['storage'] = ['root' => is_writable(AV_STORAGE), 'uploads' => is_writable(AV_UPLOADS), 'backups' => is_writable(AV_BACKUPS), 'cache' => is_writable(AV_CACHE)];
-            $sys['publish'] = ['auto' => FeatureFlagModel::isOn('auto_publish'), 'site' => is_dir(AV_SITE_OUT)];
+            $sys['site'] = ['dir' => AV_SITE_DIR, 'present' => is_file(AV_SITE_DIR . '/index.html'), 'mode' => 'static'];
         } catch (Throwable $e) { $sys['error'] = $e->getMessage(); }
         $out['system'] = $sys;
         Response::json(['status' => $issues === 0 ? 'clean' : 'issues_found', 'issues' => $issues, 'details' => $out]);
@@ -2506,59 +2367,22 @@ Sent at " . date('c'));
     }
 
     /* ---------- frontend sync (backend pulls frontend design assets) ---------- */
-    private static function syncFrontend(): void
+
+    /* ---------- system: backup settings / doctor ---------- */
+    private static function backupSettingsGet(): void
     {
-        $src = AV_FRONTEND_DIR !== '' ? AV_FRONTEND_DIR : (dirname(AV_ROOT) . '/abhijeetvarghese');
-        if (!is_dir($src)) {
-            Response::error('Frontend folder not found (' . $src . ') — set $frontendDir in config.local.php or AV_FRONTEND_DIR', 422, 'VALIDATION_ERROR');
-        }
-        $out = [];
-        exec('php ' . escapeshellarg(AV_ROOT . '/backend/scripts/sync-frontend.php') . ' 2>&1', $out);
-        $ok = !str_contains(implode(' ', $out), 'not found');
-        if (!$ok) Response::error('Sync failed', 500, 'SYNC_FAILED');
-        Audit::log(Auth::user()['id'], 'frontend_sync', 'template', '', ['output' => implode(' | ', $out)]);
-        Response::json(['ok' => true, 'output' => $out]);
+        Response::json(['settings' => BackupSettings::get()]);
     }
 
-    /* ---------- system: publishing status / doctor / settings ---------- */
-    private static function systemPublishing(): void
+    private static function backupSettingsSave(): void
     {
-        $state = is_file(AV_CACHE . '/auto-publish-state.json')
-            ? (json_decode((string)file_get_contents(AV_CACHE . '/auto-publish-state.json'), true) ?: [])
-            : [];
-        $queue = PublishQueue::status();
-        $last = Database::one("SELECT id, status, note, created_at FROM deployments ORDER BY id DESC LIMIT 1");
-        Response::json([
-            'queue' => $queue,
-            'last_deployment' => $last ? ['id' => (int)$last['id'], 'status' => $last['status'], 'note' => $last['note'], 'created_at' => $last['created_at']] : null,
-            'live_sync' => [
-                'last_check' => $state['checked_at'] ?? ($state['last_run'] ?? null),
-                'last_sync' => $state['last_sync'] ?? null,
-                'last_publish' => $state['published_at'] ?? null,
-                'last_error' => $state['last_error'] ?? '',
-                'failures' => (int)($state['failures'] ?? 0),
-                'healthy' => ((int)($state['failures'] ?? 0) < 3),
-            ],
-        ]);
-    }
-
-    private static function publishSettingsGet(): void
-    {
-        $flags = [];
-        foreach (Database::all("SELECT flag, enabled, environment FROM feature_flags") as $f) $flags[$f['flag']] = ['enabled' => (bool)$f['enabled'], 'environment' => $f['environment']];
-        Response::json(['settings' => PublishSettings::get(), 'flags' => $flags]);
-    }
-
-    private static function publishSettingsSave(): void
-    {
-        $d = Input::body();
-        PublishSettings::save($d);
-        foreach (['auto_publish', 'frontend_sync', 'post_publish_healthcheck', 'automatic_rollback', 'publish_queue'] as $flag) {
-            if (array_key_exists($flag, $d)) FeatureFlagModel::set($flag, (bool)$d[$flag]);
-        }
-        Audit::log(Auth::user()['id'], 'publish_settings_saved', 'settings', 'publish');
+        BackupSettings::save(Input::body());
+        Audit::log(Auth::user()['id'], 'backup_settings_saved', 'settings', 'backup');
         Response::json(['ok' => true]);
     }
+
+
+
 
     private static function systemDoctor(): void
     {
@@ -2574,16 +2398,13 @@ Sent at " . date('c'));
         $add('storage', 'Storage writable', is_writable(AV_STORAGE));
         $add('uploads', 'Uploads writable', is_writable(AV_UPLOADS));
         $add('backups', 'Backups writable', is_writable(AV_BACKUPS));
-        $add('template', 'Template (site-template/)', is_dir(AV_TEMPLATE) && is_file(AV_TEMPLATE . '/css/styles.css'), AV_TEMPLATE);
-        $add('publish_dest', 'Publish destination', is_dir(AV_SITE_OUT) && is_writable(dirname(AV_SITE_OUT)), AV_SITE_OUT);
-        $fe = AV_FRONTEND_DIR !== '' ? AV_FRONTEND_DIR : (dirname(AV_ROOT) . '/abhijeetvarghese');
-        $add('frontend', 'Frontend source', is_dir($fe), $fe);
+        $add('site', 'Static website (index.html + css/styles.css)', is_file(AV_SITE_DIR . '/index.html') && is_file(AV_SITE_DIR . '/css/styles.css'), AV_SITE_DIR);
         $add('https', 'HTTPS (production)', AV_ENV !== 'production' || str_starts_with(AV_SITE_URL, 'https://'), AV_SITE_URL);
         $add('enc_key', 'Encryption key (32+)', strlen((string)AV_ENC_KEY) >= 32, strlen((string)AV_ENC_KEY) . ' chars');
         $add('config', 'Production guard', !(AV_ENV === 'production' && ((($GLOBALS['db']['pass'] ?? '') === 'aV0s_d3v_9xKq2mN7') || (($GLOBALS['db']['user'] ?? '') === 'avos'))), 'no default credentials');
         $add('htaccess', 'Web root .htaccess', is_file(AV_PUBLIC . '/.htaccess'));
         $add('installer', 'Installer disabled', is_file(AV_PUBLIC . '/install/.installed'), 'self-locked');
-        $add('cron', 'Auto-publish cron/watcher', is_file(AV_CACHE . '/auto-publish-state.json'), 'state file present (cron has run)');
+        $add('cron', 'Agent runner cron/watcher', is_file(AV_CACHE . '/agent-runner-state.json'), 'state file present (cron has run)');
         $add('mail', 'Mail', function_exists('mail') ? 'mail() available' : 'missing');
         $add('locks', 'Lock directory', is_writable(AV_STORAGE . '/locks') || @mkdir(AV_STORAGE . '/locks', 0775, true) || is_writable(AV_STORAGE . '/locks'));
         $ok = count(array_filter($checks, fn($c) => $c['ok']));
@@ -2675,26 +2496,12 @@ Sent at " . date('c'));
     private static function seoInternalLinks(): void
     {
         // pages with few internal links pointing at them (weakest pages first)
-        $siteDir = AV_SITE_OUT;
-        $pages = glob($siteDir . '/*.html') ?: [];
-        $links = [];
-        foreach ($pages as $f) {
-            $html = (string)file_get_contents($f);
-            if (preg_match_all('/href="([^"#]+\.html)"/i', $html, $m)) {
-                foreach ($m[1] as $h) {
-                    if (str_starts_with($h, 'http')) continue;
-                    $t = basename(parse_url($h, PHP_URL_PATH) ?: '');
-                    if ($t !== '') $links[$t] = ($links[$t] ?? 0) + 1;
-                }
-            }
-        }
         $out = [];
-        foreach ($pages as $f) {
-            $n = basename($f);
-            $count = $links[$n] ?? 0;
-            if ($count <= 1 && $n !== '404.html' && $n !== 'index.html') $out[] = ['page' => '/' . $n, 'incoming_links' => $count, 'opportunity' => 'Add internal links from related pages'];
+        foreach (SeoCrawlerModel::incomingLinks() as $url => $count) {
+            if ($count <= 1 && $url !== '/' && $url !== '/404.html') $out[] = ['page' => $url, 'incoming_links' => $count, 'opportunity' => 'Add internal links from related pages'];
         }
-Response::json($out);
+        usort($out, fn($x, $y) => $x['incoming_links'] <=> $y['incoming_links']);
+        Response::json($out);
     }
 
     private static function seoBrief(): void

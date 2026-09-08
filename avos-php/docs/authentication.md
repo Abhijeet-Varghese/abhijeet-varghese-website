@@ -23,7 +23,7 @@
 
 Roles: Super Admin, Admin, Editor, Writer, SEO Manager, Viewer. 25+ permissions in `permissions` +
 `role_permissions`. Enforcement is server-side in every API route (`Auth::can()`); hiding buttons in the
-UI is only cosmetic. Verified in tests: Viewer cannot publish, cannot list users (403), can read leads
+UI is only cosmetic. Verified in tests: Viewer cannot create backups, cannot list users (403), can read leads
 (200 with `leads.read`).
 
 ## Threat model coverage
@@ -34,7 +34,7 @@ UI is only cosmetic. Verified in tests: Viewer cannot publish, cannot list users
 | Session hijack | regenerate on login, HttpOnly/SameSite cookies, expiry |
 | CSRF | token on all POST/PUT/DELETE |
 | SQL injection | 100% PDO prepared statements; validated IDs/slugs/pagination/search |
-| XSS | output escaping in admin UI and publish engine; search results never echo raw input |
+| XSS | output escaping in admin UI; search results never echo raw input |
 | Path traversal | media/backup names validated by strict regex; router realpath containment |
 | Upload attacks | MIME + extension + finfo content check, blocked extensions, random 16-hex filenames, SVG script rejection, no-execute .htaccess in uploads |
 | Credential leaks | keys encrypted at rest (aes-256-cbc, AV_ENC_KEY), never serialized to the browser; production refuses insecure defaults (`avos`/`aV0s_d3v_9xKq2mN7`/short keys) |

@@ -16,7 +16,7 @@ e.g. media in use) · 419 (CSRF) · 422 (validation) · 429 (rate limited) · 50
 
 | Endpoint | Purpose |
 |---|---|
-| `GET /api/status` | health: database, storage, publish readiness, version |
+| `GET /api/status` | health: database, storage, static site presence (`site`, `site_dir`, `public_site`), version |
 | `GET /api/site` | full site document (public read) |
 | `GET /api/pages` / `/api/pages/{slug}` | pages |
 | `GET /api/projects` / `/api/projects/{slug}` | projects / case studies |
@@ -30,8 +30,8 @@ e.g. media in use) · 419 (CSRF) · 422 (validation) · 429 (rate limited) · 50
 
 **Auth**: `POST /api/auth/login` · `POST /api/auth/logout` · `POST /api/auth/change-password` · `GET /api/session`
 
-**Content**: `GET|PUT /api/content` (key-based partial update) · `POST /api/publish`
-· `POST /api/publish/rollback` · `GET /api/deployments` · `GET /api/versions/{key}`
+**Content**: `GET|PUT /api/content` (key-based partial update — data store only; the public
+website is the static frontend) · `GET /api/versions/{key}`
 · `POST /api/versions/{key}/restore`
 
 **Media**: `GET|POST /api/media` (base64 JSON) · `PUT|DELETE /api/media/{id}`
@@ -57,12 +57,12 @@ e.g. media in use) · 419 (CSRF) · 422 (validation) · 429 (rate limited) · 50
 
 ## Permissions (RBAC)
 
-`content.read/write` · `publish` · `media.read/write` · `leads.read/write` · `forms.read/write` ·
+`content.read/write` · `media.read/write` · `leads.read/write` · `forms.read/write` ·
 `users.read/write` · `settings.read/write` · `audit.read` · `versions.read/restore` · `ai.read/write/use` ·
 `backup` · `analytics.view` · `projects.manage` · `integrations.manage` · `automation.read/write`
 
 Roles: Super Admin(1) · Admin(2) · Editor(3) · Writer(4) · SEO Manager(5) · Viewer(6). Every protected
-route enforces its permission server-side (verified: Viewer → 403 on publish/users).
+route enforces its permission server-side (verified: Viewer → 403 on backup/users).
 
 ## V3 endpoints
 
@@ -70,7 +70,7 @@ route enforces its permission server-side (verified: Viewer → 403 on publish/u
 formula-injection safe) · `POST /api/leads/{id}/restore` · `DELETE /api/leads/{id}?permanent=1` ·
 `POST /api/crm/{entity}/{id}/restore` · `POST /api/proposals/{id}/restore` ·
 `POST /api/media/{id}/restore` · `GET /api/crm/activities/{type}/{id}` (timeline) ·
-`GET|POST|PUT|DELETE /api/redirects` · `POST /api/publish/preflight` · `GET /api/publish/diff` ·
+`GET|PUT /api/system/backup-settings` · `POST /api/seo/audit` (crawls the static site) · `GET /api/seo/internal-links` ·
 `GET /api/security-score` · `GET /api/diagnostics` · `GET|POST|PUT|DELETE /api/aiprompts` ·
 `POST /api/automations/test/{id}` · `POST /api/webhooks/retry-failed` ·
 `PUT|DELETE /api/users/{id}` · `POST /api/users/{id}/reset-password|revoke-sessions` ·

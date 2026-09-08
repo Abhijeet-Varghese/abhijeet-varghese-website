@@ -22,7 +22,7 @@ foreach (array_slice($argv, 1) as $arg) {
 }
 
 // config.php loads config.local.php itself (outside web root, never committed)
-require $root . '/backend/config/config.php';   // defines AV_DB, AV_ROOT, AV_ENC_KEY …
+require_once $root . '/backend/config/config.php';   // defines AV_DB, AV_ROOT, AV_ENC_KEY …
 require $root . '/backend/core/MigrationRunner.php';
 require $root . '/backend/core/Installer.php';
 
@@ -31,7 +31,7 @@ $res = Installer::run([
     'name' => $opts['admin-name'] ?? 'Abhijeet Varghese',
     'password' => $opts['admin-password'] ?? '',
     'create_pass' => empty($opts['admin-password']),
-    'lock_path' => $opts['lock'] ?? ($root . '/install/.installed'),
+    'lock_path' => $opts['lock'] ?? ($root . '/public_html/install/.installed'),
 ]);
 
 if (!$res['ok']) {

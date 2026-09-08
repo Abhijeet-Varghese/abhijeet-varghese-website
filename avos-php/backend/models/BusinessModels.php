@@ -919,128 +919,6 @@ final class AiUsageModel
 }
 
 /* ============================================================
-   DEPLOYMENT HISTORY + ROLLBACK
-   ============================================================ */
-final class DeploymentModel
-{
-    private const SNAPSHOT_DIR = 'deployments';
-    private const KEEP = 3; // live + 2 previous snapshots
-
-    public static function snapshotsDir(): string
-    {
-        $dir = AV_STORAGE . '/' . self::SNAPSHOT_DIR;
-        if (!is_dir($dir)) @mkdir($dir, 0775, true);
-        return $dir;
-    }
-
-    /** Copy a site directory into a snapshot (excludes nothing; media is small). */
-    public static function storeSnapshot(string $srcDir): string
-    {
-        $dest = self::snapshotsDir() . '/site-' . bin2hex(random_bytes(6));
-        @mkdir($dest, 0775, true);
-        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($srcDir, FilesystemIterator::SKIP_DOTS));
-        foreach ($it as $f) {
-            if ($f->isDir()) { @mkdir($dest . '/' . substr($f->getPathname(), strlen($srcDir)), 0775, true); continue; }
-            $rel = substr($f->getPathname(), strlen($srcDir));
-            @copy($f->getPathname(), $dest . '/' . $rel);
-        }
-        return $dest;
-    }
-
-    /** Record a publish. Marks previous live rows superseded. Caps snapshots. */
-    public static function record(?int $userId, string $note, ?string $siteSnapshot): int
-    {
-        Database::q("UPDATE deployments SET status='superseded' WHERE status='live'");
-        $content = json_encode(ContentStore::all(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        Database::q("INSERT INTO deployments (version, status, created_by, note, site_snapshot, content_snapshot)
-                     VALUES (?, 'live', ?, ?, ?, ?)",
-            [substr(hash('sha256', random_bytes(16)), 0, 12), $userId, $note, $siteSnapshot ?? '', $content]);
-        $id = (int)Database::pdo()->lastInsertId();
-        self::prune();
-        return $id;
-    }
-
-    public static function markRolledBack(int $id): void
-    {
-        Database::q("UPDATE deployments SET status='rolled_back' WHERE id=?", [$id]);
-    }
-
-    public static function all(int $limit = 20): array
-    {
-        return Database::all("SELECT d.*, u.name user_name FROM deployments d LEFT JOIN users u ON u.id=d.created_by ORDER BY d.id DESC LIMIT $limit");
-    }
-
-    public static function live(): ?array
-    {
-        return Database::one("SELECT * FROM deployments WHERE status='live' ORDER BY id DESC LIMIT 1");
-    }
-
-    /** Keep at most KEEP snapshots on disk (oldest removed). */
-    private static function prune(): void
-    {
-        $dirs = glob(self::snapshotsDir() . '/site-*') ?: [];
-        rsort($dirs); // newest first (random names — use mtime instead)
-        usort($dirs, fn($a, $b) => filemtime($b) <=> filemtime($a));
-        foreach (array_slice($dirs, self::KEEP) as $d) {
-            self::rmDir($d);
-        }
-    }
-
-    public static function rmDir(string $dir): void
-    {
-        if (!is_dir($dir)) return;
-        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST);
-        foreach ($it as $f) {
-            $f->isDir() ? @rmdir($f->getPathname()) : @unlink($f->getPathname());
-        }
-        @rmdir($dir);
-    }
-
-    /**
-     * Roll back to the previous live deployment: restores the previous site
-     * snapshot (atomic swap), restores the content snapshot (each key becomes
-     * a new version), audits + notifies. Returns the restored deployment.
-     */
-    public static function rollback(?int $userId): array
-    {
-        $cur = self::live();
-        if (!$cur) throw new RuntimeException('No live deployment to roll back from');
-        $prev = Database::one("SELECT * FROM deployments WHERE status='superseded' AND site_snapshot != '' AND id < ? ORDER BY id DESC LIMIT 1", [$cur['id']]);
-        if (!$prev) throw new RuntimeException('No previous deployment available');
-        if ($prev['site_snapshot'] === '' || !is_dir($prev['site_snapshot'])) {
-            throw new RuntimeException('Previous site snapshot is missing on disk');
-        }
-
-        $out = AV_SITE_OUT;
-        $tmp = AV_CACHE . '/site-rollback-tmp-' . bin2hex(random_bytes(4));
-        // atomic-ish swap: current → tmp, snapshot → live, snapshot displaced
-        // current (so the rollback itself is reversible), drop tmp
-        if (is_dir($out)) rename($out, $tmp);
-        if (!rename($prev['site_snapshot'], $out)) {
-            if (is_dir($tmp)) rename($tmp, $out);
-            throw new RuntimeException('Rollback swap failed');
-        }
-        $displacedSnapshot = is_dir($tmp) ? self::storeSnapshot($tmp) : null;
-        if (is_dir($tmp)) self::rmDir($tmp);
-
-        // restore content (each key gets a fresh version — history is preserved)
-        $snap = json_decode((string)$prev['content_snapshot'], true) ?: [];
-        foreach ($snap as $key => $value) {
-            ContentStore::put($key, is_array($value) ? $value : [], $userId, "rollback to deployment #{$prev['id']}");
-        }
-
-        self::markRolledBack((int)$cur['id']);
-        // the previous deployment is now live again; its snapshot was consumed;
-        // the displaced current site is snapshotted into the new deployment row
-        $newId = self::record($userId, "Rollback to deployment #{$prev['id']}", $displacedSnapshot);
-        Database::q("UPDATE deployments SET note=? WHERE id=?", ["Rollback to deployment #{$prev['id']}", $newId]);
-        Audit::log($userId, 'publish_rollback', 'site', (string)$prev['id'], ['deployment' => (int)$cur['id']]);
-        NotificationModel::push('Rollback complete', "Restored deployment #{$prev['id']} (" . substr($prev['version'], 0, 8) . ")", 'publish');
-        return ['restored_deployment' => (int)$prev['id'], 'new_deployment' => $newId, 'content_keys' => count($snap)];
-    }
-}
-
-/* ============================================================
    SOFT DELETE (trash / restore / permanent) — business data is
    never destroyed by normal CMS actions. Allowlisted tables only.
    ============================================================ */
@@ -1341,16 +1219,15 @@ final class Lock
 }
 
 /* ============================================================
-   PUBLISH SETTINGS (retention, toggles — server-side)
+   BACKUP SETTINGS (retention — server-side)
    ============================================================ */
-final class PublishSettings
+final class BackupSettings
 {
     public static function get(): array
     {
-        $row = Database::one("SELECT svalue FROM site_settings WHERE skey='publish'");
+        $row = Database::one("SELECT svalue FROM site_settings WHERE skey='backup'");
         $d = $row ? (json_decode((string)$row['svalue'], true) ?: []) : [];
         return [
-            'retention' => max(2, min(50, (int)($d['retention'] ?? 10))),
             'db_backups' => max(1, min(30, (int)($d['db_backups'] ?? 5))),
         ];
     }
@@ -1358,117 +1235,8 @@ final class PublishSettings
     public static function save(array $d): void
     {
         $cur = self::get();
-        if (isset($d['retention'])) $cur['retention'] = max(2, min(50, (int)$d['retention']));
         if (isset($d['db_backups'])) $cur['db_backups'] = max(1, min(30, (int)$d['db_backups']));
-        Database::q("INSERT INTO site_settings (skey, svalue) VALUES ('publish',?)
+        Database::q("INSERT INTO site_settings (skey, svalue) VALUES ('backup',?)
                      ON DUPLICATE KEY UPDATE svalue=VALUES(svalue)", [json_encode($cur)]);
-    }
-}
-
-/* ============================================================
-   PUBLISH QUEUE (debounce/coalescing + visibility)
-   ============================================================ */
-final class PublishQueue
-{
-    /** Enqueue a publish job — coalesces: one queued job per type. */
-    public static function enqueue(string $type = 'publish', ?int $userId = null, string $trigger = 'cms_save', string $note = ''): int
-    {
-        $row = Database::one("SELECT id FROM publish_queue WHERE type=? AND status='queued' ORDER BY id LIMIT 1", [$type]);
-        if ($row) {
-            Database::q("UPDATE publish_queue SET requested_by=?, trigger_name=?, note=?, created_at=NOW() WHERE id=?", [$userId, $trigger, $note, (int)$row['id']]);
-            return (int)$row['id'];
-        }
-        Database::q("INSERT INTO publish_queue (type, status, requested_by, trigger_name, note) VALUES (?,'queued',?,?,?)",
-            [$type, $userId, $trigger, $note]);
-        return (int)Database::pdo()->lastInsertId();
-    }
-
-    public static function markProcessing(int $id): void
-    {
-        Database::q("UPDATE publish_queue SET status='processing', started_at=NOW() WHERE id=?", [$id]);
-    }
-
-    public static function complete(int $id, string $note = ''): void
-    {
-        Database::q("UPDATE publish_queue SET status='completed', completed_at=NOW(), note=? WHERE id=?", [$note, $id]);
-    }
-
-    public static function fail(int $id, string $error): void
-    {
-        Database::q("UPDATE publish_queue SET status='failed', completed_at=NOW(), error=? WHERE id=?", [mb_substr($error, 0, 480), $id]);
-    }
-
-    /** Take the oldest queued job and mark it processing (single consumer). */
-    public static function take(string $type = 'publish'): ?array
-    {
-        $row = Database::one("SELECT id FROM publish_queue WHERE type=? AND status='queued' ORDER BY id LIMIT 1", [$type]);
-        if (!$row) return null;
-        $st = Database::q("UPDATE publish_queue SET status='processing', started_at=NOW() WHERE id=? AND status='queued'", [(int)$row['id']]);
-        if ($st->rowCount() === 0) return null;   // another process took it
-        return Database::one("SELECT * FROM publish_queue WHERE id=?", [(int)$row['id']]);
-    }
-
-    /** Failed jobs older than 5 min may be retried by the next cycle. */
-    public static function requeueStale(): void
-    {
-        Database::q("UPDATE publish_queue SET status='queued', error='' WHERE status='failed' AND completed_at < NOW() - INTERVAL 5 MINUTE");
-    }
-
-    public static function status(): array
-    {
-        $q = Database::one("SELECT status, created_at, started_at, completed_at, error, trigger_name FROM publish_queue WHERE type='publish' ORDER BY id DESC LIMIT 1");
-        $history = Database::all("SELECT id, status, trigger_name, note, error, created_at, started_at, completed_at FROM publish_queue ORDER BY id DESC LIMIT 20");
-        return ['current' => $q, 'history' => $history];
-    }
-
-    private const DEBOUNCE_SECONDS = 2;
-
-    /**
-     * Drain all queued jobs of a type by running one publish (coalescing).
-     * Rapid saves within the debounce window coalesce into one job: the first
-     * save publishes immediately, subsequent saves within ~2s just refresh
-     * the queued job, and the watcher/cron (or the next save after the
-     * window) performs the actual build. Publish is always atomic + locked.
-     *
-     * $manual = true (admin "Publish" button): bypasses the debounce and
-     * waits for the publish lock so a manual publish always completes
-     * synchronously.
-     */
-    public static function drainAndPublish(?int $userId = null, string $trigger = 'cms_save', bool $manual = false): array
-    {
-        if (!$manual) {
-            // debounce: if a publish completed within the window, keep the job queued.
-            // Compared in SQL (MySQL NOW()) to avoid PHP/MySQL timezone drift.
-            $lastDone = Database::one(
-                "SELECT id FROM publish_queue WHERE type='publish' AND status='completed'
-                 AND completed_at > NOW() - INTERVAL ? SECOND ORDER BY id DESC LIMIT 1",
-                [self::DEBOUNCE_SECONDS]
-            );
-            if ($lastDone) {
-                return ['ran' => false, 'reason' => 'debounce window', 'queued' => true];
-            }
-        }
-        $job = self::take('publish');
-        if (!$job) return ['ran' => false, 'reason' => 'nothing queued'];
-        $lock = Lock::acquire('publish', $manual);
-        if (!$lock) {
-            // another publish is running — requeue our job and return
-            Database::q("UPDATE publish_queue SET status='queued' WHERE id=?", [(int)$job['id']]);
-            return ['ran' => false, 'reason' => 'publish already in progress'];
-        }
-        try {
-            // collapse any other queued jobs created while we were waiting
-            Database::q("DELETE FROM publish_queue WHERE type='publish' AND status='queued' AND id != ?", [(int)$job['id']]);
-            $engine = new PublishEngine(ContentStore::all());
-            $r = $engine->publish();
-            self::complete((int)$job['id'], "{$r['pages']} pages, {$r['articles']} articles");
-            return ['ran' => true, 'pages' => $r['pages'], 'articles' => $r['articles'], 'job_id' => (int)$job['id']];
-        } catch (Throwable $e) {
-            self::fail((int)$job['id'], $e->getMessage());
-            try { ErrorModel::log('error', 'publish', $e->getMessage(), ['job' => (int)$job['id'], 'request_id' => defined('AV_REQUEST_ID') ? AV_REQUEST_ID : '']); } catch (Throwable $x) {}
-            return ['ran' => false, 'error' => $e->getMessage()];
-        } finally {
-            Lock::release($lock);
-        }
     }
 }

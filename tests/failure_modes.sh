@@ -19,8 +19,8 @@ chk "lead without name → 422" "VALIDATION_ERROR" "$R"
 echo "== 2. UNAUTHORIZED =="
 CODE=$(curl -s -o /dev/null -w "%{http_code}" $BASE/api/leads)
 chk "no session → 401" "401" "$CODE"
-CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST $BASE/api/publish)
-chk "no session publish → 401" "401" "$CODE"
+CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST $BASE/api/backup)
+chk "no session backup → 401" "401" "$CODE"
 
 echo "== 3. BAD PASSWORD =="
 mysql -uavos -paV0s_d3v_9xKq2mN7 avos -e "DELETE FROM login_attempts;" 2>/dev/null
@@ -82,9 +82,9 @@ chk "login throttle → 429" "429" "$CODE"
 echo "== 12. DATABASE UNAVAILABLE (public site must keep serving) =="
 sudo service mariadb stop >/dev/null 2>&1
 sleep 1
-CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 $BASE/site/index.html)
+CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 $BASE/)
 chk "public site serves with DB down" "200" "$CODE"
-CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 $BASE/site/case-studies.html)
+CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 $BASE/case-studies/)
 chk "inner page serves with DB down" "200" "$CODE"
 R=$(curl -s --max-time 10 $BASE/api/status | head -c 250)
 chk "status reports database error" '"database":"error"' "$R"

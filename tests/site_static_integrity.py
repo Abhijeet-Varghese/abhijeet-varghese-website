@@ -12,14 +12,14 @@ from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 
 ROOT = Path(__file__).resolve().parents[1]
-SITE = ROOT / "avos-php" / "public_html" / "site"
+SITE = ROOT / "abhijeetvarghese"  # the static frontend is the public site
 REDIRECT = "case-study-enterprise-technology-made-understandable.html"
 issues: list[str] = []
 summary = Counter()
 
 html_files = sorted(SITE.rglob("*.html"))
 if not html_files:
-    issues.append("generated site has no HTML files")
+    issues.append("static frontend has no HTML files")
 
 for path in html_files:
     rel = path.relative_to(SITE).as_posix()

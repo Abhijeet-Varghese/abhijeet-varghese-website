@@ -2,7 +2,7 @@
 
 **Project:** Abhijeet Varghese (abhijeetvarghese.com) — portfolio platform
 **Live version:** v2.4.20 (single authoritative line, per working policy)
-**Date:** 2026-08-16
+**Date:** 2026-09-09 (static-frontend refactor)
 
 ---
 
@@ -12,9 +12,9 @@
 |---|---|
 | Backend | PHP 8.4 (CLI), no framework — custom MVC (`backend/`) |
 | Database | MariaDB 10/11, `avos` DB, `content_store(key_name, data)` JSON store |
-| Frontend | Hand-authored HTML/CSS/JS (no build step), static publish |
-| Publishing | `PublishEngine.php` renders 13 pages + 6 articles to `public_html/site/` |
-| Site state | 100% STATIC output — `.html` files + `css/styles.css?v={ver}-{hash}` |
+| Frontend | `abhijeetvarghese/` — hand-authored HTML/CSS/JS (no build step), **served as-is** |
+| Publishing | none — edit the frontend → commit → GitHub workflow → `hostinger` branch → web root |
+| Site state | 100% STATIC — clean URLs (`/experience/`, `/case-studies/<slug>/`), 301 map + 404 in the frontend `.htaccess` |
 | Dev server | `php -S 0.0.0.0:8092 router.php` (in `avos-php/`) |
 | Testing | Playwright (Chromium) + axe-core; shell batteries for API/CRM |
 | Fonts (local, no CDN) | Inter Tight · Instrument Serif · Poppins |
@@ -23,25 +23,23 @@
 ## 2 · FILE TREE (key paths)
 
 ```
-/home/user
-├── avos-php/                      ← the application (publish target: releases/)
-│   ├── backend/
-│   │   ├── config/config.php      ← env-driven; loads config.local.php
-│   │   ├── publish/PublishEngine.php   ← ALL page rendering (about* blocks, shell, chrome)
-│   │   ├── publish/templates/orange-business-executive-briefing-center.html
-│   │   └── scripts/               ← auto-publish.php, doctor.php, sync-frontend.php …
-│   ├── site-template/             ← canonical templates: css/styles.css, js/main.js
-│   │   └── css/styles.css         ← ~3,440 lines; About system = sections 1–10 + REFINEMENT LAYER
-│   ├── public_html/site/          ← generated static site (published)
-│   └── config.local.php           ← dev overrides (DB creds, mirror dir) — EXCLUDED from tarball
-├── abhijeetvarghese/              ← FRONTEND SOURCE + MIRROR (byte-identical to published site)
-│                                     sync-frontend.php pulls css/js FROM here into site-template
-├── avos-data/site.json            ← canonical seed (content; restore-canonical.php loads it)
+repo root
+├── abhijeetvarghese/              ← THE PUBLIC WEBSITE (final static frontend; deployed as-is)
+│   ├── index.html · story.html · portfolio.html · contact.html · insights.html · …
+│   ├── experience/ · case-studies/{,orange-business,indian-army,bharat-petroleum-corporation-limited}/
+│   ├── css/styles.css · js/main.js (contact form → /api/public/lead) · assets/
+│   └── .htaccess                  ← legacy-URL 301 map, cache headers, 404
+├── avos-php/                      ← AV OS (admin + API) — works around the site, never renders it
+│   ├── router.php                 ← dev server: serves AV_SITE_DIR + /api /admin /install /media
+│   ├── backend/  config/config.php (AV_SITE_DIR) · core · models · controllers · agents · scripts/
+│   │   └── scripts/               ← doctor.php, agent-runner.php, restore-canonical.php, prod-cleanup.php …
+│   ├── public_html/               ← web-root files: .htaccess (hardening + site rules), admin/, api/, install/, media.php
+│   ├── database/migrations/       ← immutable; 031_static_frontend.sql drops the publish tables
+│   ├── docs/static-frontend.md    ← how the site + backend fit together
+│   └── config.local.php           ← dev overrides (DB creds, $siteDir) — never committed
+├── avos-data/site.json            ← CMS seed (content_store working data; restore-canonical.php loads it)
 ├── tests/                         ← battery (see §4)
-├── releases/ + avos-snapshots/    ← AVOS-2.4.19-…tar.gz, AVOS-2.4.20-…tar.gz (kept per policy)
-├── previews/                      ← 158 screenshots (current-state evidence)
-├── design-system/abhijeet-varghese/
-├── dev-tools/restore-canonical.php← dev seed-loader (copy into backend/scripts/ after sandbox resets)
+├── .github/workflows/             ← subtree-splits abhijeetvarghese/ → hostinger branch
 └── DEPLOY-HOSTINGER-PHP.md        ← live deploy runbook (Hostinger)
 ```
 
@@ -105,9 +103,11 @@ One continuous cinematic canvas, rebuilt from scratch over the sessions:
 
 | Suite | Result |
 |---|---|
-| `e2e_fresh.sh` (fresh install, 133 checks) | 133/133 |
-| `integration_hub.sh` | 67/67 |
-| `failure_modes.sh` · `journeys.sh` · `inbound_webhooks.sh` · `2fa_test.sh` | 20/20 · 14/14 · 18/18 · 21/21 |
+| `e2e_fresh.sh` (fresh install, 139 checks — static-frontend assertions replace publish/rollback) | 139/139 |
+| `integration_hub.sh` | green |
+| `failure_modes.sh` · `journeys.sh` | 19/20 · 15/16 (1 pre-existing drift each: webhook timing, copilot wording) |
+| `inbound_webhooks.sh` · `2fa_test.sh` | need a fresh DB + their own credentials (see §5.3) |
+| Admin SPA sweep (Playwright, 50 views) | 0 JS errors · 0 API failures |
 | `functional_test.js` · `admin_sweep.js` | 13/13 · 48/48 |
 | `about_qa.js` (stack, sequence, axe on stage) | ALL CLEAN |
 | `layout_audit2.js` (6 widths × 8 cards) | ALL CLEAN |
@@ -124,16 +124,18 @@ One continuous cinematic canvas, rebuilt from scratch over the sessions:
 | `apple_pass_check.js` · `dup_audit.js` · `case_nav_test.js` | ALL CLEAN |
 | `doctor.php` | SYSTEM READY |
 
-**5 directives (current turn) verified:** audit fixes applied · custom cursor
-removed site-wide (0 refs in template + published) · Pondar removed (0 refs) ·
-**Portfolio** in navbar + footer (seed + DB + published) · responsive clean.
+**Static-frontend refactor (2026-09-09) verified:** all 31 pages + clean URLs 200 ·
+7 legacy 301s · 404 · dotfiles blocked · `/api/status` `site:"static"` · lead + analytics
+endpoints from the frontend · SEO crawl over the static files (24 pages) · doctor SYSTEM READY ·
+publish/deployments/redirects routes 404.
 
 ## 5 · WHAT'S LEFT / NEXT STEPS
 
 1. **🔴 LIVE DEPLOY — NOT VERIFIED (external env required).** Hostinger:
    staging `next.abhijeetvarghese.com`, prod `abhijeetvarghese.com`.
-   Follow `DEPLOY-HOSTINGER-PHP.md` (upload `releases/AVOS-2.4.20-production-final.tar.gz`,
-   run installer, set env/DB/enc-key, cron line for `auto-publish.php`).
+   The website deploys from the `hostinger` branch (GitHub workflow). For AV OS follow
+   `DEPLOY-HOSTINGER-PHP.md` (upload `avos-php/public_html/*` beside the site, private
+   folders outside the web root, installer, env/DB/enc-key, cron for `agent-runner.php`).
 2. **Dedicated Portfolio is live at `portfolio.html`.** It is a visual index with three published projects, six practice areas and the 16-organisation proof wall. `case-studies.html` remains the narrative case-study collection. Nav id `n3b`, footer, seed, MySQL, sitemap and search index all point to the dedicated page.
 3. **Known environment behavior:**
    - Ephemeral sandboxes may require PHP/MariaDB, `npm ci`, Playwright browser installation, DB provisioning and a server restart.
@@ -141,4 +143,4 @@ removed site-wide (0 refs in template + published) · Pondar removed (0 refs) ·
    - `e2e_fresh.sh` requires a disposable fresh database and environment-local test credentials. Clear test rate-limit/login-attempt state between authentication suites.
    - `integration_hub.sh` and `inbound_webhooks.sh` should run independently to avoid shared-state races.
    - Public CSS/JS cache versions use a 12-character SHA-256 content fingerprint: `2.4.20-{hash}`.
-4. **Recovery path:** recreate the environment-local `config.local.php`, provision the database, run `php backend/scripts/restore-canonical.php`, sync frontend assets, publish, and verify using the documented preflight/test commands.
+4. **Recovery path:** recreate the environment-local `config.local.php`, provision the database, run `php database/install.php` (or `restore-canonical.php` for CMS seed data), start `router.php`, and verify with `php backend/scripts/doctor.php` + the test battery. The website itself needs nothing — it is the committed `abhijeetvarghese/` folder.

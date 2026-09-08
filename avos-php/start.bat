@@ -2,8 +2,9 @@
 REM ============================================================
 REM AV OS — one-command local start (Windows)
 REM Requires: PHP 8.x on PATH, MySQL/MariaDB running (XAMPP/MAMP)
-REM   start.bat            -> backend + live-sync watcher
+REM   start.bat            -> backend + agent watcher
 REM   start.bat --no-watch -> skip the watcher
+REM The public website is the static frontend (..\abhijeetvarghese), served as-is.
 REM ============================================================
 setlocal
 cd /d "%~dp0"
@@ -25,12 +26,13 @@ if not exist config.local.php (
   copy config.local.example.php config.local.php >nul
 )
 
-REM 3. migrations + first-run admin
-php database\migrate.php
+REM 3. first-run install (migrations + admin) or plain migrate
 php -r "require 'includes/bootstrap.php'; exit(Database::one(\"SELECT COUNT(*) n FROM users\")['n'] > 0 ? 0 : 1);" 2>nul
 if errorlevel 1 (
-  echo . creating the administrator account...
+  echo . first run: installing schema + administrator account...
   php database\install.php --admin-email=admin@abhijeetvarghese.com --generate
+) else (
+  php database\migrate.php
 )
 
 REM 4. backend server
@@ -43,10 +45,10 @@ if errorlevel 1 (
   echo . backend already running on port %PORT%
 )
 
-REM 5. live-sync watcher
+REM 5. agent watcher (AI agents / integrations — no site publishing)
 if /i not "%1"=="--no-watch" (
-  echo . starting live-sync watcher...
-  start "AV OS live sync" /min cmd /c "loop: php backend\scripts\auto-publish.php >> storage\logs\auto-publish.log 2>&1 & timeout /t 60 >nul & goto loop"
+  echo . starting agent watcher...
+  start "AV OS agents" /min cmd /c "loop: php backend\scripts\agent-runner.php >> storage\logs\agent-runner.log 2>&1 & timeout /t 60 >nul & goto loop"
 )
 
 echo ----------------------------------------------------------

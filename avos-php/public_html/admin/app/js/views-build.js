@@ -171,7 +171,7 @@
       const rows = [
         ["Database", sys.database === "connected" ? "✓ connected" : sys.database || "—", sys.database === "connected"],
         ["Storage", sys.storage === "writable" ? "✓ writable" : sys.storage || "—", sys.storage === "writable"],
-        ["Publish engine", sys.publish === "ready" ? "✓ ready" : sys.publish || "—", sys.publish === "ready"],
+        ["Website", sys.site === "static" ? "✓ static, serving" : sys.site || "—", sys.site === "static"],
         ["Version", "v" + esc(sys.version || "?"), true]
       ];
       $("#dashHealthRows", view).innerHTML = rows.map(([l, v, ok]) => `
@@ -309,12 +309,11 @@
     <div class="view__head">
       <div>
         <h1 class="view__title">Homepage <em>builder</em></h1>
-        <p class="view__desc">Every section is independently editable — edit, duplicate, hide, schedule, preview and publish without touching code.</p>
+        <p class="view__desc">Section-level working copy for the homepage (used by the AI agents and SEO tools). The live homepage is the static <code>index.html</code>.</p>
       </div>
       <div class="view__head-actions">
         <button class="btn btn--ghost" data-add-section>${icon("plus")} Add section</button>
-        <button class="btn btn--ghost" data-save-draft>${icon("save", 13)} Save draft</button>
-        <button class="btn btn--primary" data-publish>${icon("send")} Publish website</button>
+        <button class="btn btn--primary" data-save-draft>${icon("save", 13)} Save</button>
       </div>
     </div>
     <div class="card" style="padding:14px 16px;margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
@@ -531,12 +530,10 @@
         toast("Section added as draft"); m.close(); render();
       });
     });
-    $("[data-publish]", view).addEventListener("click", () => AV.publishSite());
     $("[data-save-draft]", view).addEventListener("click", async () => {
-      // DB save + version, NO publish (draft mode)
       AV.api.cancelPush();   // drop any pending auto-push first
-      const r = await AV.api.send("/api/content", "PUT", Object.assign({}, AV.store.state, { publish: false }));
-      if (r.ok) { toast("DRAFT SAVED — not published"); if (AV.emitStatus) AV.emitStatus("saved"); }
+      const r = await AV.api.send("/api/content", "PUT", Object.assign({}, AV.store.state));
+      if (r.ok) { toast("SAVED"); if (AV.emitStatus) AV.emitStatus("saved"); }
       else toast("SAVE FAILED", "error");
     });
     render();
@@ -606,7 +603,7 @@
       <span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
         ${statusChip(proj.status)}
         <button class="btn btn--primary btn--sm" data-save>${icon("save", 13)} Save</button>
-        <button class="btn btn--soft btn--sm" data-publish>${icon("send", 13)} Publish</button>
+        <button class="btn btn--soft btn--sm" data-mark-published>${icon("check", 13)} Mark published</button>
       </span>
     </div>
     <div class="editor">
@@ -676,9 +673,9 @@
       return p;
     };
     $("[data-save]", view).addEventListener("click", () => { persist(); toast("Project saved"); });
-    $("[data-publish]", view).addEventListener("click", () => {
+    $("[data-mark-published]", view).addEventListener("click", () => {
       const p = persist(); p.status = "published"; S.save();
-      toast("Project published"); setTimeout(() => R.go("projects"), 500);
+      toast("Project marked published"); setTimeout(() => R.go("projects"), 500);
     });
     $("[data-pick]", view).addEventListener("click", () => {
       const m = modal({
@@ -1003,7 +1000,7 @@
       $("[data-c]", m.el).addEventListener("click", m.close);
       $$("[data-restore]", m.el).forEach(b => b.addEventListener("click", async () => {
         const rr = await AV.api.send("/api/versions/articles/restore", "POST", { version: +b.dataset.restore });
-        if (rr.ok) { toast("Version restored — publish to apply", "accent"); m.close(); }
+        if (rr.ok) { toast("Version restored", "accent"); m.close(); }
         else toast("Restore failed: " + (rr.error?.message || "error"), "error");
       }));
     });
