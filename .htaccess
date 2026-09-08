@@ -1,4 +1,5 @@
-# AV OS — generated at publish (do not edit)
+# abhijeetvarghese.com — static frontend (hand-authored; deployed as-is to the web root).
+# Keep in sync with avos-php/public_html/.htaccess when AV OS shares the same web root.
 Options -Indexes
 ErrorDocument 404 /404.html
 
