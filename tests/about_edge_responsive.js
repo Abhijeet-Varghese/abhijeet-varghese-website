@@ -12,7 +12,7 @@ const SIZES = [
     const page = await browser.newPage({ viewport: { width: size.w, height: size.h } });
     const jsErrors = [];
     page.on('pageerror', e => jsErrors.push(e.message));
-    await page.goto('http://127.0.0.1:8092/story.html?edge-responsive=1', { waitUntil: 'domcontentloaded' });
+    await page.goto('http://127.0.0.1:8000/story.html?edge-responsive=1', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(500);
     await page.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; });
 

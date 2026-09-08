@@ -9,7 +9,7 @@ const { chromium } = require('playwright');
   page.on('console', m => { if (m.type() === 'error' && !/429 \(Too Many Requests\)/.test(m.text())) errors.push(m.text()); });
   await page.route('**/api/analytics/track', route => route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true,"data":{}}' }));
 
-  await page.goto('http://127.0.0.1:8092/portfolio.html?qa=1', { waitUntil: 'domcontentloaded' });
+  await page.goto('http://127.0.0.1:8000/portfolio.html?qa=1', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(1000);
   const portfolio = await page.evaluate(() => ({
     body: document.body.className,
@@ -30,7 +30,7 @@ const { chromium } = require('playwright');
   if (portfolio.links.some(h => !h || !(h.includes('case-studies') || h.includes('case-study')))) issues.push('invalid portfolio project links');
   if (portfolio.overflow) issues.push(`portfolio overflow ${portfolio.overflow}`);
 
-  await page.goto('http://127.0.0.1:8092/case-studies.html?qa=1', { waitUntil: 'domcontentloaded' });
+  await page.goto('http://127.0.0.1:8000/case-studies.html?qa=1', { waitUntil: 'domcontentloaded' });
   const cases = await page.evaluate(() => ({
     active: document.querySelector('.nav-links a[aria-current="page"]')?.textContent.trim(),
     pieces: document.querySelectorAll('.portfolio-piece').length,
@@ -44,7 +44,7 @@ const { chromium } = require('playwright');
 
   for (const width of [280, 320, 390, 768, 1024, 1440, 1920, 2560]) {
     await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
-    await page.goto(`http://127.0.0.1:8092/portfolio.html?w=${width}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`http://127.0.0.1:8000/portfolio.html?w=${width}`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(500);
     const r = await page.evaluate(() => {
       const el = document.querySelector('.portfolio-hero__title, .pf-overture__h, h1');

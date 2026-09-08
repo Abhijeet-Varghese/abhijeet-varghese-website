@@ -11,7 +11,7 @@ const { chromium } = require('playwright');
   await page.route('**/api/analytics/track', route => route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' }));
 
   console.log("Auditing Recruiters Page on CMS (/for-recruiters.html)...");
-  await page.goto('http://127.0.0.1:8092/for-recruiters.html', { waitUntil: 'domcontentloaded' });
+  await page.goto('http://127.0.0.1:8000/for-recruiters.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(1000);
 
   // 1. Structural and Visual DNA Checks
@@ -56,7 +56,7 @@ const { chromium } = require('playwright');
 
   // 3. Reduced motion check
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('http://127.0.0.1:8092/for-recruiters.html', { waitUntil: 'domcontentloaded' });
+  await page.goto('http://127.0.0.1:8000/for-recruiters.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(500);
   const reveals = await page.evaluate(() => {
     const srs = Array.from(document.querySelectorAll('.rp-sr'));

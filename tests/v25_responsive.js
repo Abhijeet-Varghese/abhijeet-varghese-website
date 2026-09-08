@@ -8,7 +8,7 @@ const PAGES = ['/', '/story.html', '/experience.html', '/case-studies.html', '/c
   for (const w of WIDTHS) {
     await page.setViewportSize({ width: w, height: 900 });
     for (const p of PAGES) {
-      await page.goto('http://127.0.0.1:8092' + p + '?q=' + w, { waitUntil: 'domcontentloaded' });
+      await page.goto('http://127.0.0.1:8000' + p + '?q=' + w, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(350);
       const r = await page.evaluate(() => ({
         overflow: document.documentElement.scrollWidth - window.innerWidth,
@@ -23,7 +23,7 @@ const PAGES = ['/', '/story.html', '/experience.html', '/case-studies.html', '/c
   }
   // mobile menu overflow check
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('http://127.0.0.1:8092/?m=1', { waitUntil: 'domcontentloaded' });
+  await page.goto('http://127.0.0.1:8000/?m=1', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(400);
   await page.click('#navToggle');
   await page.waitForTimeout(600);

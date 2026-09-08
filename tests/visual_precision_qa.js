@@ -1,7 +1,7 @@
 /* Pixel-geometry QA: containers, section rhythm, hero composition and shared axes. */
 const { chromium } = require('playwright');
 
-const BASE = process.argv[2] || 'http://127.0.0.1:8092';
+const BASE = process.argv[2] || 'http://127.0.0.1:8000';
 const PAGES = [
   '/', '/story.html', '/experience.html', '/case-studies.html', '/portfolio.html',
   '/contact.html', '/insights.html', '/journal.html', '/for-recruiters.html',
