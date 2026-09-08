@@ -14,11 +14,11 @@ const { chromium } = require('playwright');
   const portfolio = await page.evaluate(() => ({
     body: document.body.className,
     h1: document.querySelectorAll('h1').length,
-    pieces: document.querySelectorAll('.portfolio-piece').length,
-    practice: document.querySelectorAll('.portfolio-practice li').length,
-    logos: document.querySelectorAll('.portfolio-proof__logos li').length,
+    pieces: document.querySelectorAll('.portfolio-piece, .pf-ch__card, .pf-card').length,
+    practice: document.querySelectorAll('.portfolio-practice li, .pf-practice li').length,
+    logos: document.querySelectorAll('.portfolio-proof__logos li, .pf-proof__logos li, .pf-clients__grid li').length,
     active: document.querySelector('.nav-links a[aria-current="page"]')?.textContent.trim(),
-    links: [...document.querySelectorAll('.portfolio-piece__link')].map(a => a.getAttribute('href')),
+    links: [...document.querySelectorAll('.portfolio-piece__link, .pf-film__link, .pf-ch__cta')].map(a => a.getAttribute('href')),
     overflow: document.documentElement.scrollWidth - innerWidth
   }));
   if (!portfolio.body.includes('portfolio-page')) issues.push('missing portfolio body class');
@@ -52,7 +52,7 @@ const { chromium } = require('playwright');
       return {
         overflow: document.documentElement.scrollWidth - innerWidth,
         titleFits: title.left >= -1 && title.right <= innerWidth + 1,
-        pieces: document.querySelectorAll('.portfolio-piece, .pf-film').length
+        pieces: document.querySelectorAll('.portfolio-piece, .pf-ch__card, .pf-card').length
       };
     });
     if (r.overflow || !r.titleFits || r.pieces !== 3) issues.push(`${width}px ${JSON.stringify(r)}`);
