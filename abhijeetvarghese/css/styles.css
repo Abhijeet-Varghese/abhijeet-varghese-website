@@ -1462,7 +1462,9 @@ html { scroll-padding-top: 96px; }
    thumbnail (brand artwork: logo, title, tagline and callouts) so the
    artwork is never cropped. Same treatment as the Orange Business card. */
 #case-prj-2 .case__panel img[src*="case-bpcl.webp"],
-.portfolio-piece--2 .portfolio-piece__media img[src*="case-bpcl.webp"] {
+.portfolio-piece--2 .portfolio-piece__media img[src*="case-bpcl.webp"],
+#case-prj-3 .case__panel img[src*="case-army.webp"],
+.case-coming__media img[src*="case-army.webp"] {
   object-fit: contain;
   object-position: center;
   transform: none !important;
@@ -1473,6 +1475,7 @@ html { scroll-padding-top: 96px; }
   .case__card-cta { width: 100%; justify-content: center; }
   #case-prj-1 .case__panel img[src*="case-orange-experience-in-action.webp"] { object-position: center top; }
   #case-prj-2 .case__panel img[src*="case-bpcl.webp"] { object-position: center top; }
+  #case-prj-3 .case__panel img[src*="case-army.webp"] { object-position: center top; }
 }
 
 /* ============================================================
@@ -3904,7 +3907,7 @@ body.about-page ::selection { background: rgba(110, 168, 255, 0.32); color: #EFF
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 3 / 2;
+  aspect-ratio: 1672 / 941;
   object-fit: cover;
 }
 .case-coming__media figcaption {

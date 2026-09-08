@@ -3,6 +3,22 @@
      renames. Keep AV_VERSION = 2.4.20; bump the asset cache-bust when
      frontend files change; release tarballs stay AVOS-2.4.20-*. -->
 
+## v2.4.20-r7 · NEW INDIAN ARMY + ORANGE BUSINESS THUMBNAILS
+
+Replaced the two case-study thumbnails site-wide with the new branded artwork (both
+1672×941, same canvas as the BPCL card): `assets/case-army.webp` (was a 640×427 stock
+photo) and `assets/case-orange-experience-in-action.webp` (was 1536×1024). Updated every
+consumer — homepage + case-studies listing cards, portfolio reel cards, the Indian Army
+coming-soon hero, JSON-LD `image`, Indian Army `og:image` (+ width/height/alt) — with
+`?v=20260909` cache-busting, corrected `width`/`height` attributes and descriptive alt
+text. The Indian Army card now gets the same "contain, never crop" treatment as the Orange
+and BPCL artwork (`styles.css` + `data-fit="contain"` on the reel card); the coming-soon
+figure aspect ratio matches the artwork. Stylesheet fingerprint bumped. Admin media copies
+(`admin/app/media/case-army.webp`, `case-orange.webp`) refreshed; the frontend→CMS sync
+picked up the new dimensions automatically. Verified: link_audit 0 broken · static
+integrity clean · orange case QA clean · performance budget clean · rendered screenshots
+of all six placements.
+
 ## v2.4.20-r6 · REPO CLEANUP — DEAD CODE, UNUSED FILES, OLD ARTIFACTS
 
 Evidence-based sweep (every removal was grep-verified against HTML/CSS/JS/PHP/tests/docs
