@@ -5,6 +5,7 @@
 # ============================================================
 set -u
 BASE=http://127.0.0.1:8092
+DB="${AV_DB:-avos}"
 CJ=/tmp/fm_cookies.txt; rm -f $CJ
 CJ2=/tmp/fm2.txt; rm -f $CJ2
 PASS=0; FAIL=0
@@ -23,7 +24,7 @@ CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST $BASE/api/backup)
 chk "no session backup → 401" "401" "$CODE"
 
 echo "== 3. BAD PASSWORD =="
-mysql -uavos -paV0s_d3v_9xKq2mN7 avos -e "DELETE FROM login_attempts;" 2>/dev/null
+mysql -uavos -paV0s_d3v_9xKq2mN7 $DB -e "DELETE FROM login_attempts;" 2>/dev/null
 CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST $BASE/api/auth/login -H "Content-Type: application/json" -d '{"email":"admin@avos.test","password":"wrongwrong123"}')
 chk "bad password → 401" "401" "$CODE"
 
@@ -41,11 +42,11 @@ CODE=$(curl -s -o /dev/null -w "%{http_code}" $BASE/site/does-not-exist.png)
 chk "missing asset → 404" "404" "$CODE"
 
 echo "== 6. FAILED WEBHOOK (dead endpoint) =="
-rm -f /home/user/avos-php/storage/cache/rl-*.json
+rm -f "$(dirname "$0")/../avos-php/storage/cache/rl-"*.json
 WID=$(curl -s -b $CJ -X POST $BASE/api/webhooks -H "Content-Type: application/json" -H "X-CSRF-Token: $CSRF" -d '{"endpoint":"http://127.0.0.1:9/dead-hook","secret":"s3cret","events":["lead.created"]}' | php -r '$d=json_decode(stream_get_contents(STDIN),true); echo $d["data"]["id"] ?? 0;')
-curl -s -X POST $BASE/api/public/lead -H "Content-Type: application/json" -d '{"name":"Hook Test","email":"hook-$(date +%s)@test.dev","message":"webhook failure test","website":""}' > /dev/null
+curl -s -X POST $BASE/api/public/lead -H "Content-Type: application/json" -d '{"name":"Hook Test","email":"hook-$(date +%s)@test.dev","phone":"+919876500002","message":"webhook failure test","website":""}' > /dev/null
 sleep 1
-R=$(mysql -uavos -paV0s_d3v_9xKq2mN7 avos -N -e "SELECT success FROM webhook_deliveries WHERE webhook_id=$WID ORDER BY id DESC LIMIT 1;" 2>/dev/null)
+R=$(mysql -uavos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT success FROM webhook_deliveries WHERE webhook_id=$WID ORDER BY id DESC LIMIT 1;" 2>/dev/null)
 chk "dead webhook marked failed" "0" "$R"
 R=$(curl -s -b $CJ -X POST $BASE/api/webhooks/retry-failed -H "X-CSRF-Token: $CSRF" -d '{}')
 chk "retry-failed works" '"ok":true' "$R"
@@ -53,7 +54,7 @@ chk "retry-failed works" '"ok":true' "$R"
 echo "== 7. FAILED EMAIL (queued, delivery status recorded) =="
 R=$(curl -s -b $CJ -X POST $BASE/api/emailtemplates/test/1 -H "X-CSRF-Token: $CSRF" -d '{}')
 chk "test email queued" '"ok":true' "$R"
-E=$(mysql -uavos -paV0s_d3v_9xKq2mN7 avos -N -e "SELECT status FROM email_log ORDER BY id DESC LIMIT 1;" 2>/dev/null)
+E=$(mysql -uavos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT status FROM email_log ORDER BY id DESC LIMIT 1;" 2>/dev/null)
 if [ "$E" = "sent" ] || [ "$E" = "failed" ]; then ok "email status recorded ($E)"; else bad "email status recorded" "$E"; fi
 
 echo "== 8. AI FAILURE (no provider key configured) =="
@@ -62,7 +63,7 @@ chk "AI without key → clean AI_ERROR" "AI_ERROR" "$R"
 
 echo "== 9. COPILOT PERMISSION DENIAL (viewer) =="
 # self-provision a Viewer user (fresh DBs only have the admin)
-EXIST=$(mysql -uavos -paV0s_d3v_9xKq2mN7 avos -N -e "SELECT COUNT(*) FROM users WHERE email='viewer@e2e.test';" 2>/dev/null)
+EXIST=$(mysql -uavos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT COUNT(*) FROM users WHERE email='viewer@e2e.test';" 2>/dev/null)
 if [ "$EXIST" = "0" ]; then
   curl -s -b $CJ -X POST $BASE/api/users -H "Content-Type: application/json" -H "X-CSRF-Token: $CSRF" -d '{"name":"E2E Viewer","email":"viewer@e2e.test","password":"ViewerPass!2345","role_id":6}' > /dev/null
 fi

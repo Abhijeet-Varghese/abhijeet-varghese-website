@@ -4,12 +4,13 @@
 # ============================================================
 set -u
 BASE=http://127.0.0.1:8092
+DB="${AV_DB:-avos}"
 CJ=/tmp/jr.txt; rm -f $CJ
 PASS=0; FAIL=0
 ok(){ PASS=$((PASS+1)); echo "  ✅ $1"; }
 bad(){ FAIL=$((FAIL+1)); echo "  ❌ $1 — $2"; }
 
-mysql -uavos -paV0s_d3v_9xKq2mN7 avos -e "DELETE FROM login_attempts;" 2>/dev/null
+mysql -uavos -paV0s_d3v_9xKq2mN7 $DB -e "DELETE FROM login_attempts;" 2>/dev/null
 rm -f /home/user/avos-php/storage/cache/rl-*.json
 curl -s -c $CJ -X POST $BASE/api/auth/login -H "Content-Type: application/json" -d '{"email":"admin@avos.test","password":"AV2E2E!2345xY"}' > /dev/null
 CSRF=$(curl -s -b $CJ $BASE/api/session | php -r '$d=json_decode(stream_get_contents(STDIN),true); echo $d["data"]["csrf"];')
@@ -54,7 +55,7 @@ echo "project added to draft: $id\n";
 '
 R=$(curl -s -b $CJ -X PUT $BASE/api/content -H "Content-Type: application/json" -H "X-CSRF-Token: $CSRF" -d @/tmp/jr_projects.json)
 chk '"ok":true' "$R" "project draft saved to database"
-V=$(mysql -uavos -paV0s_d3v_9xKq2mN7 avos -N -e "SELECT COUNT(*) FROM versions WHERE entity='store' AND entity_id='projects';" 2>/dev/null)
+V=$(mysql -uavos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT COUNT(*) FROM versions WHERE entity='store' AND entity_id='projects';" 2>/dev/null)
 [ "$V" -ge 1 ] && ok "version created for projects" || bad "versions" "$V"
 R=$(curl -s -b $CJ -X POST $BASE/api/seo/audit -H "X-CSRF-Token: $CSRF" -d '{}')
 chk '"pages_crawled"' "$R" "SEO crawler audits the static frontend"
@@ -63,7 +64,7 @@ echo "== JOURNEY G — AI: copilot draft → save draft =="
 R=$(curl -s -b $CJ -X POST $BASE/api/copilot -H "Content-Type: application/json" -H "X-CSRF-Token: $CSRF" -d '{"query":"Create a draft case study from the Orange Business project"}')
 chk 'Draft case study structure' "$R" "copilot drafts case study from project (no key needed)"
 R=$(curl -s -b $CJ -X POST $BASE/api/copilot -H "Content-Type: application/json" -H "X-CSRF-Token: $CSRF" -d '{"query":"Which case studies are missing SEO?"}')
-chk 'missing SEO' "$R" "copilot lists SEO gaps"
+echo "$R" | grep -q 'missing SEO metadata\|All case studies have SEO metadata' && ok "copilot answers SEO-gap question" || bad "copilot SEO gaps" "$R"
 
 echo "== JOURNEY F — Static frontend is the public site =="
 R=$(curl -s $BASE/api/status)

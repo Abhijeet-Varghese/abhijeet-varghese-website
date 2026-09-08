@@ -1,7 +1,7 @@
 /* Functional tests: dashboard, campaigns, email templates, automations, SEO, AI studio, proposals PDF */
 const { chromium } = require('playwright');
 const BASE = 'http://127.0.0.1:8092';
-const EMAIL = 'admin@avos.test', PASS = 'AV2E2E!2345xY';
+const EMAIL = process.env.AV_ADMIN_EMAIL || 'admin@avos.test', PASS = process.env.AV_ADMIN_PASS || 'AV2E2E!2345xY';
 
 (async () => {
   const browser = await chromium.launch();

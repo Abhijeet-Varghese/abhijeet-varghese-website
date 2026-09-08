@@ -60,6 +60,7 @@ RewriteRule ^ - [F,L]
 
 # Media library (admin previews) — served from private storage via media.php
 RewriteRule ^media/(.+)$ media.php?f=$1 [L,QSA]
+RewriteRule ^admin/app/media/(.+)$ media.php?f=$1 [L,QSA]
 
 # ---- static frontend: legacy flat pages → canonical clean URLs (no chains) ----
 RewriteRule ^case-studies\.html/?$ /case-studies/ [R=301,L]

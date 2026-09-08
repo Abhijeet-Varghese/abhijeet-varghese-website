@@ -10,6 +10,8 @@ const { chromium } = require('playwright');
   ok('booking form present', await page.evaluate(() => !!document.querySelector('#contactForm')));
   await page.fill('#cfName', 'Browser Test User');
   await page.fill('#cfEmail', 'booking-flow@test.dev');
+  await page.fill('#cfMobile', '9876543210');
+  await page.evaluate(() => document.querySelector('#cfMobile').dispatchEvent(new Event('input', { bubbles: true })));
   await page.evaluate(() => document.querySelector('#dateTrigger').scrollIntoView({ block: 'center' }));
   await page.waitForTimeout(400);
   await page.click('#dateTrigger', { timeout: 8000 });

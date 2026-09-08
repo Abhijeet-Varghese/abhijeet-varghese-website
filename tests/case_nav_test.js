@@ -5,7 +5,7 @@ const { chromium } = require('playwright');
   const results = [];
   const ok = (n, c, x = '') => results.push(`${c ? 'PASS' : 'FAIL'}  ${n}${c ? '' : '  ' + x}`);
   // 1. nav → dedicated pages (Portfolio and Case Studies are intentionally separate)
-  for (const [label, href] of [['Story', 'story.html'], ['Experience', 'experience.html'], ['Case Studies', 'case-studies.html'], ['Portfolio', 'portfolio.html']]) {
+  for (const [label, href] of [['Story', 'story.html'], ['Experience', 'experience/'], ['Case Studies', 'case-studies/'], ['Portfolio', 'portfolio.html']]) {
     await page.goto('http://127.0.0.1:8092/', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(400);
     const clicked = await page.evaluate(({ label, href }) => {
@@ -40,12 +40,12 @@ const { chromium } = require('playwright');
     return href;
   });
   await page.waitForTimeout(1000);
-  const orangeRoute = 'experience-design/orange-business-executive-briefing-center/';
+  const orangeRoute = 'case-studies/orange-business/';
   ok('Orange Business card → canonical long-form page', cta === orangeRoute && page.url().includes('/' + orangeRoute), cta + ' → ' + page.url());
   const detail = await page.evaluate(() => ({
     h1: (document.querySelector('h1') || {}).textContent.trim() || '',
     sections: document.querySelectorAll('main article > section').length,
-    caseNav: !!document.querySelector('.site-nav a[href="../../case-studies.html"]'),
+    caseNav: !!document.querySelector('.site-nav a[href="../../case-studies/"]'),
     portfolioNav: !!document.querySelector('.site-nav a[href="../../portfolio.html"]'),
     portfolioFooter: !!document.querySelector('.footer a[href="../../portfolio.html"]')
   }));

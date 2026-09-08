@@ -2,8 +2,8 @@
 const { chromium } = require('playwright');
 
 const BASE = 'http://127.0.0.1:8092';
-const EMAIL = 'admin@avos.test';
-const PASS = 'AV2E2E!2345xY';
+const EMAIL = process.env.AV_ADMIN_EMAIL || 'admin@avos.test';
+const PASS = process.env.AV_ADMIN_PASS || 'AV2E2E!2345xY';
 
 const views = [
   'publishing', 'versions', 'emailtemplates', 'campaigns',

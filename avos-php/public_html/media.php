@@ -2,12 +2,16 @@
 /**
  * AV OS — media server (public portfolio assets from private storage).
  *
- * The generated public site embeds media under /site/assets/... so this
- * handler exists for the admin CMS (media library previews) and for
- * direct /media/... references. Files are public portfolio assets.
+ * Serves /media/<path> for the admin CMS (media library previews, project/
+ * article cover images). Lookup order:
+ *   1. storage/uploads/<path>          (files uploaded through the media library)
+ *   2. <static site>/assets/<path>     (portfolio images that ship with the
+ *                                       hand-authored frontend — CMS records
+ *                                       reference them as media/<name>)
+ * Files are public portfolio assets; the static site itself never uses /media.
  *
- * Hard guards: strict filename pattern, realpath containment inside
- * storage/uploads, safe content-types, no PHP execution.
+ * Hard guards: strict filename pattern, realpath containment inside one of the
+ * two roots, safe content-types, no PHP execution.
  */
 require __DIR__ . '/../includes/bootstrap.php';
 
@@ -20,9 +24,15 @@ if (!preg_match('#^[A-Za-z0-9_\-]+(/[A-Za-z0-9_\-]+)*\.[A-Za-z0-9]{2,6}$#', $f))
     http_response_code(404);
     exit;
 }
-$root = realpath(AV_UPLOADS);
-$file = realpath($root . '/' . $f);
-if ($file === false || !str_starts_with($file, $root . '/') || !is_file($file)) {
+$file = false;
+$roots = [realpath(AV_UPLOADS)];
+if (defined('AV_SITE_DIR') && is_dir(AV_SITE_DIR . '/assets')) $roots[] = realpath(AV_SITE_DIR . '/assets');
+foreach ($roots as $root) {
+    if ($root === false) continue;
+    $cand = realpath($root . '/' . $f);
+    if ($cand !== false && str_starts_with($cand, $root . '/') && is_file($cand)) { $file = $cand; break; }
+}
+if ($file === false) {
     http_response_code(404);
     exit;
 }

@@ -24,8 +24,9 @@ if (str_starts_with($path, '/api/') || $path === '/api') {
     require $appRoot . '/api/index.php';
     return true;
 }
-if (str_starts_with($path, '/media/')) {
-    $_GET['f'] = substr($path, strlen('/media/'));
+if (str_starts_with($path, '/media/') || str_starts_with($path, '/admin/app/media/')) {
+    // admin views reference covers as media/<name> relative to /admin/app/
+    $_GET['f'] = substr($path, strpos($path, '/media/') + strlen('/media/'));
     require $appRoot . '/media.php';
     return true;
 }
