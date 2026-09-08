@@ -41,3 +41,5 @@ Thumbs.db
 
 uploads/
 previews/
+# Local AI-assistant skill packs (not part of the product)
+.claude/

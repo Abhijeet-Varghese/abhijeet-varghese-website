@@ -1,6 +1,7 @@
 #!/bin/bash
 # Calendly inbound webhook test — official contract (t=ts,v1=hmac(ts.'.'.body, key))
 # Uses curl CLI (php-curl + php -S has a header-parsing quirk; production Apache/LiteSpeed unaffected).
+DB="${AV_DB:-avos}"
 set -u
 BASE=http://127.0.0.1:8092
 KEY="cal_webhook_signing_key_e2e_test_2026"
@@ -14,7 +15,7 @@ sign() { # body, key, [ts]
   echo "t=$ts,v1=$(printf '%s' "$ts.$body" | openssl dgst -sha256 -hmac "$key" | awk '{print $2}')"
 }
 
-mysql -uavos -paV0s_d3v_9xKq2mN7 avos -e "DELETE FROM login_attempts; DELETE FROM inbound_events;" 2>/dev/null
+mysql -uavos -paV0s_d3v_9xKq2mN7 $DB -e "DELETE FROM login_attempts; DELETE FROM inbound_events;" 2>/dev/null
 curl -s -c $CJ -X POST $BASE/api/auth/login -H "Content-Type: application/json" -d '{"email":"admin@avos.test","password":"AV2E2E!2345xY"}' > /dev/null
 CSRF=$(curl -s -b $CJ $BASE/api/session | php -r '$d=json_decode(stream_get_contents(STDIN),true); echo $d["data"]["csrf"];')
 
@@ -41,7 +42,7 @@ R=$(curl -s -X POST $BASE/api/webhooks/inbound/calendly -H "Content-Type: applic
 echo "$R" | grep -q '"status":"duplicate"' && ok "duplicate → duplicate status" || bad "dedup status" "$R"
 M2=$(echo "$R" | php -r '$d=json_decode(stream_get_contents(STDIN),true); echo $d["data"]["meeting_id"] ?? 0;')
 [ "$M2" = "$MID" ] && ok "same meeting returned (no duplicate row)" || bad "dedup meeting" "$M2 vs $MID"
-CNT=$(mysql -uavos -paV0s_d3v_9xKq2mN7 avos -N -e "SELECT COUNT(*) FROM meetings WHERE external_event_id='INVITEE-ABC-123' AND deleted_at IS NULL;" 2>/dev/null)
+CNT=$(mysql -uavos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT COUNT(*) FROM meetings WHERE external_event_id='INVITEE-ABC-123' AND deleted_at IS NULL;" 2>/dev/null)
 [ "$CNT" = "1" ] && ok "exactly one meeting row" || bad "meeting count" "$CNT"
 
 echo "== 4. SECURITY REJECTIONS =="
@@ -59,19 +60,19 @@ echo "== 5. invitee.canceled =="
 CANCEL="{\"event\":\"invitee.canceled\",\"created_at\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"payload\":{\"event\":\"invitee.canceled\",\"invitee\":{\"uuid\":\"INVITEE-ABC-123\",\"name\":\"Calendly Booker\"}}}"
 R=$(curl -s -X POST $BASE/api/webhooks/inbound/calendly -H "Content-Type: application/json" -H "Calendly-Webhook-Signature: $(sign "$CANCEL" "$KEY")" -d "$CANCEL")
 echo "$R" | grep -q '"status":"processed"' && ok "invitee.canceled → processed" || bad "cancel" "$R"
-ST=$(mysql -uavos -paV0s_d3v_9xKq2mN7 avos -N -e "SELECT status FROM meetings WHERE id=$MID;" 2>/dev/null)
+ST=$(mysql -uavos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT status FROM meetings WHERE id=$MID;" 2>/dev/null)
 [ "$ST" = "cancelled" ] && ok "meeting → cancelled" || bad "cancel status" "$ST"
-ACT=$(mysql -uavos -paV0s_d3v_9xKq2mN7 avos -N -e "SELECT COUNT(*) FROM activities WHERE type='meeting_cancelled';" 2>/dev/null)
+ACT=$(mysql -uavos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT COUNT(*) FROM activities WHERE type='meeting_cancelled';" 2>/dev/null)
 [ "$ACT" -ge 1 ] && ok "cancel activity recorded" || bad "activity" "$ACT"
 
 echo "== 6. LEDGER + AUDIT =="
 R=$(curl -s -b $CJ $BASE/api/webhooks/inbound/events)
 echo "$R" | grep -q 'invitee.created' && ok "events ledger lists entries" || bad "ledger" "$R"
-AUD=$(mysql -uavos -paV0s_d3v_9xKq2mN7 avos -N -e "SELECT COUNT(*) FROM audit_logs WHERE action='inbound_webhook';" 2>/dev/null)
+AUD=$(mysql -uavos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT COUNT(*) FROM audit_logs WHERE action='inbound_webhook';" 2>/dev/null)
 [ "$AUD" -ge 2 ] && ok "inbound webhooks audited ($AUD)" || bad "audit" "$AUD"
 
 echo "== 7. NO KEY → CLEAN 503 =="
-mysql -uavos -paV0s_d3v_9xKq2mN7 avos -e "UPDATE integrations SET config_enc=NULL, status='not_connected' WHERE code='calendly';" 2>/dev/null
+mysql -uavos -paV0s_d3v_9xKq2mN7 $DB -e "UPDATE integrations SET config_enc=NULL, status='not_connected' WHERE code='calendly';" 2>/dev/null
 R=$(curl -s -X POST $BASE/api/webhooks/inbound/calendly -H "Content-Type: application/json" -H "Calendly-Webhook-Signature: $(sign "$PAYLOAD" "$KEY")" -d "$PAYLOAD")
 echo "$R" | grep -q 'not configured' && ok "no key → clean 503-style error" || bad "nokey" "$R"
 curl -s -b $CJ -X PUT $BASE/api/webhooks/inbound/config -H "Content-Type: application/json" -H "X-CSRF-Token: $CSRF" -d "{\"signing_key\":\"$KEY\"}" > /dev/null

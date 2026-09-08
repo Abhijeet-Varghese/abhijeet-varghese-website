@@ -133,7 +133,6 @@ window.BPCL = {
   /* ── §05 · 3D architectural walkthrough ──────────────────────── */
   FRAMES: [
     { n:'01', file:'frame01', alt:'3D architectural visualization of the Bharat Petroleum Corporation Limited Palakkad Top Installation — arrival view of the industrial facility.' },
-    { n:'02', file:'frame02', alt:'Duplicate of frame 01 in the supplied set — not presented in the sequence.' },
     { n:'03', file:'frame03', alt:'3D architectural visualization of the Bharat Petroleum Corporation Limited Palakkad Top Installation.' },
     { n:'04', file:'frame04', alt:'3D architectural visualization of the Bharat Petroleum Corporation Limited Palakkad Top Installation.' },
     { n:'05', file:'frame05', alt:'3D architectural visualization of the Bharat Petroleum Corporation Limited Palakkad Top Installation.' },
@@ -144,11 +143,10 @@ window.BPCL = {
     { n:'10', file:'frame10', alt:'3D architectural visualization of the Bharat Petroleum Corporation Limited Palakkad Top Installation.' }
   ],
 
-  /* `bpcl video 2.jpg` is byte-identical to `bpcl video 1.jpg`
-     (md5 52b3546d0e84e2f3f32e9d6f7e5ab27e, verified). It is held
-     out of the sequence rather than presented as a second frame.
-     Replace the file, then remove '02' from this list.            */
-  DUPLICATE_FRAMES: ['02'],
+  /* Frame numbers listed here are held out of the sequence without
+     renumbering it. Frame 02 of the supplied set was a byte-identical
+     copy of frame 01 and has been removed from the repo entirely.    */
+  DUPLICATE_FRAMES: [],
 
   /* Optional: name the stages once a frame's subject is confirmed.
      Leave empty and captions stay neutral. */

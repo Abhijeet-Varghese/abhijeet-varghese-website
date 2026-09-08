@@ -1025,24 +1025,25 @@ final class SiteSync
         }
     }
 
-    /** Legacy redirect stubs → { targetPath (site-relative, dir form) => [stub files] } */
+    /**
+     * Legacy URLs → { targetPath (site-relative, dir form) => [legacy paths] },
+     * read from the 301 map in the frontend's own .htaccess (the single source
+     * of truth for redirects — there are no redirect stub files any more).
+     */
     private static function legacyPaths(): array
     {
         $out = [];
-        $dir = AV_SITE_DIR;
-        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS));
-        foreach ($it as $f) {
-            if (!$f->isFile() || strtolower($f->getExtension()) !== 'html') continue;
-            $abs = $f->getPathname();
-            if (!SeoCrawlerModel::isRedirectStub($abs)) continue;
-            $head = (string)file_get_contents($abs, false, null, 0, 2048);
-            if (!preg_match('/http-equiv="refresh"[^>]*content="[^"]*url=([^"\s]+)/i', $head, $m)) continue;
-            $target = $m[1];
-            $target = preg_replace('#^https?://[^/]+#', '', $target);
-            $target = ltrim($target, '/');
+        $ht = AV_SITE_DIR . '/.htaccess';
+        if (!is_file($ht)) return $out;
+        foreach (preg_split('/\r?\n/', (string)file_get_contents($ht)) as $line) {
+            if (!preg_match('/^\s*RewriteRule\s+\^(\S+?)\$\s+(\S+)\s+\[[^\]]*R=301[^\]]*\]/', $line, $m)) continue;
+            $from = preg_replace('#/\?$#', '', $m[1]);          // drop optional trailing slash
+            $from = str_replace(['\\.', '\\-'], ['.', '-'], $from); // unescape regex literals
+            if (preg_match('/[\[\](){}*+?|]/', $from)) continue;  // skip real patterns
+            $target = ltrim(preg_replace('#^https?://[^/]+#', '', $m[2]), '/');
             $target = preg_replace('#index\.html$#', '', $target);
             if ($target !== '' && !str_ends_with($target, '/') && !str_ends_with($target, '.html')) $target .= '/';
-            $out[$target][] = self::rel($abs);
+            $out[$target][] = $from;
         }
         return $out;
     }

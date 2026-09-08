@@ -6,7 +6,7 @@ const path = require('path');
 
 const BASE = process.argv[2] || 'http://127.0.0.1:8092';
 const ROOT = path.resolve(__dirname, '..');
-const PAGES = ['/', '/story.html', '/portfolio.html', '/contact.html', '/experience-design/orange-business-executive-briefing-center/', '/essay-technology-should-feel-human.html'];
+const PAGES = ['/', '/story.html', '/portfolio.html', '/contact.html', '/case-studies/orange-business/', '/essay-technology-should-feel-human.html'];
 
 (async () => {
   const browser = await chromium.launch();

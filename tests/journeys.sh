@@ -2,6 +2,8 @@
 # ============================================================
 # AV OS — USER JOURNEYS (spec §81): C (CRM), D (Content), G (AI)
 # ============================================================
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+APP="$REPO_ROOT/avos-php"
 set -u
 BASE=http://127.0.0.1:8092
 DB="${AV_DB:-avos}"
@@ -11,7 +13,7 @@ ok(){ PASS=$((PASS+1)); echo "  ✅ $1"; }
 bad(){ FAIL=$((FAIL+1)); echo "  ❌ $1 — $2"; }
 
 mysql -uavos -paV0s_d3v_9xKq2mN7 $DB -e "DELETE FROM login_attempts;" 2>/dev/null
-rm -f /home/user/avos-php/storage/cache/rl-*.json
+rm -f $APP/storage/cache/rl-*.json
 curl -s -c $CJ -X POST $BASE/api/auth/login -H "Content-Type: application/json" -d '{"email":"admin@avos.test","password":"AV2E2E!2345xY"}' > /dev/null
 CSRF=$(curl -s -b $CJ $BASE/api/session | php -r '$d=json_decode(stream_get_contents(STDIN),true); echo $d["data"]["csrf"];')
 

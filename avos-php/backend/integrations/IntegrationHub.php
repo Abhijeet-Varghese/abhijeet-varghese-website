@@ -470,13 +470,4 @@ final class OAuth2
         if (empty($d['access_token'])) throw new RuntimeException('Token refresh returned no token');
         return $d['access_token'];
     }
-
-    /** OAuth2 authorization URL builder (for user-configured client apps). */
-    public static function authorizeUrl(string $authUrl, string $clientId, string $redirectUri, string $scope, string $state): string
-    {
-        return $authUrl . '?' . http_build_query([
-            'client_id' => $clientId, 'redirect_uri' => $redirectUri, 'response_type' => 'code',
-            'scope' => $scope, 'state' => $state, 'access_type' => 'offline', 'prompt' => 'consent',
-        ]);
-    }
 }

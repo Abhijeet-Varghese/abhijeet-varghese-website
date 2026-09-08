@@ -3,13 +3,13 @@ const { chromium } = require('playwright');
 
 const BASE = process.argv[2] || 'http://127.0.0.1:8092';
 const PAGES = [
-  '/', '/story.html', '/experience.html', '/case-studies.html', '/portfolio.html',
+  '/', '/story.html', '/experience/', '/case-studies/', '/portfolio.html',
   '/contact.html', '/insights.html', '/journal.html', '/for-recruiters.html',
   '/consulting.html', '/sitemap.html', '/privacy-policy.html', '/terms.html',
   '/search.html', '/404.html',
-  '/case-study-intuitive-experiences-for-industrial-environments.html',
-  '/case-study-immersive-solutions-for-the-indian-army.html',
-  '/experience-design/orange-business-executive-briefing-center/',
+  '/case-studies/bharat-petroleum-corporation-limited/',
+  '/case-studies/indian-army/',
+  '/case-studies/orange-business/',
   '/essay-technology-should-feel-human.html', '/essay-ai-isnt-replacing-creativity.html',
   '/essay-designing-experiences-people-remember.html', '/essay-why-enterprise-experiences-fail.html',
   '/journal-what-a-year-of-ai-enabled-production-taught-me.html',
@@ -21,7 +21,7 @@ const SIZES = [
   [1366, 768], [1440, 900], [1536, 864], [1920, 1080], [2560, 1440],
   [3440, 1440], [3840, 2160], [568, 320], [667, 375], [844, 390], [1024, 600]
 ];
-const SWEEP_PAGES = ['/', '/story.html', '/experience.html', '/case-studies.html', '/portfolio.html', '/contact.html', '/experience-design/orange-business-executive-briefing-center/'];
+const SWEEP_PAGES = ['/', '/story.html', '/experience/', '/case-studies/', '/portfolio.html', '/contact.html', '/case-studies/orange-business/'];
 
 (async () => {
   const browser = await chromium.launch();
@@ -143,7 +143,7 @@ const SWEEP_PAGES = ['/', '/story.html', '/experience.html', '/case-studies.html
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: dpr });
     const retina = await context.newPage();
     await retina.route('**/api/analytics/track', route => route.fulfill({ status: 200, body: '{"ok":true}' }));
-    for (const path of ['/', '/story.html', '/portfolio.html', '/experience-design/orange-business-executive-briefing-center/']) {
+    for (const path of ['/', '/story.html', '/portfolio.html', '/case-studies/orange-business/']) {
       await retina.goto(BASE + path, { waitUntil: 'domcontentloaded' });
       const result = await retina.evaluate(() => ({ overflow: document.documentElement.scrollWidth - innerWidth, h1: document.querySelectorAll('h1').length }));
       if (result.overflow > 1 || result.h1 !== 1) issues.push(`${path} DPR${dpr}: ${JSON.stringify(result)}`);

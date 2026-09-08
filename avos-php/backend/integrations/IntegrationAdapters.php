@@ -518,6 +518,13 @@ final class GithubAdapter implements IntegrationAdapterInterface
                 'write' => 'none — no autonomous Git operations, ever'];
     }
 
+    /** GitHub returns ISO-8601 (`2026-09-05T10:56:35Z`); DATETIME columns need `Y-m-d H:i:s`. */
+    private static function sqlDate(string $iso): string
+    {
+        $t = $iso !== '' ? strtotime($iso) : false;
+        return date('Y-m-d H:i:s', $t !== false ? $t : time());
+    }
+
     private function headers(array $cfg): array
     {
         $h = ['Accept: application/vnd.github+json', 'X-GitHub-Api-Version: 2022-11-28'];
@@ -572,7 +579,7 @@ final class GithubAdapter implements IntegrationAdapterInterface
                         Database::q("INSERT INTO dev_events (repo, kind, title, url, state, meta, created_at)
                                      VALUES (?, 'commit', ?, ?, 'open', ?, ?) ON DUPLICATE KEY UPDATE meta=VALUES(meta)",
                             [$name, mb_substr((string)($c['commit']['message'] ?? 'commit'), 0, 200), (string)($c['html_url'] ?? ''),
-                             json_encode(['sha' => $sha, 'date' => $c['commit']['author']['date'] ?? '']), $c['commit']['author']['date'] ?? date('Y-m-d H:i:s')]);
+                             json_encode(['sha' => $sha, 'date' => $c['commit']['author']['date'] ?? '']), self::sqlDate($c['commit']['author']['date'] ?? '')]);
                         $imported++;
                     }
                 }
@@ -585,7 +592,7 @@ final class GithubAdapter implements IntegrationAdapterInterface
                         Database::q("INSERT INTO dev_events (repo, kind, title, url, state, meta, created_at)
                                      VALUES (?, 'issue', ?, ?, 'open', ?, ?) ON DUPLICATE KEY UPDATE meta=VALUES(meta)",
                             [$name, mb_substr((string)($iss['title'] ?? 'issue'), 0, 200), (string)($iss['html_url'] ?? ''),
-                             json_encode(['number' => $num, 'comments' => (int)($iss['comments'] ?? 0)]), (string)($iss['created_at'] ?? date('Y-m-d H:i:s'))]);
+                             json_encode(['number' => $num, 'comments' => (int)($iss['comments'] ?? 0)]), self::sqlDate((string)($iss['created_at'] ?? ''))]);
                         $imported++;
                     }
                 }

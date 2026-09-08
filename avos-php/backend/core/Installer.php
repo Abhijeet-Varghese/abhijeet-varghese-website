@@ -7,7 +7,7 @@
  *   - database/install.php           (CLI installer)
  *
  * Steps: connect → create database → run the full migration chain
- * (001→026 via MigrationRunner) → seed canonical content → create the
+ * (via MigrationRunner) → sync the static frontend into the store → create the
  * Super Admin → write the lock file so the surface self-disables.
  */
 
@@ -55,19 +55,19 @@ final class Installer
                 $errors[] = 'No migration files found in ' . AV_ROOT . '/database/migrations';
             }
 
-            // 2. content seed (canonical real content — never test data)
-            $seedFile = $opts['seed_file'] ?? (AV_ROOT . '/../avos-data/site.json');
-            if (is_file($seedFile) && !$errors) {
-                $doc = json_decode((string)file_get_contents($seedFile), true);
-                $keys = ['settings','dashboard','sections','pages','projects','articles','media','leads','meetings','availability','forms','submissions','seo','analytics','notifications','users','logs','backups','integrations','clients','testimonials','downloads','nav'];
+            // 2. optional JSON seed (opt-in via $opts['seed_file']; there is no bundled
+            //    seed any more — the static frontend is the only source of content)
+            $seedFile = (string)($opts['seed_file'] ?? '');
+            if ($seedFile !== '' && is_file($seedFile) && !$errors) {
+                $doc = json_decode((string)file_get_contents($seedFile), true) ?: [];
+                $keys = ['settings','sections','pages','projects','articles','media','seo','clients','testimonials','downloads','nav'];
                 $up = $pdo->prepare("INSERT INTO content_store (key_name, data) VALUES (?,?) ON DUPLICATE KEY UPDATE data=VALUES(data)");
                 foreach ($keys as $k) {
                     if (array_key_exists($k, $doc)) $up->execute([$k, json_encode($doc[$k], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]);
                 }
             }
 
-            // 2b. mirror the static frontend into the store (frontend = source of truth).
-            //     Runs after the optional JSON seed so ids/notes carry over; never fatal.
+            // 2b. mirror the static frontend into the store (frontend = source of truth); never fatal.
             if (!$errors && defined('AV_SITE_DIR') && is_file(AV_SITE_DIR . '/index.html')) {
                 try {
                     // install.php loads only config + this class; pull in the runtime autoloader for SiteSync's deps

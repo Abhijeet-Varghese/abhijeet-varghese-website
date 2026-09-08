@@ -180,7 +180,7 @@ backend paths. `/api`, `/admin`, `/install` are ordinary directories beside the 
 
 ## Production install checklist (v2.4 — static frontend)
 
-1. Website at the web root (deploy branch). Upload `avos-php/public_html/*` beside it (api, admin, install, media.php, .htaccess); everything else one level above (backend, database, includes, storage, avos-data).
+1. Website at the web root (deploy branch). Upload `avos-php/public_html/*` beside it (api, admin, install, media.php, .htaccess); everything else one level above (backend, database, includes, storage).
 2. Create `config.local.php` (see `config.local.example.php`):
    - `$env = 'production'; define('AV_DEBUG', false);`
    - `$siteUrl = 'https://abhijeetvarghese.com'; $siteDir = '/home/USERNAME/public_html';`
@@ -199,9 +199,9 @@ Note: `database/migrations/*` are immutable history — never edit them. Ship ne
 
 ## Clean-first installs (v2.0.3+)
 
-The installer seed (`avos-data/site.json`) contains only real portfolio
-content and configuration — no demo leads/analytics/dashboard data. A fresh
-install is born clean. If you ever need to strip a working install down to
+There is no bundled seed file: the installer mirrors the static website
+(`abhijeetvarghese/`) into the CMS store, so a fresh install contains only
+real portfolio content — no demo leads/analytics/dashboard data. If you ever need to strip a working install down to
 production state, run:
 
     php backend/scripts/remove-dummy-content.php

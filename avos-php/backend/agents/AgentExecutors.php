@@ -67,7 +67,7 @@ final class AgentExecutors
         $actions = 0;
         $problems = [];
         $siteUrl = rtrim(AV_SITE_URL, '/');
-        $paths = ['/', '/story.html', '/experience.html', '/case-studies.html', '/contact.html', '/css/styles.css', '/js/main.js', '/sitemap.xml', '/robots.txt', '/search.html'];
+        $paths = ['/', '/story.html', '/experience/', '/case-studies/', '/contact.html', '/css/styles.css', '/js/main.js', '/sitemap.xml', '/robots.txt', '/search.html'];
         foreach ($paths as $p) {
             $code = 0;
             $ch = curl_init($siteUrl . $p);

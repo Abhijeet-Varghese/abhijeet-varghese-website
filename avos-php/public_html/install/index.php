@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <a href="../admin/login.php" style="display:block;text-align:center;background:#2E5AAC;color:#fff;text-decoration:none;font-weight:600;padding:14px;border-radius:10px">Go to admin →</a>
 <?php else: ?>
   <h1>Install <em>AV OS</em></h1>
-  <p class="sub">First-run setup: applies all migrations (001–026), seeds real content and provisions the Super Admin.</p>
+  <p class="sub">First-run setup: applies all migrations, mirrors the static website into the CMS and provisions the Super Admin.</p>
   <?php foreach ($errors as $e): ?><div class="err"><?= htmlspecialchars($e) ?></div><?php endforeach; ?>
   <form method="post">
     <label>Admin name <input name="name" value="Abhijeet Varghese" required></label>

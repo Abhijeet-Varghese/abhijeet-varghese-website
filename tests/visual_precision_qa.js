@@ -3,13 +3,13 @@ const { chromium } = require('playwright');
 
 const BASE = process.argv[2] || 'http://127.0.0.1:8092';
 const PAGES = [
-  '/', '/story.html', '/experience.html', '/case-studies.html', '/portfolio.html',
+  '/', '/story.html', '/experience/', '/case-studies/', '/portfolio.html',
   '/contact.html', '/insights.html', '/journal.html', '/for-recruiters.html',
   '/consulting.html', '/sitemap.html', '/privacy-policy.html', '/terms.html',
   '/search.html', '/404.html',
-  '/case-study-intuitive-experiences-for-industrial-environments.html',
-  '/case-study-immersive-solutions-for-the-indian-army.html',
-  '/experience-design/orange-business-executive-briefing-center/',
+  '/case-studies/bharat-petroleum-corporation-limited/',
+  '/case-studies/indian-army/',
+  '/case-studies/orange-business/',
   '/essay-technology-should-feel-human.html', '/essay-ai-isnt-replacing-creativity.html',
   '/essay-designing-experiences-people-remember.html', '/essay-why-enterprise-experiences-fail.html',
   '/journal-what-a-year-of-ai-enabled-production-taught-me.html',

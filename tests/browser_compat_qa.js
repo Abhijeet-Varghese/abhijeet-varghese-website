@@ -3,7 +3,7 @@ const { chromium, firefox, webkit } = require('playwright');
 
 const BASE = process.argv[2] || 'http://127.0.0.1:8092';
 const ENGINES = { chromium, firefox, webkit };
-const PAGES = ['/', '/story.html', '/experience.html', '/case-studies.html', '/portfolio.html', '/contact.html', '/search.html', '/experience-design/orange-business-executive-briefing-center/'];
+const PAGES = ['/', '/story.html', '/experience/', '/case-studies/', '/portfolio.html', '/contact.html', '/search.html', '/case-studies/orange-business/'];
 
 (async () => {
   const issues = [];
@@ -58,7 +58,7 @@ const PAGES = ['/', '/story.html', '/experience.html', '/case-studies.html', '/p
       if (await page.locator('#searchResults a').count() < 1) issues.push(`${engineName}: search results failed`);
 
       current = `Orange tabs @${viewport.width}`;
-      await page.goto(BASE + '/experience-design/orange-business-executive-briefing-center/', { waitUntil: 'domcontentloaded' });
+      await page.goto(BASE + '/case-studies/orange-business/', { waitUntil: 'domcontentloaded' });
       await page.locator('#proof-tab-wall').evaluate(element => element.click());
       const selected = await page.locator('#proof-tab-wall').getAttribute('aria-selected');
       const hidden = await page.locator('#proof-panel-wall').evaluate(element => element.hidden);

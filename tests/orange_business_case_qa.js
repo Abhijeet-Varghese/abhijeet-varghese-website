@@ -2,7 +2,7 @@
 const { chromium } = require('playwright');
 
 const BASE = process.argv[2] || 'http://127.0.0.1:8092';
-const ROUTE = '/experience-design/orange-business-executive-briefing-center/';
+const ROUTE = '/case-studies/orange-business/';
 const LEGACY = '/case-study-enterprise-technology-made-understandable.html';
 const SIZES = [
   [280, 653], [320, 480], [390, 844], [568, 320], [768, 1024],

@@ -5,6 +5,9 @@
 # live public APIs (RSS/Trends/GitHub/YouTube) · search fusion
 # truth layer · knowledge graph · case-study · links · agents
 # ============================================================
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+APP="$REPO_ROOT/avos-php"; export APP
+DB="${AV_DB:-avos}"
 set -u
 BASE="${BASE:-http://127.0.0.1:8092}"
 FIXTURE_PORT="${FIXTURE_PORT:-8095}"
@@ -64,7 +67,7 @@ GSC_ST=$(GET /api/integrations | jqfield "d=json.load(sys.stdin);print([i['statu
 say ""
 say "========== B. SECRETS AT REST =========="
 PUT /api/integrations/bing "{\"api_key\":\"$SECRET_MARKER\",\"site_url\":\"https://abhijeetvarghese.com/\"}" >/dev/null
-DBENC=$(mysql -u avos -paV0s_d3v_9xKq2mN7 avos -N -e "SELECT config_enc FROM integrations WHERE code='bing'" 2>/dev/null)
+DBENC=$(mysql -u avos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT config_enc FROM integrations WHERE code='bing'" 2>/dev/null)
 check "config_enc is a v3 AES-GCM envelope" "true" "$(echo "$DBENC" | jqfield "d=json.load(sys.stdin);print('true' if isinstance(d,dict) and d.get('v')==3 and d.get('alg')=='aes-256-gcm' and d.get('iv') and d.get('tag') and d.get('ciphertext') else 'false')")"
 check_not_contains "key encrypted at rest (not in DB)" "$SECRET_MARKER" "$DBENC"
 AGAIN=$(GET /api/integrations)
@@ -73,7 +76,7 @@ check "config change resets CONNECTED claim" "not_connected" "$(echo "$AGAIN" | 
 
 say ""
 say "========== C. FIXTURE-CONTRACT ADAPTERS (real API shapes) =========="
-php -S 127.0.0.1:$FIXTURE_PORT /home/user/tests/fixtures/api_stub.php >/dev/null 2>&1 &
+php -S 127.0.0.1:$FIXTURE_PORT $REPO_ROOT/tests/fixtures/api_stub.php >/dev/null 2>&1 &
 FIXTURE_PID=$!
 sleep 1.5
 # real RSA key so the JWT/RS256 service-account flow is genuinely exercised
@@ -107,7 +110,7 @@ R=$(POST /api/integrations/ga4/test)
 check "GA4 fixture test ok" "true" "$(echo "$R" | jqfield "d=json.load(sys.stdin);print('true' if d['data']['ok'] else 'false')")"
 R=$(POST /api/integrations/ga4/sync)
 check "GA4 fixture sync ok" "true" "$(echo "$R" | jqfield "d=json.load(sys.stdin);print('true' if d['data']['ok'] else 'false')")"
-G4=$(mysql -u avos -paV0s_d3v_9xKq2mN7 avos -N -e "SELECT COUNT(*) FROM intelligence_metrics WHERE metric LIKE 'ga4:%'" 2>/dev/null)
+G4=$(mysql -u avos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT COUNT(*) FROM intelligence_metrics WHERE metric LIKE 'ga4:%'" 2>/dev/null)
 [ "$G4" -ge 5 ] && pass "GA4 metrics normalized ($G4 rows)" || fail "GA4 rows $G4"
 # Bing
 PUT /api/integrations/bing "{\"api_key\":\"fixture-key\",\"site_url\":\"https://abhijeetvarghese.com/\",\"api_base\":\"http://127.0.0.1:$FIXTURE_PORT\",\"days\":14}" >/dev/null
@@ -115,7 +118,7 @@ R=$(POST /api/integrations/bing/test)
 check "Bing fixture test ok" "true" "$(echo "$R" | jqfield "d=json.load(sys.stdin);print('true' if d['data']['ok'] else 'false')")"
 R=$(POST /api/integrations/bing/sync)
 check "Bing fixture sync ok" "true" "$(echo "$R" | jqfield "d=json.load(sys.stdin);print('true' if d['data']['ok'] else 'false')")"
-BN=$(mysql -u avos -paV0s_d3v_9xKq2mN7 avos -N -e "SELECT COUNT(*) FROM search_console_queries WHERE source='bing'" 2>/dev/null)
+BN=$(mysql -u avos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT COUNT(*) FROM search_console_queries WHERE source='bing'" 2>/dev/null)
 [ "$BN" -ge 2 ] && pass "Bing queries stored source-attributed ($BN)" || fail "bing rows $BN"
 # Cloudflare
 PUT /api/integrations/cloudflare "{\"api_token\":\"fixture-token\",\"zone_id\":\"zone-fixture\",\"api_base\":\"http://127.0.0.1:$FIXTURE_PORT/client/v4\"}" >/dev/null
@@ -123,7 +126,7 @@ R=$(POST /api/integrations/cloudflare/test)
 check "Cloudflare fixture test ok" "true" "$(echo "$R" | jqfield "d=json.load(sys.stdin);print('true' if d['data']['ok'] else 'false')")"
 R=$(POST /api/integrations/cloudflare/sync)
 check "Cloudflare fixture sync ok" "true" "$(echo "$R" | jqfield "d=json.load(sys.stdin);print('true' if d['data']['ok'] else 'false')")"
-CF=$(mysql -u avos -paV0s_d3v_9xKq2mN7 avos -N -e "SELECT COUNT(*) FROM intelligence_metrics WHERE metric LIKE 'cf:%'" 2>/dev/null)
+CF=$(mysql -u avos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT COUNT(*) FROM intelligence_metrics WHERE metric LIKE 'cf:%'" 2>/dev/null)
 [ "$CF" -ge 3 ] && pass "Cloudflare metrics stored ($CF)" || fail "cf rows $CF"
 # Calendly → CRM meetings (shared webhook code path, /cal fixture base)
 PUT /api/integrations/calendly "{\"api_key\":\"fixture-pat\",\"api_base\":\"http://127.0.0.1:$FIXTURE_PORT/cal\"}" >/dev/null
@@ -131,10 +134,10 @@ R=$(POST /api/integrations/calendly/test)
 check "Calendly fixture test ok" "true" "$(echo "$R" | jqfield "d=json.load(sys.stdin);print('true' if d['data']['ok'] else 'false')")"
 R=$(POST /api/integrations/calendly/sync)
 check "Calendly fixture sync ok" "true" "$(echo "$R" | jqfield "d=json.load(sys.stdin);print('true' if d['data']['ok'] else 'false')")"
-MEETS=$(mysql -u avos -paV0s_d3v_9xKq2mN7 avos -N -e "SELECT COUNT(*) FROM meetings WHERE external_event_id LIKE '%scheduled_events/FIXTURE%'" 2>/dev/null)
+MEETS=$(mysql -u avos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT COUNT(*) FROM meetings WHERE external_event_id LIKE '%scheduled_events/FIXTURE%'" 2>/dev/null)
 [ "$MEETS" -ge 2 ] && pass "Calendly → CRM meetings created ($MEETS)" || fail "meetings $MEETS"
 POST /api/integrations/calendly/sync >/dev/null
-MEETS2=$(mysql -u avos -paV0s_d3v_9xKq2mN7 avos -N -e "SELECT COUNT(*) FROM meetings WHERE external_event_id LIKE '%scheduled_events/FIXTURE%'" 2>/dev/null)
+MEETS2=$(mysql -u avos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT COUNT(*) FROM meetings WHERE external_event_id LIKE '%scheduled_events/FIXTURE%'" 2>/dev/null)
 [ "$MEETS2" = "$MEETS" ] && pass "Calendly sync idempotent (no duplicates)" || fail "duplicates: $MEETS → $MEETS2"
 # failure mode: bad token → error, site still alive
 PUT /api/integrations/cloudflare "{\"api_token\":\"WRONG\",\"zone_id\":\"z\",\"api_base\":\"http://127.0.0.1:$FIXTURE_PORT/client/v4\"}" >/dev/null
@@ -150,13 +153,13 @@ T=$(echo "$R" | jqfield "d=json.load(sys.stdin)['data'];print(d.get('imported',0
 [ "$T" -ge 1 ] 2>/dev/null && pass "Google Trends RSS live ($T items)" || fail "trends $T"
 R=$(POST /api/integrations/github/sync)
 check "GitHub public API live" "true" "$(echo "$R" | jqfield "d=json.load(sys.stdin);print('true' if d['data']['ok'] else 'false')")"
-REPOS=$(mysql -u avos -paV0s_d3v_9xKq2mN7 avos -N -e "SELECT COUNT(*) FROM dev_repos" 2>/dev/null)
+REPOS=$(mysql -u avos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT COUNT(*) FROM dev_repos" 2>/dev/null)
 [ "$REPOS" -ge 1 ] && pass "dev repos stored ($REPOS)" || fail "repos $REPOS"
 R=$(POST /api/integrations/youtube/sync)
 YT=$(echo "$R" | jqfield "d=json.load(sys.stdin)['data'];print(d.get('imported',0))")
 [ "$YT" -ge 1 ] 2>/dev/null && pass "YouTube RSS live ($YT videos)" || fail "youtube $YT"
 R=$(POST /api/integrations/rss/sync)
-RI=$(mysql -u avos -paV0s_d3v_9xKq2mN7 avos -N -e "SELECT COUNT(*) FROM research_items" 2>/dev/null)
+RI=$(mysql -u avos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT COUNT(*) FROM research_items" 2>/dev/null)
 [ "$RI" -gt 100 ] && pass "research items from real feeds ($RI)" || fail "research items $RI"
 
 say ""
@@ -200,7 +203,7 @@ LURL=$(echo "$R" | jqfield "d=json.load(sys.stdin);print(d['data']['link']['url'
 check_contains "UTM params generated" "utm_source=linkedin" "$LURL"
 check_contains "campaign param" "utm_campaign=v24-test" "$LURL"
 curl -s -X POST "$BASE/api/links/click?id=$LID&page=/contact.html" >/dev/null
-CL=$(mysql -u avos -paV0s_d3v_9xKq2mN7 avos -N -e "SELECT clicks FROM trackable_links WHERE id=$LID" 2>/dev/null)
+CL=$(mysql -u avos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT clicks FROM trackable_links WHERE id=$LID" 2>/dev/null)
 check "public click tracking increments" "1" "$CL"
 R=$(POST /api/links "{\"kind\":\"whatsapp\",\"name\":\"wa-test\",\"phone\":\"+919876543210\",\"message\":\"Hi, from the site\",\"campaign\":\"instagram\"}")
 WURL=$(echo "$R" | jqfield "d=json.load(sys.stdin);print(d['data']['link']['url'])")
@@ -215,18 +218,18 @@ TOOLS=$(echo "$AG" | jqfield "d=json.load(sys.stdin);items=d['data']['agents'];p
 [ "$TOOLS" -ge 20 ] && pass "agent→tool permissions on $TOOLS agents" || fail "tools only $TOOLS"
 AGGRAPH=$(GET /api/integrations/agent-graph)
 check_contains "agent→tool graph API" "tools" "$AGGRAPH"
-cd /home/user/avos-php && php backend/scripts/agent-runner.php >/dev/null 2>&1
-JQ=$(mysql -u avos -paV0s_d3v_9xKq2mN7 avos -N -e "SELECT COUNT(*) FROM ai_agent_jobs WHERE status='completed'" 2>/dev/null)
+cd $APP && php backend/scripts/agent-runner.php >/dev/null 2>&1
+JQ=$(mysql -u avos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT COUNT(*) FROM ai_agent_jobs WHERE status='completed'" 2>/dev/null)
 [ "$JQ" -ge 31 ] && pass "agent runner completes jobs ($JQ)" || fail "completed jobs $JQ"
 PAUSE=$(PUT /api/agents/settings "{\"paused_scopes\":[\"all\"]}")
 check "PAUSE ALL AI accepted" "true" "$(echo "$PAUSE" | jqfield "d=json.load(sys.stdin);print('true' if d.get('ok') else 'false')")"
-RUN=$(php /home/user/avos-php/backend/scripts/agent-runner.php 2>&1 | head -1)
+RUN=$(php $APP/backend/scripts/agent-runner.php 2>&1 | head -1)
 check_contains "runner respects global kill switch" "paused" "$RUN"
 PUT /api/agents/settings "{\"paused_scopes\":[]}" >/dev/null
 
 say ""
 say "========== I. CRON SCRIPT + SITE INTEGRITY =========="
-cd /home/user/avos-php && OUT=$(php backend/scripts/integration-sync.php 2>&1 | tail -1)
+cd $APP && OUT=$(php backend/scripts/integration-sync.php 2>&1 | tail -1)
 case "$OUT" in *done*|*"nothing due"*|*skipping*) pass "integration-sync cron runs";; *) fail "cron output: $OUT";; esac
 CALLS=$(GET /api/integrations/calls)
 check_not_contains "call log clean of secrets" "$SECRET_MARKER" "$CALLS"
@@ -239,32 +242,32 @@ check "api healthy at end" "200" "$API2"
 say ""
 say "========== J. HARDENING (v2.4.1) =========="
 # J1. AI budget gate is REAL: with a key set + zero budget, chat must refuse
-mysql -u avos -paV0s_d3v_9xKq2mN7 avos -e "UPDATE ai_providers SET api_key_enc='dummy' WHERE code='openai';" 2>/dev/null
+mysql -u avos -paV0s_d3v_9xKq2mN7 $DB -e "UPDATE ai_providers SET api_key_enc='dummy' WHERE code='openai';" 2>/dev/null
 R=$(php -r '
-require "/home/user/avos-php/includes/bootstrap.php";
+require getenv("APP") . "/includes/bootstrap.php";
 AgentSettings::save(["daily_budget" => 0, "monthly_budget" => 0]);
 $r = AiService::chat("sys", "hello", "openai", "test");
 AgentSettings::save(["daily_budget" => 2, "monthly_budget" => 40]);
 echo json_encode($r);
 ' 2>&1 | tail -1)
 check_contains "AI budget gate blocks at zero budget" "budget" "$R"
-mysql -u avos -paV0s_d3v_9xKq2mN7 avos -e "UPDATE ai_providers SET api_key_enc=NULL WHERE code='openai';" 2>/dev/null
+mysql -u avos -paV0s_d3v_9xKq2mN7 $DB -e "UPDATE ai_providers SET api_key_enc=NULL WHERE code='openai';" 2>/dev/null
 # J2. Runtime tool enforcement: seo agent job with source=drive must FAIL
-mysql -u avos -paV0s_d3v_9xKq2mN7 avos -e "DELETE FROM ai_agent_jobs WHERE agent_slug='seo' AND input LIKE '%drive%';" 2>/dev/null
-for i in 1 2 3 4 5 6; do php /home/user/avos-php/backend/scripts/agent-runner.php >/dev/null 2>&1; done
+mysql -u avos -paV0s_d3v_9xKq2mN7 $DB -e "DELETE FROM ai_agent_jobs WHERE agent_slug='seo' AND input LIKE '%drive%';" 2>/dev/null
+for i in 1 2 3 4 5 6; do php $APP/backend/scripts/agent-runner.php >/dev/null 2>&1; done
 php -r '
-require "/home/user/avos-php/includes/bootstrap.php";
+require getenv("APP") . "/includes/bootstrap.php";
 AgentJobs::enqueue("seo", "run", ["source" => "drive"], "medium");
 ' 2>&1 | tail -1
-php /home/user/avos-php/backend/scripts/agent-runner.php >/dev/null 2>&1
-R=$(mysql -u avos -paV0s_d3v_9xKq2mN7 avos -N -e "SELECT error FROM ai_agent_jobs WHERE agent_slug='seo' AND input LIKE '%drive%' ORDER BY id DESC LIMIT 1;" 2>/dev/null)
+php $APP/backend/scripts/agent-runner.php >/dev/null 2>&1
+R=$(mysql -u avos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT error FROM ai_agent_jobs WHERE agent_slug='seo' AND input LIKE '%drive%' ORDER BY id DESC LIMIT 1;" 2>/dev/null)
 check_contains "tool permission enforced at runtime" "not permitted" "$R"
 # J3. Migration portability validator
-php /home/user/avos-php/database/validate-migrations.php >/dev/null 2>&1
+php $APP/database/validate-migrations.php >/dev/null 2>&1
 [ $? -eq 0 ] && pass "migration validator: all files portable" || fail "migration validator found violations"
 # J4. Rate limiter is DB-backed (no more rl-*.json files)
-[ -z "$(ls /home/user/avos-php/storage/cache/rl-*.json 2>/dev/null)" ] && pass "rate limiter DB-backed (no file writes)" || fail "legacy rate-limit files still written"
-mysql -u avos -paV0s_d3v_9xKq2mN7 avos -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='avos' AND table_name='rate_limits';" 2>/dev/null | grep -q 1 && pass "rate_limits table exists" || fail "rate_limits table missing"
+[ -z "$(ls $APP/storage/cache/rl-*.json 2>/dev/null)" ] && pass "rate limiter DB-backed (no file writes)" || fail "legacy rate-limit files still written"
+mysql -u avos -paV0s_d3v_9xKq2mN7 $DB -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='avos' AND table_name='rate_limits';" 2>/dev/null | grep -q 1 && pass "rate_limits table exists" || fail "rate_limits table missing"
 # J5. Agent action policies exposed
 R=$(GET /api/agents)
 check_contains "action policy exposed via API" "action_policy" "$R"

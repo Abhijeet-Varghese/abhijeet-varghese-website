@@ -3,6 +3,67 @@
      renames. Keep AV_VERSION = 2.4.20; bump the asset cache-bust when
      frontend files change; release tarballs stay AVOS-2.4.20-*. -->
 
+## v2.4.20-r6 · REPO CLEANUP — DEAD CODE, UNUSED FILES, OLD ARTIFACTS
+
+Evidence-based sweep (every removal was grep-verified against HTML/CSS/JS/PHP/tests/docs
+before deletion; everything remains in git history). Working tree −11.6 MB / −276 files.
+
+**Removed from the repo**
+- `.claude/` (270 files, 11 MB of AI-assistant skill packs — not product). Added to `.gitignore`.
+- `avos-data/site.json` (101 KB legacy JSON seed) + `backend/scripts/restore-canonical.php`.
+  The installer no longer looks for a bundled seed: step 2 is opt-in via `$opts['seed_file']`,
+  step 2b (static-frontend sync) is the only content source. Fresh install verified:
+  10 store keys populated from the site, e2e 140/140.
+- 7 legacy redirect stub pages (`case-studies.html`, `experience.html`, three
+  `case-study-*.html`, two `experience-design/*/index.html`). The 301s in
+  `abhijeetvarghese/.htaccess` and `avos-php/router.php` already covered every one of them
+  (curl-verified 301 → canonical). `SiteSync::legacyPaths()` now reads the `.htaccess` 301 map
+  instead of scanning for meta-refresh files, so `projects[].legacyPaths` is unchanged.
+- BPCL sub-site `robots.txt` / `sitemap.xml` (placeholder `REPLACE-WITH-PRODUCTION-DOMAIN`
+  domain; the root `sitemap.xml` already lists the BPCL URL).
+- Dead media: BPCL walkthrough `frame02-*` (4 files, 288 KB, byte-identical to frame01 and
+  excluded via `DUPLICATE_FRAMES`) — `config.js` FRAMES/`DUPLICATE_FRAMES` updated;
+  `orange-business-interactive-video-wall.jpg` and `…-visitor-registration-touchscreen.jpg`
+  originals (135 KB, only the -480/-848 webp derivatives are referenced).
+- Unused PHP methods (no static, dynamic-dispatch, JS or test references):
+  `NotificationModel::unreadCount`, `ApiKeyModel::verify`, `EmailTemplateModel::setEnabled`,
+  `MediaModel::delete`, `UserModel::setPassword`, `KnowledgeGraphModel::context`,
+  `IntelligenceMetricModel::latest/table`, `DevIntelModel::events`, `KnowledgeIngestModel::fail`,
+  `IntegrationHub::authorizeUrl`. All 44 PHP files are still referenced; the autoload map is
+  clean; the admin JS has no unregistered routes or unreferenced top-level symbols.
+- Obsolete tests: `portfolio_qa.js` (asserted the pre-reel `.portfolio-piece` markup),
+  `coming_soon_case_qa.py` and `orange_thumbnail_qa.py` (asserted `site.json` seed flags).
+
+**Archived** (moved to `docs/archive/`, not maintained): the ten one-off root reports
+(ABOUT-AUDIT, AWARD-DESIGN-PASS, BPCL ×3, CLEANUP-REPORT, FULL-SITE-OPTIMIZATION,
+LAYOUT-VISUAL-POLISH, ORANGE-BUSINESS handover, PORTFOLIO-REEL handover) and
+`design-system/`. `HANDOVER.md` and `DEPLOY-HOSTINGER-PHP.md` stay at the root.
+
+**Tests repaired (not deleted)**
+- 9 Playwright suites pointed at the removed legacy URLs → now use `/experience/`,
+  `/case-studies/`, `/case-studies/<slug>/`. `history_close_qa.js` rewritten for the current
+  portfolio reel + case-study close control. `site_static_integrity.py`: BPCL sub-site
+  exempt from shared-chrome checks, portfolio counts `.pf-card`, reel cursor allowed.
+- `integration_hub.sh`, `2fa_test.sh`, `inbound_webhooks.sh`, `journeys.sh` hardcoded
+  `/home/user/...` paths and the `avos` DB name → now repo-relative (`REPO_ROOT`, `APP`) and
+  honour `AV_DB` like `e2e_fresh.sh`. Result: the three suites previously listed as
+  "pre-existing failures" are green — integration hub 67/67, 2FA 21/21, inbound webhooks 18/18.
+- `AgentExecutors` health probe list uses the clean URLs.
+
+**Fixed (found by the now-working integration suite)** — `GithubAdapter` wrote GitHub's
+ISO-8601 timestamps straight into `dev_events.created_at` (DATETIME); strict MariaDB rejected
+the row (`1292 Incorrect datetime value`). Normalised via `sqlDate()`.
+
+**Verification** — php -l / node --check / bash -n clean · scratch install → e2e 140/140 ·
+journeys 16/16 · failure_modes 19/20 (known timing race) · integration hub 67/67 · 2FA 21/21 ·
+inbound webhooks 18/18 · frontend_sync 23/24 (the 1 "failure" is the suite detecting the
+uncommitted working tree, expected before commit) · functional 13/13 · admin_sweep 48/48 ·
+axe 0/0 · chrome consistency 24 pages clean · orange case QA clean · performance budget clean ·
+site_static_integrity 24 HTML clean · link_audit 110/0 broken · 12 ad-hoc Playwright audits
+re-run clean · all 7 legacy URLs still 301 to canonical. `accessibility_resilience_qa` reports
+3 pre-existing touch-target sizes (case card CTAs 13 px tall, cookie button 24 px) — identical
+before and after this change; not addressed here.
+
 ## v2.4.20-r5 · ONE SOURCE OF TRUTH — FRONTEND → CMS AUTO-SYNC
 
 User directive: frontend changes must reach the backend automatically; one source of

@@ -377,34 +377,6 @@ final class KnowledgeGraphModel
         return Database::all("SELECT * FROM knowledge_edges ORDER BY id DESC LIMIT 500");
     }
 
-    /** All context reachable from an entity (breadth-limited). */
-    public static function context(string $type, string $id, int $depth = 2): array
-    {
-        $out = [];
-        $seen = [];
-        $frontier = [[$type, $id, 0]];
-        while ($frontier) {
-            [$t, $i, $d] = array_shift($frontier);
-            $key = $t . ':' . $i;
-            if (isset($seen[$key]) || $d > $depth) continue;
-            $seen[$key] = true;
-            $node = Database::one("SELECT * FROM knowledge_graph WHERE entity_type=? AND entity_id=?", [$t, $i]);
-            if ($node) $out[] = $node;
-            if ($d >= $depth) continue;
-            foreach (Database::all(
-                "SELECT to_type, to_id, relation FROM knowledge_edges WHERE from_type=? AND from_id=? UNION ALL
-                 SELECT from_type, from_id, relation FROM knowledge_edges WHERE to_type=? AND to_id=?",
-                [$t, $i, $t, $i]) as $e) {
-                if ($e['to_type'] === $t && $e['to_id'] === $i) {
-                    $frontier[] = [$e['from_type'], $e['from_id'], $d + 1];
-                } else {
-                    $frontier[] = [$e['to_type'], $e['to_id'], $d + 1];
-                }
-            }
-        }
-        return $out;
-    }
-
     /** Build the base graph from real site content (idempotent). */
     public static function buildFromContent(): int
     {
@@ -758,16 +730,6 @@ final class IntelligenceMetricModel
                               ORDER BY period_start ASC", [$metric, $days]);
     }
 
-    public static function latest(string $metric): ?array
-    {
-        return Database::one("SELECT * FROM intelligence_metrics WHERE metric=? ORDER BY id DESC LIMIT 1", [$metric]);
-    }
-
-    public static function table(string $metric): array
-    {
-        return Database::all("SELECT scope, value, details FROM intelligence_metrics WHERE metric=? ORDER BY value DESC", [$metric]);
-    }
-
     /** POSITIONING HEALTH 0–100 (spec §41). Computed from REAL signals. */
     public static function positioningHealth(): array
     {
@@ -807,12 +769,6 @@ final class DevIntelModel
     public static function repos(): array
     {
         return Database::all("SELECT * FROM dev_repos ORDER BY pushed_at DESC");
-    }
-
-    public static function events(string $kind = '', int $limit = 100): array
-    {
-        $where = $kind !== '' ? "WHERE kind=" . Database::quote($kind) : '';
-        return Database::all("SELECT * FROM dev_events $where ORDER BY created_at DESC LIMIT $limit");
     }
 
     /** Signals the Developer agent should look at. */
@@ -865,8 +821,4 @@ final class KnowledgeIngestModel
         return Database::all("SELECT * FROM knowledge_ingest ORDER BY id DESC LIMIT $limit");
     }
 
-    public static function fail(string $sourceId, string $error): void
-    {
-        Database::q("UPDATE knowledge_ingest SET status='failed', error=? WHERE source_id=?", [mb_substr($error, 0, 400), $sourceId]);
-    }
 }

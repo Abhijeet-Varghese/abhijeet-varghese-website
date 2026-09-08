@@ -18,7 +18,7 @@
 | Dev server | `php -S 0.0.0.0:8092 router.php` (in `avos-php/`) |
 | Testing | Playwright (Chromium) + axe-core; shell batteries for API/CRM |
 | Fonts (local, no CDN) | Inter Tight · Instrument Serif · Poppins |
-| Design system | Persisted at `design-system/abhijeet-varghese/MASTER.md` + page overrides for About, Portfolio and Orange Business EBC |
+| Design system | Archived reference at `docs/archive/design-system/abhijeet-varghese/MASTER.md` (+ page notes); the live source of truth is the CSS in `abhijeetvarghese/css/` |
 
 ## 2 · FILE TREE (key paths)
 
@@ -32,12 +32,12 @@ repo root
 ├── avos-php/                      ← AV OS (admin + API) — works around the site, never renders it
 │   ├── router.php                 ← dev server: serves AV_SITE_DIR + /api /admin /install /media
 │   ├── backend/  config/config.php (AV_SITE_DIR) · core · models · controllers · agents · scripts/
-│   │   └── scripts/               ← doctor.php, agent-runner.php, restore-canonical.php, prod-cleanup.php …
+│   │   └── scripts/               ← doctor.php, agent-runner.php, sync-frontend.php, prod-cleanup.php …
 │   ├── public_html/               ← web-root files: .htaccess (hardening + site rules), admin/, api/, install/, media.php
 │   ├── database/migrations/       ← immutable; 031_static_frontend.sql drops the publish tables
 │   ├── docs/static-frontend.md    ← how the site + backend fit together
 │   └── config.local.php           ← dev overrides (DB creds, $siteDir) — never committed
-├── avos-data/site.json            ← CMS seed (content_store working data; restore-canonical.php loads it)
+├── docs/archive/                  ← historical one-off reports + design-system notes (not maintained)
 ├── tests/                         ← battery (see §4)
 ├── .github/workflows/             ← subtree-splits abhijeetvarghese/ → hostinger branch
 └── DEPLOY-HOSTINGER-PHP.md        ← live deploy runbook (Hostinger)
@@ -113,7 +113,7 @@ One continuous cinematic canvas, rebuilt from scratch over the sessions:
 | `layout_audit2.js` (6 widths × 8 cards) | ALL CLEAN |
 | `resp_ext.js` (**22 sizes**, 320×568 → 2560×1440 + landscape) | ALL CLEAN |
 | `axe_audit.js` (14 pages) · `v25_responsive.js` (11×7) · `link_audit.php` (78 links/assets) | 0 · 0 · 0 |
-| `site_static_integrity.py` (25 HTML · 119 images · 3 video regions · 2 forms · 129 buttons) | ALL CLEAN |
+| `site_static_integrity.py` (24 HTML · 124 images · 3 video regions · 2 forms · 138 buttons) | ALL CLEAN |
 | `full_site_responsive_qa.js` (24 routes × 25 sizes + 7 continuous sweeps + DPR 2/3) | ALL CLEAN |
 | `browser_compat_qa.js` (Chromium · Firefox · WebKit, mobile + desktop) | ALL CLEAN |
 | `performance_budget_qa.js` (LCP · CLS · DOM · transfer · long-task budgets) | ALL CLEAN |
@@ -121,7 +121,8 @@ One continuous cinematic canvas, rebuilt from scratch over the sessions:
 | `visual_precision_qa.js` (24 routes · 77 sections · 7 composition viewports) | ALL CLEAN |
 | `orange_business_case_qa.js` (10 edge sizes + interactions + no-JS + reduced motion) | ALL CLEAN |
 | `chrome_consistency_qa.js` (24 public routes + computed chrome parity + mobile dialog) | ALL CLEAN |
-| `apple_pass_check.js` · `dup_audit.js` · `case_nav_test.js` | ALL CLEAN |
+| `apple_pass_check.js` · `dup_audit.js` · `case_nav_test.js` · `history_close_qa.js` | ALL CLEAN |
+| `frontend_sync.sh` (static site → CMS mirror) | 24/24 |
 | `doctor.php` | SYSTEM READY |
 
 **Static-frontend refactor (2026-09-09) verified:** all 31 pages + clean URLs 200 ·
@@ -136,11 +137,11 @@ publish/deployments/redirects routes 404.
    The website deploys from the `hostinger` branch (GitHub workflow). For AV OS follow
    `DEPLOY-HOSTINGER-PHP.md` (upload `avos-php/public_html/*` beside the site, private
    folders outside the web root, installer, env/DB/enc-key, cron for `agent-runner.php`).
-2. **Dedicated Portfolio is live at `portfolio.html`.** It is a visual index with three published projects, six practice areas and the 16-organisation proof wall. `case-studies.html` remains the narrative case-study collection. Nav id `n3b`, footer, seed, MySQL, sitemap and search index all point to the dedicated page.
+2. **Dedicated Portfolio is live at `portfolio.html`.** It is a visual index with three published projects, six practice areas and the 16-organisation proof wall. `case-studies/` remains the narrative case-study collection. Nav id `n3b`, footer, seed, MySQL, sitemap and search index all point to the dedicated page.
 3. **Known environment behavior:**
    - Ephemeral sandboxes may require PHP/MariaDB, `npm ci`, Playwright browser installation, DB provisioning and a server restart.
-   - Restore canonical content with `php backend/scripts/restore-canonical.php`; there is no duplicate `dev-tools` restore helper.
+   - Restore CMS content with `php backend/scripts/sync-frontend.php --force` (mirrors the static site into the store); there is no JSON seed file any more.
    - `e2e_fresh.sh` requires a disposable fresh database and environment-local test credentials. Clear test rate-limit/login-attempt state between authentication suites.
    - `integration_hub.sh` and `inbound_webhooks.sh` should run independently to avoid shared-state races.
    - Public CSS/JS cache versions use a 12-character SHA-256 content fingerprint: `2.4.20-{hash}`.
-4. **Recovery path:** recreate the environment-local `config.local.php`, provision the database, run `php database/install.php` (or `restore-canonical.php` for CMS seed data), start `router.php`, and verify with `php backend/scripts/doctor.php` + the test battery. The website itself needs nothing — it is the committed `abhijeetvarghese/` folder.
+4. **Recovery path:** recreate the environment-local `config.local.php`, provision the database, run `php database/install.php` (the installer mirrors the static site into the CMS; `sync-frontend.php --force` re-does that at any time), start `router.php`, and verify with `php backend/scripts/doctor.php` + the test battery. The website itself needs nothing — it is the committed `abhijeetvarghese/` folder.

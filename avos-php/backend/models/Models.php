@@ -91,10 +91,6 @@ final class MediaModel
         return Database::one("SELECT * FROM media WHERE id=?", [$id]);
     }
 
-    public static function delete(int $id): void
-    {
-        Database::q("DELETE FROM media WHERE id=?", [$id]);
-    }
 }
 
 final class LeadModel
@@ -209,8 +205,4 @@ final class UserModel
                               FROM users u JOIN roles r ON r.id=u.role_id ORDER BY u.id");
     }
 
-    public static function setPassword(int $id, string $password): void
-    {
-        Database::q("UPDATE users SET password_hash=? WHERE id=?", [password_hash($password, PASSWORD_DEFAULT), $id]);
-    }
 }

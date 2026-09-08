@@ -506,13 +506,6 @@ final class NotificationModel
         if ($userId) Database::q("UPDATE notifications SET read_at=NOW() WHERE (user_id=? OR user_id IS NULL) AND read_at IS NULL", [$userId]);
         else Database::q("UPDATE notifications SET read_at=NOW() WHERE read_at IS NULL");
     }
-    public static function unreadCount(?int $userId): int
-    {
-        $p = [];
-        $sql = "SELECT COUNT(*) n FROM notifications WHERE read_at IS NULL";
-        if ($userId) { $sql .= " AND (user_id=? OR user_id IS NULL)"; $p[] = $userId; }
-        return (int)Database::one($sql, $p)['n'];
-    }
 }
 
 /* ============================================================
@@ -584,13 +577,6 @@ final class ApiKeyModel
         return ['key' => $key, 'prefix' => $prefix];   // full key shown ONCE
     }
     public static function all(): array { return Database::all("SELECT id, name, key_prefix, permissions, last_used_at, created_by, revoked, created_at FROM api_keys ORDER BY created_at DESC"); }
-    public static function verify(string $key): bool
-    {
-        $row = Database::one("SELECT id FROM api_keys WHERE key_hash=? AND revoked=0", [hash('sha256', $key)]);
-        if (!$row) return false;
-        Database::q("UPDATE api_keys SET last_used_at=NOW() WHERE id=?", [$row['id']]);
-        return true;
-    }
     public static function revoke(int $id): void { Database::q("UPDATE api_keys SET revoked=1 WHERE id=?", [$id]); }
 }
 
@@ -782,10 +768,6 @@ final class EmailTemplateModel
             [$d['name'] ?? '', $d['subject'] ?? '', $d['body'] ?? '', (int)($d['enabled'] ?? 1), $id]);
     }
 
-    public static function setEnabled(int $id, bool $on): void
-    {
-        Database::q("UPDATE email_templates SET enabled=? WHERE id=?", [(int)$on, $id]);
-    }
 }
 
 /* ============================================================

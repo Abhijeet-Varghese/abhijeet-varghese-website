@@ -237,7 +237,7 @@ final class SeoCrawlerModel
     /**
      * Every public HTML document of the static website (recursive — the site
      * uses clean-URL directories such as /case-studies/orange-business/index.html).
-     * Tiny legacy redirect stubs (meta-refresh pages kept for old URLs) are skipped.
+     * Tiny meta-refresh redirect pages (if any are ever added) are skipped.
      * @return string[] absolute file paths
      */
     public static function siteHtmlFiles(): array

@@ -26,7 +26,10 @@ abhijeetvarghese/
    which Hostinger deploys to the web root.
 
 Redirects live in the frontend's own `.htaccess` (the seven legacy `.html` /
-`experience-design/*` URLs → clean case-study directories). Add new redirects there.
+`experience-design/*` URLs → clean case-study directories) and are mirrored in
+`avos-php/router.php` for the dev server. There are no redirect stub files —
+add new redirects to both maps. The sync engine reads `.htaccess` to fill each
+project's `legacyPaths`.
 
 ## One source of truth — frontend → CMS sync
 
@@ -49,7 +52,7 @@ abhijeetvarghese/ (files)  ──SiteSync──▶  content_store
 | `clients` | `#clients img[src*="logos/"]` (name from `alt`, logo file name) |
 | `sections` | every `main > section[id]` of `index.html` — kicker, h2, lede, theme, plus per-section fields (hero roles/CTAs/marquee, capabilities, featured `projectIds`, `essayIds`, journey eras, AI copy/chips, focus lists, contact micro-facts) |
 | `pages` | every public page that is not a case study / essay / journal — `<title>`, meta, canonical, h1; the Experience page's `job` blocks are rebuilt from `article.exp-job`; other block lists are kept as authored |
-| `projects` | `#work article.case` cards (client, industry, services, problem/approach/role/outcome, thumbnail) joined with each `case-studies/<slug>/index.html` (JSON-LD name/description/location, `<title>`, `og:image`, canonical); legacy redirect stubs → `legacyPaths` |
+| `projects` | `#work article.case` cards (client, industry, services, problem/approach/role/outcome, thumbnail) joined with each `case-studies/<slug>/index.html` (JSON-LD name/description/location, `<title>`, `og:image`, canonical); 301 map in `.htaccess` → `legacyPaths` |
 | `articles` | `essay-*.html` / `journal-*.html` — title, `.chapter__tag` → category + read time, JSON-LD `datePublished`, hero image, lede → excerpt, `.prose` paragraphs → body |
 | `seo` | one row per public URL — title, description, keywords, canonical, og:image, h1, incoming-link count, heuristic score |
 | `media` | every image / pdf / video under `assets/` (dimensions via `getimagesize`, alt text harvested from the pages) — served to the admin via `/media/<path>` |
