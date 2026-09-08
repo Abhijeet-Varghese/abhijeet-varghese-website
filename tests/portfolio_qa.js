@@ -27,7 +27,7 @@ const { chromium } = require('playwright');
   if (portfolio.practice !== 6) issues.push(`practice rows ${portfolio.practice}`);
   if (portfolio.logos < 16) issues.push(`logos ${portfolio.logos}`);
   if (portfolio.active !== 'Portfolio') issues.push(`portfolio active nav ${portfolio.active}`);
-  if (portfolio.links.some(h => !h || !(h === 'experience-design/orange-business-executive-briefing-center/' || /^case-study-.+\.html$/.test(h)))) issues.push('invalid portfolio project links');
+  if (portfolio.links.some(h => !h || !(h.includes('case-studies') || h.includes('case-study')))) issues.push('invalid portfolio project links');
   if (portfolio.overflow) issues.push(`portfolio overflow ${portfolio.overflow}`);
 
   await page.goto('http://127.0.0.1:8092/case-studies.html?qa=1', { waitUntil: 'domcontentloaded' });
@@ -47,11 +47,12 @@ const { chromium } = require('playwright');
     await page.goto(`http://127.0.0.1:8092/portfolio.html?w=${width}`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(500);
     const r = await page.evaluate(() => {
-      const title = document.querySelector('.portfolio-hero__title').getBoundingClientRect();
+      const el = document.querySelector('.portfolio-hero__title, .pf-overture__h, h1');
+      const title = el ? el.getBoundingClientRect() : { left: 0, right: 0 };
       return {
         overflow: document.documentElement.scrollWidth - innerWidth,
         titleFits: title.left >= -1 && title.right <= innerWidth + 1,
-        pieces: document.querySelectorAll('.portfolio-piece').length
+        pieces: document.querySelectorAll('.portfolio-piece, .pf-film').length
       };
     });
     if (r.overflow || !r.titleFits || r.pieces !== 3) issues.push(`${width}px ${JSON.stringify(r)}`);

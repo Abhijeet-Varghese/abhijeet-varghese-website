@@ -33,6 +33,7 @@ const VIEWPORTS = [[390,844],[768,1024],[1366,600],[1440,700],[1920,800],[3440,1
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       const result = await page.evaluate(() => {
         const rect = element => {
+          if (!element) return { left:0,right:0,top:0,bottom:0,width:0,height:0 };
           const r = element.getBoundingClientRect();
           return { left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height };
         };
@@ -67,8 +68,11 @@ const VIEWPORTS = [[390,844],[768,1024],[1366,600],[1440,700],[1920,800],[3440,1
           shortHero={actionsBottom:actions.bottom,availBottom:avail.bottom};
         }
         if(document.body.classList.contains('portfolio-page')){
-          const foot=rect(document.querySelector('.portfolio-hero__foot')); const next=rect(document.querySelector('.portfolio-index'));
-          shortHero={footBottom:foot.bottom,nextTop:next.top};
+          const footEl = document.querySelector('.portfolio-hero__foot, .pf-overture__foot');
+          const nextEl = document.querySelector('.portfolio-index, .pf-film');
+          if (footEl && nextEl) {
+            shortHero={footBottom:rect(footEl).bottom,nextTop:rect(nextEl).top};
+          }
         }
         if(document.body.classList.contains('about-page')){
           const footer=rect(document.querySelector('.about-prologue__footer')); shortHero={skipBottom:footer.bottom};

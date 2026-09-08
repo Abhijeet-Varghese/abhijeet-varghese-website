@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-09-08T06:17:12+05:30",
+    "generated_at": "2026-09-08T06:44:01+05:30",
     "site": "http://localhost:8092",
     "routes": [
         {
@@ -63,7 +63,7 @@
         {
             "id": "p-portfolio",
             "type": "page",
-            "template": "Portfolio",
+            "template": "PortfolioReel",
             "route": "/portfolio/",
             "url": "http://localhost:8092/portfolio/",
             "output": "portfolio/index.html",
@@ -127,7 +127,7 @@
         {
             "id": "p-recruiters",
             "type": "page",
-            "template": "Page",
+            "template": "Recruiters",
             "route": "/for-recruiters/",
             "url": "http://localhost:8092/for-recruiters/",
             "output": "for-recruiters/index.html",
