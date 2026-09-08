@@ -658,7 +658,7 @@ final class AgentExecutors
             $actions++;
         }
         // exposed-file probe: private paths must 404
-        foreach (['/config.local.php', '/storage/', '/.env', '/database/schema.sql'] as $probe) {
+        foreach (['/config.local.php', '/storage/', '/.env', '/database/migrations/001_initial.sql'] as $probe) {
             $ch = curl_init(rtrim(AV_SITE_URL, '/') . $probe);
             curl_setopt_array($ch, [CURLOPT_NOBODY => true, CURLOPT_TIMEOUT => 6, CURLOPT_RETURNTRANSFER => true]);
             curl_exec($ch);

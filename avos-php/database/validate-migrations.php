@@ -5,7 +5,7 @@
  * Fails if any migration contains:
  *   CREATE DATABASE · DROP DATABASE · ALTER DATABASE
  * (`USE <db>` is tolerated but skipped by the runner; new migrations
- * should not contain it either — portability invariant, docs/database.md)
+ * should not contain it either — portability invariant)
  *
  * Usage:
  *   php database/validate-migrations.php

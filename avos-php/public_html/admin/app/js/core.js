@@ -124,8 +124,7 @@
       { id: "casestudies", label: "Case Studies", icon: "layers" },
       { id: "clients", label: "Clients", icon: "users" },
       { id: "thinking", label: "Thinking", icon: "quote" },
-      { id: "journal", label: "Journal", icon: "pen" },
-      { id: "futurelab", label: "Future Lab", icon: "spark" }
+      { id: "journal", label: "Journal", icon: "pen" }
     ]},
     { group: "Business", items: [
       { id: "crm", label: "CRM Pipeline", icon: "target" },
@@ -141,7 +140,6 @@
       { id: "media", label: "Media", icon: "image" },
       { id: "downloads", label: "Downloads", icon: "download" },
       { id: "testimonials", label: "Testimonials", icon: "check" },
-      { id: "speaking", label: "Speaking", icon: "play" },
       { id: "forms", label: "Forms", icon: "card" },
       { id: "bookings", label: "Bookings", icon: "calendar" },
       { id: "leads", label: "Leads", icon: "target" },
@@ -157,7 +155,6 @@
       { id: "aiagents", label: "AI Agents", icon: "zap" },
       { id: "aistudio", label: "AI Studio", icon: "ai" },
       { id: "copilot", label: "AI Copilot", icon: "spark" },
-      { id: "knowledge", label: "Knowledge", icon: "search" },
       { id: "designsystem", label: "Design System", icon: "sliders" },
       { id: "knowledgegraph", label: "Knowledge & Truth", icon: "layers" }
     ]},
@@ -185,6 +182,7 @@
     register(id, renderer) { routes[id] = renderer; },
     after(id, fn) { afterFns[id] = fn; },
     go(id, params) {
+      if (id === "knowledge") { id = "platform"; params = Object.assign({ tab: "knowledge" }, params || {}); }
       const r = routes[id];
       if (!r) { console.warn("no route", id); return; }
       current = { id, params: params || {} };
@@ -314,35 +312,41 @@
       $("[data-close2]", m.el).addEventListener("click", m.close);
       $("[data-save]", m.el).addEventListener("click", () => { m.close(); toast("Profile updated"); });
     });
-    $$(".icon-btn", $("#notifBtn").parentElement);
-    $("#notifBtn").addEventListener("click", e => {
+    /* notification bell — live data from /api/notifications */
+    const notifIcon = t => icon(t === "error" ? "x" : t === "lead" ? "target" : t === "publish" ? "send" : "bell");
+    const refreshDot = async () => {
+      const r = await AV.api.get("/api/notifications");
+      const unread = r.ok ? (r.data || []).filter(n => !n.read_at).length : 0;
+      $("#notifDot").style.display = unread ? "" : "none";
+      return r.ok ? (r.data || []) : [];
+    };
+    $("#notifBtn").addEventListener("click", async e => {
       e.stopPropagation();
       const pop = $("#notifPop");
       pop.hidden = !pop.hidden;
-      if (!pop.hidden) {
-        const ns = AV.store.get("notifications");
-        const unread = ns.filter(n => n.unread);
-        pop.innerHTML = `
+      if (pop.hidden) return;
+      pop.innerHTML = `<div class="empty" style="padding:26px"><p style="font-size:13px">Loading…</p></div>`;
+      const ns = (await refreshDot()).slice(0, 12);
+      if (!$("#notifPop").hidden) pop.innerHTML = `
           <div class="pop__head"><p class="pop__title">Notifications</p>
             <button class="btn btn--sm btn--soft" id="markAll">Mark all read</button></div>
           <div class="pop__list">
-            ${ns.map(n => `<div class="pop-item" ${n.unread ? 'style="background:var(--accent-soft)"' : ""}>
-              <div class="pop-item__icon">${icon(n.icon === "lead" ? "target" : n.icon === "book" ? "calendar" : n.icon === "seo" ? "search" : n.icon === "ai" ? "ai" : n.icon === "backup" ? "db" : "chart")}</div>
-              <div><p class="pop-item__text">${n.text}</p><p class="pop-item__time">${n.time}</p></div>
-            </div>`).join("")}
+            ${ns.map(n => `<div class="pop-item" ${n.read_at ? "" : 'style="background:var(--accent-soft)"'}>
+              <div class="pop-item__icon">${notifIcon(n.type)}</div>
+              <div><p class="pop-item__text"><b>${esc(n.title || "")}</b>${n.body ? " — " + esc(n.body) : ""}</p><p class="pop-item__time">${esc((n.created_at || "").replace("T", " ").slice(0, 16))}</p></div>
+            </div>`).join("") || `<div class="empty" style="padding:26px"><p style="font-size:13px">All caught up ✦</p></div>`}
           </div>`;
-        $("#markAll", pop).addEventListener("click", () => {
-          AV.store.set("notifications", ns.map(n => ({ ...n, unread: false })));
-          $("#notifDot").style.display = "none";
-          pop.innerHTML = `<div class="empty" style="padding:26px"><p style="font-size:13px">All caught up ✦</p></div>`;
-        });
-      }
+      const all = $("#markAll", pop);
+      if (all) all.addEventListener("click", async () => {
+        await AV.api.send("/api/notifications/read-all", "POST", {});
+        $("#notifDot").style.display = "none";
+        pop.innerHTML = `<div class="empty" style="padding:26px"><p style="font-size:13px">All caught up ✦</p></div>`;
+      });
     });
     document.addEventListener("click", e => {
       if (!e.target.closest("#notifBtn") && !$("#notifPop").hidden) $("#notifPop").hidden = true;
     });
-    const unreadCount = AV.store.get("notifications").filter(n => n.unread).length;
-    if (!unreadCount) $("#notifDot").style.display = "none";
+    refreshDot();
   };
 
   const toggleTheme = () => {
@@ -387,7 +391,7 @@
     cmds.push({ t: "Run backup", d: "Snapshot now", k: "", icon: "refresh", run: () => AV.router.go("backups", { action: "backup" }) });
     cmds.push({ t: "Open website", d: "View the live static site", k: "", icon: "send", run: () => window.open("/", "_blank", "noopener") });
     cmds.push({ t: "Open knowledge search", d: "Ask anything", k: "⌘⇧F", icon: "search", run: () => AV.router.go("knowledge") });
-    cmds.push({ t: "Reset demo data", d: "Restore seed content", k: "", icon: "refresh", run: () => { AV.store.reset(); location.reload(); } });
+    cmds.push({ t: "Reload from database", d: "Discard local draft and re-pull", k: "", icon: "refresh", run: () => { AV.store.reset(); location.reload(); } });
     return cmds;
   };
 
@@ -499,7 +503,10 @@
     renderShell();
     const s = AV.store.get("settings");
     if (s.sidebarCollapsed && innerWidth > 1024) $(".app").classList.add("sb-collapsed");
-    AV.router.go(location.hash.slice(1) || "dashboard");
+    const [hid, hqs] = (location.hash.slice(1) || "dashboard").split("?");
+    const hparams = {};
+    if (hqs) new URLSearchParams(hqs).forEach((v, k) => { hparams[k] = v; });
+    AV.router.go(hid, hparams);
   };
   let lastRawHash = "";
   /* pull the authoritative content from the backend once, then re-render */

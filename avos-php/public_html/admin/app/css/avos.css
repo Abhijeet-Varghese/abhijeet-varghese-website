@@ -1118,38 +1118,8 @@ a {
 .prompt-card__desc {
  font-size: 11.5px; color: var(--ink-3); margin-top: 4px; line-height: 1.45; 
 }
-/* knowledge search */
-.kb-result {
-
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  background: var(--surface);
-  padding: 16px 18px;
-  margin-bottom: 10px;
-  transition: border-color 0.2s;
-
-}
-.kb-result:hover {
- border-color: var(--line-2); 
-}
-.kb-result__type {
- font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); 
-}
-.kb-result__title {
- font-size: 15px; font-weight: 600; margin-top: 5px; 
-}
-.kb-result__excerpt {
- font-size: 13px; color: var(--ink-3); margin-top: 6px; line-height: 1.6; 
-}
-.kb-result__score {
- margin-left: auto; font-size: 11px; color: var(--ink-4); display: inline-flex; align-items: center; gap: 5px; 
-}
-.kb-result__score svg {
- width: 13px; height: 13px; color: var(--accent); 
-}
 /* design system */
 .token-row {
-
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
   padding: 13px 0; border-bottom: 1px solid var(--line);
 

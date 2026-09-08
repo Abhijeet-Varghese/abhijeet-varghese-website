@@ -49,7 +49,6 @@ body.portfolio-page { background: #05070D; }
 }
 .pf-eyebrow span { color: var(--ink-faint); letter-spacing: 0.24em; }
 
-
 .pf-lede {
   font-size: clamp(1rem, 0.95rem + 0.35vw, 1.2rem);
   line-height: 1.66; color: var(--ink-dim); max-width: 48ch;
@@ -463,33 +462,6 @@ body.portfolio-page { background: #05070D; }
 .pf-soon__cta:hover svg { transform: translateX(5px); }
 
 /* ============================================================
-   FUTURE — More Work editorial grid (dormant until moreWork[]
-   is populated in js/portfolio-reel.js). The layout is derived
-   from each item's `layout` value, so mixed media never falls
-   into an identical card grid.
-   ============================================================ */
-.pf-work-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: clamp(40px, 8vh, 120px) clamp(20px, 3vw, 46px); }
-.pf-work { grid-column: 1 / -1; }
-.pf-work--feature { grid-column: 1 / span 12; }
-.pf-work--wide { grid-column: 1 / span 8; }
-.pf-work--half { grid-column: 1 / span 6; }
-.pf-work--portrait { grid-column: 8 / span 5; align-self: end; }
-.pf-work__media { position: relative; overflow: hidden; background: #03050B; }
-.pf-work--feature .pf-work__media { aspect-ratio: 16 / 9; }
-.pf-work--wide .pf-work__media { aspect-ratio: 4 / 3; }
-.pf-work--half .pf-work__media { aspect-ratio: 16 / 10; }
-.pf-work--portrait .pf-work__media { aspect-ratio: 4 / 5; }
-.pf-work__media img { width: 100%; height: 100%; object-fit: cover; }
-.pf-work__copy { padding-top: 22px; display: grid; gap: 12px; }
-.pf-work__num { font-family: var(--serif); font-style: italic; color: var(--azure-hi); font-size: 1.25rem; }
-.pf-work__copy h3 { font-size: clamp(1.4rem, 2.2vw, 2.6rem); font-weight: 500; letter-spacing: -0.04em; line-height: 1.02; }
-.pf-work__copy p { color: var(--ink-dim); max-width: 52ch; }
-.pf-work__cat { font-size: 10px; font-weight: 600; letter-spacing: 0.26em; text-transform: uppercase; color: var(--ink-faint); }
-@media (max-width: 900px) {
-  .pf-work { grid-column: 1 / -1 !important; }
-}
-
-/* ============================================================
    04 + 05 · ESTABLISHED CHAPTERS — Practice Spectrum & Clients
    ------------------------------------------------------------
    These two sections are preserved exactly as they exist on the
@@ -731,7 +703,6 @@ body.pf-cursor-active [data-cursor] { cursor: none; }
    ============================================================ */
 @media (max-width: 1200px) {
   .pf-railnav { display: none; }
-  .pf-case--lead .pf-case__body { grid-column: 9 / span 4; }
 }
 
 @media (max-width: 900px) {
@@ -747,14 +718,7 @@ body.pf-cursor-active [data-cursor] { cursor: none; }
 
   .pf-soon__panel { min-height: clamp(470px, 74vh, 660px); padding: clamp(36px, 6vh, 64px) clamp(20px, 6vw, 36px); }
 
-  .pf-case--bleed .pf-case__body { grid-template-columns: 1fr; gap: 16px; }
-  .pf-case--bleed .pf-case__head { grid-row: auto; }
-  .pf-case--bleed .pf-case__desc,
-  .pf-case--bleed .pf-case__cta { grid-column: 1; grid-row: auto; }
-  .pf-case--lead .pf-case__body { grid-column: 1; }
-  .pf-case--offset .pf-case__body { grid-column: 1; padding-bottom: 0; }
   /* no parallax below 900px — the crop returns to its native frame */
-  .pf-case + .pf-case { margin-top: clamp(56px, 10vh, 90px); }
 
   .pf-seam { min-height: 62svh; }
   .pf-film__caption { flex-direction: column; gap: 16px; align-items: flex-start; }

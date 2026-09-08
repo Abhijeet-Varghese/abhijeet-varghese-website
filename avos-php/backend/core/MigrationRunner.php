@@ -6,7 +6,7 @@
  *   - database/migrate.php            (CLI)
  *   - backend/core/Installer.php      (web + CLI installers)
  *
- * Invariants enforced here (see docs/database.md):
+ * Invariants enforced here:
  *   - Migrations are immutable history: a file whose checksum changed after
  *     being recorded is refused.
  *   - `USE <db>` statements inside migration files are SKIPPED (they hardcode

@@ -724,7 +724,7 @@
       <p class="view__desc">Webhooks, API keys, feature flags, knowledge base, system errors, email log, sites.</p></div>
     </div>
     <div class="tabs" id="platTabs">
-      <button class="is-active" data-t="webhooks">Webhooks</button>
+      <button data-t="webhooks">Webhooks</button>
       <button data-t="apikeys">API keys</button>
       <button data-t="flags">Feature flags</button>
       <button data-t="knowledge">Knowledge</button>

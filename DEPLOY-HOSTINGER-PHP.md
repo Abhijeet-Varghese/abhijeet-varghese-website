@@ -5,7 +5,8 @@ standard **Hostinger Premium shared hosting** — no VPS, no Node, no Docker.
 Stack: static HTML/CSS/JS · PHP 8.x · MySQL/MariaDB · Apache/LiteSpeed.
 
 > The website is hand-authored and served exactly as committed. AV OS does not
-> generate, template or publish it — see `avos-php/docs/static-frontend.md`.
+> generate, template or publish it — it only mirrors the files into its content store
+> (`backend/core/SiteSync.php`, `backend/scripts/sync-frontend.php`).
 
 ---
 

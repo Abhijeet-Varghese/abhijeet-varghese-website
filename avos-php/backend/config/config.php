@@ -11,11 +11,9 @@
 define('AV_ROOT', dirname(__DIR__, 2));                    // .../avos-php
 define('AV_PUBLIC', AV_ROOT . '/public_html');
 define('AV_BACKEND', AV_ROOT . '/backend');
-define('AV_INSTALL', AV_ROOT . '/install');
 define('AV_STORAGE', AV_ROOT . '/storage');
 define('AV_UPLOADS', AV_STORAGE . '/uploads');
 define('AV_CACHE', AV_STORAGE . '/cache');
-define('AV_VERSIONS', AV_STORAGE . '/versions');
 define('AV_LOGS', AV_STORAGE . '/logs');
 define('AV_BACKUPS', AV_STORAGE . '/backups');
 // The public website is the hand-authored static frontend in ../abhijeetvarghese
@@ -104,7 +102,7 @@ ini_set('display_errors', AV_DEBUG ? '1' : '0');
 ini_set('log_errors', '1');
 ini_set('error_log', AV_LOGS . '/php-error.log');
 
-foreach ([AV_STORAGE, AV_UPLOADS, AV_CACHE, AV_VERSIONS, AV_LOGS, AV_BACKUPS] as $dir) {
+foreach ([AV_STORAGE, AV_UPLOADS, AV_CACHE, AV_LOGS, AV_BACKUPS] as $dir) {
     if (!is_dir($dir)) @mkdir($dir, 0775, true);
 }
 

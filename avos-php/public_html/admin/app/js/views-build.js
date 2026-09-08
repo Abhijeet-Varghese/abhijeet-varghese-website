@@ -1049,44 +1049,4 @@
       a.status = "published"; S.save(); toast(`“${a.title}” published`); R.go("journal");
     }));
   });
-
-  /* ============ FUTURE LAB ============ */
-  R.register("futurelab", () => `
-    <div class="view__head">
-      <div><h1 class="view__title">Future Lab</h1>
-      <p class="view__desc">Experiments, prototypes and things that don't fit a template yet.</p></div>
-      <div class="view__head-actions"><button class="btn btn--primary" data-add>${icon("plus")} New experiment</button></div>
-    </div>
-    <div class="grid grid-3">
-      <div class="card card--hover" style="padding:20px;border-top:3px solid var(--accent)">
-        <span class="chip chip--accent">AI × Narrative</span>
-        <p style="font-weight:600;font-size:15px;margin-top:12px">The Virtual Life</p>
-        <p style="font-size:12.5px;color:var(--ink-3);margin-top:6px;line-height:1.6">An AI-crafted narrative world exploring whether generated media can carry genuine emotional weight.</p>
-        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
-          <div class="prog" style="flex:1;min-width:90px"><i style="width:80%"></i></div>
-          <span class="chip chip--muted">80%</span>
-        </div>
-      </div>
-      <div class="card card--hover" style="padding:20px;border-top:3px solid var(--azure)">
-        <span class="chip chip--accent">Experiential</span>
-        <p style="font-weight:600;font-size:15px;margin-top:12px">Immersive Wedding Invitation</p>
-        <p style="font-size:12.5px;color:var(--ink-3);margin-top:6px;line-height:1.6">A platform turning a wedding invitation into an explorable, AI-personalized experience for every guest.</p>
-        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
-          <div class="prog" style="flex:1;min-width:90px"><i style="width:60%"></i></div>
-          <span class="chip chip--muted">60%</span>
-        </div>
-      </div>
-      <div class="card card--hover" style="padding:20px;border-top:3px solid var(--ok)">
-        <span class="chip chip--accent">Research</span>
-        <p style="font-weight:600;font-size:15px;margin-top:12px">Clarity Metric Study</p>
-        <p style="font-size:12.5px;color:var(--ink-3);margin-top:6px;line-height:1.6">Measuring comprehension as a business metric — a working definition teams can adopt tomorrow.</p>
-        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
-          <div class="prog" style="flex:1;min-width:90px"><i style="width:95%"></i></div>
-          <span class="chip chip--muted">95%</span>
-        </div>
-      </div>
-    </div>`);
-  R.after("futurelab", view => {
-    $("[data-add]", view).addEventListener("click", () => toast("Experiment created — draft", "accent"));
-  });
 })();

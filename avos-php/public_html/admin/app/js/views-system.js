@@ -1,5 +1,5 @@
 /* ============================================================
-   AV OS — views: AI studio, knowledge, design system, users,
+   AV OS — views: AI studio, design system, users,
    settings, backups, integrations, logs, notifications
    ============================================================ */
 (() => {
@@ -251,78 +251,6 @@
     loadUsage();
     loadPrompts();
     loadLimits();
-  });
-
-  /* ============ KNOWLEDGE SEARCH ============ */
-  R.register("knowledge", () => `
-    <div class="view__head">
-      <div><h1 class="view__title">Knowledge <em>search</em></h1>
-      <p class="view__desc">Semantic search across every project, article, note and file — ask by meaning, not keywords.</p></div>
-    </div>
-    <div class="card" style="padding:18px;margin-bottom:16px">
-      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-        <div style="flex:1;min-width:220px;position:relative">
-          ${icon("search", 17)}
-          <input id="kbInput" placeholder="Ask anything — “show me every enterprise project”, “what have I written about AI?”…" style="width:100%;min-height:46px;border:1px solid var(--line-2);border-radius:12px;background:var(--surface-2);padding:10px 14px 10px 40px;outline:none;font-size:14px;transition:border-color .2s, box-shadow .2s" onfocus="this.style.borderColor='var(--accent)';this.style.boxShadow='0 0 0 3px var(--accent-soft)'" onblur="this.style.borderColor='';this.style.boxShadow=''">
-        </div>
-        <button class="btn btn--primary" data-search>${icon("spark")} Search</button>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
-        ${["Show every enterprise project", "Find articles about AI", "Projects involving leadership", "Presentations about experience centres", "What did I write in August?"].map(q => `<button class="chip chip--muted" data-sug style="cursor:pointer;padding:7px 13px">${esc(q)}</button>`).join("")}
-      </div>
-    </div>
-    <div id="kbResults"></div>`);
-  R.after("knowledge", view => {
-    const resultsBox = $("#kbResults", view);
-    const kb = [
-      { type: "Project", title: "Orange Business New Executive Briefing Center", excerpt: "Orange Business — experience strategy and creative technology for a connected physical-digital executive environment.", tags: "experience strategy creative technology executive briefing center" },
-      { type: "Project", title: "Intuitive Experiences for Industrial Environments", excerpt: "BPCL — design strategy for safety-critical industrial operations.", tags: "enterprise industrial safety" },
-      { type: "Project", title: "Immersive Solutions for the Indian Army", excerpt: "Immersive storytelling and visualization pipelines for defence.", tags: "defence immersive leadership" },
-      { type: "Project", title: "The Virtual Life", excerpt: "An AI-crafted narrative world exploring emotional weight in generated media.", tags: "ai narrative future" },
-      { type: "Essay", title: "Technology Should Feel Human", excerpt: "A design argument for warmth and plain language.", tags: "design ai human" },
-      { type: "Essay", title: "AI Isn't Replacing Creativity", excerpt: "Machines compress exploration; humans still do judgment.", tags: "ai creativity judgment" },
-      { type: "Essay", title: "Why Enterprise Experiences Fail", excerpt: "Jargon, org charts and inherited complexity.", tags: "enterprise failure clarity" },
-      { type: "Journal", title: "The experience centre as a strategic instrument", excerpt: "Decision rooms, not showrooms.", tags: "experience centre strategy" },
-      { type: "Journal", title: "Clarity as a business metric", excerpt: "Measuring understanding.", tags: "clarity metric" },
-      { type: "Note", title: "Experience Centres Playbook", excerpt: "Internal playbook: narrative arc, spatial flow, media systems.", tags: "experience centre presentation" },
-      { type: "Talk", title: "Designing Experiences People Remember", excerpt: "Keynote for Design Leadership Summit.", tags: "presentation speaking memory" },
-      { type: "Talk", title: "Clarity as a Business Metric", excerpt: "Keynote — UX India.", tags: "presentation speaking clarity" }
-    ];
-    const search = (q) => {
-      const terms = q.toLowerCase().split(/\s+/).filter(t => t.length > 1);
-      const scored = kb.map(item => {
-        const hay = (item.type + " " + item.title + " " + item.tags + " " + item.excerpt).toLowerCase();
-        let score = 0;
-        terms.forEach(t => { if (hay.includes(t)) score += t.length; });
-        // semantic boosts
-        if (terms.some(t => ["enterprise", "client", "project", "work"].includes(t)) && (item.type === "Project" || item.tags.includes("enterprise"))) score += 8;
-        if (terms.some(t => ["ai", "artificial", "intelligence"].includes(t)) && item.tags.includes("ai")) score += 10;
-        if (terms.some(t => ["lead", "leadership", "leadership roles"].includes(t)) && item.tags.includes("leadership")) score += 8;
-        if (terms.some(t => ["centre", "center", "experience centre"].includes(t)) && item.tags.includes("experience centre")) score += 8;
-        return { ...item, score };
-      }).filter(i => i.score > 0).sort((a, b) => b.score - a.score);
-      resultsBox.innerHTML = !q.trim()
-        ? `<div class="empty">${icon("search")}<h3>Ask your library anything</h3><p>Semantic search across projects, essays, journal entries, talks and files.</p></div>`
-        : !scored.length
-          ? `<div class="empty">${icon("search")}<h3>Nothing found</h3><p>Try rephrasing — e.g. “projects for enterprise clients”.</p></div>`
-          : scored.slice(0, 8).map(r => `
-            <div class="kb-result">
-              <div style="display:flex;align-items:center;gap:8px">
-                <span class="kb-result__type">${r.type}</span>
-                <span class="kb-result__score">${icon("spark", 12)} ${Math.round((r.score / Math.max(...scored.map(x => x.score))) * 100)}% match</span>
-              </div>
-              <p class="kb-result__title">${esc(r.title)}</p>
-              <p class="kb-result__excerpt">${esc(r.excerpt)}</p>
-            </div>`).join("");
-    };
-    const doSearch = () => search($("#kbInput", view).value);
-    $("[data-search]", view).addEventListener("click", doSearch);
-    $("#kbInput", view).addEventListener("keydown", e => { if (e.key === "Enter") doSearch(); });
-    $$("[data-sug]", view).forEach(b => b.addEventListener("click", () => {
-      $("#kbInput", view).value = b.textContent;
-      doSearch();
-    }));
-    search("");
   });
 
   /* ============ DESIGN SYSTEM ============ */

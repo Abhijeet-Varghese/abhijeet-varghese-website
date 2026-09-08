@@ -1,5 +1,5 @@
 /* ============================================================
-   AV OS — views: media, downloads, testimonials, speaking,
+   AV OS — views: media, downloads, testimonials,
    forms, bookings, leads, SEO, analytics
    ============================================================ */
 (() => {
@@ -140,95 +140,50 @@
     load();
   });
 
-  /* ============ DOWNLOADS ============ */
-  R.register("downloads", () => `
+  /* ============ DOWNLOADS (mirrored from the static site) ============ */
+  R.register("downloads", () => {
+    const rows = S.get("downloads") || [];
+    return `
     <div class="view__head">
       <div><h1 class="view__title">Downloads</h1>
-      <p class="view__desc">Assets offered to visitors — résumé, decks, toolkits. Track every download.</p></div>
-      <div class="view__head-actions"><button class="btn btn--primary" data-add>${icon("plus")} Add download</button></div>
+      <p class="view__desc">Files the website offers to visitors (résumé, decks). Mirrored from the static frontend — add or replace the file in <code>assets/</code> and link it from a page.</p></div>
     </div>
     <div class="card" style="overflow:auto">
       <table class="table">
-        <thead><tr><th>Asset</th><th>Type</th><th>Size</th><th>Downloads</th><th>Status</th><th>Last 30d</th><th></th></tr></thead>
+        <thead><tr><th>Asset</th><th>Type</th><th>Size</th><th>Status</th><th>Link</th></tr></thead>
         <tbody>
-          ${[
-            ["Abhijeet-Varghese-Resume.pdf", "PDF", "348 KB", "1,284", "published", "+8.2%"],
-            ["Portfolio-2026.pdf", "PDF", "12.4 MB", "642", "published", "+5.1%"],
-            ["Experience-Centres-Playbook.pdf", "PDF", "3.8 MB", "318", "published", "+21.4%"],
-            ["AI-Workflows-2026.pdf", "PDF", "2.1 MB", "204", "draft", "—"]
-          ].map(([n, t, s, d, st, tr]) => `<tr>
-            <td><p class="cell-main">${n}</p></td>
-            <td><span class="chip chip--muted">${t}</span></td>
-            <td style="color:var(--ink-3)">${s}</td>
-            <td><b>${d}</b></td>
-            <td>${statusChip(st)}</td>
-            <td style="color:var(--ok);font-weight:600">${tr}</td>
-            <td><button class="icon-btn" style="width:30px;height:30px" data-edit>${icon("pen", 14)}</button></td>
-          </tr>`).join("")}
+          ${rows.map(d => `<tr>
+            <td><p class="cell-main">${esc(d.name || "")}</p></td>
+            <td><span class="chip chip--muted">${esc(d.type || "")}</span></td>
+            <td style="color:var(--ink-3)">${esc(d.size || "—")}</td>
+            <td>${statusChip(d.status || "draft")}</td>
+            <td>${d.href ? `<a href="/${esc(d.href)}" target="_blank" rel="noopener" style="color:var(--accent)">/${esc(d.href)}</a>` : `<span style="color:var(--ink-3)">not linked on the site</span>`}</td>
+          </tr>`).join("") || `<tr><td colspan="5"><div class="empty" style="padding:24px"><p>No downloads linked from the website yet.</p></div></td></tr>`}
         </tbody>
       </table>
-    </div>`);
-  R.after("downloads", view => {
-    $("[data-add]", view).addEventListener("click", () => toast("Upload a file to publish as a download", "accent"));
-    $$("[data-edit]", view).forEach(b => b.addEventListener("click", () => toast("Asset settings opened")));
+    </div>`;
   });
 
-  /* ============ TESTIMONIALS ============ */
-  R.register("testimonials", () => `
+  /* ============ TESTIMONIALS (mirrored from the static site) ============ */
+  R.register("testimonials", () => {
+    const rows = S.get("testimonials") || [];
+    return `
     <div class="view__head">
       <div><h1 class="view__title">Testimonials</h1>
-      <p class="view__desc">Client voices for the site — request, curate, publish.</p></div>
-      <div class="view__head-actions"><button class="btn btn--primary" data-add>${icon("plus")} Add testimonial</button></div>
+      <p class="view__desc">Client voices as they appear on the website. Edit the quote in the page source — it is mirrored here automatically.</p></div>
     </div>
     <div class="grid grid-3">
-      ${[
-        ["“Abhijeet turned our platform into something our buyers finally understood — in one meeting, not one quarter.”", "Head of Marketing", "Orange Business"],
-        ["“The experience centre he designed changed how we argue about strategy internally.”", "CXO", "Enterprise Client"],
-        ["“Precision, discipline and clarity — exactly what our environment demanded.”", "Programme Director", "Defence Client"]
-      ].map(([q, role, org]) => `
-        <div class="card card--hover" style="padding:20px">
+      ${rows.map(t => `
+        <div class="card" style="padding:20px">
           <div style="color:var(--accent);font-family:var(--serif);font-style:italic;font-size:26px;line-height:1">”</div>
-          <p style="font-size:13.5px;line-height:1.65;margin-top:8px;color:var(--ink-2)">${esc(q)}</p>
+          <p style="font-size:13.5px;line-height:1.65;margin-top:8px;color:var(--ink-2)">${esc(t.quote || "")}</p>
           <div style="display:flex;align-items:center;gap:10px;margin-top:16px">
-            <div class="avatar" style="background:var(--accent-soft);color:var(--accent);font-weight:700">${esc(org[0])}</div>
-            <div><p style="font-size:12.5px;font-weight:600">${esc(org)}</p><p style="font-size:11px;color:var(--ink-3)">${esc(role)}</p></div>
+            <div class="avatar" style="background:var(--accent-soft);color:var(--accent);font-weight:700">${esc((t.org || "?")[0])}</div>
+            <div><p style="font-size:12.5px;font-weight:600">${esc(t.org || "")}</p><p style="font-size:11px;color:var(--ink-3)">${esc(t.role || "")}</p></div>
           </div>
-          <div style="display:flex;gap:6px;margin-top:14px">
-            <button class="btn btn--sm btn--soft" data-pub>${icon("send", 12)} Publish</button>
-            <button class="btn btn--sm btn--ghost">${icon("trash", 12)}</button>
-          </div>
-        </div>`).join("")}
-    </div>`);
-  R.after("testimonials", view => {
-    $("[data-add]", view).addEventListener("click", () => toast("Testimonial added as draft", "accent"));
-    $$("[data-pub]", view).forEach(b => b.addEventListener("click", () => { toast("Testimonial published"); b.textContent = "Published ✓"; b.disabled = true; }));
-  });
-
-  /* ============ SPEAKING ============ */
-  R.register("speaking", () => `
-    <div class="view__head">
-      <div><h1 class="view__title">Speaking</h1>
-      <p class="view__desc">Talks, keynotes and panels — topics, dates, requests.</p></div>
-      <div class="view__head-actions"><button class="btn btn--primary" data-add>${icon("plus")} Add engagement</button></div>
-    </div>
-    <div class="grid grid-2">
-      ${[
-        ["Clarity as a Business Metric", "Design Leadership Summit", "2026-09-18", "Bengaluru · Keynote", "confirmed"],
-        ["Designing Experiences People Remember", "UX India", "2026-10-09", "Hyderabad · Talk", "confirmed"],
-        ["AI Doesn't Replace Judgment", "Enterprise Innovation Forum", "2026-11-04", "Virtual · Panel", "proposed"],
-        ["The Experience Centre as Decision Room", "CXO Roundtable", "2027-01-22", "Dubai · Fireside", "proposed"]
-      ].map(([t, ev, d, loc, st]) => `
-        <div class="card card--hover" style="padding:18px;display:flex;gap:16px;align-items:center">
-          <div class="meeting-card__date" style="background:var(--accent-soft);color:var(--accent)"><b>${d.slice(8)}</b>${new Date(d).toLocaleString("en", { month: "short" }).toUpperCase()}</div>
-          <div style="min-width:0;flex:1">
-            <p style="font-weight:600;font-size:14px">${esc(t)}</p>
-            <p style="font-size:12px;color:var(--ink-3);margin-top:2px">${esc(ev)} · ${esc(loc)}</p>
-          </div>
-          <span class="chip ${st === "confirmed" ? "chip--ok" : "chip--warn"}">${st}</span>
-        </div>`).join("")}
-    </div>`);
-  R.after("speaking", view => {
-    $("[data-add]", view).addEventListener("click", () => toast("Speaking engagement added", "accent"));
+          <div style="margin-top:14px">${statusChip(t.status || "draft")}</div>
+        </div>`).join("") || `<div class="empty" style="grid-column:1/-1;padding:30px"><p>No testimonials on the website yet.</p></div>`}
+    </div>`;
   });
 
   /* ============ FORMS ============ */
