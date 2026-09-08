@@ -23,6 +23,7 @@ spl_autoload_register(function (string $class): void {
         'GeminiProvider' => '/backend/ai/AiProviders.php',
         'PublishEngine' => '/backend/publish/PublishEngine.php',
         'TemplateRegistry' => '/backend/publish/TemplateRegistry.php',
+        'RouteRegistry' => '/backend/publish/RouteRegistry.php',
         'ApiController' => '/backend/controllers/ApiController.php',
         'CrmModel' => '/backend/models/BusinessModels.php',
         'BusinessProjectModel' => '/backend/models/BusinessModels.php',

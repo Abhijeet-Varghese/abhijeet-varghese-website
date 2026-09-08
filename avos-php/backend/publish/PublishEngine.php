@@ -12,6 +12,10 @@ final class PublishEngine
     private array $site;
     private string $out;
     private ?string $assetVersion = null;
+    /** @var array<int,array> current build's route table (RouteRegistry::build) */
+    private array $routeMap = [];
+    /** @var array<string,string> href → canonical route map for link resolution */
+    private array $hrefMap = [];
 
     public function __construct(array $site)
     {
@@ -60,6 +64,137 @@ final class PublishEngine
         if ($prefix === '' || $href === '' || str_starts_with($href, '#') || str_starts_with($href, '/') || str_starts_with($href, '//')) return $href;
         if (preg_match('#^[a-z][a-z0-9+.-]*:#i', $href)) return $href;
         return $prefix . $href;
+    }
+
+    /** Resolve a single attribute value to a root-relative canonical URL or asset path. */
+    private function finalizeAttr(string $url, array $hrefMap): string
+    {
+        $u = trim($url);
+        if ($u === '') return $url;
+        if (str_starts_with($u, '//') || str_starts_with($u, '#')) return $url;
+        if (preg_match('#^[a-z][a-z0-9+.-]*:#i', $u)) return $url; // http/mailto/tel/data
+        if (str_starts_with($u, '../')) return $url;               // explicit depth prefix (already correct)
+        if (str_starts_with($u, '/')) {
+            // already root-relative; still canonicalise if it's a known flat page
+            $resolved = RouteRegistry::resolveInternalHref(ltrim($u, '/'), $hrefMap);
+            return ($resolved !== ltrim($u, '/')) ? $resolved : $u;
+        }
+        // 1) internal page link -> canonical route (root-relative)
+        $resolved = RouteRegistry::resolveInternalHref($u, $hrefMap);
+        if (str_starts_with($resolved, '/') && $resolved !== $u) {
+            return $resolved;
+        }
+        // 2) bare asset / file reference -> root-relative
+        return '/' . ltrim($u, '/');
+    }
+
+    /**
+     * Finalise a rendered HTML document for its clean-URL output location:
+     *  - resolve internal page links to their CANONICAL root-relative route
+     *    (story.html → /story/, case-studies/foo.html → /case-studies/foo/)
+     *  - root-relativise asset references (css/js/assets/fonts/media) so nested
+     *    directory URLs never break relative paths (no "../" guessing)
+     * External URLs, anchors, mailto/tel, protocol-relative and already-root
+     * references are left untouched.
+     */
+    private function finalizeDocument(string $html, array $hrefMap, ?array $route = null): string
+    {
+        // Route-derived canonical URL: rewrite <link rel=canonical> and og:url to
+        // the clean trailing-slash canonical (whatever the template/head emitted).
+        if ($route !== null) {
+            $canonicalAbs = RouteRegistry::absolute(AV_SITE_URL, $route['canonical']);
+            $html = preg_replace(
+                '#(<link\b[^>]*\brel=["\']canonical["\'][^>]*\bhref=)(["\'])[^"\']*\2#i',
+                '${1}"' . $canonicalAbs . '"',
+                $html
+            );
+            $html = preg_replace(
+                '#(<meta\b[^>]*\bproperty=["\']og:url["\'][^>]*\bcontent=)(["\'])[^"\']*\2#i',
+                '${1}"' . $canonicalAbs . '"',
+                $html
+            );
+            // Self / legacy URL references anywhere in the document (inline
+            // JSON-LD @id/url/breadcrumb) → canonical, both root- and host-relative.
+            $host = rtrim(AV_SITE_URL, '/');
+            $canon = $route['canonical'];                 // e.g. /portfolio/
+            // Replace the legacy absolute + root-relative URLs (host + path,
+            // and path alone) with the canonical. Use the host + rtrim(from,'/')
+            // forms so /portfolio.html and /portfolio all map to a single slash.
+            $legacyBases = [$canon];
+            foreach ($route['redirects'] ?? [] as $rd) {
+                $legacyBases[] = rtrim($rd['from'], '/'); // /portfolio.html → /portfolio.html
+            }
+            foreach (array_unique($legacyBases) as $base) {
+                // $base may already end with the canonical dir or be a .html path;
+                // normalise to the canonical path with exactly one trailing slash.
+                $html = str_replace($host . $base, $host . $canon, $html);
+                $html = str_replace($base, $canon, $html);
+            }
+            // collapse any accidental double trailing slash in our own URLs only
+            $html = preg_replace('#(' . preg_quote($host, '#') . '/[a-z0-9/_-]*?)//+#i', '$1/', $html);
+        }
+        $fixAttr = fn(string $u, array $m): string => $this->finalizeAttr($u, $m);
+        $html = preg_replace_callback(
+            '#\b(href|src|action|poster|data-src|data-poster|data-bg)\s*=\s*"([^"]*)"#i',
+            fn($m) => $m[1] . '="' . $this->finalizeAttr($m[2], $hrefMap) . '"',
+            $html
+        );
+        // srcset/imagesrcset: comma-separated list of `<url> <descriptor>` entries.
+        $fixSrcset = function (string $v, array $hrefMap) {
+            $parts = array_map('trim', explode(',', $v));
+            $out = [];
+            foreach ($parts as $part) {
+                if ($part === '') continue;
+                $bits = preg_split('/\s+/', $part, 2);
+                $url = $bits[0];
+                $desc = $bits[1] ?? '';
+                $fixed = $this->finalizeAttr($url, $hrefMap);
+                $out[] = $fixed . ($desc !== '' ? ' ' . $desc : '');
+            }
+            return implode(', ', $out);
+        };
+        $html = preg_replace_callback(
+            '#\b(srcset|imagesrcset)\s*=\s*"([^"]*)"#i',
+            fn($m) => $m[1] . '="' . $fixSrcset($m[2], $hrefMap) . '"',
+            $html
+        );
+        // url(...) in inline <style>/style attributes
+        $html = preg_replace_callback(
+            '#url\(\s*[\'"]?(?!/|data:|https?:|//)([^\'")]+)[\'"]?\s*\)#i',
+            fn($m) => 'url(/' . ltrim($m[1], '/') . ')',
+            $html
+        );
+        return $html;
+    }
+
+    /** Write a route's index.html (finalised) into the staging dir. */
+    private function writeRouteFile(string $dir, string $outputRel, string $html): void
+    {
+        $path = $dir . '/' . $outputRel;
+        @mkdir(dirname($path), 0775, true);
+        file_put_contents($path, $html);
+    }
+
+    /**
+     * A minimal HTML redirect document (works on ANY static host, including
+     * the dev `php -S` router). Apache additionally gets a real 301 via
+     * .htaccess (writeSiteHtaccess). Emits a rel=canonical + noindex so a
+     * legacy URL is never treated as a duplicate page.
+     */
+    private function redirectStub(string $to, int $code = 301): string
+    {
+        $safe = htmlspecialchars($to, ENT_QUOTES, 'UTF-8');
+        return '<!doctype html>' . "\n"
+            . '<html lang="en"><head><meta charset="utf-8">' . "\n"
+            . '<meta name="robots" content="noindex,follow">' . "\n"
+            . '<link rel="canonical" href="' . $safe . '">' . "\n"
+            . '<meta http-equiv="refresh" content="0; url=' . $safe . '">' . "\n"
+            . '<title>Redirecting…</title>' . "\n"
+            . '<link rel="stylesheet" href="/css/styles.css">' . "\n"
+            . '</head><body style="font-family:system-ui,sans-serif;padding:3rem;text-align:center;color:#333">'
+            . '<p>This page has moved. <a href="' . $safe . '">Continue to the current page</a>.</p>'
+            . '<script>location.replace(' . json_encode($to) . ');</script>'
+            . '</body></html>' . "\n";
     }
 
     private function slugify(string $s): string
@@ -1546,6 +1681,15 @@ HTML;
             }
             $html = $this->renderPage($found, $s, $nav);
         }
+        // Route-finalise so bare asset/page links resolve root-relative at the
+        // preview's site-root context (same canonical output as a publish).
+        $routes = RouteRegistry::build($this->site, fn($e) => $this->isDue($e));
+        $hrefMap = RouteRegistry::hrefMap($routes);
+        $route = null;
+        foreach ($routes as $r) {
+            if (($r['type'] === 'page') && ($r['id'] === ($found['id'] ?? null) || $r['slug'] === $slug)) { $route = $r; break; }
+        }
+        $html = $this->finalizeDocument($html, $hrefMap, $route);
         return $this->wrapPreview($html, $slug);
     }
 
@@ -2655,28 +2799,23 @@ HTML;
     }
 
     /* ---------- sitemap + robots ---------- */
-    private function sitemapXml(): string
+    /**
+     * Sitemap from the RouteRegistry — one canonical entry per indexable
+     * public route. Redirects, drafts, admin/api/preview and utility pages
+     * (404) are never included. Paths are trailing-slash canonical URLs.
+     */
+    private function sitemapXml(?array $routes = null): string
     {
-        $siteUrl = AV_SITE_URL;
-        $urls = [['', 1.0]];
-        foreach (($this->site['pages'] ?? []) as $p) {
-            if (!$this->isDue($p)) continue;   // only published/scheduled-due — never drafts
-            if (in_array($p['slug'] ?? '', ['', 'home', 'index'], true)) continue;
-            $urls[] = [$p['slug'] . '.html', 0.9];
-        }
-        foreach (($this->site['articles'] ?? []) as $a) {
-            if (!$this->isDue($a)) continue;   // never expose drafts in the public sitemap
-            $slug = $a['slug'] ?? $this->slugify($a['title'] ?? '');
-            $urls[] = [(($a['type'] ?? 'essay') === 'essay' ? 'essay-' : 'journal-') . $slug . '.html', 0.7];
-        }
-        foreach (($this->site['projects'] ?? []) as $p) {
-            if (!$this->isDue($p)) continue;
-            if (($p['status'] ?? 'published') !== 'published') continue;
-            $urls[] = [$this->caseStudyFile($p), 0.8];
-        }
+        $siteUrl = rtrim(AV_SITE_URL, '/');
+        $routes = $routes ?? RouteRegistry::build($this->site, fn($e) => $this->isDue($e));
+        $priority = ['page' => 0.9, 'project' => 0.8, 'article' => 0.7];
         $out = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'];
-        foreach ($urls as [$f, $p]) {
-            $out[] = '  <url><loc>' . $siteUrl . '/' . $f . '</loc><changefreq>monthly</changefreq><priority>' . $p . '</priority></url>';
+        foreach ($routes as $r) {
+            // home first (priority 1.0); skip non-indexable utility routes
+            $isHome = ($r['id'] === 'home');
+            $p = $isHome ? 1.0 : ($priority[$r['type']] ?? 0.6);
+            $loc = $siteUrl . $r['canonical'];
+            $out[] = '  <url><loc>' . $this->esc($loc) . '</loc><changefreq>monthly</changefreq><priority>' . $p . '</priority></url>';
         }
         $out[] = '</urlset>';
         return implode("\n", $out) . "\n";
@@ -2780,47 +2919,69 @@ HTML;
             }
         }
 
-        file_put_contents($dir . '/index.html', $this->renderHomepage());
-        foreach (($site['pages'] ?? []) as $p) {
-            if (!$this->isDue($p)) continue;
-            $slug = $p['slug'] ?? '';
-            // homepage is generated from sections — never emit /.html or index.html
-            if ($slug === '' || $slug === 'home' || $slug === 'index') continue;
-            file_put_contents($dir . '/' . $slug . '.html', $this->renderPage($p, $s, $nav));
-            $pages++;
+        // ---- ROUTE-DRIVEN OUTPUT ----------------------------------------
+        // One canonical trailing-slash directory route per public entity. The
+        // RouteRegistry is the single source for output paths, canonical URLs
+        // and automatic redirects; pages are never written to hand-maintained
+        // .html files. See backend/publish/RouteRegistry.php.
+        $routes = RouteRegistry::build($site, fn($e) => $this->isDue($e));
+        $routeErrors = RouteRegistry::validate($routes);
+        if ($routeErrors) {
+            throw new RuntimeException('Route validation failed: ' . implode('; ', $routeErrors));
         }
-        foreach (($site['articles'] ?? []) as $a) {
-            if (!$this->isDue($a)) continue;
-            $slug = $a['slug'] ?? $this->slugify($a['title'] ?? '');
-            file_put_contents($dir . '/' . (($a['type'] ?? 'essay') === 'essay' ? 'essay-' : 'journal-') . $slug . '.html', $this->renderArticle($a, $s, $nav));
-            $articles++;
-        }
-        $cases = 0;
-        foreach (($site['projects'] ?? []) as $p) {
-            if (!$this->isDue($p)) continue;
-            if (($p['status'] ?? 'published') !== 'published') continue;
-            $outputFile = $this->caseStudyOutputFile($p);
-            @mkdir(dirname($dir . '/' . $outputFile), 0775, true);
-            file_put_contents($dir . '/' . $outputFile, $this->renderCaseStudy($p, $s, $nav));
-            $legacyPaths = $p['legacyPaths'] ?? [];
-            if (($p['id'] ?? '') === 'prj-1' && !$legacyPaths) {
-                $legacyPaths = ['case-study-enterprise-technology-made-understandable.html'];
+        $hrefMap = RouteRegistry::hrefMap($routes);
+        $this->routeMap = $routes;
+        $this->hrefMap = $hrefMap;
+
+        // index entities by id for route → entity lookup
+        $pageById = [];    foreach (($site['pages'] ?? []) as $p) { $pageById[$p['id'] ?? ($p['slug'] ?? '')] = $p; }
+        $projById = [];    foreach (($site['projects'] ?? []) as $p) { $projById[$p['id'] ?? ''] = $p; }
+        $artById = [];     foreach (($site['articles'] ?? []) as $a) { $artById[$a['id'] ?? ($a['slug'] ?? '')] = $a; }
+
+        foreach ($routes as $r) {
+            if ($r['type'] === 'page' && $r['id'] === 'home') {
+                $html = $this->renderHomepage();
+            } elseif ($r['type'] === 'page') {
+                $p = $pageById[$r['id']] ?? null;
+                if ($p === null) continue;
+                $html = $this->renderPage($p, $s, $nav);
+                $pages++;
+            } elseif ($r['type'] === 'project') {
+                $p = $projById[$r['id']] ?? null;
+                if ($p === null) continue;
+                $html = $this->renderCaseStudy($p, $s, $nav);
+                $cases = ($cases ?? 0) + 1;
+            } else { // article
+                $a = $artById[$r['id']] ?? null;
+                if ($a === null) continue;
+                $html = $this->renderArticle($a, $s, $nav);
+                $articles++;
             }
-            foreach ((array)$legacyPaths as $legacy) {
-                $legacy = ltrim(trim((string)$legacy), '/');
-                if ($legacy === '' || str_contains($legacy, '..') || $legacy === $outputFile) continue;
-                $legacyFile = str_ends_with($legacy, '/') ? $legacy . 'index.html' : $legacy;
-                @mkdir(dirname($dir . '/' . $legacyFile), 0775, true);
-                file_put_contents($dir . '/' . $legacyFile, $this->renderCaseStudyRedirect($this->caseStudyFile($p)));
-            }
-            $cases++;
+            $this->writeRouteFile($dir, $r['output'], $this->finalizeDocument($html, $hrefMap, $r));
         }
-        file_put_contents($dir . '/sitemap.xml', $this->sitemapXml());
+
+        // automatic redirect stubs (one per legacy/alternate URL) — host-neutral
+        foreach ($routes as $r) {
+            foreach ($r['redirects'] as $rd) {
+                $rel = ltrim($rd['from'], '/');
+                // directory form (/foo) writes /foo/index.html; .html form writes itself
+                $outRel = (str_ends_with($rel, '.html')) ? $rel : $rel . '/index.html';
+                $this->writeRouteFile($dir, $outRel, $this->finalizeDocument($this->redirectStub($rd['to'], $rd['code']), $hrefMap));
+            }
+        }
+
+        // machine-readable route manifest
+        file_put_contents($dir . '/routes.json', json_encode(
+            RouteRegistry::manifest($routes, AV_SITE_URL),
+            JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT
+        ) . "\n");
+
+        file_put_contents($dir . '/sitemap.xml', $this->sitemapXml($routes));
         file_put_contents($dir . '/robots.txt', $this->robotsTxt());
-        file_put_contents($dir . '/404.html', $this->render404($s, $nav));
+        file_put_contents($dir . '/404.html', $this->finalizeDocument($this->render404($s, $nav), $hrefMap));
         if (FeatureFlagModel::isOn('site_search')) {
             file_put_contents($dir . '/search-index.json', $this->searchIndex());
-            file_put_contents($dir . '/search.html', $this->renderSearchPage($s, $nav));
+            file_put_contents($dir . '/search.html', $this->finalizeDocument($this->renderSearchPage($s, $nav), $hrefMap));
         }
         $this->writeDesignTokens($dir, $s);   // design system → CSS variables
         $this->injectExternalAnalytics($dir); // GA4 / GTM / Clarity (integration hub config)
@@ -2939,16 +3100,32 @@ HTML;
     private function verifyPublishedSite(array $counts): array
     {
         $problems = [];
+        // Canonical clean-URL routes must exist with real content.
         $critical = [
             'index.html', 'css/styles.css', 'js/main.js', 'sitemap.xml', 'robots.txt', '404.html',
+            'routes.json',
+            'story/index.html', 'experience/index.html', 'case-studies/index.html',
+            'portfolio/index.html', 'contact/index.html', 'for-recruiters/index.html',
+            'case-studies/orange-business/index.html',
+            'case-studies/bharat-petroleum-corporation-limited/index.html',
+            'case-studies/indian-army/index.html',
+            'css/portfolio-reel.css', 'js/portfolio-reel.js',
             'css/orange-business-case-study.css', 'js/orange-business-case-study.js',
-            'experience-design/orange-business-executive-briefing-center/index.html',
         ];
-        foreach (array_merge($critical, ['story.html', 'experience.html', 'case-studies.html', 'contact.html']) as $f) {
+        foreach ($critical as $f) {
             $p = $this->out . '/' . $f;
-            if (!is_file($p)) { $problems[] = "missing $f"; continue; }
-            $min = $f === 'robots.txt' ? 10 : 100;   // robots.txt is legitimately tiny
+            if (!is_file($p)) { $problems[] = "missing canonical route/asset: $f"; continue; }
+            $min = 100;
             if (filesize($p) < $min) $problems[] = "$f too small (" . filesize($p) . "b)";
+        }
+        // Legacy flat URLs must still be present (as auto redirect stubs) for SEO/backlinks.
+        foreach (['story.html', 'experience.html', 'case-studies.html', 'contact.html', 'portfolio.html', 'for-recruiters.html'] as $f) {
+            $p = $this->out . '/' . $f;
+            if (!is_file($p)) { $problems[] = "missing legacy redirect: $f"; continue; }
+            $c = (string)file_get_contents($p);
+            if (!str_contains($c, 'http-equiv="refresh"') && !str_contains($c, 'Redirecting')) {
+                $problems[] = "legacy $f is not a redirect stub";
+            }
         }
         // sitemap: every URL must map to an existing file; no draft/admin/api URLs.
         // Parsed with regex (sitemap is self-generated; no XML-extension dependency).
@@ -3098,6 +3275,17 @@ HTML;
             '',
         ];
         $rules = [];
+        // Automatic route redirects (flat .html / no-slash → canonical clean URL).
+        // These come from the RouteRegistry; DB-managed redirects below override.
+        if ($this->routeMap) {
+            foreach ($this->routeMap as $r) {
+                foreach ($r['redirects'] as $rd) {
+                    $old = trim(ltrim($rd['from'], '/'), '/');
+                    if ($old === '' || str_contains($old, '..')) continue;
+                    $rules[$old] = [$rd['to'], (int)$rd['code']];
+                }
+            }
+        }
         foreach (($this->site['projects'] ?? []) as $project) {
             $legacyPaths = $project['legacyPaths'] ?? [];
             if (($project['id'] ?? '') === 'prj-1' && !$legacyPaths) {
@@ -3106,6 +3294,8 @@ HTML;
             foreach ((array)$legacyPaths as $legacy) {
                 $old = trim((string)$legacy, '/');
                 if ($old === '' || str_contains($old, '..')) continue;
+                // route map already points legacy case URLs at their /case-studies/<slug>/ canonical
+                if (isset($rules[$old])) continue;
                 $rules[$old] = ['/' . ltrim($this->caseStudyFile($project), '/'), 301];
             }
         }
