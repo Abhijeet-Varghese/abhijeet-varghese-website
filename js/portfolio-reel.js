@@ -21,54 +21,6 @@
   var clamp = function (v, a, b) { return v < a ? a : v > b ? b : v; };
 
   /* ----------------------------------------------------------
-     FUTURE CONTENT — "Beyond the reel / More work"
-     ----------------------------------------------------------
-     The real media is supplied later. Populate this array and the
-     section renders itself — no component changes required.
-
-     moreWork = [
-       { type: "video",            // video | image | motion | 3d | installation
-         source: "<youtube id or embed url>",
-         poster: "assets/media/...",
-         title: "...",
-         description: "...",
-         category: "...",
-         year: "...",
-         layout: "feature" }       // feature | half | wide | portrait
-     ];
-
-     Editorial rhythm is derived from `layout`, so mixed media never
-     falls into an identical card grid. While the array is empty the
-     intentional COMING SOON state stays on screen.
-     ---------------------------------------------------------- */
-  var moreWork = [];
-
-  var moreWorkRoot = $("[data-pf-morework]");
-  if (moreWorkRoot && moreWork.length) {
-    renderMoreWork(moreWork, moreWorkRoot);
-  }
-
-  function renderMoreWork(items, root) {
-    var html = items.map(function (item, i) {
-      var n = String(i + 1).padStart(2, "0");
-      var media = item.type === "video" && item.source
-        ? '<div class="pf-soon__video" data-pf-player data-yt="' + item.source + '"></div>'
-        : '<img src="' + item.poster + '" alt="' + (item.title || "") + '" loading="lazy" decoding="async">';
-      return '' +
-        '<article class="pf-work pf-work--' + (item.layout || "feature") + '" data-reveal>' +
-          '<figure class="pf-work__media">' + media + '</figure>' +
-          '<div class="pf-work__copy">' +
-            '<span class="pf-work__num">' + n + '</span>' +
-            '<h3>' + (item.title || "") + '</h3>' +
-            (item.description ? '<p>' + item.description + '</p>' : '') +
-            '<span class="pf-work__cat">' + (item.category || "") + '</span>' +
-          '</div>' +
-        '</article>';
-    }).join("");
-    root.innerHTML = html;
-  }
-
-  /* ----------------------------------------------------------
      01 · REVEAL — masked lines, film frame, atmosphere
      ---------------------------------------------------------- */
   var openTargets = $$("[data-pf-open]");
