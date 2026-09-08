@@ -13,8 +13,7 @@
   var root = $('#film'); if (!root) return;
   var stage = $('#filmStage'), rail = $('#filmRail'), countEl = $('#filmCount'), capEl = $('#filmCap');
   var prev = $('#filmPrev'), next = $('#filmNext');
-  /* frame 02 is byte-identical to frame 01 in the supplied set
-     (md5 52b3546d…). It is held out rather than shown twice.      */
+  /* Frames listed in C.DUPLICATE_FRAMES are held out of the sequence. */
   var dupes = C.DUPLICATE_FRAMES || [];
   var frames = C.FRAMES.filter(function (f) { return dupes.indexOf(f.n) < 0; });
   var n = frames.length, i = -1, slides = [];
