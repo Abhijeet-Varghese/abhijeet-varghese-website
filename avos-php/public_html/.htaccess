@@ -1,0 +1,52 @@
+# AV OS — public root
+Options -Indexes
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+  # HSTS — HTTPS-only deployment (Hostinger TLS)
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+  # CSP — 'unsafe-inline' script/style is required by the self-hosted analytics +
+  # GTM snippets; everything else is locked to self or the listed providers.
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.googletagmanager.com https://www.google-analytics.com; font-src 'self' data:; connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; frame-src https://calendly.com https://www.youtube.com https://www.youtube-nocookie.com https://www.googletagmanager.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self' https://calendly.com; object-src 'none'; upgrade-insecure-requests"
+</IfModule>
+
+# Block hidden files, SQL dumps, seeds, config
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+<FilesMatch "\.(sql|md|json|lock|log|bak|sh|env|example)$">
+  Require all denied
+</FilesMatch>
+
+# Block access to private paths if they ever land in web root
+RewriteEngine On
+RewriteRule ^(?:backend|includes|storage|database|installer|\.git)/ - [F,L]
+RewriteCond %{REQUEST_URI} (^|/)(config\.local\.php|config\.php|schema\.sql|seed\.php|site\.json)$ [NC]
+RewriteRule ^ - [F,L]
+
+# Generated static site lives in /site — serve it at the web root
+# (homepage, pages, articles, sitemap, robots, 404 — all cached static files)
+RewriteRule ^$ site/index.html [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/(api|admin|install|media)/
+RewriteRule ^(.+)$ site/$1 [L,QSA]
+
+# Media library (admin previews) — served from private storage via media.php
+RewriteRule ^media/(.+)$ media.php?f=$1 [L,QSA]
+
+# Cache static assets
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 7 days"
+  ExpiresByType application/javascript "access plus 7 days"
+  ExpiresByType image/webp "access plus 30 days"
+  ExpiresByType image/avif "access plus 30 days"
+  ExpiresByType image/png "access plus 30 days"
+  ExpiresByType image/jpeg "access plus 30 days"
+  ExpiresByType image/svg+xml "access plus 30 days"
+  ExpiresByType font/woff2 "access plus 30 days"
+</IfModule>

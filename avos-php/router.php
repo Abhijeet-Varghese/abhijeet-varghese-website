@@ -1,0 +1,105 @@
+<?php
+/* Dev router for `php -S` (Hostinger/Apache uses .htaccess instead) */
+$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$root = __DIR__ . '/public_html';
+
+if (str_starts_with($path, '/api/')) {
+    require __DIR__ . '/public_html/api/index.php';
+    return true;
+}
+
+// /media/* → media server (admin previews; published site uses /site/assets/)
+if (str_starts_with($path, '/media/')) {
+    $_GET['f'] = substr($path, strlen('/media/'));
+    require __DIR__ . '/public_html/media.php';
+    return true;
+}
+
+// map /site/* and /admin/* and everything else into public_html
+$rel = ltrim($path, '/');
+$file = $root . '/' . $rel;
+if ($path === '/' || $path === '') {
+    $file = $root . '/site/index.html';   // generated static site at the root
+} elseif ($path === '/admin' || $path === '/admin/') {
+    header('Location: /admin/login.php');
+    return true;
+}
+
+// Check route registry redirects (legacy .html -> canonical clean route)
+$routesFile = $root . '/site/routes.json';
+if (is_file($routesFile)) {
+    $routesData = json_decode((string)file_get_contents($routesFile), true);
+    if (!empty($routesData['routes'])) {
+        foreach ($routesData['routes'] as $r) {
+            foreach ($r['redirects'] ?? [] as $rd) {
+                if ($path === $rd['from'] || (str_ends_with($rd['from'], '/') && rtrim($path, '/') === rtrim($rd['from'], '/'))) {
+                    header('Location: ' . $rd['to'], true, 301);
+                    return true;
+                }
+            }
+        }
+    }
+}
+
+// Canonical trailing slash redirect for directories (/story -> /story/)
+if (!str_ends_with($path, '/') && !pathinfo($path, PATHINFO_EXTENSION)) {
+    $candDir = $root . '/site/' . $rel;
+    if (is_dir($candDir)) {
+        header('Location: ' . $path . '/', true, 301);
+        return true;
+    }
+}
+// serve the generated static site for page URLs not present in the web root
+if (!is_file($file) && !str_starts_with($path, '/api/') && !str_starts_with($path, '/admin/')
+    && !str_starts_with($path, '/media/') && !str_starts_with($path, '/install/')) {
+    $cand = $root . '/site/' . $rel;
+    if (is_file($cand) || is_dir($cand)) $file = $cand;
+}
+
+// safety: no traversal
+$real = realpath($file);
+if ($real === false || !str_starts_with($real, realpath($root))) {
+    http_response_code(404);
+    echo 'Not found';
+    return true;
+}
+
+if (is_dir($real)) {
+    // prefer index.php (installer/admin) then index.html
+    $cand = rtrim($real, '/') . '/index.php';
+    if (!is_file($cand)) $cand = rtrim($real, '/') . '/index.html';
+    $file = $cand;
+    $real = realpath($file);
+    if ($real === false) { http_response_code(404); echo 'Not found'; return true; }
+}
+
+$ext = pathinfo($real, PATHINFO_EXTENSION);
+
+// PHP files: execute them from the correct directory
+if ($ext === 'php') {
+    require $real;
+    return true;
+}
+
+$types = [
+    'html' => 'text/html; charset=utf-8', 'css' => 'text/css; charset=utf-8',
+    'js' => 'text/javascript; charset=utf-8', 'json' => 'application/json',
+    'png' => 'image/png', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'gif' => 'image/gif',
+    'webp' => 'image/webp', 'avif' => 'image/avif', 'svg' => 'image/svg+xml',
+    'woff2' => 'font/woff2', 'woff' => 'font/woff', 'ttf' => 'font/ttf', 'otf' => 'font/otf',
+    'pdf' => 'application/pdf', 'ico' => 'image/x-icon', 'txt' => 'text/plain; charset=utf-8',
+    'xml' => 'application/xml', 'mp4' => 'video/mp4',
+];
+header('Content-Type: ' . ($types[$ext] ?? 'application/octet-stream'));
+if ($ext === 'html') {
+    header('Cache-Control: no-cache, must-revalidate');
+} elseif (in_array($ext, ['css', 'js'], true)) {
+    // Published HTML content-hashes CSS/JS URLs.
+    header('Cache-Control: public, max-age=31536000, immutable');
+} elseif (in_array($ext, ['woff', 'woff2', 'ttf', 'otf', 'avif', 'webp', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'mp4'], true)) {
+    header('Cache-Control: public, max-age=2592000');
+} else {
+    header('Cache-Control: public, max-age=86400');
+}
+readfile($real);
+return true;

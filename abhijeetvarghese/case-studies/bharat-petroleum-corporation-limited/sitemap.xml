@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://REPLACE-WITH-PRODUCTION-DOMAIN/case-studies/bharat-petroleum-corporation-limited/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://REPLACE-WITH-PRODUCTION-DOMAIN/assets/images/miniature/night-1672.webp</image:loc>
+      <image:title>Bharat Petroleum Corporation Limited Palakkad Top Installation — physical miniature at night</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://REPLACE-WITH-PRODUCTION-DOMAIN/assets/images/miniature/day-1672.webp</image:loc>
+      <image:title>Bharat Petroleum Corporation Limited Palakkad Top Installation — physical site miniature</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://REPLACE-WITH-PRODUCTION-DOMAIN/assets/images/blueprint/blueprint-1672.webp</image:loc>
+      <image:title>Bharat Petroleum Corporation Limited Palakkad Top Installation — site blueprint</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://REPLACE-WITH-PRODUCTION-DOMAIN/assets/images/walkthrough/frame01-1920.webp</image:loc>
+      <image:title>Bharat Petroleum Corporation Limited Palakkad Top Installation — 3D architectural visualization</image:title>
+    </image:image>
+  </url>
+</urlset>

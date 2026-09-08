@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /install/
+
+Sitemap: https://abhijeetvarghese.com/sitemap.xml

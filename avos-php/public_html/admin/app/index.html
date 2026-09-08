@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>AV OS — Abhijeet Varghese Operating System</title>
+  <meta name="description" content="AV OS — the custom CMS and Creative Intelligence Platform powering AbhijeetVarghese.com.">
+  <meta name="theme-color" content="#F4F3EE">
+  <link rel="icon" type="image/png" href="media/logo.png">
+  <link rel="stylesheet" href="css/avos.css">
+  <script>
+    /* boot: theme before paint */
+    try {
+      const s = JSON.parse(localStorage.getItem("avos-state-v1") || "null");
+      if (s && s.settings && s.settings.theme) document.documentElement.dataset.theme = s.settings.theme;
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <div class="app" id="app"></div>
+  <script src="js/data.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/views-build.js"></script>
+  <script src="js/views-grow.js"></script>
+  <script src="js/views-system.js"></script>
+  <script src="js/views-v2.js"></script>
+  <script src="js/views-live.js"></script>
+  <script src="js/views-hub.js"></script>
+</body>
+</html>

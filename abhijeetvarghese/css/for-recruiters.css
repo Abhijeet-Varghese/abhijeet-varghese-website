@@ -1,0 +1,523 @@
+/* ============================================================
+   FOR RECRUITERS — Executive creative-leadership profile
+   Page-scoped. Cinematic · spatial · art-directed.
+   Integrated into the core AV OS design grammar (Navy + Warm Paper + Azure).
+   All motion is progressive: the page reads fully with JS off
+   and with prefers-reduced-motion.
+   ============================================================ */
+
+.rp {
+  --rp-ink: #080F22;
+  --rp-ink-2: #0B1430;
+  --rp-ink-3: #0E1A3C;
+  --rp-paper: #F7F5EF;
+  --rp-paper-2: #EFEAE0;
+  --rp-cream: #FFFFFF;
+  --rp-line: rgba(148, 170, 230, 0.14);
+  --rp-line-d: rgba(12, 19, 48, 0.12);
+  --rp-mute: #96A0BE;
+  --rp-mute-d: #59617A;
+  --rp-ember: #6EA8FF;
+  --rp-ember-soft: #9CC2FF;
+  --rp-ember-ink: #2E5AAC;
+  --rp-blue: #6EA8FF;
+  --rp-serif: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --rp-sans: "Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --rp-gutter: clamp(20px, 4.5vw, 72px);
+  background: var(--rp-ink);
+  color: #EFF0EA;
+  font-family: var(--rp-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+.rp * { box-sizing: border-box; }
+
+/* ---- shared rhythm ---- */
+.rp-act { position: relative; padding: clamp(88px, 13vh, 168px) 0; }
+.rp-act--paper { background: var(--rp-paper); color: #0C1330; }
+.rp-act--cream { background: var(--rp-paper); color: #0C1330; }
+.rp-act--ink { background: var(--rp-ink); color: #EFF0EA; }
+.rp-wrap { width: 100%; max-width: 1280px; margin-inline: auto; padding-inline: var(--rp-gutter); }
+
+.rp-eyebrow {
+  display: flex; align-items: center; gap: 16px;
+  font-size: 11.5px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--rp-mute); margin: 0 0 clamp(24px, 3.6vh, 38px); font-weight: 600;
+}
+.rp-act--paper .rp-eyebrow, .rp-act--cream .rp-eyebrow,
+.rp-career .rp-eyebrow, .rp-eco .rp-eyebrow, .rp-roles .rp-eyebrow,
+.rp-faq .rp-eyebrow, .rp-useful .rp-eyebrow { color: var(--rp-mute-d); }
+.rp-eyebrow::before { content: ""; width: 46px; height: 1px; background: currentColor; opacity: 0.55; }
+.rp-eyebrow b { color: var(--rp-ember); font-weight: 600; letter-spacing: 0.22em; }
+.rp-act--paper .rp-eyebrow b, .rp-act--cream .rp-eyebrow b,
+.rp-career .rp-eyebrow b, .rp-eco .rp-eyebrow b, .rp-roles .rp-eyebrow b,
+.rp-faq .rp-eyebrow b, .rp-useful .rp-eyebrow b { color: var(--rp-ember-ink); }
+
+.rp-h2 {
+  font-family: var(--rp-sans); font-weight: 600;
+  font-size: clamp(1.75rem, 1.2rem + 2.5vw, 3.8rem);
+  line-height: 1.1; letter-spacing: -0.03em; margin: 0;
+  text-transform: none; text-wrap: balance;
+  word-break: normal; overflow-wrap: break-word;
+}
+.rp-h2 em { font-family: var(--rp-serif); font-style: italic; font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--rp-ember-soft); }
+.rp-act--paper .rp-h2 em, .rp-act--cream .rp-h2 em { color: var(--rp-ember-ink); }
+
+.rp-lede { font-size: clamp(1.02rem, 1.35vw, 1.28rem); line-height: 1.6; color: var(--rp-mute); max-width: 620px; }
+.rp-act--paper .rp-lede, .rp-act--cream .rp-lede,
+.rp-eco .rp-lede, .rp-roles .rp-lede, .rp-range .rp-lede { color: var(--rp-mute-d); }
+
+.rp-sr { opacity: 0; transform: translateY(28px); transition: opacity 0.9s cubic-bezier(.2,.7,.2,1), transform .9s cubic-bezier(.2,.7,.2,1); }
+.rp-sr.is-in { opacity: 1; transform: none; }
+html:not(.js) .rp-sr { opacity: 1; transform: none; }
+.reveal-failsafe .rp-sr { opacity: 1; transform: none; }
+
+/* ============================================================
+   CUSTOM CURSOR — Minimal precision instrument
+   ============================================================ */
+.rp-cursor { position: fixed; top: 0; left: 0; z-index: 9999; pointer-events: none; display: none; }
+@media (pointer: fine) { .rp-cursor { display: block; } }
+.rp-cursor__dot {
+  position: fixed; top: 0; left: 0; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--rp-ember); transform: translate(-50%, -50%);
+  transition: width .25s, height .25s, background .25s; z-index: 10001;
+}
+.rp-cursor__ring {
+  position: fixed; top: 0; left: 0; width: 32px; height: 32px; border-radius: 50%;
+  border: 1px solid rgba(110, 168, 255, 0.4); transform: translate(-50%, -50%);
+  display: flex; align-items: center; justify-content: center;
+  transition: width .3s cubic-bezier(.2,.7,.2,1), height .3s, border-color .3s, background .3s;
+  z-index: 10000; backdrop-filter: blur(2px);
+}
+.rp-cursor__label {
+  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #051129;
+  opacity: 0; transform: scale(.6); transition: opacity .2s, transform .2s; font-weight: 600;
+}
+.rp-cursor.is-label .rp-cursor__ring { width: 72px; height: 72px; background: rgba(110, 168, 255, 0.9); border-color: var(--rp-ember); }
+.rp-cursor.is-label .rp-cursor__label { opacity: 1; transform: scale(1); }
+.rp-cursor.is-label .rp-cursor__dot { opacity: 0; }
+.rp-cursor.is-down .rp-cursor__ring { width: 24px; height: 24px; }
+.rp.has-cursor, .rp.has-cursor a, .rp.has-cursor button { cursor: none; }
+
+/* ============================================================
+   ACT 01 — HERO  (title sequence)
+   ============================================================ */
+.rp-hero {
+  position: relative; min-height: 100svh; display: flex; flex-direction: column;
+  justify-content: flex-end; overflow: hidden;
+  background:
+    radial-gradient(100% 80% at 75% 15%, rgba(110, 168, 255, 0.14), transparent 55%),
+    radial-gradient(80% 70% at 15% 85%, rgba(46, 90, 172, 0.12), transparent 50%),
+    var(--rp-ink);
+}
+.rp-hero__grain { position: absolute; inset: 0; opacity: .4; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.06'/%3E%3C/svg%3E"); }
+.rp-hero__portrait {
+  position: absolute; top: 0; right: 0; height: 100%; width: clamp(300px, 46vw, 760px);
+  object-fit: cover; object-position: center 20%; opacity: .32;
+  -webkit-mask-image: linear-gradient(100deg, transparent 0%, #000 38%, #000 100%);
+          mask-image: linear-gradient(100deg, transparent 0%, #000 38%, #000 100%);
+  filter: saturate(.85) contrast(1.05);
+}
+.rp-hero__top {
+  position: absolute; top: clamp(96px, 14vh, 140px); left: 0; right: 0;
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 24px;
+}
+.rp-hero__avgc {
+  font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: #EFF0EA;
+  border: 1px solid var(--rp-line); border-radius: 100px; padding: 10px 18px;
+  display: inline-flex; align-items: center; gap: 10px; backdrop-filter: blur(12px);
+  background: rgba(11,15,28,.6); white-space: nowrap;
+}
+.rp-hero__avgc i { width: 6px; height: 6px; border-radius: 50%; background: var(--rp-ember); display: inline-block; }
+.rp-hero__cap { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--rp-mute); text-align: right; line-height: 1.9; }
+
+.rp-hero__title { margin: 0; font-weight: 600; text-transform: none;
+  font-size: clamp(2.6rem, 1.8rem + 5vw, 6.2rem); line-height: .95; letter-spacing: -0.03em; }
+.rp-hero__title .l { display: block; overflow: hidden; }
+.rp-hero__title .l > span { display: block; }
+.rp-hero__title .serif { font-family: var(--rp-serif); font-style: italic; font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--rp-ember-soft); }
+.rp-hero__name {
+  font-family: var(--rp-serif); font-style: italic; font-weight: 400;
+  font-size: clamp(1.4rem, 3.4vw, 2.6rem); letter-spacing: .01em; margin: 26px 0 0; color: #EFF0EA;
+}
+/* intro choreography */
+html.js .rp-hero__title .l > span,
+html.js .rp-hero__name, html.js .rp-hero__sub, html.js .rp-hero__chips,
+html.js .rp-hero__cta, html.js .rp-hero__avgc { opacity: 0; transform: translateY(40px); }
+html.js.rp-intro-done .rp-hero__title .l > span,
+html.js.rp-intro-done .rp-hero__name, html.js.rp-intro-done .rp-hero__sub,
+html.js.rp-intro-done .rp-hero__chips, html.js.rp-intro-done .rp-hero__cta,
+html.js.rp-intro-done .rp-hero__avgc {
+  opacity: 1; transform: none; transition: opacity 1s cubic-bezier(.2,.7,.2,1), transform 1.1s cubic-bezier(.2,.7,.2,1);
+}
+html.js.rp-intro-done .rp-hero__title .l:nth-child(1) > span { transition-delay: .05s; }
+html.js.rp-intro-done .rp-hero__title .l:nth-child(2) > span { transition-delay: .16s; }
+html.js.rp-intro-done .rp-hero__title .l:nth-child(3) > span { transition-delay: .27s; }
+html.js.rp-intro-done .rp-hero__name { transition-delay: .62s; }
+html.js.rp-intro-done .rp-hero__sub { transition-delay: .74s; }
+html.js.rp-intro-done .rp-hero__chips { transition-delay: .86s; }
+html.js.rp-intro-done .rp-hero__cta { transition-delay: .98s; }
+html.js.rp-intro-done .rp-hero__avgc { transition-delay: 1.1s; }
+
+.rp-hero__grid { display: grid; grid-template-columns: 1.4fr .9fr; gap: clamp(28px, 5vw, 80px); align-items: end; padding-bottom: clamp(40px, 7vh, 84px); }
+.rp-hero__sub { font-size: clamp(1rem, 1.35vw, 1.22rem); line-height: 1.6; color: var(--rp-mute); max-width: 560px; margin: 0; }
+.rp-hero__sub b { color: #EFF0EA; font-weight: 500; }
+.rp-hero__chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 26px 0 0; padding: 0; list-style: none; }
+.rp-hero__chips li { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #EFF0EA;
+  border: 1px solid var(--rp-line); border-radius: 100px; padding: 7px 14px; background: rgba(11,15,28,.4); }
+.rp-hero__chips li[data-ai] { color: var(--rp-ember-soft); border-color: rgba(110,168,255,.35); background: rgba(110,168,255,.06); }
+.rp-hero__cta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px; }
+.rp-btn { display: inline-flex; align-items: center; gap: 10px; font-size: 13.5px; letter-spacing: .04em;
+  text-transform: none; font-weight: 600; text-decoration: none; padding: 14px 28px; border-radius: 100px;
+  transition: transform .3s var(--ease), background .3s var(--ease), color .3s var(--ease), border-color .3s var(--ease), box-shadow .3s var(--ease); }
+.rp-btn--solid { background: var(--rp-ember); color: #051129; box-shadow: 0 10px 28px -10px rgba(110,168,255,.35); }
+.rp-btn--solid:hover { background: var(--rp-ember-soft); color: #051129; transform: translateY(-2px); box-shadow: 0 14px 34px -8px rgba(110,168,255,.5); }
+.rp-btn--ghost { border: 1px solid var(--rp-line); color: #EFF0EA; background: rgba(11,15,28,.4); backdrop-filter: blur(8px); }
+.rp-btn--ghost:hover { border-color: var(--rp-ember); background: rgba(110,168,255,.08); transform: translateY(-2px); }
+.rp-btn .arr { transition: transform .3s; }
+.rp-btn:hover .arr { transform: translateX(4px); }
+
+.rp-scroll-hint { position: absolute; bottom: 26px; right: var(--rp-gutter); font-size: 10px;
+  letter-spacing: .24em; text-transform: uppercase; color: var(--rp-mute); display: flex; align-items: center; gap: 10px; }
+.rp-scroll-hint::after { content: ""; width: 24px; height: 1px; background: currentColor; }
+
+/* title sequence full-screen overlay */
+.rp-seq {
+  position: fixed; inset: 0; z-index: 9998; background: var(--rp-ink);
+  display: flex; align-items: center; justify-content: center; pointer-events: none;
+}
+.rp-seq__inner { text-align: center; max-width: 900px; padding: 20px; }
+.rp-seq__word { font-size: clamp(2.4rem, 8vw, 6.4rem); font-weight: 500; text-transform: uppercase;
+  letter-spacing: -.02em; line-height: 1; color: #EFF0EA; }
+.rp-seq__word.clarity { color: var(--rp-ember); font-family: var(--rp-serif); font-style: italic; text-transform: none; letter-spacing: 0; font-size: clamp(2.4rem,7vw,5.2rem); }
+.rp-seq__frags { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; max-width: 700px; margin: 0 auto; }
+.rp-seq__frag { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; border: 1px solid var(--rp-line);
+  padding: 8px 16px; border-radius: 100px; color: var(--rp-mute); }
+
+/* ============================================================
+   ACT 02 — THE CORE PROBLEM
+   ============================================================ */
+.rp-problem__grid { display: grid; grid-template-columns: 1.1fr 1.1fr; gap: clamp(30px, 6vw, 100px); align-items: center; }
+.rp-frag { position: relative; min-height: 380px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; align-content: center; }
+.rp-frag__node {
+  background: #FFFFFF; border: 1px solid var(--rp-line-d); border-radius: 14px; padding: 20px 16px;
+  font-size: 11px; letter-spacing: .16em; text-transform: uppercase; font-weight: 600; text-align: center;
+  transition: border-color .3s, transform .3s, box-shadow .3s;
+  box-shadow: 0 10px 24px -14px rgba(12,19,48,.08);
+}
+.rp-frag__node span { display: block; font-family: var(--rp-serif); font-style: italic; text-transform: none; font-size: 13px; color: var(--rp-mute-d); margin-top: 4px; font-weight: 400; }
+.rp-frag__node.is-active { border-color: var(--rp-ember-ink); box-shadow: 0 14px 34px -14px rgba(46,90,172,.35); transform: translateY(-2px); }
+.rp-frag__hub {
+  grid-column: 1 / -1; background: var(--rp-ink); color: #EFF0EA; border-radius: 14px;
+  padding: 24px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: .08em;
+  font-size: 14px; margin-top: 6px; box-shadow: 0 16px 40px -20px rgba(8,15,34,.6);
+}
+.rp-frag__hub small { display: block; font-family: var(--rp-serif); font-style: italic; text-transform: none; letter-spacing: 0; color: var(--rp-ember-soft); font-size: 18px; margin-top: 4px; }
+
+.rp-problem__body p { font-size: clamp(1.05rem, 1.4vw, 1.25rem); line-height: 1.65; color: #0C1330; }
+.rp-problem__body p + p { margin-top: 18px; color: var(--rp-mute-d); font-size: 1rem; }
+.rp-problem__out { margin-top: 26px; font-size: clamp(1.3rem, 3vw, 2.2rem); font-family: var(--rp-serif); font-style: italic; color: var(--rp-ember-ink); }
+
+/* ============================================================
+   ACT 03 — LEADERSHIP ARCHITECTURE (8 disciplines)
+   ============================================================ */
+.rp-lead__head { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: end; margin-bottom: 60px; }
+.rp-arch { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.rp-arch__cell {
+  background: #FFFFFF; border: 1px solid var(--rp-line-d); border-radius: 14px; padding: 26px 22px;
+  min-height: 210px; display: flex; flex-direction: column; justify-content: space-between;
+  transition: transform .3s var(--ease), border-color .3s, box-shadow .3s;
+  box-shadow: 0 12px 28px -18px rgba(12,19,48,.08);
+}
+.rp-arch__cell:hover { transform: translateY(-3px); border-color: var(--rp-ember-ink); box-shadow: 0 18px 40px -20px rgba(46,90,172,.25); }
+.rp-arch__num { font-family: var(--rp-serif); font-style: italic; font-size: 1.5rem; color: var(--rp-mute-d); transition: color .3s; }
+.rp-arch__cell:hover .rp-arch__num { color: var(--rp-ember-ink); }
+.rp-arch__name { font-size: 1.15rem; font-weight: 600; line-height: 1.15; margin: 0 0 8px; text-transform: none; letter-spacing: -0.01em; color: #0C1330; }
+.rp-arch__desc { font-size: .88rem; line-height: 1.5; color: var(--rp-mute-d); margin: 0; }
+
+/* ============================================================
+   ACT 04 — HOW I THINK (Principles)
+   ============================================================ */
+.rp-think { background: var(--rp-ink-2); color: #EFF0EA; }
+.rp-think__grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: clamp(30px, 6vw, 90px); }
+.rp-think__quote { font-family: var(--rp-serif); font-style: italic; font-size: clamp(1.8rem, 3.8vw, 3.2rem);
+  line-height: 1.15; color: #EFF0EA; margin: 0; }
+.rp-think__quote em { color: var(--rp-ember-soft); }
+.rp-think__body p { font-size: clamp(1rem, 1.25vw, 1.15rem); line-height: 1.65; color: var(--rp-mute); margin-top: 24px; }
+.rp-os { list-style: none; margin: 40px 0 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.rp-os li {
+  background: rgba(9, 15, 34, 0.72); backdrop-filter: blur(16px);
+  border: 1px solid var(--rp-line); border-radius: 12px; padding: 20px 24px;
+  position: relative; overflow: hidden;
+}
+.rp-think__q { font-size: .95rem; line-height: 1.5; color: #EFF0EA; }
+.rp-think__q s { color: var(--rp-mute); text-decoration-color: var(--rp-ember); }
+.rp-os li i { position: absolute; top: 16px; right: 20px; font-family: var(--rp-serif); font-style: italic;
+  font-size: 1.5rem; color: var(--rp-ember); }
+.rp-os li .rp-os__bar { position: absolute; left: 0; bottom: -1px; height: 2px; width: 0; background: var(--rp-ember); transition: width .8s cubic-bezier(.2,.7,.2,1); }
+.rp-os li:hover .rp-os__bar { width: 100%; }
+
+/* ============================================================
+   ACT 05 — LEADERSHIP LAYERS (interactive stack)
+   ============================================================ */
+.rp-leader__grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: clamp(30px, 6vw, 90px); align-items: start; }
+.rp-stack { display: flex; flex-direction: column; gap: 12px; }
+.rp-stack__layer {
+  background: rgba(9, 15, 34, 0.72); backdrop-filter: blur(16px);
+  border: 1px solid var(--rp-line); border-radius: 14px; padding: 22px 26px;
+  cursor: pointer; transition: border-color .3s, background .3s, transform .3s;
+}
+.rp-stack__layer:hover { border-color: rgba(110,168,255,.4); transform: translateY(-2px); }
+.rp-stack__layer.is-active { border-color: var(--rp-ember); background: rgba(11, 20, 48, 0.9); }
+.rp-stack__head { display: flex; justify-content: space-between; align-items: center; }
+.rp-stack__title { font-size: 1.1rem; font-weight: 600; text-transform: none; margin: 0; display: flex; align-items: center; gap: 14px; }
+.rp-stack__idx { font-family: var(--rp-serif); font-style: italic; color: var(--rp-ember-soft); font-size: 1.3rem; }
+.rp-stack__chev { font-size: 18px; color: var(--rp-mute); transition: transform .3s; }
+.rp-stack__layer.is-active .rp-stack__chev { transform: rotate(90deg); color: var(--rp-ember-soft); }
+.rp-stack__body { max-height: 0; overflow: hidden; transition: max-height .45s cubic-bezier(.2,.7,.2,1); }
+.rp-stack__layer.is-active .rp-stack__body { max-height: 280px; }
+.rp-stack__body p { margin: 16px 0 0; color: var(--rp-mute); line-height: 1.6; font-size: .95rem; }
+.rp-stack__body ul { margin: 12px 0 0; padding: 0 0 0 16px; list-style: disc; color: #EFF0EA; font-size: .9rem; line-height: 1.7; }
+.rp-leader__out { margin-top: 36px; font-family: var(--rp-serif); font-style: italic; font-size: clamp(1.4rem, 2.6vw, 2rem); color: #EFF0EA; line-height: 1.25; }
+.rp-leader__out span { color: var(--rp-ember-soft); }
+
+/* ============================================================
+   ACT 06 — CAREER TIMELINE
+   ============================================================ */
+.rp-career { background: var(--rp-paper); color: #0C1330; }
+.rp-career__axis {
+  display: grid; grid-template-columns: repeat(9, 1fr); gap: 8px; margin: 40px 0 60px;
+  border-bottom: 1px solid var(--rp-line-d); padding-bottom: 16px;
+}
+.rp-career__step { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--rp-mute-d); text-align: center; position: relative; }
+.rp-career__step::after { content: ""; position: absolute; bottom: -17px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; border-radius: 50%; background: var(--rp-line-d); }
+.rp-career__step.hot { color: var(--rp-ember-ink); border-color: var(--rp-ember-ink); font-weight: 700; }
+.rp-career__step.hot::after { background: var(--rp-ember-ink); border-color: var(--rp-ember-ink); }
+.rp-tl { position: relative; display: flex; flex-direction: column; gap: 34px; padding-left: 36px; }
+.rp-tl::before { content: ""; position: absolute; top: 10px; bottom: 10px; left: 6px; width: 1px;
+  background: linear-gradient(var(--rp-ember-ink), var(--rp-line-d)); }
+.rp-tl__item { position: relative; display: grid; grid-template-columns: 160px 1fr; gap: 30px; align-items: baseline; }
+.rp-tl__item::before { content: ""; position: absolute; top: 6px; left: -36px;
+  width: 12px; height: 12px; border-radius: 50%; background: #FFFFFF; border: 3px solid var(--rp-ember-ink); }
+.rp-tl__date { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--rp-mute-d); font-weight: 600; }
+.rp-tl__title { font-size: 1.25rem; font-weight: 600; margin: 0; line-height: 1.2; text-transform: none; letter-spacing: -0.01em; color: #0C1330; }
+.rp-tl__role { font-size: 1.15rem; font-weight: 600; line-height: 1.2; margin: 0; text-transform: none; letter-spacing: -0.01em; color: #0C1330; }
+.rp-tl__org { color: var(--rp-ember-ink); font-weight: 600; font-size: .98rem; margin: 6px 0 2px; }
+.rp-tl__desc { font-size: .95rem; line-height: 1.6; color: var(--rp-mute-d); margin: 8px 0 0; }
+.rp-tl__tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; list-style: none; padding: 0; }
+.rp-tl__tags li { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; border: 1px solid var(--rp-line-d); border-radius: 100px; padding: 4px 10px; color: var(--rp-mute-d); background: #FFFFFF; }
+
+/* ============================================================
+   ACT 07 — RANGE ACROSS MEDIUMS
+   ============================================================ */
+.rp-range { background: var(--rp-ink); color: #EFF0EA; }
+.rp-range__cats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 50px; }
+.rp-range__cat {
+  background: rgba(9, 15, 34, 0.72); backdrop-filter: blur(16px);
+  border: 1px solid var(--rp-line); border-radius: 14px; padding: 28px 22px;
+  display: flex; flex-direction: column; justify-content: space-between; min-height: 200px;
+}
+.rp-range__cat i { font-family: var(--rp-serif); font-style: italic; color: var(--rp-ember-soft); font-size: 1.6rem; }
+.rp-range__cat h3 { font-size: 1.2rem; margin: 0 0 8px; font-weight: 600; text-transform: none; letter-spacing: -0.01em; color: #EFF0EA; }
+.rp-range__cat p { font-size: .88rem; color: var(--rp-mute); line-height: 1.55; margin: 0; }
+
+/* ============================================================
+   ACT 08 — PROOF IN PRODUCTION (Featured projects)
+   ============================================================ */
+.rp-proof { background: var(--rp-ink-2); color: #EFF0EA; }
+.rp-proof__lead { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: end; margin-bottom: 60px; }
+.rp-work {
+  background: rgba(9, 15, 34, 0.72); backdrop-filter: blur(16px);
+  border: 1px solid var(--rp-line); border-radius: 18px; padding: clamp(26px, 4vw, 44px);
+  display: grid; grid-template-columns: 1.1fr 1.2fr; gap: clamp(24px, 4vw, 56px); align-items: center; margin-bottom: 24px;
+}
+.rp-work--feature { border-color: rgba(110,168,255,.3); }
+.rp-work__media { border-radius: 14px; overflow: hidden; position: relative; aspect-ratio: 16 / 10; background: #05070D; }
+.rp-work__media img { width: 100%; height: 100%; object-fit: cover; }
+.rp-work__idx { font-family: var(--rp-serif); font-style: italic; color: var(--rp-ember-soft); font-size: 1.3rem; }
+.rp-work__title, .rp-work__name { font-size: clamp(1.35rem, 2.2vw, 2.2rem); font-weight: 600; line-height: 1.15; margin: 4px 0 6px; text-transform: none; letter-spacing: -0.02em; color: #EFF0EA; }
+.rp-work__role { color: var(--rp-ember-soft); font-size: .92rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 18px; }
+.rp-work__cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.rp-work__col h4 { font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--rp-ember); margin: 0 0 10px; font-weight: 700; }
+.rp-work__col ul { list-style: none; padding: 0; margin: 0; font-size: .88rem; line-height: 1.6; color: var(--rp-mute); }
+.rp-work__col li { position: relative; padding-left: 14px; margin-bottom: 6px; }
+.rp-work__col li::before { content: "—"; position: absolute; left: 0; color: var(--rp-ember); }
+.rp-work__link { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; letter-spacing: .12em;
+  text-transform: uppercase; font-weight: 600; color: var(--rp-ember); margin-top: 20px; transition: color .3s; }
+.rp-work__link:hover { color: #FFFFFF; }
+
+/* ============================================================
+   ACT 09 — ECOSYSTEM OF COLLABORATORS
+   ============================================================ */
+.rp-eco { background: var(--rp-paper); color: #0C1330; }
+.rp-eco__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 50px; }
+.rp-eco__member {
+  background: #FFFFFF; border: 1px solid var(--rp-line-d); border-left: 4px solid var(--rp-ember-ink); border-radius: 14px;
+  padding: 26px 22px; box-shadow: 0 10px 24px -14px rgba(12,19,48,.08);
+}
+.rp-eco__member .k { font-size: 10.5px; letter-spacing: .22em; text-transform: uppercase; color: var(--rp-mute-d); font-weight: 600; }
+.rp-eco__member h3 { font-size: 1.25rem; margin: 10px 0 6px; font-weight: 600; text-transform: none; letter-spacing: -0.01em; color: #0C1330; }
+.rp-eco__member .t { font-family: var(--rp-serif); font-style: italic; color: var(--rp-ember-ink); font-size: 1.2rem; }
+.rp-eco__member p { color: var(--rp-mute-d); line-height: 1.6; margin: 12px 0 0; font-size: .92rem; }
+
+/* ============================================================
+   ACT 10 — AI INTEGRATION
+   ============================================================ */
+.rp-ai { background: var(--rp-ink); color: #EFF0EA; }
+.rp-ai__sys {
+  position: relative; aspect-ratio: 16 / 9; max-width: 880px; margin: 50px auto 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.rp-ai__center {
+  width: 120px; height: 120px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--rp-ember-soft), var(--rp-ember)); color: #051129;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-family: var(--rp-serif); font-style: italic; font-size: 1.5rem; font-weight: 600;
+  box-shadow: 0 0 50px -10px rgba(110,168,255,.5); z-index: 2;
+}
+.rp-ai__center span { font-family: var(--rp-sans); font-style: normal; font-size: 9px; letter-spacing: .2em; text-transform: uppercase; font-weight: 700; }
+.rp-ai__node {
+  position: absolute; background: rgba(9, 15, 34, 0.85); backdrop-filter: blur(16px);
+  border: 1px solid var(--rp-line); border-radius: 100px; padding: 10px 18px;
+  font-size: 11px; letter-spacing: .16em; text-transform: uppercase; font-weight: 600; color: #EFF0EA;
+  transition: transform .3s, border-color .3s;
+}
+.rp-ai__node:hover { transform: scale(1.06); border-color: var(--rp-ember); }
+.rp-ai__node:nth-child(1) { top: 10%; left: 10%; }
+.rp-ai__node:nth-child(2) { top: 10%; right: 10%; }
+.rp-ai__node:nth-child(3) { bottom: 10%; left: 10%; }
+.rp-ai__node:nth-child(4) { bottom: 10%; right: 10%; }
+.rp-ai__node:nth-child(5) { top: 50%; left: 2%; transform: translateY(-50%); }
+.rp-ai__node:nth-child(6) { top: 50%; right: 2%; transform: translateY(-50%); }
+
+/* AI statement rows */
+.rp-aix__row { display: grid; grid-template-columns: 1fr auto 1fr; gap: clamp(16px,4vw,60px); align-items: center;
+  padding: clamp(20px,3vw,34px) 0; border-bottom: 1px solid var(--rp-line); }
+.rp-aix__ai { font-family: var(--rp-serif); font-style: italic; font-size: clamp(1.5rem,4vw,3rem); color: var(--rp-mute); line-height: 1; }
+.rp-aix__slash { color: var(--rp-ember); font-size: clamp(1.4rem,3vw,2.4rem); }
+.rp-aix__me { font-weight: 600; text-transform: uppercase; font-size: clamp(1.5rem,4vw,3rem); letter-spacing: -.02em; line-height: 1; text-align: right; color: #EFF0EA; }
+.rp-aix__flow { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; margin-top: 60px; }
+.rp-aix__step { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; font-weight: 600;
+  border: 1px solid var(--rp-line); border-radius: 100px; padding: 12px 22px; background: rgba(9, 15, 34, 0.72); }
+.rp-aix__arr { color: var(--rp-ember); }
+.rp-aix__punch { text-align: center; font-family: var(--rp-serif); font-style: italic; font-size: clamp(1.3rem,3vw,2rem); color: var(--rp-ember-soft); margin-top: 40px; }
+
+/* ============================================================
+   ACT 11 — WHAT MAKES ME USEFUL
+   ============================================================ */
+.rp-useful { background: var(--rp-paper); color: #0C1330; }
+.rp-useful__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 clamp(30px,5vw,80px); margin-top: 50px; }
+.rp-useful__item--full { grid-column: 1 / -1; }
+.rp-useful__item { display: grid; grid-template-columns: 44px 1fr; gap: 18px; padding: 24px 0; border-bottom: 1px solid var(--rp-line-d); align-items: baseline; }
+.rp-useful__item > i { font-family: var(--rp-serif); font-style: italic; color: var(--rp-ember-ink); font-size: 1.4rem; grid-row: 1; align-self: start; }
+.rp-useful__item b { display: block; font-size: 1.08rem; font-weight: 600; margin-bottom: 4px; color: #0C1330; }
+.rp-useful__item span { color: var(--rp-mute-d); font-size: .92rem; line-height: 1.55; }
+
+/* ============================================================
+   ACT 12 — IDEAL ROLE
+   ============================================================ */
+.rp-roles { background: var(--rp-paper); color: #0C1330; }
+.rp-roles__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 50px; }
+.rp-roles__cell {
+  background: #FFFFFF; border: 1px solid var(--rp-line-d); border-radius: 14px; padding: 28px 22px; min-height: 150px;
+  display: flex; flex-direction: column; justify-content: space-between;
+  box-shadow: 0 10px 24px -14px rgba(12,19,48,.08);
+}
+.rp-roles__cell n { font-family: var(--rp-serif); font-style: italic; color: var(--rp-ember-ink); font-size: 1.4rem; }
+.rp-roles__cell b { font-size: .98rem; text-transform: uppercase; letter-spacing: .02em; font-weight: 600; line-height: 1.25; color: #0C1330; }
+.rp-roles__note { margin-top: 28px; font-size: .88rem; color: var(--rp-mute-d); font-style: italic; }
+.rp-roles__note .link-arrow { color: #2E5AAC; font-weight: 600; }
+.rp-roles__note .link-arrow:hover { color: #1E3F7D; }
+
+/* ============================================================
+   ACT 13 — WORKING STYLE
+   ============================================================ */
+.rp-style { background: var(--rp-ink-2); color: #EFF0EA; }
+.rp-style__words { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-top: 46px; }
+.rp-style__word {
+  background: rgba(9, 15, 34, 0.72); backdrop-filter: blur(16px);
+  border: 1px solid var(--rp-line); border-radius: 14px; padding: 26px 20px; text-align: center;
+  font-size: .95rem; text-transform: uppercase; letter-spacing: .1em; font-weight: 600;
+  transition: background .3s, border-color .3s, transform .3s;
+}
+.rp-style__word:hover { background: rgba(110,168,255,.12); border-color: rgba(110,168,255,.5); transform: translateY(-2px); }
+.rp-style__formula { margin-top: 60px; text-align: center; }
+.rp-style__formula .chips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; }
+.rp-style__formula .c { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; border: 1px solid var(--rp-line); border-radius: 100px; padding: 10px 18px; background: rgba(9, 15, 34, 0.72); }
+.rp-style__formula .plus { color: var(--rp-ember); }
+.rp-style__result { font-family: var(--rp-serif); font-style: italic; font-size: clamp(1.6rem,4vw,2.8rem); color: #EFF0EA; margin-top: 30px; }
+.rp-style__result span { color: var(--rp-ember-soft); }
+
+/* ============================================================
+   ACT 14 — RECRUITER FAQ
+   ============================================================ */
+.rp-faq { background: var(--rp-paper); color: #0C1330; }
+.rp-faq__list { max-width: 880px; margin-top: 44px; }
+.rp-faq__q { width: 100%; text-align: left; background: none; border: none; border-top: 1px solid var(--rp-line-d);
+  padding: 26px 0; display: grid; grid-template-columns: 44px 1fr 30px; gap: 16px; align-items: start;
+  font-family: var(--rp-sans); color: #0C1330; cursor: pointer; }
+.rp-faq__q:hover .q-t { color: var(--rp-ember-ink); }
+.rp-faq__q .n { font-family: var(--rp-serif); font-style: italic; color: var(--rp-ember-ink); font-size: 1.2rem; padding-top: 2px; }
+.rp-faq__q .q-t { font-size: clamp(1.05rem,1.8vw,1.35rem); font-weight: 600; line-height: 1.3; transition: color .3s; }
+.rp-faq__q .pm { font-size: 1.5rem; color: var(--rp-mute-d); line-height: 1; transition: transform .35s; text-align: center; }
+.rp-faq__item.is-open .pm { transform: rotate(45deg); color: var(--rp-ember-ink); }
+.rp-faq__a { max-height: 0; overflow: hidden; transition: max-height .5s cubic-bezier(.2,.7,.2,1); grid-column: 2; }
+.rp-faq__item.is-open .rp-faq__a { max-height: 420px; }
+.rp-faq__a p { color: var(--rp-mute-d); line-height: 1.7; padding: 0 0 26px; margin: 0; font-size: 1rem; }
+
+/* ============================================================
+   ACT 15 — CLOSING
+   ============================================================ */
+.rp-close { background:
+  radial-gradient(100% 90% at 50% 110%, rgba(110,168,255,.16), transparent 60%),
+  var(--rp-ink); text-align: center; padding: clamp(120px,20vh,240px) 0; color: #EFF0EA; }
+.rp-close__h { font-size: clamp(2.4rem,8vw,7rem); font-weight: 600; text-transform: none; line-height: .96; letter-spacing: -.03em; margin: 0; }
+.rp-close__h em { font-family: var(--rp-serif); font-style: italic; text-transform: none; color: var(--rp-ember-soft); }
+.rp-close__sub { color: var(--rp-mute); font-size: clamp(1.05rem,1.6vw,1.3rem); max-width: 560px; margin: 30px auto 0; line-height: 1.6; }
+.rp-close__cta { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 40px; }
+.rp-close__avgc { margin-top: 56px; font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--rp-mute); }
+.rp-close__avgc i { color: var(--rp-ember); font-style: normal; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1020px) {
+  .rp-hero__grid, .rp-think__grid, .rp-leader__grid,
+  .rp-eco__grid, .rp-useful__grid, .rp-lead__head, .rp-proof__lead { grid-template-columns: 1fr; }
+  .rp-problem__grid { grid-template-columns: minmax(0, 1fr); }
+  .rp-arch, .rp-roles__grid { grid-template-columns: repeat(2,1fr); }
+  .rp-range__cats, .rp-style__words { grid-template-columns: repeat(2,1fr); }
+  .rp-work, .rp-work--feature, .rp-work--stack { grid-template-columns: 1fr; }
+  .rp-work--feature .rp-work__media { min-height: 320px; }
+  .rp-hero__portrait { width: 70vw; opacity: .24; }
+  .rp-career__axis { grid-template-columns: repeat(5, 1fr); font-size: 9px; }
+}
+@media (max-width: 620px) {
+  .rp-h2 { font-size: clamp(1.45rem, 5.4vw, 2.2rem); }
+  .rp-frag { grid-template-columns: repeat(2, 1fr); }
+  .rp-arch, .rp-roles__grid, .rp-range__cats, .rp-style__words { grid-template-columns: 1fr; }
+  .rp-tl__item { grid-template-columns: 1fr; gap: 6px; }
+  .rp-tl__date { padding-top: 0; }
+  .rp-work__cols { grid-template-columns: 1fr; gap: 6px; }
+  .rp-aix__row { grid-template-columns: 1fr; gap: 8px; text-align: left; }
+  .rp-aix__me { text-align: left; }
+  .rp-hero__top { position: static; padding: 96px 44px 0 0; flex-direction: column; gap: 14px; }
+  .rp-hero__cap { text-align: left; }
+  .rp-hero__avgc { font-size: 9.5px; letter-spacing: .16em; padding: 9px 14px; align-self: flex-start; white-space: normal; line-height: 1.5; }
+  .rp-scroll-hint { display: none; }
+  .rp-ai__sys { aspect-ratio: 1 / 1.25; }
+  .rp-ai__node { font-size: 9.5px; padding: 7px 11px; }
+  .rp-ai__center { width: 88px; height: 88px; font-size: 1.2rem; }
+}
+
+/* reduced motion: everything visible & static */
+@media (prefers-reduced-motion: reduce) {
+  .rp *, .rp *::before, .rp *::after { animation: none !important; transition: none !important; }
+  .rp-sr { opacity: 1 !important; transform: none !important; }
+  .rp-seq { display: none !important; }
+  html.js .rp-hero__title .l > span, html.js .rp-hero__name, html.js .rp-hero__sub,
+  html.js .rp-hero__chips, html.js .rp-hero__cta, html.js .rp-hero__avgc { opacity: 1 !important; transform: none !important; }
+  .rp-cursor { display: none !important; }
+}

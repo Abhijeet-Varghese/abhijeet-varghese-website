@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Case study
+Sitemap: https://REPLACE-WITH-PRODUCTION-DOMAIN/sitemap.xml
