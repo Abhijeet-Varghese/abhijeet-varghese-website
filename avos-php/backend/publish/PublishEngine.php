@@ -398,6 +398,7 @@ HTML;
           <span class="footer__name">{$this->esc($this->v($s, 'siteName', ''))}</span>
         </a>
         <p class="footer__line">{$this->esc($this->v($s, 'tagline', ''))}</p>
+        <p class="footer__affil"><i aria-hidden="true">●</i> Professional Member — AVGC-XR Rajasthan</p>
         <p class="footer__contact">
           <a href="mailto:{$this->esc($this->v($s, 'email', ''))}">{$this->esc($this->v($s, 'email', ''))}</a>
           <a href="tel:{$this->esc(preg_replace('/[^0-9+]/', '', $this->v($s, 'phone', '')))}">{$this->esc($this->v($s, 'phone', ''))}</a>
@@ -473,10 +474,11 @@ HTML;
           <p class="hp-hero__tagline">{$tagline}</p>
           <p class="hp-hero__roles">{$roles}</p>
           <div class="hp-hero__actions">
-            <a class="btn btn--accent" href="{$this->esc($c1['href'] ?? 'case-studies.html')}">{$this->esc($c1['label'] ?? 'Explore my work')} {$arrow}</a>
+            <a class="btn btn--accent" href="{$this->esc($c1['href'] ?? 'case-studies/')}">{$this->esc($c1['label'] ?? 'Explore my work')} {$arrow}</a>
             <a class="btn btn--ghost" href="{$this->esc($c2['href'] ?? 'assets/Abhijeet-Varghese-Resume.pdf')}" download>{$this->esc($c2['label'] ?? 'Download résumé')}</a>
           </div>
           <p class="hp-hero__avail"><span class="hp-hero__avail-dot" aria-hidden="true"></span>{$this->esc($this->v($s, 'availability', 'Available for select projects — 2026'))}</p>
+          <p class="hp-hero__avgc"><i aria-hidden="true">●</i> Professional Member — AVGC-XR Rajasthan</p>
         </div>
         <p class="hp-hero__lede" data-reveal>{$lede}</p>
         <div class="hp-hero__cue" aria-hidden="true"><span>Scroll</span><i></i></div>
@@ -725,6 +727,11 @@ HTML;
               <p data-reveal>{$this->esc($this->v($sec, 'p2', ''))}</p>
             </div>
             <ul class="chip-list" data-reveal-group>{$chips}</ul>
+            <div class="ai__editorial" data-reveal-group>
+              <p class="ai__statement" data-reveal><span>AI CAN GENERATE.</span> <strong>I DIRECT.</strong></p>
+              <p class="ai__statement" data-reveal><span>AI CAN ITERATE.</span> <strong>I CURATE.</strong></p>
+              <p class="ai__statement" data-reveal><span>AI CAN SCALE.</span> <strong>I DECIDE.</strong></p>
+            </div>
             <div class="ai__projects" data-reveal-group>{$projs}</div>
             <p class="ai__motto" data-reveal>“{$this->esc($this->v($sec, 'motto', ''))}”</p>
           </div>
@@ -917,16 +924,32 @@ HTML;
             };
         }
         $ld = json_encode([
-            '@context' => 'https://schema.org', '@type' => 'Person',
-            'name' => $s['siteName'] ?? 'Abhijeet Varghese', 'url' => $siteUrl . '/',
-            'jobTitle' => 'Creative Systems Leader',
-            'email' => 'mailto:' . ($s['email'] ?? ''), 'telephone' => $s['phone'] ?? '',
+            '@context' => 'https://schema.org',
+            '@type' => 'Person',
+            'name' => $s['siteName'] ?? 'Abhijeet Varghese',
+            'url' => $siteUrl . '/',
+            'jobTitle' => ['Creative Director', 'Experience Designer', 'Creative Systems Leader'],
+            'description' => 'Multidisciplinary creative leader working across creative direction, experience design, immersive/XR, digital experiences, content, creative technology, strategy and AI-assisted creative production.',
+            'knowsAbout' => [
+                'Creative Direction', 'Experience Design', 'Immersive / XR',
+                'Digital Experiences', 'Content & Story', 'Creative Technology',
+                'Spatial Experience', 'Production & Delivery', 'Generative AI workflows'
+            ],
+            'memberOf' => [
+                '@type' => 'Organization',
+                'name' => 'AVGC-XR Rajasthan',
+                'description' => 'Professional Member — AVGC-XR Rajasthan'
+            ],
+            'email' => 'mailto:' . ($s['email'] ?? 'hi@abhijeetvarghese.com'),
+            'telephone' => $s['phone'] ?? '+91-96940 80706',
             'image' => $siteUrl . '/' . $this->media($s['logo'] ?? 'media/logo.png'),
             'sameAs' => array_map(fn($x) => $x['href'], $s['socials'] ?? []),
+            '@id' => $siteUrl . '/#person'
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         return $this->shell($s, $nav,
-            ($s['siteName'] ?? 'Abhijeet Varghese') . ' — Creative Systems Leader | Experience Design, Enterprise Innovation & AI',
-            $s['metaDescription'] ?? '', 'index.html', $this->join($body), 'home', 'website', null, $ld, 'home-arena');
+            ($s['siteName'] ?? 'Abhijeet Varghese') . ' — Creative Direction, Experience Design, Immersive / XR & AI',
+            $s['metaDescription'] ?? 'Abhijeet Varghese is a multidisciplinary creative leader working across creative direction, experience design, immersive/XR, digital experiences, content, creative technology, strategy and emerging AI workflows. Professional Member — AVGC-XR Rajasthan.',
+            'index.html', $this->join($body), 'home', 'website', null, $ld, 'home-arena');
     }
 
     /* ---------- page blocks ---------- */
@@ -1983,10 +2006,15 @@ HTML;
         $ld = json_encode([
             '@context' => 'https://schema.org',
             '@type' => 'AboutPage',
-            'name' => $s['siteName'] ?? '',
+            'name' => $s['siteName'] ?? 'Abhijeet Varghese',
             'url' => AV_SITE_URL . '/' . $page['slug'] . '.html',
             'inLanguage' => 'en',
             'description' => $desc,
+            'memberOf' => [
+                '@type' => 'Organization',
+                'name' => 'AVGC-XR Rajasthan',
+                'description' => 'Professional Member — AVGC-XR Rajasthan',
+            ],
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         return $this->shell($s, $nav, $title, $desc, $page['slug'] . '.html', $this->join($body), $page['slug'], 'website', null, $ld, 'about-page about-films');
     }
@@ -2071,7 +2099,7 @@ HTML;
             'Digital Business Strategy — University of Virginia',
             'Digital Transformation — Specialization',
         ];
-        $territories = ['Creative Direction','Experience Design','Immersive Experiences','Visual Storytelling','Motion','Spatial / Environmental Experiences','Brand Experiences','Creative Leadership','Production & Execution'];
+        $territories = ['Creative Direction','Experience Design','Immersive Experiences','Visual Storytelling','Motion','Spatial / Environmental Experiences','Brand Experiences','AI-Assisted Workflows','Creative Leadership','Production & Execution'];
         $coursesHtml = '';
         foreach ($courses as $c) $coursesHtml .= '<li>' . $this->esc($c) . '</li>';
         $terrHtml = '';
@@ -2385,7 +2413,8 @@ HTML;
             . '<div class="about-now__head">'
             . '<p class="about-now__eyebrow" data-reveal><span class="chapter__rule"></span><span class="chapter__tag">Now</span></p>'
             . '<h2 class="about-now__title" data-reveal>Hard problems.<br>Ambitious ideas.<br><em>Experiences with a reason to exist.</em></h2>'
-            . '</div><p class="about-now__copy" data-reveal>I\'m interested in work where design, technology, story and people have to come together — and where the idea matters as much as the execution.</p>'
+            . '</div><div><p class="about-now__copy" data-reveal>I\'m interested in work where design, technology, story and people have to come together — and where the idea matters as much as the execution.</p>'
+            . '<p class="about-now__avgc" data-reveal><i aria-hidden="true">●</i> Professional Member — AVGC-XR Rajasthan</p></div>'
             . '</div></section>';
 
         $curious = '<section class="about-curious t-light" aria-label="Still curious"><div class="container">'
@@ -2532,6 +2561,7 @@ HTML;
           <div class="exp-hero__meta" data-reveal style="--d:.35s">
             <span>Six roles</span><i aria-hidden="true"></i><span>2014 — 2026</span><i aria-hidden="true"></i><span>Creative Direction &amp; Experience Design</span>
           </div>
+          <p class="exp-hero__avgc" data-reveal style="--d:.45s"><i aria-hidden="true">●</i> Professional Member — AVGC-XR Rajasthan</p>
         </div>
         <div class="exp-hero__big" aria-hidden="true" data-reveal style="--d:.2s">06</div>
       </div>
@@ -2574,10 +2604,20 @@ HTML;
         $ld = json_encode([
             '@context' => 'https://schema.org',
             '@type' => 'ProfilePage',
-            'name' => $s['siteName'] ?? '',
+            'name' => $s['siteName'] ?? 'Abhijeet Varghese',
             'url' => AV_SITE_URL . '/' . $page['slug'] . '.html',
             'inLanguage' => 'en',
             'description' => $desc,
+            'mainEntity' => [
+                '@type' => 'Person',
+                'name' => $s['siteName'] ?? 'Abhijeet Varghese',
+                'jobTitle' => 'Creative Director & Experience Designer',
+                'memberOf' => [
+                    '@type' => 'Organization',
+                    'name' => 'AVGC-XR Rajasthan',
+                    'description' => 'Professional Member — AVGC-XR Rajasthan',
+                ],
+            ],
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         return $this->shell($s, $nav, $title, $desc, $page['slug'] . '.html', $this->join($body), $page['slug'], 'website', null, $ld, 'experience-page');
     }
