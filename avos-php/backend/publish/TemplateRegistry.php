@@ -155,6 +155,17 @@ final class TemplateRegistry
                 'dedicated' => false,
                 'assets'    => ['css' => [], 'js' => []],
             ],
+            'bpcl-case-study' => [
+                'key'       => 'bpcl-case-study',
+                'display'   => 'BPCL Palakkad — miniature / blueprint / walkthrough microsite',
+                'kind'      => 'static',
+                'renderer'  => 'renderBpclCaseStudy',
+                'file'      => 'bpcl-case-study.html',
+                'bundleDir' => 'bpcl-case-study/assets',
+                'status'    => 'active',
+                'dedicated' => true,
+                'assets'    => ['css' => [], 'js' => []],
+            ],
             'coming-soon' => [
                 'key'       => 'coming-soon',
                 'display'   => 'Coming soon — placeholder',
@@ -267,6 +278,12 @@ final class TemplateRegistry
                     $errors[] = "template \"{$tpl['key']}\"$ctx declares missing asset: $rel";
                 }
             }
+        }
+        // self-contained microsite bundle (page-local assets/ directory shipped
+        // beside the canonical template) must exist.
+        $bundle = $tpl['bundleDir'] ?? '';
+        if ($bundle !== '' && (!defined('AV_TEMPLATE_DIR') || !is_dir(AV_TEMPLATE_DIR . '/' . $bundle))) {
+            $errors[] = "template \"{$tpl['key']}\"$ctx requires missing asset bundle: templates/$bundle";
         }
         return $errors;
     }

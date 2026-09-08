@@ -73,7 +73,18 @@ final class PublishEngine
         if ($u === '') return $url;
         if (str_starts_with($u, '//') || str_starts_with($u, '#')) return $url;
         if (preg_match('#^[a-z][a-z0-9+.-]*:#i', $u)) return $url; // http/mailto/tel/data
-        if (str_starts_with($u, '../')) return $url;               // explicit depth prefix (already correct)
+        // "./" = explicit page-local reference (a bundled case-study asset that
+        // ships beside the route's index.html). Keep it relative verbatim.
+        if (str_starts_with($u, './')) return $u;
+        if (str_starts_with($u, '../')) {
+            // Depth-prefixed reference from a nested clean URL. Resolve it to the
+            // site root: a known internal page link → canonical route; an asset
+            // (css/js/assets/fonts) → root-relative path.
+            $rel = preg_replace('#^(\.\./)+#', '', $u);
+            $resolved = RouteRegistry::resolveInternalHref($rel, $hrefMap);
+            if (str_starts_with($resolved, '/') && $resolved !== $rel) return $resolved;
+            return '/' . ltrim($rel, '/');
+        }
         if (str_starts_with($u, '/')) {
             // already root-relative; still canonicalise if it's a known flat page
             $resolved = RouteRegistry::resolveInternalHref(ltrim($u, '/'), $hrefMap);
@@ -1212,6 +1223,26 @@ HTML;
     }
 
     /** Supplied long-form Orange Business case study, adapted to AV OS publishing. */
+    /**
+     * BPCL Palakkad case study — self-contained microsite (physical miniature,
+     * technical blueprint, 3D architectural walkthrough). Ported verbatim from
+     * the current frontend template; its page-local asset bundle
+     * (templates/bpcl-case-study/assets) is copied beside the route at build
+     * time by syncProjectBundles(). Presentation lives in the template + bundle.
+     */
+    private function renderBpclCaseStudy(array $p, array $s, array $nav): string
+    {
+        $templateFile = __DIR__ . '/templates/bpcl-case-study.html';
+        if (!is_file($templateFile)) throw new RuntimeException('BPCL case-study template missing: ' . $templateFile);
+        $html = (string)file_get_contents($templateFile);
+        $siteUrl = rtrim(AV_SITE_URL, '/');
+        $html = preg_replace('/{{ANALYTICS}}\n?/', '', $html);
+        return strtr($html, [
+            '{{SITE_URL}}'      => $siteUrl,
+            '{{ASSET_VERSION}}' => $this->assetVersion(),
+        ]);
+    }
+
     private function renderOrangeBusinessCaseStudy(array $p, array $s, array $nav): string
     {
         $templateFile = __DIR__ . '/templates/orange-business-executive-briefing-center.html';
@@ -1515,6 +1546,9 @@ HTML;
         }
         if ($projKey === 'orange-business-ebc') {
             return $this->renderOrangeBusinessCaseStudy($p, $s, $nav);
+        }
+        if ($projKey === 'bpcl-case-study') {
+            return $this->renderBpclCaseStudy($p, $s, $nav);
         }
         $siteUrl = AV_SITE_URL;
         $file = $this->caseStudyFile($p);
@@ -2827,6 +2861,27 @@ HTML;
     }
 
     /* ---------- media sync (into the current out dir, i.e. staging) ---------- */
+    /**
+     * Copy self-contained project template asset bundles into the staging tree
+     * beside their route's index.html. Driven by each project template's
+     * `bundleDir` (under publish/templates/), so a microsite's relative
+     * ./assets/ references resolve at /case-studies/<slug>/.
+     */
+    private function syncProjectBundles(string $dir, array $routes): void
+    {
+        foreach ($routes as $r) {
+            if ($r['type'] !== 'project') continue;
+            $tpl = TemplateRegistry::project($r['template'] ?? '');
+            if ($tpl === null || empty($tpl['bundleDir'])) continue;
+            $src = AV_TEMPLATE_DIR . '/' . $tpl['bundleDir'];
+            if (!is_dir($src)) continue;
+            // route output is e.g. case-studies/<slug>/index.html → bundle lands
+            // beside it at case-studies/<slug>/assets/.
+            $dst = $dir . '/' . dirname($r['output']);
+            $this->copyDir($src, $dst . '/' . basename($tpl['bundleDir']));
+        }
+    }
+
     private function syncMedia(array $site): int
     {
         $mediaSrc = dirname(AV_BACKEND) . '/storage/uploads';
@@ -2969,6 +3024,10 @@ HTML;
                 $this->writeRouteFile($dir, $outRel, $this->finalizeDocument($this->redirectStub($rd['to'], $rd['code']), $hrefMap));
             }
         }
+
+        // self-contained project asset bundles (e.g. BPCL microsite) — copied
+        // beside the route's index.html so the page's relative ./assets/ refs resolve.
+        $this->syncProjectBundles($dir, $routes);
 
         // machine-readable route manifest
         file_put_contents($dir . '/routes.json', json_encode(

@@ -1,0 +1,367 @@
+{
+    "generated_at": "2026-09-08T06:01:13+05:30",
+    "site": "http://localhost:8092",
+    "routes": [
+        {
+            "id": "home",
+            "type": "page",
+            "template": null,
+            "route": "/",
+            "url": "http://localhost:8092/",
+            "output": "index.html",
+            "title": "Home",
+            "redirects": []
+        },
+        {
+            "id": "p-story",
+            "type": "page",
+            "template": "About",
+            "route": "/story/",
+            "url": "http://localhost:8092/story/",
+            "output": "story/index.html",
+            "title": "About",
+            "redirects": [
+                {
+                    "from": "/story.html",
+                    "to": "/story/",
+                    "code": 301
+                }
+            ]
+        },
+        {
+            "id": "p-experience",
+            "type": "page",
+            "template": "Experience",
+            "route": "/experience/",
+            "url": "http://localhost:8092/experience/",
+            "output": "experience/index.html",
+            "title": "Experience",
+            "redirects": [
+                {
+                    "from": "/experience.html",
+                    "to": "/experience/",
+                    "code": 301
+                }
+            ]
+        },
+        {
+            "id": "p-cases",
+            "type": "page",
+            "template": "Page",
+            "route": "/case-studies/",
+            "url": "http://localhost:8092/case-studies/",
+            "output": "case-studies/index.html",
+            "title": "Case Studies",
+            "redirects": [
+                {
+                    "from": "/case-studies.html",
+                    "to": "/case-studies/",
+                    "code": 301
+                }
+            ]
+        },
+        {
+            "id": "p-portfolio",
+            "type": "page",
+            "template": "PortfolioReel",
+            "route": "/portfolio/",
+            "url": "http://localhost:8092/portfolio/",
+            "output": "portfolio/index.html",
+            "title": "Portfolio",
+            "redirects": [
+                {
+                    "from": "/portfolio.html",
+                    "to": "/portfolio/",
+                    "code": 301
+                }
+            ]
+        },
+        {
+            "id": "p-contact",
+            "type": "page",
+            "template": "Contact",
+            "route": "/contact/",
+            "url": "http://localhost:8092/contact/",
+            "output": "contact/index.html",
+            "title": "Contact",
+            "redirects": [
+                {
+                    "from": "/contact.html",
+                    "to": "/contact/",
+                    "code": 301
+                }
+            ]
+        },
+        {
+            "id": "p-insights",
+            "type": "page",
+            "template": "Blog Index",
+            "route": "/insights/",
+            "url": "http://localhost:8092/insights/",
+            "output": "insights/index.html",
+            "title": "Insights",
+            "redirects": [
+                {
+                    "from": "/insights.html",
+                    "to": "/insights/",
+                    "code": 301
+                }
+            ]
+        },
+        {
+            "id": "p-journal",
+            "type": "page",
+            "template": "Blog Index",
+            "route": "/journal/",
+            "url": "http://localhost:8092/journal/",
+            "output": "journal/index.html",
+            "title": "Journal",
+            "redirects": [
+                {
+                    "from": "/journal.html",
+                    "to": "/journal/",
+                    "code": 301
+                }
+            ]
+        },
+        {
+            "id": "p-recruiters",
+            "type": "page",
+            "template": "Recruiters",
+            "route": "/for-recruiters/",
+            "url": "http://localhost:8092/for-recruiters/",
+            "output": "for-recruiters/index.html",
+            "title": "For Recruiters",
+            "redirects": [
+                {
+                    "from": "/for-recruiters.html",
+                    "to": "/for-recruiters/",
+                    "code": 301
+                }
+            ]
+        },
+        {
+            "id": "p-consulting",
+            "type": "page",
+            "template": "Page",
+            "route": "/consulting/",
+            "url": "http://localhost:8092/consulting/",
+            "output": "consulting/index.html",
+            "title": "Consulting",
+            "redirects": [
+                {
+                    "from": "/consulting.html",
+                    "to": "/consulting/",
+                    "code": 301
+                }
+            ]
+        },
+        {
+            "id": "p-sitemap",
+            "type": "page",
+            "template": "Page",
+            "route": "/sitemap/",
+            "url": "http://localhost:8092/sitemap/",
+            "output": "sitemap/index.html",
+            "title": "Sitemap",
+            "redirects": [
+                {
+                    "from": "/sitemap.html",
+                    "to": "/sitemap/",
+                    "code": 301
+                }
+            ]
+        },
+        {
+            "id": "p-privacy",
+            "type": "page",
+            "template": "Page",
+            "route": "/privacy-policy/",
+            "url": "http://localhost:8092/privacy-policy/",
+            "output": "privacy-policy/index.html",
+            "title": "Privacy Policy",
+            "redirects": [
+                {
+                    "from": "/privacy-policy.html",
+                    "to": "/privacy-policy/",
+                    "code": 301
+                }
+            ]
+        },
+        {
+            "id": "p-terms",
+            "type": "page",
+            "template": "Page",
+            "route": "/terms/",
+            "url": "http://localhost:8092/terms/",
+            "output": "terms/index.html",
+            "title": "Terms",
+            "redirects": [
+                {
+                    "from": "/terms.html",
+                    "to": "/terms/",
+                    "code": 301
+                }
+            ]
+        },
+        {
+            "id": "prj-1",
+            "type": "project",
+            "template": "orange-business-ebc",
+            "route": "/case-studies/orange-business/",
+            "url": "http://localhost:8092/case-studies/orange-business/",
+            "output": "case-studies/orange-business/index.html",
+            "title": "Orange Business New Executive Briefing Center",
+            "redirects": [
+                {
+                    "from": "/case-study-orange-business-new-executive-briefing-center.html",
+                    "to": "/case-studies/orange-business/",
+                    "code": 301
+                },
+                {
+                    "from": "/case-study-enterprise-technology-made-understandable.html",
+                    "to": "/case-studies/orange-business/",
+                    "code": 301
+                },
+                {
+                    "from": "/experience-design/orange-business-executive-briefing-center/",
+                    "to": "/case-studies/orange-business/",
+                    "code": 301
+                },
+                {
+                    "from": "/experience-design/orange-business-executive-briefing-center/index.html",
+                    "to": "/case-studies/orange-business/",
+                    "code": 301
+                }
+            ]
+        },
+        {
+            "id": "prj-2",
+            "type": "project",
+            "template": "bpcl-case-study",
+            "route": "/case-studies/bharat-petroleum-corporation-limited/",
+            "url": "http://localhost:8092/case-studies/bharat-petroleum-corporation-limited/",
+            "output": "case-studies/bharat-petroleum-corporation-limited/index.html",
+            "title": "Intuitive Experiences for Industrial Environments",
+            "redirects": [
+                {
+                    "from": "/case-study-intuitive-experiences-for-industrial-environments.html",
+                    "to": "/case-studies/bharat-petroleum-corporation-limited/",
+                    "code": 301
+                }
+            ]
+        },
+        {
+            "id": "prj-3",
+            "type": "project",
+            "template": "coming-soon",
+            "route": "/case-studies/indian-army/",
+            "url": "http://localhost:8092/case-studies/indian-army/",
+            "output": "case-studies/indian-army/index.html",
+            "title": "Immersive Solutions for the Indian Army",
+            "redirects": [
+                {
+                    "from": "/case-study-immersive-solutions-for-the-indian-army.html",
+                    "to": "/case-studies/indian-army/",
+                    "code": 301
+                }
+            ]
+        },
+        {
+            "id": "art-1",
+            "type": "article",
+            "template": null,
+            "route": "/essays/technology-should-feel-human/",
+            "url": "http://localhost:8092/essays/technology-should-feel-human/",
+            "output": "essays/technology-should-feel-human/index.html",
+            "title": "Technology Should Feel Human",
+            "redirects": [
+                {
+                    "from": "/essay-technology-should-feel-human.html",
+                    "to": "/essays/technology-should-feel-human/",
+                    "code": 301
+                }
+            ]
+        },
+        {
+            "id": "art-2",
+            "type": "article",
+            "template": null,
+            "route": "/essays/ai-isnt-replacing-creativity/",
+            "url": "http://localhost:8092/essays/ai-isnt-replacing-creativity/",
+            "output": "essays/ai-isnt-replacing-creativity/index.html",
+            "title": "AI Isn't Replacing Creativity",
+            "redirects": [
+                {
+                    "from": "/essay-ai-isnt-replacing-creativity.html",
+                    "to": "/essays/ai-isnt-replacing-creativity/",
+                    "code": 301
+                }
+            ]
+        },
+        {
+            "id": "art-3",
+            "type": "article",
+            "template": null,
+            "route": "/essays/designing-experiences-people-remember/",
+            "url": "http://localhost:8092/essays/designing-experiences-people-remember/",
+            "output": "essays/designing-experiences-people-remember/index.html",
+            "title": "Designing Experiences People Remember",
+            "redirects": [
+                {
+                    "from": "/essay-designing-experiences-people-remember.html",
+                    "to": "/essays/designing-experiences-people-remember/",
+                    "code": 301
+                }
+            ]
+        },
+        {
+            "id": "art-4",
+            "type": "article",
+            "template": null,
+            "route": "/essays/why-enterprise-experiences-fail/",
+            "url": "http://localhost:8092/essays/why-enterprise-experiences-fail/",
+            "output": "essays/why-enterprise-experiences-fail/index.html",
+            "title": "Why Enterprise Experiences Fail",
+            "redirects": [
+                {
+                    "from": "/essay-why-enterprise-experiences-fail.html",
+                    "to": "/essays/why-enterprise-experiences-fail/",
+                    "code": 301
+                }
+            ]
+        },
+        {
+            "id": "art-5",
+            "type": "article",
+            "template": null,
+            "route": "/journal/what-a-year-of-ai-enabled-production-taught-me/",
+            "url": "http://localhost:8092/journal/what-a-year-of-ai-enabled-production-taught-me/",
+            "output": "journal/what-a-year-of-ai-enabled-production-taught-me/index.html",
+            "title": "What a year of AI-enabled production taught me",
+            "redirects": [
+                {
+                    "from": "/journal-what-a-year-of-ai-enabled-production-taught-me.html",
+                    "to": "/journal/what-a-year-of-ai-enabled-production-taught-me/",
+                    "code": 301
+                }
+            ]
+        },
+        {
+            "id": "art-6",
+            "type": "article",
+            "template": null,
+            "route": "/journal/the-experience-centre-as-a-strategic-instrument/",
+            "url": "http://localhost:8092/journal/the-experience-centre-as-a-strategic-instrument/",
+            "output": "journal/the-experience-centre-as-a-strategic-instrument/index.html",
+            "title": "The experience centre as a strategic instrument",
+            "redirects": [
+                {
+                    "from": "/journal-the-experience-centre-as-a-strategic-instrument.html",
+                    "to": "/journal/the-experience-centre-as-a-strategic-instrument/",
+                    "code": 301
+                }
+            ]
+        }
+    ]
+}
