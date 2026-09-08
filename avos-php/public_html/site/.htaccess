@@ -61,6 +61,8 @@ ErrorDocument 404 /404.html
   RewriteRule ^experience\-design\/orange\-business\-executive\-briefing\-center/?$ /case-studies/orange-business/ [R=301,L]
   RewriteRule ^experience\-design\/orange\-business\-executive\-briefing\-center\/index\.html/?$ /case-studies/orange-business/ [R=301,L]
   RewriteRule ^case\-study\-intuitive\-experiences\-for\-industrial\-environments\.html/?$ /case-studies/bharat-petroleum-corporation-limited/ [R=301,L]
+  RewriteRule ^experience\-design\/bpcl\-palakkad/?$ /case-studies/bharat-petroleum-corporation-limited/ [R=301,L]
+  RewriteRule ^experience\-design\/bpcl\-palakkad\/index\.html/?$ /case-studies/bharat-petroleum-corporation-limited/ [R=301,L]
   RewriteRule ^case\-study\-immersive\-solutions\-for\-the\-indian\-army\.html/?$ /case-studies/indian-army/ [R=301,L]
   RewriteRule ^essay\-technology\-should\-feel\-human\.html/?$ /essays/technology-should-feel-human/ [R=301,L]
   RewriteRule ^essay\-ai\-isnt\-replacing\-creativity\.html/?$ /essays/ai-isnt-replacing-creativity/ [R=301,L]

@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Search — Abhijeet Varghese</title>
   <meta name="description" content="Search the portfolio: projects, case studies, essays and journal entries.">
-  <meta name="keywords" content="Abhijeet Varghese, creative director, experience design, enterprise innovation, UX design, design leadership, brand experience, immersive technology, AI design, creative strategy, experience centre, design consulting">
+  <meta name="keywords" content="Abhijeet Varghese, creative director, experience design, immersive XR, creative technology, AVGC-XR Rajasthan, design leadership, brand systems, AI creative workflows, spatial experience">
   <meta name="robots" content="index, follow, max-image-preview:large">
   <meta name="theme-color" content="#F7F5EF">
   <link rel="canonical" href="https://abhijeetvarghese.com/search.html">
   <!-- LCP font preload (Inter Tight normal — body copy above the fold) -->
-  <link rel="preload" href="assets/fonts/inter-tight-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/inter-tight-normal.woff2" as="font" type="font/woff2" crossorigin>
 
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://abhijeetvarghese.com/search.html">
@@ -22,9 +22,9 @@
   <meta name="twitter:title" content="Search — Abhijeet Varghese">
   <meta name="twitter:description" content="Search the portfolio: projects, case studies, essays and journal entries.">
   <meta name="twitter:image" content="https://abhijeetvarghese.com/assets/hero-portrait.webp">
-  <link rel="icon" type="image/png" href="assets/logo.png">
-  <link rel="stylesheet" href="css/styles.css?v=2.4.20-5c83a1d9e07">
-<link rel="stylesheet" href="css/tokens.css">
+  <link rel="icon" type="image/png" href="/assets/logo.png">
+  <link rel="stylesheet" href="/css/styles.css?v=2.4.20-b9edd4012947">
+  <link rel="stylesheet" href="/css/tokens.css">
   <script>
     document.documentElement.className += " js";
     setTimeout(function () {
@@ -38,17 +38,17 @@
   <div class="progress" id="progress" aria-hidden="true"></div>
   <header class="site-nav" id="siteNav">
     <nav class="site-nav__inner" aria-label="Primary">
-      <a class="brand" href="index.html" aria-label="Abhijeet Varghese — home">
-        <img class="brand__logo" src="assets/logo.png" alt="Abhijeet Varghese logo" width="36" height="36" decoding="async">
+      <a class="brand" href="/" aria-label="Abhijeet Varghese — home">
+        <img class="brand__logo" src="/assets/logo.png" alt="Abhijeet Varghese logo" width="36" height="36" decoding="async">
         <span class="brand__name">Abhijeet Varghese</span>
       </a>
       <ul class="nav-links">
-        <li><a href="story.html">Story</a></li>
-        <li><a href="experience/">Experience</a></li>
-        <li><a href="case-studies/">Case Studies</a></li>
-        <li><a href="portfolio.html">Portfolio</a></li>
+        <li><a href="/story/">Story</a></li>
+        <li><a href="/experience/">Experience</a></li>
+        <li><a href="/case-studies/">Case Studies</a></li>
+        <li><a href="/portfolio/">Portfolio</a></li>
       </ul>
-      <a class="btn btn--accent btn--small" href="contact.html">Start a conversation</a>
+      <a class="btn btn--accent btn--small" href="/contact/">Start a conversation</a>
       <button class="nav-toggle" type="button" id="navToggle" aria-expanded="false" aria-controls="mobileMenu" aria-label="Open menu">
         <span class="nav-toggle__line" aria-hidden="true"></span>
         <span class="nav-toggle__line" aria-hidden="true"></span>
@@ -64,19 +64,19 @@
       </div>
       <nav aria-label="Mobile">
         <ul class="mobile-menu__list">
-          <li><a href="story.html"><em>01</em>Story</a></li>
-          <li><a href="experience/"><em>02</em>Experience</a></li>
-          <li><a href="case-studies/"><em>03</em>Case Studies</a></li>
-          <li><a href="portfolio.html"><em>04</em>Portfolio</a></li>
+          <li><a href="/story/"><em>01</em>Story</a></li>
+          <li><a href="/experience/"><em>02</em>Experience</a></li>
+          <li><a href="/case-studies/"><em>03</em>Case Studies</a></li>
+          <li><a href="/portfolio/"><em>04</em>Portfolio</a></li>
         </ul>
         <div class="mobile-menu__actions">
-          <a class="btn btn--accent btn--block" href="contact.html">Start a conversation</a>
+          <a class="btn btn--accent btn--block" href="/contact/">Start a conversation</a>
           <a class="mobile-menu__mail" href="mailto:hi@abhijeetvarghese.com">hi@abhijeetvarghese.com</a>
         </div>
       </nav>
     </div>
   </header>
-  <a class="page-close" href="index.html" data-history-close aria-label="Back to previous page"><svg width="17" height="17" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="m3 3 12 12M15 3 3 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></a>
+  <a class="page-close" href="/" data-history-close aria-label="Back to previous page"><svg width="17" height="17" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="m3 3 12 12M15 3 3 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></a>
   <main id="main">
 
     <section class="page-hero" aria-label="Search">
@@ -105,7 +105,7 @@
         q = q.toLowerCase();
         if (q.length < 2) { box.innerHTML = ""; return; }
         var hits = idx.filter(function (i) { var tags = Array.isArray(i.tags) ? i.tags.join(" ") : String(i.tags || ""); return (i.title + " " + i.excerpt + " " + tags).toLowerCase().indexOf(q) !== -1; }).slice(0, 10);
-        if (!hits.length) { box.innerHTML = "<p style=\"color:var(--ink-3);font-size:14px\">No results for \"" + esc(q) + "\". Try another term, or <a href=\"contact.html\">ask me directly</a>.</p>"; return; }
+        if (!hits.length) { box.innerHTML = "<p style=\"color:var(--ink-3);font-size:14px\">No results for \"" + esc(q) + "\". Try another term, or <a href=\"/contact/\">ask me directly</a>.</p>"; return; }
         box.innerHTML = hits.map(function (i) {
           return "<a href=\"" + esc(i.url) + "\" style=\"display:block;text-decoration:none;border-bottom:1px solid var(--cl);padding:14px 4px\">" +
             "<span style=\"font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)\">" + esc(i.type) + "</span>" +
@@ -124,8 +124,8 @@
   <footer class="footer footer--arena">
     <div class="container footer__inner">
       <div class="footer__brand">
-        <a class="footer__brandtop" href="index.html" aria-label="Abhijeet Varghese — home">
-          <img class="brand__logo brand__logo--foot" src="assets/logo.png" alt="Abhijeet Varghese logo" width="36" height="36" decoding="async">
+        <a class="footer__brandtop" href="/" aria-label="Abhijeet Varghese — home">
+          <img class="brand__logo brand__logo--foot" src="/assets/logo.png" alt="Abhijeet Varghese logo" width="36" height="36" decoding="async">
           <span class="footer__name">Abhijeet Varghese</span>
         </a>
         <p class="footer__line">Making ambitious ideas impossible to misunderstand.</p>
@@ -139,29 +139,29 @@
       <div class="footer__col">
         <p class="footer__label">Menu</p>
         <ul class="footer__links">
-          <li><a href="story.html">Story</a></li>
-<li><a href="experience/">Experience</a></li>
-<li><a href="case-studies/">Case Studies</a></li>
-<li><a href="portfolio.html">Portfolio</a></li>
-<li><a href="contact.html">Start a conversation</a></li>
-<li><a href="assets/Abhijeet-Varghese-Resume.pdf">Download résumé</a></li>
+          <li><a href="/story/">Story</a></li>
+<li><a href="/experience/">Experience</a></li>
+<li><a href="/case-studies/">Case Studies</a></li>
+<li><a href="/portfolio/">Portfolio</a></li>
+<li><a href="/contact/">Start a conversation</a></li>
+<li><a href="/assets/Abhijeet-Varghese-Resume.pdf">Download résumé</a></li>
         </ul>
       </div>
       <div class="footer__col">
         <p class="footer__label">Resources</p>
         <ul class="footer__links">
-          <li><a href="insights.html">Insights</a></li>
-<li><a href="journal.html">Journal</a></li>
-<li><a href="sitemap.html">Sitemap</a></li>
-<li><a href="for-recruiters.html">For Recruiters</a></li>
-<li><a href="consulting.html">Consulting</a></li>
+          <li><a href="/insights/">Insights</a></li>
+<li><a href="/journal/">Journal</a></li>
+<li><a href="/sitemap/">Sitemap</a></li>
+<li><a href="/for-recruiters/">For Recruiters</a></li>
+<li><a href="/consulting/">Consulting</a></li>
         </ul>
       </div>
       <div class="footer__col">
         <p class="footer__label">Legal</p>
         <ul class="footer__links">
-          <li><a href="privacy-policy.html">Privacy Policy</a></li>
-<li><a href="terms.html">Terms</a></li>
+          <li><a href="/privacy-policy/">Privacy Policy</a></li>
+<li><a href="/terms/">Terms</a></li>
         </ul>
       </div>
       <div class="footer__col">
@@ -181,7 +181,7 @@
       </div>
     </div>
   </footer>
-  <script src="js/main.js?v=2.4.20-5c83a1d9e07" defer></script>
+  <script src="/js/main.js?v=2.4.20-b9edd4012947" defer></script>
 <script>
 /* AV OS first-party analytics — minimal, privacy-respecting */
 (function () {
@@ -241,7 +241,7 @@
     var m = null;
     if ((m = p.match(/\/essay-[^\/]+\.html/))) { avTrack({ event_type: "essay_view", path: p, content: m[0] }); }
     else if ((m = p.match(/\/journal-[^\/]+\.html/))) { avTrack({ event_type: "journal_view", path: p, content: m[0] }); }
-    else if ((m = p.match(/\/case-studies\/[^\/]+\/?/)) || (m = p.match(/\/case-studies\//)) || (m = p.match(/\/case-study-[^\/]+\.html/)) || (m = p.match(/\/experience-design\/[^\/]+\/?/))) { avTrack({ event_type: "case_study_view", path: p, content: m[0] }); }
+    else if ((m = p.match(/\/case-studies\.html/)) || (m = p.match(/\/case-study-[^\/]+\.html/)) || (m = p.match(/\/experience-design\/[^\/]+\/?/))) { avTrack({ event_type: "case_study_view", path: p, content: m[0] }); }
     else if (p.indexOf("experience") !== -1) { avTrack({ event_type: "project_view", path: p }); }
     // contact intent (form page focus)
     var cf = document.getElementById("contactForm") || document.getElementById("bookForm");

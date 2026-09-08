@@ -24,6 +24,31 @@ if ($path === '/' || $path === '') {
     header('Location: /admin/login.php');
     return true;
 }
+
+// Check route registry redirects (legacy .html -> canonical clean route)
+$routesFile = $root . '/site/routes.json';
+if (is_file($routesFile)) {
+    $routesData = json_decode((string)file_get_contents($routesFile), true);
+    if (!empty($routesData['routes'])) {
+        foreach ($routesData['routes'] as $r) {
+            foreach ($r['redirects'] ?? [] as $rd) {
+                if ($path === $rd['from'] || (str_ends_with($rd['from'], '/') && rtrim($path, '/') === rtrim($rd['from'], '/'))) {
+                    header('Location: ' . $rd['to'], true, 301);
+                    return true;
+                }
+            }
+        }
+    }
+}
+
+// Canonical trailing slash redirect for directories (/story -> /story/)
+if (!str_ends_with($path, '/') && !pathinfo($path, PATHINFO_EXTENSION)) {
+    $candDir = $root . '/site/' . $rel;
+    if (is_dir($candDir)) {
+        header('Location: ' . $path . '/', true, 301);
+        return true;
+    }
+}
 // serve the generated static site for page URLs not present in the web root
 if (!is_file($file) && !str_starts_with($path, '/api/') && !str_starts_with($path, '/admin/')
     && !str_starts_with($path, '/media/') && !str_starts_with($path, '/install/')) {

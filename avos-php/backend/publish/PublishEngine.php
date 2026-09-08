@@ -2763,20 +2763,23 @@ HTML;
         $items = [];
         foreach (($this->site['pages'] ?? []) as $p) {
             if (!$this->isDue($p) || in_array($p['slug'] ?? '', ['', 'home', 'index'], true)) continue;
-            $items[] = ['type' => 'Page', 'title' => strip_tags((string)($p['title'] ?? '')), 'excerpt' => mb_substr(strip_tags((string)($p['blocks'][0]['content']['lede'] ?? ($p['seo']['desc'] ?? ''))), 0, 180), 'url' => $p['slug'] . '.html', 'tags' => $p['seo']['keywords'] ?? []];
+            $slug = trim((string)($p['slug'] ?? ''), '/');
+            $items[] = ['type' => 'Page', 'title' => strip_tags((string)($p['title'] ?? '')), 'excerpt' => mb_substr(strip_tags((string)($p['blocks'][0]['content']['lede'] ?? ($p['seo']['desc'] ?? ''))), 0, 180), 'url' => '/' . $slug . '/', 'tags' => $p['seo']['keywords'] ?? []];
         }
         foreach (($this->site['projects'] ?? []) as $p) {
             if (!$this->isDue($p)) continue;
-            $items[] = ['type' => 'Case Study', 'title' => strip_tags((string)($p['title'] ?? '')), 'excerpt' => mb_substr(strip_tags((string)($p['summary'] ?? ($p['seo']['desc'] ?? ''))), 0, 180), 'url' => $this->caseStudyFile($p), 'tags' => [$p['client'] ?? '']];
+            $slug = RouteRegistry::projectSlug($p);
+            $items[] = ['type' => 'Case Study', 'title' => strip_tags((string)($p['title'] ?? '')), 'excerpt' => mb_substr(strip_tags((string)($p['summary'] ?? ($p['seo']['desc'] ?? ''))), 0, 180), 'url' => '/case-studies/' . $slug . '/', 'tags' => [$p['client'] ?? '']];
         }
         foreach (($this->site['articles'] ?? []) as $a) {
             if (!$this->isDue($a)) continue;
             $slug = $a['slug'] ?? $this->slugify($a['title'] ?? '');
-            $file = (($a['type'] ?? 'essay') === 'essay' ? 'essay-' : 'journal-') . $slug . '.html';
-            $items[] = ['type' => ($a['type'] ?? 'essay') === 'essay' ? 'Essay' : 'Journal', 'title' => strip_tags((string)($a['title'] ?? '')), 'excerpt' => mb_substr(strip_tags((string)($a['excerpt'] ?? '')), 0, 180), 'url' => $file, 'tags' => $a['tags'] ?? []];
+            $isEssay = (($a['type'] ?? 'essay') === 'essay');
+            $canonicalPath = '/' . ($isEssay ? 'essays' : 'journal') . '/' . $slug . '/';
+            $items[] = ['type' => $isEssay ? 'Essay' : 'Journal', 'title' => strip_tags((string)($a['title'] ?? '')), 'excerpt' => mb_substr(strip_tags((string)($a['excerpt'] ?? '')), 0, 180), 'url' => $canonicalPath, 'tags' => $a['tags'] ?? []];
         }
         foreach (($this->site['services'] ?? []) as $sv) {
-            $items[] = ['type' => 'Service', 'title' => strip_tags((string)($sv['title'] ?? $sv['name'] ?? '')), 'excerpt' => mb_substr(strip_tags((string)($sv['desc'] ?? '')), 0, 180), 'url' => 'consulting.html', 'tags' => []];
+            $items[] = ['type' => 'Service', 'title' => strip_tags((string)($sv['title'] ?? $sv['name'] ?? '')), 'excerpt' => mb_substr(strip_tags((string)($sv['desc'] ?? '')), 0, 180), 'url' => '/consulting/', 'tags' => []];
         }
         return json_encode(['site' => $siteUrl, 'generated' => date('c'), 'items' => $items], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
@@ -2810,7 +2813,7 @@ HTML;
         q = q.toLowerCase();
         if (q.length < 2) { box.innerHTML = ""; return; }
         var hits = idx.filter(function (i) { var tags = Array.isArray(i.tags) ? i.tags.join(" ") : String(i.tags || ""); return (i.title + " " + i.excerpt + " " + tags).toLowerCase().indexOf(q) !== -1; }).slice(0, 10);
-        if (!hits.length) { box.innerHTML = "<p style=\"color:var(--ink-3);font-size:14px\">No results for \"" + esc(q) + "\". Try another term, or <a href=\"contact.html\">ask me directly</a>.</p>"; return; }
+        if (!hits.length) { box.innerHTML = "<p style=\"color:var(--ink-3);font-size:14px\">No results for \"" + esc(q) + "\". Try another term, or <a href=\"/contact/\">ask me directly</a>.</p>"; return; }
         box.innerHTML = hits.map(function (i) {
           return "<a href=\"" + esc(i.url) + "\" style=\"display:block;text-decoration:none;border-bottom:1px solid var(--cl);padding:14px 4px\">" +
             "<span style=\"font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)\">" + esc(i.type) + "</span>" +
@@ -2860,10 +2863,11 @@ HTML;
             $it = $r['item'];
             if ($kind === 'article') {
                 $slug = $it['slug'] ?? $this->slugify($it['title'] ?? '');
-                $href = (($it['type'] ?? 'essay') === 'essay' ? 'essay-' : 'journal-') . $slug . '.html';
+                $href = (($it['type'] ?? 'essay') === 'essay' ? '/essays/' : '/journal/') . $slug . '/';
                 $label = ($it['type'] ?? 'essay') === 'essay' ? 'Essay' : 'Journal';
             } else {
-                $href = 'case-studies.html';
+                $slug = RouteRegistry::projectSlug($it);
+                $href = '/case-studies/' . $slug . '/';
                 $label = 'Case study';
             }
             $rows .= '<li data-reveal style="padding:10px 0;border-bottom:1px solid var(--cl)"><a class="link-arrow" href="' . $href . '">' . $this->esc(strip_tags((string)($it['title'] ?? ''))) . '<span style="font-size:11px;color:var(--ink-3);margin-left:8px">' . $label . '</span> ' . self::ARROW . '</a></li>';
@@ -3325,7 +3329,7 @@ HTML;
           <span class="chapter__tag">Not found</span>
         </div>
         <h1 class="page-hero__title" data-reveal>This page <em>doesn&rsquo;t exist.</em></h1>
-        <p class="page-hero__lede" data-reveal>The link may be old or mistyped. Head back to the <a href="index.html">homepage</a> or <a href="case-studies.html">browse the work</a>.</p>
+        <p class="page-hero__lede" data-reveal>The link may be old or mistyped. Head back to the <a href="/">homepage</a> or <a href="/case-studies/">browse the work</a>.</p>
       </div>
     </section>', 'page', 'website');
     }

@@ -186,6 +186,11 @@ final class RouteRegistry
             $add('experience-design/orange-business-executive-briefing-center/');
             $add('experience-design/orange-business-executive-briefing-center/index.html');
         }
+        // prj-2 historically lived under /experience-design/bpcl-palakkad/
+        if (($p['id'] ?? '') === 'prj-2') {
+            $add('experience-design/bpcl-palakkad/');
+            $add('experience-design/bpcl-palakkad/index.html');
+        }
         return $out;
     }
 

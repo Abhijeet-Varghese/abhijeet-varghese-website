@@ -2312,6 +2312,38 @@ body.home-arena {
   background: #58D68D; box-shadow: 0 0 0 4px rgba(88, 214, 141, 0.18);
   animation: availPulse 2.4s ease-in-out infinite;
 }
+.hp-hero__avgc {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 10px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+  color: #B4C6E7;
+}
+.hp-hero__avgc i {
+  color: var(--el-blue); font-style: normal; font-size: 8px;
+}
+.ai__editorial {
+  display: grid; gap: 10px; margin: 28px 0;
+  padding: 18px 22px; background: rgba(110, 168, 255, 0.05);
+  border-left: 2px solid var(--ca); border-radius: 0 12px 12px 0;
+}
+.ai__statement {
+  font-size: 13.5px; letter-spacing: 0.12em; text-transform: uppercase; margin: 0;
+  display: flex; gap: 10px; align-items: baseline; color: var(--cm);
+}
+.ai__statement span { color: var(--cm); font-weight: 400; }
+.ai__statement strong { color: var(--ca); font-weight: 600; }
+
+.about-now__avgc, .exp-hero__avgc {
+  margin-top: 18px; font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--chrome-muted); display: inline-flex; align-items: center; gap: 8px; font-weight: 500;
+}
+.about-now__avgc i, .exp-hero__avgc i { color: var(--accent); font-style: normal; font-size: 8px; }
+
+.footer__affil {
+  margin-top: 10px; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: rgba(239, 240, 234, 0.7); display: flex; align-items: center; gap: 8px; font-weight: 500;
+}
+.footer__affil i { color: #6EA8FF; font-style: normal; font-size: 8px; }
 .hp-hero__lede {
   grid-column: 1 / -1; grid-row: 3;
   margin: 0;

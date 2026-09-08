@@ -1,13 +1,13 @@
 {
-    "generated_at": "2026-09-08T17:18:00+05:30",
-    "site": "http://localhost:8092",
+    "generated_at": "2026-09-08T17:52:31+05:30",
+    "site": "https://abhijeetvarghese.com",
     "routes": [
         {
             "id": "home",
             "type": "page",
             "template": null,
             "route": "/",
-            "url": "http://localhost:8092/",
+            "url": "https://abhijeetvarghese.com/",
             "output": "index.html",
             "title": "Home",
             "redirects": []
@@ -17,7 +17,7 @@
             "type": "page",
             "template": "About",
             "route": "/story/",
-            "url": "http://localhost:8092/story/",
+            "url": "https://abhijeetvarghese.com/story/",
             "output": "story/index.html",
             "title": "About",
             "redirects": [
@@ -33,7 +33,7 @@
             "type": "page",
             "template": "Experience",
             "route": "/experience/",
-            "url": "http://localhost:8092/experience/",
+            "url": "https://abhijeetvarghese.com/experience/",
             "output": "experience/index.html",
             "title": "Experience",
             "redirects": [
@@ -49,7 +49,7 @@
             "type": "page",
             "template": "Page",
             "route": "/case-studies/",
-            "url": "http://localhost:8092/case-studies/",
+            "url": "https://abhijeetvarghese.com/case-studies/",
             "output": "case-studies/index.html",
             "title": "Case Studies",
             "redirects": [
@@ -65,7 +65,7 @@
             "type": "page",
             "template": "PortfolioReel",
             "route": "/portfolio/",
-            "url": "http://localhost:8092/portfolio/",
+            "url": "https://abhijeetvarghese.com/portfolio/",
             "output": "portfolio/index.html",
             "title": "Portfolio",
             "redirects": [
@@ -81,7 +81,7 @@
             "type": "page",
             "template": "Contact",
             "route": "/contact/",
-            "url": "http://localhost:8092/contact/",
+            "url": "https://abhijeetvarghese.com/contact/",
             "output": "contact/index.html",
             "title": "Contact",
             "redirects": [
@@ -97,7 +97,7 @@
             "type": "page",
             "template": "Blog Index",
             "route": "/insights/",
-            "url": "http://localhost:8092/insights/",
+            "url": "https://abhijeetvarghese.com/insights/",
             "output": "insights/index.html",
             "title": "Insights",
             "redirects": [
@@ -113,7 +113,7 @@
             "type": "page",
             "template": "Blog Index",
             "route": "/journal/",
-            "url": "http://localhost:8092/journal/",
+            "url": "https://abhijeetvarghese.com/journal/",
             "output": "journal/index.html",
             "title": "Journal",
             "redirects": [
@@ -129,7 +129,7 @@
             "type": "page",
             "template": "Recruiters",
             "route": "/for-recruiters/",
-            "url": "http://localhost:8092/for-recruiters/",
+            "url": "https://abhijeetvarghese.com/for-recruiters/",
             "output": "for-recruiters/index.html",
             "title": "For Recruiters",
             "redirects": [
@@ -145,7 +145,7 @@
             "type": "page",
             "template": "Page",
             "route": "/consulting/",
-            "url": "http://localhost:8092/consulting/",
+            "url": "https://abhijeetvarghese.com/consulting/",
             "output": "consulting/index.html",
             "title": "Consulting",
             "redirects": [
@@ -161,7 +161,7 @@
             "type": "page",
             "template": "Page",
             "route": "/sitemap/",
-            "url": "http://localhost:8092/sitemap/",
+            "url": "https://abhijeetvarghese.com/sitemap/",
             "output": "sitemap/index.html",
             "title": "Sitemap",
             "redirects": [
@@ -177,7 +177,7 @@
             "type": "page",
             "template": "Page",
             "route": "/privacy-policy/",
-            "url": "http://localhost:8092/privacy-policy/",
+            "url": "https://abhijeetvarghese.com/privacy-policy/",
             "output": "privacy-policy/index.html",
             "title": "Privacy Policy",
             "redirects": [
@@ -193,7 +193,7 @@
             "type": "page",
             "template": "Page",
             "route": "/terms/",
-            "url": "http://localhost:8092/terms/",
+            "url": "https://abhijeetvarghese.com/terms/",
             "output": "terms/index.html",
             "title": "Terms",
             "redirects": [
@@ -209,7 +209,7 @@
             "type": "project",
             "template": "orange-business-ebc",
             "route": "/case-studies/orange-business/",
-            "url": "http://localhost:8092/case-studies/orange-business/",
+            "url": "https://abhijeetvarghese.com/case-studies/orange-business/",
             "output": "case-studies/orange-business/index.html",
             "title": "Orange Business New Executive Briefing Center",
             "redirects": [
@@ -240,12 +240,22 @@
             "type": "project",
             "template": "bpcl-case-study",
             "route": "/case-studies/bharat-petroleum-corporation-limited/",
-            "url": "http://localhost:8092/case-studies/bharat-petroleum-corporation-limited/",
+            "url": "https://abhijeetvarghese.com/case-studies/bharat-petroleum-corporation-limited/",
             "output": "case-studies/bharat-petroleum-corporation-limited/index.html",
             "title": "Intuitive Experiences for Industrial Environments",
             "redirects": [
                 {
                     "from": "/case-study-intuitive-experiences-for-industrial-environments.html",
+                    "to": "/case-studies/bharat-petroleum-corporation-limited/",
+                    "code": 301
+                },
+                {
+                    "from": "/experience-design/bpcl-palakkad/",
+                    "to": "/case-studies/bharat-petroleum-corporation-limited/",
+                    "code": 301
+                },
+                {
+                    "from": "/experience-design/bpcl-palakkad/index.html",
                     "to": "/case-studies/bharat-petroleum-corporation-limited/",
                     "code": 301
                 }
@@ -256,7 +266,7 @@
             "type": "project",
             "template": "coming-soon",
             "route": "/case-studies/indian-army/",
-            "url": "http://localhost:8092/case-studies/indian-army/",
+            "url": "https://abhijeetvarghese.com/case-studies/indian-army/",
             "output": "case-studies/indian-army/index.html",
             "title": "Immersive Solutions for the Indian Army",
             "redirects": [
@@ -272,7 +282,7 @@
             "type": "article",
             "template": null,
             "route": "/essays/technology-should-feel-human/",
-            "url": "http://localhost:8092/essays/technology-should-feel-human/",
+            "url": "https://abhijeetvarghese.com/essays/technology-should-feel-human/",
             "output": "essays/technology-should-feel-human/index.html",
             "title": "Technology Should Feel Human",
             "redirects": [
@@ -288,7 +298,7 @@
             "type": "article",
             "template": null,
             "route": "/essays/ai-isnt-replacing-creativity/",
-            "url": "http://localhost:8092/essays/ai-isnt-replacing-creativity/",
+            "url": "https://abhijeetvarghese.com/essays/ai-isnt-replacing-creativity/",
             "output": "essays/ai-isnt-replacing-creativity/index.html",
             "title": "AI Isn't Replacing Creativity",
             "redirects": [
@@ -304,7 +314,7 @@
             "type": "article",
             "template": null,
             "route": "/essays/designing-experiences-people-remember/",
-            "url": "http://localhost:8092/essays/designing-experiences-people-remember/",
+            "url": "https://abhijeetvarghese.com/essays/designing-experiences-people-remember/",
             "output": "essays/designing-experiences-people-remember/index.html",
             "title": "Designing Experiences People Remember",
             "redirects": [
@@ -320,7 +330,7 @@
             "type": "article",
             "template": null,
             "route": "/essays/why-enterprise-experiences-fail/",
-            "url": "http://localhost:8092/essays/why-enterprise-experiences-fail/",
+            "url": "https://abhijeetvarghese.com/essays/why-enterprise-experiences-fail/",
             "output": "essays/why-enterprise-experiences-fail/index.html",
             "title": "Why Enterprise Experiences Fail",
             "redirects": [
@@ -336,7 +346,7 @@
             "type": "article",
             "template": null,
             "route": "/journal/what-a-year-of-ai-enabled-production-taught-me/",
-            "url": "http://localhost:8092/journal/what-a-year-of-ai-enabled-production-taught-me/",
+            "url": "https://abhijeetvarghese.com/journal/what-a-year-of-ai-enabled-production-taught-me/",
             "output": "journal/what-a-year-of-ai-enabled-production-taught-me/index.html",
             "title": "What a year of AI-enabled production taught me",
             "redirects": [
@@ -352,7 +362,7 @@
             "type": "article",
             "template": null,
             "route": "/journal/the-experience-centre-as-a-strategic-instrument/",
-            "url": "http://localhost:8092/journal/the-experience-centre-as-a-strategic-instrument/",
+            "url": "https://abhijeetvarghese.com/journal/the-experience-centre-as-a-strategic-instrument/",
             "output": "journal/the-experience-centre-as-a-strategic-instrument/index.html",
             "title": "The experience centre as a strategic instrument",
             "redirects": [

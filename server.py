@@ -5,7 +5,7 @@ import mimetypes
 import json
 import urllib.parse
 
-PORT = 8000
+PORT = int(os.environ.get("PORT", 8092))
 SITE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "avos-php/public_html/site"))
 FRONTEND_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "abhijeetvarghese"))
 
@@ -59,13 +59,47 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         if not rel:
             rel = "index.html"
 
+        # Load routes.json redirects if available
+        redirects = {}
+        routes_json = os.path.join(SITE_DIR, "routes.json")
+        if os.path.isfile(routes_json):
+            try:
+                with open(routes_json, "r", encoding="utf-8") as rf:
+                    rdata = json.load(rf)
+                    for r in rdata.get("routes", []):
+                        for rd in r.get("redirects", []):
+                            from_p = rd.get("from", "")
+                            to_p = rd.get("to", "")
+                            if from_p and to_p:
+                                redirects[from_p.rstrip("/")] = to_p
+                                redirects[from_p] = to_p
+            except Exception:
+                pass
+
+        # Check explicit legacy redirects (e.g. /story.html -> /story/)
+        norm_path = path.rstrip("/")
+        if path in redirects or norm_path in redirects:
+            target = redirects.get(path) or redirects.get(norm_path)
+            self.send_response(301)
+            self.send_header("Location", target)
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            return
+
+        # Canonical directory trailing slash redirect (/story -> /story/)
+        dir_cand = os.path.join(SITE_DIR, rel)
+        if os.path.isdir(dir_cand) and not path.endswith("/"):
+            self.send_response(301)
+            self.send_header("Location", path + "/")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            return
+
         candidates = [
             os.path.join(SITE_DIR, rel),
             os.path.join(SITE_DIR, rel, "index.html"),
-            os.path.join(SITE_DIR, rel + ".html"),
             os.path.join(FRONTEND_DIR, rel),
             os.path.join(FRONTEND_DIR, rel, "index.html"),
-            os.path.join(FRONTEND_DIR, rel + ".html"),
         ]
 
         target_file = None
