@@ -820,7 +820,10 @@ HTML;
                   <label>Your name<input type="text" id="cfName" name="name" autocomplete="name" placeholder="Full name" required></label>
                   <label>Email<input type="email" id="cfEmail" name="email" autocomplete="email" placeholder="you@company.com" required></label>
                 </div>
-                <label>Organization <span>(optional)</span><input type="text" id="cfOrg" name="organization" autocomplete="organization" placeholder="Company or institution"></label>
+                <div class="cf-row">
+                  <label>Organization <span>(optional)</span><input type="text" id="cfOrg" name="organization" autocomplete="organization" placeholder="Company or institution"></label>
+                  <label>Mobile Number<span class="cf-phone" id="cfPhoneWrap"><button type="button" class="cf-cc" id="cfCc" aria-haspopup="listbox" aria-expanded="false" aria-controls="cfCcPop" aria-label="Country code"><span class="cf-cc__flag" id="cfCcFlag" aria-hidden="true">🇮🇳</span><span class="cf-cc__code" id="cfCcCode">+91</span><svg class="cf-cc__chev" width="12" height="8" viewBox="0 0 12 8" fill="none" aria-hidden="true"><path d="m1 1 5 5 5-5" stroke="currentColor" stroke-width="1.5"/></svg></button><span class="cf-phone__divider" aria-hidden="true"></span><input type="tel" id="cfMobile" name="phone" inputmode="tel" autocomplete="tel-national" placeholder="Mobile number" required><input type="hidden" id="cfCcValue" name="country_code" value="+91"><input type="hidden" id="cfPhoneFull" name="full_phone_number" value=""><span class="cf-cc-pop" id="cfCcPop" role="listbox" hidden><ul class="cf-cc-list" id="cfCcList" role="listbox" aria-label="Countries"></ul></span></span></label>
+                </div>
                 <label>Anything I should know? <span>(optional)</span><textarea id="cfMsg" name="message" rows="3" placeholder="The challenge, the audience, what success looks like…"></textarea></label>
                 <div class="pick pick--date">
                   <p class="pick__label">Pick a day</p>
@@ -1299,7 +1302,7 @@ HTML;
                 '@type' => 'BreadcrumbList', '@id' => $breadcrumbId,
                 'itemListElement' => [
                     ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => $siteUrl . '/'],
-                    ['@type' => 'ListItem', 'position' => 2, 'name' => 'Case Studies', 'item' => $siteUrl . '/case-studies.html'],
+                    ['@type' => 'ListItem', 'position' => 2, 'name' => 'Case Studies', 'item' => $siteUrl . '/case-studies/'],
                     ['@type' => 'ListItem', 'position' => 3, 'name' => 'Orange Business Executive Briefing Center', 'item' => $pageUrl],
                 ],
             ],
