@@ -1187,21 +1187,6 @@ html.js.reveal-failsafe:not(.js-ok) [data-reveal="img"] img { transform: scale(1
 .date-pop .datepick { box-shadow: 0 34px 70px -24px rgba(12, 19, 48, 0.4); }
 .date-pop__hint { margin-top: 10px; font-size: 12px; color: #6E778F; text-align: center; }
 
-/* --- unavailable day (fully booked, from live availability) --- */
-.dp-day.is-unavail {
-  color: rgba(89, 97, 122, 0.32);
-  text-decoration: line-through; text-decoration-color: rgba(194, 59, 59, 0.35);
-  cursor: default;
-}
-.dp-day.is-unavail:hover:not(:disabled) { border-color: transparent; color: rgba(89, 97, 122, 0.32); background: transparent; }
-
-/* --- unavailable slot (from live availability) --- */
-.tslot.is-off {
-  background: #F1EEE6; border-color: transparent; color: #A6ACBB;
-  cursor: not-allowed; box-shadow: none;
-}
-.tslot.is-off:hover { border-color: transparent; color: #A6ACBB; background: #F1EEE6; }
-
 /* --- hint under the time groups --- */
 .pick__hint { margin-top: 10px; font-size: 12px; color: #6E778F; line-height: 1.55; }
 
