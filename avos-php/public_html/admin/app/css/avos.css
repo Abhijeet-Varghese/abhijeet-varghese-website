@@ -1119,23 +1119,6 @@ a {
  font-size: 11.5px; color: var(--ink-3); margin-top: 4px; line-height: 1.45; 
 }
 /* design system */
-.token-row {
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  padding: 13px 0; border-bottom: 1px solid var(--line);
-
-}
-.token-row:last-child {
- border-bottom: 0; 
-}
-.token-row__label {
- font-size: 13px; font-weight: 600; 
-}
-.token-row__sub {
- font-size: 11.5px; color: var(--ink-3); margin-top: 2px; 
-}
-.token-row__control {
- display: flex; align-items: center; gap: 12px; 
-}
 input[type="range"] {
 
   -webkit-appearance: none; appearance: none;
@@ -1155,24 +1138,6 @@ input[type="color"] {
   width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--line-2);
   background: none; cursor: pointer; padding: 2px;
 
-}
-.token-val {
- font-size: 12px; color: var(--ink-3); font-family: ui-monospace, monospace; min-width: 56px; text-align: right; 
-}
-.swatch-grid {
- display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; 
-}
-.swatch {
- border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--line); 
-}
-.swatch__color {
- height: 64px; 
-}
-.swatch__meta {
- padding: 8px 10px; background: var(--surface); 
-}
-.swatch__name {
- font-size: 12px; font-weight: 600; 
 }
 /* kanban / leads */
 .kanban {

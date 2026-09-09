@@ -12,13 +12,7 @@ AV.seed = {
     siteName: "AbhijeetVarghese.com",
     tagline: "",
     email: "",
-    phone: "",
-    theme: "light",
-    sidebarCollapsed: false,
-    designTokens: {
-      radius: 16, shadow: 40, spacing: 24, container: 1280, accent: "#2E5AAC",
-      bodyFont: "Inter Tight", headingFont: "Inter Tight", accentFont: "Instrument Serif"
-    }
+    phone: ""
   },
   nav: { primary: [], footerColumns: [], copyright: "" },
   sections: [],
@@ -176,3 +170,11 @@ AV.store = {
   reset() { localStorage.removeItem(this.KEY); this.load(); }
 };
 AV.store.load();
+
+/* ---------- Per-browser workspace preferences (theme, sidebar) — never part of the content store ---------- */
+AV.prefs = {
+  KEY: "avos-prefs-v1",
+  _read() { try { return JSON.parse(localStorage.getItem(this.KEY) || "{}") || {}; } catch (e) { return {}; } },
+  get(k) { return this._read()[k]; },
+  set(k, v) { const p = this._read(); p[k] = v; try { localStorage.setItem(this.KEY, JSON.stringify(p)); } catch (e) {} }
+};

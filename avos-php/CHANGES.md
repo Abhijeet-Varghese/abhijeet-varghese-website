@@ -49,9 +49,17 @@ at 5 viewports with CSS rule-usage tracking + a static selector scan of HTML/JS)
   (the real knowledge base lives under Platform › Knowledge; ⌘⇧F and the palette entry now
   open that tab). **Downloads** and **Testimonials** now render the records mirrored from the
   static site instead of hard-coded rows. Orphaned `.kb-result*` CSS removed.
+- **Design System** view removed: it edited `settings.designTokens` — a key that exists only in
+  the old localStorage seed, never in the CMS store (SiteSync derives `settings` from the site),
+  so on a fresh install the view crashed (`Cannot read properties of undefined (reading 'accent')`).
+  Its "tokens" changed nothing on the static site by design. Orphaned `.token-row*`/`.token-val`/
+  `.swatch*` CSS removed.
+- Workspace preferences (dark mode, collapsed sidebar) now live in per-browser localStorage
+  (`AV.prefs`, key `avos-prefs-v1`) instead of being written into the shared `settings` content
+  key — toggling the theme no longer creates a content version / server PUT.
 - Deep links with a tab (`#platform?tab=knowledge`) now open that tab on a cold load, and the
   Platform tab strip no longer hard-codes Webhooks as active.
-- 46 admin views render with 0 JS errors / 0 failing API calls.
+- 45 admin views render with 0 JS errors / 0 failing API calls.
 
 **Backend — API surface reduced to what the static site and the admin actually call**
 - Public content API removed: `GET /api/site`, `/api/pages(/slug)`, `/api/projects(/slug)`,
@@ -71,6 +79,8 @@ at 5 viewports with CSS rule-usage tracking + a static selector scan of HTML/JS)
 - `PUT /api/content` key allow-list is one constant (`ApiController::CONTENT_KEYS`) matching
   the real store keys; the phantom `forms/analytics/availability/notifications/dashboard`
   entries are gone.
+- Orphaned helpers removed: `Input::int`, `Input::e`, `OAuth2::refreshToken`,
+  `AnalyticsModel::contentMetrics` (zero callers).
 - `Installer`: the unused opt-in JSON `seed_file` path removed — install mirrors the static
   site, full stop. `backend/scripts/remove-dummy-content.php` and `prod-cleanup.php` (test-data
   scrubbers for the deleted battery) removed; runbooks updated.
@@ -89,4 +99,4 @@ at 5 viewports with CSS rule-usage tracking + a static selector scan of HTML/JS)
 - link audit 0 broken · static integrity clean · full-site responsive 24 routes × 25 sizes clean ·
   visual precision clean · accessibility/resilience clean · axe 0/0 · chrome consistency clean ·
   Orange Business clean · performance budget clean · contact/booking/case-nav/history-close PASS ·
-  doctor SYSTEM READY · frontend→CMS sync clean · admin 46 views 0 errors · functional suite PASS.
+  doctor SYSTEM READY · frontend→CMS sync clean · admin 45 views 0 errors · fresh-DB install → doctor READY, agent-runner 6 jobs OK · functional suite PASS.

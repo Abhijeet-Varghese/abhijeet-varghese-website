@@ -154,7 +154,6 @@
       { id: "aiagents", label: "AI Agents", icon: "zap" },
       { id: "aistudio", label: "AI Studio", icon: "ai" },
       { id: "copilot", label: "AI Copilot", icon: "spark" },
-      { id: "designsystem", label: "Design System", icon: "sliders" },
       { id: "knowledgegraph", label: "Knowledge & Truth", icon: "layers" }
     ]},
     { group: "System", items: [
@@ -272,7 +271,7 @@
       const app = $(".app");
       app.classList.toggle("sb-collapsed");
       if (innerWidth <= 1024) app.classList.remove("sb-collapsed");
-      AV.store.set("settings", { ...AV.store.get("settings"), sidebarCollapsed: app.classList.contains("sb-collapsed") });
+      AV.prefs.set("sidebarCollapsed", app.classList.contains("sb-collapsed"));
     });
     $("#sbToggle").addEventListener("click", () => {
       $(".app").classList.toggle("sb-open");
@@ -366,17 +365,14 @@
   };
 
   const toggleTheme = () => {
-    const s = AV.store.get("settings");
-    s.theme = s.theme === "dark" ? "light" : "dark";
-    AV.store.set("settings", s);
+    AV.prefs.set("theme", AV.prefs.get("theme") === "dark" ? "light" : "dark");
     applyTheme();
-    $("#themeBtn").innerHTML = icon(s.theme === "dark" ? "sun" : "moon");
   };
 
   const applyTheme = () => {
-    const s = AV.store.get("settings");
-    document.documentElement.dataset.theme = s.theme || "light";
-    if ($("#themeBtn")) $("#themeBtn").innerHTML = icon(s.theme === "dark" ? "sun" : "moon");
+    const t = AV.prefs.get("theme") || "light";
+    document.documentElement.dataset.theme = t;
+    if ($("#themeBtn")) $("#themeBtn").innerHTML = icon(t === "dark" ? "sun" : "moon");
   };
 
   /* ---------- Backend status ---------- */
@@ -517,8 +513,7 @@
   const init = () => {
     applyTheme();
     renderShell();
-    const s = AV.store.get("settings");
-    if (s.sidebarCollapsed && innerWidth > 1024) $(".app").classList.add("sb-collapsed");
+    if (AV.prefs.get("sidebarCollapsed") && innerWidth > 1024) $(".app").classList.add("sb-collapsed");
     const [hid, hqs] = (location.hash.slice(1) || "dashboard").split("?");
     const hparams = {};
     if (hqs) new URLSearchParams(hqs).forEach((v, k) => { hparams[k] = v; });

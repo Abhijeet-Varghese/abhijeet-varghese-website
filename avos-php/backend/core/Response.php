@@ -64,11 +64,6 @@ final class Input
         return $v === false ? '' : $v;
     }
 
-    public static function int(array $d, string $k, int $default = 0): int
-    {
-        return (int)($d[$k] ?? $default);
-    }
-
     public static function bool(array $d, string $k): bool
     {
         return in_array($d[$k] ?? false, [true, 1, '1', 'true', 'on'], true);
@@ -81,8 +76,4 @@ final class Input
         return trim($s, '-');
     }
 
-    public static function e(mixed $v): string
-    {
-        return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
-    }
 }

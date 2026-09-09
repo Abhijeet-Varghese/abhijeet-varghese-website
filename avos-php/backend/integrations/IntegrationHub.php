@@ -455,19 +455,4 @@ final class OAuth2
         return $d['access_token'];
     }
 
-    /** Exchange OAuth client credentials (client_id/secret/refresh_token) for a token. */
-    public static function refreshToken(string $tokenUrl, string $clientId, string $clientSecret, string $refreshToken, array $extra = []): string
-    {
-        $params = array_merge([
-            'grant_type' => 'refresh_token',
-            'client_id' => $clientId,
-            'client_secret' => $clientSecret,
-            'refresh_token' => $refreshToken,
-        ], $extra);
-        $res = IntegrationHub::http('POST', $tokenUrl, ['Content-Type: application/x-www-form-urlencoded'], http_build_query($params));
-        if (!$res['ok']) throw new RuntimeException('Token refresh failed: ' . ($res['error'] ?: ('HTTP ' . $res['status'])));
-        $d = IntegrationHub::json($res['body']);
-        if (empty($d['access_token'])) throw new RuntimeException('Token refresh returned no token');
-        return $d['access_token'];
-    }
 }

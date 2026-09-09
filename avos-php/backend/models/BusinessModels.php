@@ -246,10 +246,6 @@ final class AnalyticsModel
             FROM analytics_events WHERE utm_campaign<>'' AND created_at > NOW() - INTERVAL ? DAY
             GROUP BY utm_campaign ORDER BY visits DESC", [$days]);
     }
-    public static function contentMetrics(): array
-    {
-        return Database::all("SELECT * FROM content_metrics ORDER BY views DESC LIMIT 50");
-    }
     public static function recordConversion(string $contentId, string $contentType = 'page'): void
     {
         Database::q("INSERT INTO content_metrics (content_type, content_id, leads) VALUES (?,?,1)
