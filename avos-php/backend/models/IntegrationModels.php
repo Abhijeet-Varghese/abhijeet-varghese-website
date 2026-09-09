@@ -134,82 +134,6 @@ final class SearchConsoleModel
         return array_slice($out, 0, $limit);
     }
 
-    /** Fused opportunity: search data × keyword registry × business relevance. */
-    public static function opportunities(int $limit = 15): array
-    {
-        $wins = self::quickWins(50);
-        $kw = KeywordModel::opportunities(50);
-        $out = [];
-        foreach (array_slice($wins, 0, $limit) as $w) {
-            $out[] = [
-                'type' => 'search_quick_win',
-                'title' => $w['query'],
-                'score' => $w['opportunity_score'],
-                'data' => $w,
-                'effort' => $w['position'] <= 10 ? 'low' : 'medium',
-                'confidence' => min(97, 70 + $w['relevance'] / 5),
-            ];
-        }
-        foreach (array_slice($kw, 0, max(0, $limit - count($out))) as $k) {
-            $out[] = [
-                'type' => 'keyword_opportunity',
-                'title' => $k['keyword'] ?? $k['query'] ?? 'keyword',
-                'score' => $k['score'] ?? 50,
-                'data' => $k,
-                'effort' => $k['effort'] ?? 'medium',
-                'confidence' => $k['confidence'] ?? 80,
-            ];
-        }
-        usort($out, fn($a, $b) => $b['score'] <=> $a['score']);
-        return array_slice($out, 0, $limit);
-    }
-
-    /** Manual import from a Search Console CSV export (free fallback path). */
-    public static function importCsv(string $csv, string $source = 'google'): array
-    {
-        $lines = preg_split('/\r\n|\n|\r/', trim($csv));
-        $header = null;
-        $imported = 0;
-        foreach ($lines as $line) {
-            if ($line === '') continue;
-            $cols = str_getcsv($line, ',', '"', '\\');
-            if ($header === null) { $header = array_map('trim', $cols); continue; }
-            $row = array_combine(array_map(fn($h) => strtolower(str_replace([' ', '-'], '_', $h)), $header), $cols);
-            $q = trim((string)($row['top_queries'] ?? $row['query'] ?? ''));
-            $page = trim((string)($row['page'] ?? ''));
-            $ddate = trim((string)($row['date'] ?? ''));
-            $clicks = (int)($row['clicks'] ?? 0);
-            $imp = (int)($row['impressions'] ?? 0);
-            $pos = (float)($row['position'] ?? $row['avg_position'] ?? 0);
-            $ctr = $imp ? $clicks / $imp : 0;
-            if ($q === '' && $page === '') continue;
-            if ($ddate === '') $ddate = date('Y-m-d');
-            $ddate = date('Y-m-d', strtotime($ddate));
-            if (!$ddate) continue;
-            $src = $source === 'bing' ? 'bing' : 'google';
-            if ($q !== '') {
-                Database::q("INSERT INTO search_console_queries (source, property, query, page, clicks, impressions, ctr, position, ddate, retrieved_at)
-                             VALUES (?,?,?,?,?,?,?,?,?,NOW())
-                             ON DUPLICATE KEY UPDATE clicks=VALUES(clicks), impressions=VALUES(impressions), ctr=VALUES(ctr), position=VALUES(position), retrieved_at=NOW()",
-                    [$src, 'import', mb_substr($q, 0, 300), mb_substr($page, 0, 400), $clicks, $imp, $ctr, $pos, $ddate]);
-                $imported++;
-            }
-            if ($page !== '') {
-                Database::q("INSERT INTO search_console_pages (source, property, page, clicks, impressions, ctr, position, ddate, retrieved_at)
-                             VALUES (?,?,?,?,?,?,?,?,NOW())
-                             ON DUPLICATE KEY UPDATE clicks=VALUES(clicks), impressions=VALUES(impressions), ctr=VALUES(ctr), position=VALUES(position), retrieved_at=NOW()",
-                    [$src, 'import', mb_substr($page, 0, 400), $clicks, $imp, $ctr, $pos, $ddate]);
-            }
-            Database::q("INSERT INTO search_console_daily (source, property, ddate, clicks, impressions, ctr, position, retrieved_at)
-                         VALUES (?,?,?,?,?,?,?,NOW())
-                         ON DUPLICATE KEY UPDATE clicks=clicks+VALUES(clicks), impressions=impressions+VALUES(impressions),
-                         ctr=(ctr*impressions+VALUES(ctr)*VALUES(impressions))/(impressions+VALUES(impressions)),
-                         position=(position*impressions+VALUES(position)*VALUES(impressions))/(impressions+VALUES(impressions)),
-                         retrieved_at=NOW()",
-                [$src, 'import', $ddate, $clicks, $imp, $ctr, $pos]);
-        }
-        return ['imported' => $imported];
-    }
 }
 
 /* ============================================================
@@ -661,17 +585,6 @@ final class TrackableLinkModel
         return $u;
     }
 
-    /** Public click tracking (POST from redirect page or direct hit). */
-    public static function trackClick(int $linkId, array $ctx = []): void
-    {
-        Database::q("UPDATE trackable_links SET clicks=clicks+1 WHERE id=?", [$linkId]);
-        Database::q("INSERT INTO link_clicks (link_id, referrer, page, ip, ua, lead_id)
-                     VALUES (?,?,?,?,?,?)",
-            [$linkId, mb_substr((string)($ctx['referrer'] ?? ''), 0, 300), mb_substr((string)($ctx['page'] ?? ''), 0, 300),
-             mb_substr((string)($ctx['ip'] ?? ''), 0, 45), mb_substr((string)($ctx['ua'] ?? ''), 0, 300),
-             isset($ctx['lead_id']) ? (int)$ctx['lead_id'] : null]);
-    }
-
     public static function clicks(int $linkId, int $days = 90): array
     {
         return Database::all("SELECT * FROM link_clicks WHERE link_id=? AND created_at > NOW() - INTERVAL ? DAY ORDER BY id DESC LIMIT 100",
@@ -693,21 +606,6 @@ final class OutcomeModel
              $period[0] ?? null, $period[1] ?? null, $source, mb_substr($note, 0, 300)]);
     }
 
-    public static function recent(string $agentSlug = '', int $limit = 50): array
-    {
-        if ($agentSlug !== '') {
-            return Database::all("SELECT * FROM agent_outcomes WHERE agent_slug=? ORDER BY id DESC LIMIT $limit", [$agentSlug]);
-        }
-        return Database::all("SELECT * FROM agent_outcomes ORDER BY id DESC LIMIT $limit");
-    }
-
-    public static function summary(): array
-    {
-        $rows = Database::all(
-            "SELECT agent_slug, COUNT(*) actions, COUNT(DISTINCT metric) metrics
-             FROM agent_outcomes WHERE created_at > NOW() - INTERVAL 30 DAY GROUP BY agent_slug ORDER BY actions DESC");
-        return $rows;
-    }
 }
 
 /* ============================================================
@@ -766,11 +664,6 @@ final class IntelligenceMetricModel
    ============================================================ */
 final class DevIntelModel
 {
-    public static function repos(): array
-    {
-        return Database::all("SELECT * FROM dev_repos ORDER BY pushed_at DESC");
-    }
-
     /** Signals the Developer agent should look at. */
     public static function signals(): array
     {
@@ -814,11 +707,6 @@ final class KnowledgeIngestModel
     {
         $r = Database::one("SELECT content_hash FROM knowledge_ingest WHERE source_id=?", [$sourceId]);
         return $r ? (string)$r['content_hash'] : null;
-    }
-
-    public static function ledger(int $limit = 100): array
-    {
-        return Database::all("SELECT * FROM knowledge_ingest ORDER BY id DESC LIMIT $limit");
     }
 
 }

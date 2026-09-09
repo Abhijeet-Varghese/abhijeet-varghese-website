@@ -37,13 +37,9 @@
     });
   }
 
-  /* ---------- Booking — single screen, popover calendar, live availability ----------
+  /* ---------- Booking — single screen, popover calendar, standard slot list ----------
      The calendar stays closed until the visitor clicks the date field (popover).
-     Availability is fetched from the AV OS backend when available; otherwise the
-     form falls back to the standard slot list. */
-  /* Live-availability via the AV OS backend (/api/availability) — empty =
-     static slot list with graceful fallback messaging (no console noise). */
-  const AVAIL_ENDPOINT = "";
+     The preferred time is confirmed personally by email after submission. */
 
   const bookForm  = $("#contactForm");
   if (bookForm) {
@@ -169,9 +165,6 @@
   let chosenSlot = null;
   let selectedDate = null;
   let dateOpen = false;
-  let availMode = "static";            // "static" | "live"
-  const availCache = new Map();        // "YYYY-MM" -> { "YYYY-MM-DD": ["HH:MM", ...] }
-
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const minMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   const maxMonth = new Date(today.getFullYear(), today.getMonth() + 4, 1);
@@ -181,7 +174,6 @@
   const fmtShort = d => d.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" });
   const iso = d =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  const monthKey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 
   const updateSummary = () => {
     if (selectedDate && chosenSlot) {
@@ -224,30 +216,6 @@
   document.addEventListener("click", () => closeDate());
   document.addEventListener("keydown", e => { if (e.key === "Escape") closeDate(); });
 
-  /* ---- availability: live from the scheduler backend via proxy ---- */
-  const fetchMonth = async (y, m) => {
-    const key = `${y}-${String(m + 1).padStart(2, "0")}`;
-    if (availCache.has(key)) { availMode = "live"; return; }
-    if (!AVAIL_ENDPOINT) { availMode = "static"; return; }
-    try {
-      const res = await fetch(`${AVAIL_ENDPOINT}?month=${key}`, { headers: { Accept: "application/json" } });
-      if (!res.ok) throw new Error("proxy not deployed");
-      const data = await res.json();
-      if (!data || data.fallback) throw new Error("proxy fallback");
-      availCache.set(key, data.days || {});
-      availMode = "live";
-    } catch {
-      availMode = "static";
-    }
-    renderCal();
-    applySlotAvailability();
-  };
-  const dayAvail = d => {
-    if (availMode !== "live" || !d) return null;
-    const cache = availCache.get(monthKey(d));
-    return cache ? (cache[iso(d)] || []) : null;
-  };
-
   /* ---- calendar (rendered inside the popover) ---- */
   const renderCal = () => {
     const y = viewMonth.getFullYear(), m = viewMonth.getMonth();
@@ -263,7 +231,6 @@
       dpGrid.appendChild(pad);
     }
     const todayISO = iso(new Date());
-    const cache = availCache.get(monthKey(viewMonth));
     for (let dNum = 1; dNum <= daysInMonth; dNum++) {
       const d = new Date(y, m, dNum);
       const cell = document.createElement("button");
@@ -271,15 +238,10 @@
       cell.textContent = dNum; cell.setAttribute("role", "gridcell");
       if (iso(d) === todayISO) cell.classList.add("is-today");
       if (selectedDate && iso(d) === iso(selectedDate)) cell.classList.add("is-selected");
-      const av = cache ? cache[iso(d)] : null;
       if (d <= today) {
         cell.disabled = true; cell.setAttribute("aria-disabled", "true");
-      } else if (cache && av && av.length === 0) {
-        cell.disabled = true; cell.classList.add("is-unavail");
-        cell.setAttribute("aria-disabled", "true"); cell.title = "Fully booked";
       } else {
         cell.setAttribute("aria-label", fmtLong(d));
-        if (cache && av) cell.title = `${av.length} time${av.length > 1 ? "s" : ""} available`;
         cell.addEventListener("click", () => {
           selectedDate = d;
           fDate.value = iso(d);
@@ -289,7 +251,6 @@
           $(".datepick", bookForm).classList.remove("is-flagged");
           closeDate();
           renderCal();
-          applySlotAvailability();
           updateSummary();
         });
       }
@@ -298,43 +259,15 @@
   };
   dpPrev.addEventListener("click", () => {
     viewMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1);
-    renderCal(); fetchMonth(viewMonth.getFullYear(), viewMonth.getMonth());
+    renderCal();
   });
   dpNext.addEventListener("click", () => {
     viewMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1);
-    renderCal(); fetchMonth(viewMonth.getFullYear(), viewMonth.getMonth());
+    renderCal();
   });
 
-  /* ---- time slots — filtered by live availability when available ---- */
-  const applySlotAvailability = () => {
-    const av = dayAvail(selectedDate);
-    if (availMode === "live" && selectedDate && av) {
-      slotBtns.forEach(b => {
-        const on = av.includes(b.dataset.slot);
-        b.disabled = !on;
-        b.classList.toggle("is-off", !on);
-        b.title = on ? "" : "Unavailable on this day";
-      });
-      if (chosenSlot && !av.includes(chosenSlot)) {
-        slotBtns.forEach(x => { x.classList.remove("is-active"); x.setAttribute("aria-checked", "false"); });
-        chosenSlot = null;
-        updateSummary();
-      }
-    } else {
-      slotBtns.forEach(b => { b.disabled = false; b.classList.remove("is-off"); b.removeAttribute("title"); });
-    }
-    if (slotHint) {
-      if (availMode === "live" && selectedDate) {
-        slotHint.textContent = av && av.length
-          ? `${av.length} time${av.length > 1 ? "s" : ""} available this day`
-          : "No times left on this day — pick another date.";
-      } else if (availMode === "live") {
-        slotHint.textContent = "Times update with live availability.";
-      } else {
-        slotHint.textContent = "All standard times shown — final confirmation happens at booking.";
-      }
-    }
-  };
+  /* ---- time slots ---- */
+  if (slotHint) slotHint.textContent = "All standard times shown — final confirmation happens at booking.";
   const selectSlot = s => {
     slotBtns.forEach(x => {
       x.classList.remove("is-active");
@@ -494,7 +427,7 @@
     bookForm.reset();
     chosenSlot = null; selectedDate = null;
     slotBtns.forEach((s, i) => {
-      s.classList.remove("is-active", "is-off");
+      s.classList.remove("is-active");
       s.disabled = false;
       s.tabIndex = i === 0 ? 0 : -1;
     });
@@ -504,7 +437,7 @@
     closeDate();
     $$(".is-invalid", bookForm).forEach(el => el.classList.remove("is-invalid"));
     viewMonth = new Date(minMonth);
-    renderCal(); applySlotAvailability(); updateSummary();
+    renderCal(); updateSummary();
     if (cfNote) {
       cfNote.textContent = "Your preferred time will be confirmed personally by email.";
       cfNote.classList.remove("is-set");
@@ -521,7 +454,6 @@
   });
 
   renderCal();
-  fetchMonth(today.getFullYear(), today.getMonth());   // warm the availability cache
   }
 
   /* ---------- Stagger delays (groups can declare a base delay) ---------- */

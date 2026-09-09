@@ -34,7 +34,7 @@ repo root
 ├── avos-php/                      ← AV OS (admin + API) — works around the site, never renders it
 │   ├── router.php                 ← dev server: serves AV_SITE_DIR + /api /admin /install /media
 │   ├── backend/  config/config.php (AV_SITE_DIR) · core · models · controllers · agents · integrations
-│   │   └── scripts/               ← doctor · agent-runner · sync-frontend · integration-sync · restore-backup · prod-cleanup · remove-dummy-content
+│   │   └── scripts/               ← doctor · agent-runner · sync-frontend · integration-sync · restore-backup
 │   ├── public_html/               ← web-root files: .htaccess, admin/ (login + SPA), api/, install/, media.php
 │   ├── database/                  ← install.php · migrate.php · validate-migrations.php · provision.sql · migrations/001–031 (immutable)
 │   ├── storage/                   ← runtime only (uploads, cache, logs, backups, locks) — git-ignored

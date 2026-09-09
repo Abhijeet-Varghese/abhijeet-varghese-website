@@ -140,7 +140,6 @@
       { id: "media", label: "Media", icon: "image" },
       { id: "downloads", label: "Downloads", icon: "download" },
       { id: "testimonials", label: "Testimonials", icon: "check" },
-      { id: "forms", label: "Forms", icon: "card" },
       { id: "bookings", label: "Bookings", icon: "calendar" },
       { id: "leads", label: "Leads", icon: "target" },
       { id: "seo", label: "SEO", icon: "search" },
@@ -219,11 +218,21 @@
             <div class="pop" id="notifPop" hidden></div>
           </div>
           <span class="chip chip--ok" id="apiStatus" style="display:none;cursor:default" title="Backend connection">${icon("check", 11)} Backend</span>
-          <button class="avatar-lg" id="avatarBtn" aria-label="Account">AV</button>
+          <button class="avatar-lg" id="avatarBtn" aria-label="Account">${esc(userInitials())}</button>
         </header>
         <main class="view" id="view"></main>
       </div>`;
     bindShell();
+  };
+
+  const userInitials = () => ((AV.sessionUser || {}).name || "AV").split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase();
+  /* the shell renders before /api/session resolves — patch identity in afterwards */
+  const refreshIdentity = () => {
+    const u = AV.sessionUser || {};
+    $$(".sidebar__foot .avatar, #avatarBtn").forEach(e => { e.textContent = userInitials(); });
+    const n = $(".sidebar__foot-name"), r = $(".sidebar__foot-role");
+    if (n) n.textContent = u.name || "Abhijeet Varghese";
+    if (r) r.textContent = u.role || "Admin";
   };
 
   const sidebarHTML = () => `
@@ -238,10 +247,10 @@
       </div>
       <nav class="sidebar__nav" id="sidebarNav"></nav>
       <div class="sidebar__foot">
-        <div class="avatar">AV</div>
+        <div class="avatar">${esc(userInitials())}</div>
         <div style="min-width:0">
-          <p class="sidebar__foot-name">Abhijeet Varghese</p>
-          <p class="sidebar__foot-role">Super Admin</p>
+          <p class="sidebar__foot-name">${esc((AV.sessionUser || {}).name || "Abhijeet Varghese")}</p>
+          <p class="sidebar__foot-role">${esc((AV.sessionUser || {}).role || "Admin")}</p>
         </div>
       </div>
     </aside>`;
@@ -296,21 +305,28 @@
     });
     $("#paletteBtn").addEventListener("click", openPalette);
     $("#avatarBtn").addEventListener("click", () => {
+      const u = AV.sessionUser || {};
+      const initials = userInitials();
       const m = modal({
         title: "Account",
         body: `
           <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-            <div class="avatar" style="width:52px;height:52px;font-size:18px;background:linear-gradient(135deg,var(--accent),var(--azure));color:#fff;display:grid;place-items:center;border-radius:50%">AV</div>
-            <div><p style="font-weight:600;font-size:15px">Abhijeet Varghese</p>
-            <p style="color:var(--ink-3);font-size:12.5px">hi@abhijeetvarghese.com</p>
-            <span class="chip chip--accent" style="margin-top:6px">Super Admin</span></div>
+            <div class="avatar" style="width:52px;height:52px;font-size:18px;background:linear-gradient(135deg,var(--accent),var(--azure));color:#fff;display:grid;place-items:center;border-radius:50%">${esc(initials)}</div>
+            <div><p style="font-weight:600;font-size:15px">${esc(u.name || "")}</p>
+            <p style="color:var(--ink-3);font-size:12.5px">${esc(u.email || "")}</p>
+            <span class="chip chip--accent" style="margin-top:6px">${esc(u.role || "")}</span></div>
           </div>
-          <div class="field"><label>Full name</label><input value="Abhijeet Varghese"></div>
-          <div class="field" style="margin-top:12px"><label>Email</label><input value="hi@abhijeetvarghese.com"></div>`,
-        actions: `<button class="btn btn--ghost" data-close2>Close</button><button class="btn btn--primary" data-save>Save changes</button>`
+          <p class="hint" style="font-size:12px;color:var(--ink-3)">Name, e-mail, role and password are managed under <b>System › Users</b> and <b>Security</b>.</p>`,
+        actions: `<button class="btn btn--ghost" data-close2>Close</button><button class="btn btn--soft" data-users>${icon("users", 13)} Users</button><button class="btn btn--primary" data-logout>${icon("logout", 13)} Sign out</button>`
       });
       $("[data-close2]", m.el).addEventListener("click", m.close);
-      $("[data-save]", m.el).addEventListener("click", () => { m.close(); toast("Profile updated"); });
+      $("[data-users]", m.el).addEventListener("click", () => { m.close(); AV.router.go("users"); });
+      $("[data-logout]", m.el).addEventListener("click", async () => {
+        AV.api.cancelPush();
+        await AV.api.send("/api/auth/logout", "POST", {});
+        try { localStorage.removeItem(AV.store.KEY); } catch (e) {}
+        location.href = "/admin/login.php";
+      });
     });
     /* notification bell — live data from /api/notifications */
     const notifIcon = t => icon(t === "error" ? "x" : t === "lead" ? "target" : t === "publish" ? "send" : "bell");
@@ -517,6 +533,7 @@
     const authed = await AV.api.session();
     if (!authed) { location.href = "/admin/login.php"; return; }
     if (AV.sessionMustChange) { location.href = "/admin/change-password.php"; return; }
+    refreshIdentity();
     await AV.api.pull();
     AV.emitStatus();
     render();

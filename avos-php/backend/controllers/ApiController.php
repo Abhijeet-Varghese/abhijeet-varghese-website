@@ -3,12 +3,11 @@
  * AV OS — API controller (REST-style router)
  *
  * Public:      POST /api/auth/login|logout · GET /api/session
- *              GET /api/site · /api/pages(/slug) · /api/projects(/slug) · /api/posts(/slug)
- *              POST /api/public/lead · POST /api/public/submit
+ *              POST /api/public/lead · POST /api/analytics/track
+ *              (the website is static — there is no public content API)
  * Admin:       (session + CSRF + per-endpoint RBAC)
  *              GET/PUT /api/content (CMS data: leads/CRM/SEO/settings — the public site is static)
  *              POST/PUT /api/media(/id) · GET/PUT/DELETE /api/leads(/id)
- *              GET /api/forms · POST /api/forms/{id}/status · GET /api/forms/export
  *              GET /api/audit · GET /api/versions/{key} · POST /api/versions/{key}/restore
  *              GET/POST /api/users · POST /api/auth/change-password
  *              GET/PUT /api/ai/providers(/code) · POST /api/ai/generate
@@ -16,6 +15,9 @@
  */
 final class ApiController
 {
+    /** content_store keys the CMS may write (SiteSync-derived keys + testimonials, which live only in the store) */
+    private const CONTENT_KEYS = ['settings', 'nav', 'sections', 'pages', 'projects', 'articles', 'clients', 'testimonials', 'downloads', 'media', 'seo'];
+
     /** Valid international dialing codes (ITU-T E.164 country calling codes). */
     private const VALID_PHONE_CC = ['+1','+7','+20','+27','+30','+31','+32','+33','+34','+36','+39','+40','+41','+43','+44','+45','+46','+47','+48','+49','+51','+52','+53','+54','+55','+56','+57','+58','+60','+61','+62','+63','+64','+65','+66','+81','+82','+84','+86','+90','+91','+92','+93','+94','+95','+98','+211','+212','+213','+216','+218','+220','+221','+222','+223','+224','+225','+226','+227','+228','+229','+230','+231','+232','+233','+234','+235','+236','+237','+238','+239','+240','+241','+242','+243','+244','+245','+246','+248','+249','+250','+251','+252','+253','+254','+255','+256','+257','+258','+260','+261','+262','+263','+264','+265','+266','+267','+268','+269','+290','+291','+297','+298','+299','+350','+351','+352','+353','+354','+355','+356','+357','+358','+359','+370','+371','+372','+373','+374','+375','+376','+377','+378','+380','+381','+382','+383','+385','+386','+387','+389','+420','+421','+423','+500','+501','+502','+503','+504','+505','+506','+507','+508','+509','+590','+591','+592','+593','+594','+595','+596','+597','+598','+599','+670','+672','+673','+674','+675','+676','+677','+678','+679','+680','+681','+682','+683','+685','+686','+687','+688','+689','+690','+691','+692','+850','+852','+853','+855','+856','+880','+886','+960','+961','+962','+963','+964','+965','+966','+967','+968','+970','+971','+972','+973','+974','+975','+976','+977','+992','+993','+994','+995','+996','+998'];
 
@@ -49,15 +51,7 @@ final class ApiController
                 $action === 'auth' && $a === '2fa' && $b === 'disable' && $method === 'POST' => self::requireAuth('settings.write', fn() => self::auth2faDisable()),
                 $action === 'auth' && $a === '2fa' && $b === 'status' && $method === 'GET' => self::requireAuth('settings.read', fn() => self::auth2faStatus()),
                 $action === 'session' && $method === 'GET' => self::session(),
-                $action === 'site' && $method === 'GET' => self::site(),
-                $action === 'pages' && $method === 'GET' && !$a => self::pages(),
-                $action === 'pages' && $method === 'GET' => self::pageBySlug($a),
-                $action === 'projects' && $method === 'GET' && !$a => self::projects(),
-                $action === 'projects' && $method === 'GET' => self::projectBySlug($a),
-                $action === 'posts' && $method === 'GET' && !$a => self::posts(),
-                $action === 'posts' && $method === 'GET' => self::postBySlug($a),
                 $action === 'public' && $a === 'lead' && $method === 'POST' => self::publicLead(),
-                $action === 'public' && $a === 'submit' && $method === 'POST' => self::publicSubmit(),
 
                 // ---------- ADMIN ----------
                 $action === 'content' && $a === 'bulk' && $method === 'POST' => self::requireAuth('content.write', fn() => self::contentBulk()),
@@ -74,7 +68,6 @@ final class ApiController
                 $action === 'webhooks' && $a === 'inbound' && $b === 'config' && $method === 'PUT' => self::requireAuth('integrations.manage', fn() => self::webhookInboundConfigSave()),
                 $action === 'webhooks' && $a === 'inbound' && $b === 'events' && $method === 'GET' => self::requireAuth('integrations.manage', fn() => self::webhookInboundEvents()),
                 $action === 'webhooks' && $a === 'inbound' && $method === 'GET' && !$b => self::requireAuth('integrations.manage', fn() => self::webhookInboundConfig()),
-                $action === 'webhooks' && $a === 'deliveries' && $method === 'GET' && $b => self::requireAuth('integrations.manage', fn() => self::webhookDeliveries((int)$b)),
                 $action === 'media' && $method === 'GET' => self::requireAuth('media.read', fn() => self::mediaList()),
                 $action === 'media' && $method === 'POST' => self::requireAuth('media.write', fn() => self::uploadMedia()),
                 $action === 'media' && $method === 'PUT' && $a => self::requireAuth('media.write', fn() => self::updateMedia((int)$a)),
@@ -86,11 +79,6 @@ final class ApiController
                 $action === 'leads' && $method === 'POST' && !$a => self::requireAuth('leads.write', fn() => self::createLead()),
                 $action === 'leads' && $method === 'PUT' && $a => self::requireAuth('leads.write', fn() => self::updateLead((int)$a)),
                 $action === 'leads' && $method === 'DELETE' && $a => self::requireAuth('leads.write', fn() => self::deleteLead((int)$a)),
-                $action === 'forms' && $a === 'export' && $method === 'GET' => self::requireAuth('forms.read', fn() => self::formsExport()),
-                $action === 'forms' && $a === 'submissions' && $method === 'GET' => self::requireAuth('forms.read', fn() => self::formSubmissions()),
-                $action === 'forms' && $a === 'submissions' && $method === 'PUT' && $b => self::requireAuth('forms.write', fn() => self::formSubmissionStatus((int)$b)),
-                $action === 'forms' && $method === 'GET' && !$a => self::requireAuth('forms.read', fn() => self::forms()),
-                $action === 'forms' && $method === 'POST' && $a => self::requireAuth('forms.write', fn() => self::formStatus((int)$a)),
                 $action === 'audit' && $method === 'GET' => self::requireAuth('audit.read', fn() => self::audit()),
                 $action === 'versions' && $method === 'GET' && $a => self::requireAuth('versions.read', fn() => self::versions($a)),
                 $action === 'versions' && $method === 'POST' && $a && $b === 'restore' => self::requireAuth('versions.restore', fn() => self::restore($a)),
@@ -126,28 +114,12 @@ final class ApiController
                 $action === 'crm' && $a === 'meetings' && $method === 'POST' => self::requireAuth('leads.write', fn() => self::crmCreate('meetings')),
                 $action === 'crm' && $a === 'meetings' && $method === 'PUT' && $b => self::requireAuth('leads.write', fn() => self::crmUpdate('meetings', (int)$b)),
                 $action === 'crm' && $a === 'meetings' && $method === 'DELETE' && $b => self::requireAuth('leads.write', fn() => self::crmDelete('meetings', (int)$b)),
-                $action === 'crm' && $a === 'tasks' && $method === 'GET' => self::requireAuth('leads.read', fn() => self::crmTasks()),
-                $action === 'crm' && $a === 'tasks' && $method === 'POST' => self::requireAuth('leads.write', fn() => self::crmTaskCreate()),
-                $action === 'crm' && $a === 'tasks' && $method === 'PUT' && $b => self::requireAuth('leads.write', fn() => self::crmTaskUpdate((int)$b)),
-                $action === 'crm' && $a === 'tasks' && $method === 'DELETE' && $b => self::requireAuth('leads.write', fn() => self::crmTaskDelete((int)$b)),
-                $action === 'crm' && $a === 'restore' && $method === 'POST' && $b && $c => self::requireAuth('leads.write', fn() => self::crmRestore($b, (int)$c)),
                 $action === 'crm' && $a === 'activities' && $method === 'GET' && $b && $c => self::requireAuth('leads.read', fn() => self::crmActivities($b, (int)$c)),
-                $action === 'scoring' && $a === 'rules' && $method === 'GET' => self::requireAuth('leads.read', fn() => self::scoringRules()),
-                $action === 'scoring' && $a === 'rules' && $method === 'POST' => self::requireAuth('leads.write', fn() => self::scoringRuleSave(0)),
-                $action === 'scoring' && $a === 'rules' && $method === 'PUT' && $b => self::requireAuth('leads.write', fn() => self::scoringRuleSave((int)$b)),
-                $action === 'scoring' && $a === 'rules' && $method === 'DELETE' && $b => self::requireAuth('leads.write', fn() => self::scoringRuleDelete((int)$b)),
                 // ---------- V2: Business projects ----------
                 $action === 'business' && $a === 'projects' && $method === 'GET' => self::requireAuth('projects.manage', fn() => self::bizProjects()),
                 $action === 'business' && $a === 'projects' && $method === 'POST' => self::requireAuth('projects.manage', fn() => self::bizProjectCreate()),
                 $action === 'business' && $a === 'projects' && $method === 'PUT' && $b => self::requireAuth('projects.manage', fn() => self::bizProjectUpdate((int)$b)),
                 $action === 'business' && $a === 'projects' && $method === 'DELETE' && $b => self::requireAuth('projects.manage', fn() => self::bizProjectDelete((int)$b)),
-                $action === 'business' && $a === 'milestones' && $method === 'GET' && $b => self::requireAuth('projects.manage', fn() => self::bizMilestones((int)$b)),
-                $action === 'business' && $a === 'milestones' && $method === 'POST' && $b => self::requireAuth('projects.manage', fn() => self::bizMilestoneAdd((int)$b)),
-                $action === 'business' && $a === 'milestones' && $method === 'PUT' && $b => self::requireAuth('projects.manage', fn() => self::bizMilestoneUpdate((int)$b)),
-                $action === 'business' && $a === 'milestones' && $method === 'DELETE' && $b => self::requireAuth('projects.manage', fn() => self::bizMilestoneDelete((int)$b)),
-                $action === 'business' && $a === 'documents' && $method === 'GET' && $b => self::requireAuth('projects.manage', fn() => self::bizDocuments((int)$b)),
-                $action === 'business' && $a === 'documents' && $method === 'POST' && $b => self::requireAuth('projects.manage', fn() => self::bizDocumentAdd((int)$b)),
-                $action === 'business' && $a === 'documents' && $method === 'DELETE' && $b => self::requireAuth('projects.manage', fn() => self::bizDocumentDelete((int)$b)),
                 // ---------- V2: Proposals ----------
                 $action === 'proposals' && $a === 'preview' && $method === 'GET' && $b => self::requireAuth('content.read', fn() => self::proposalPreview((int)$b)),
                 $action === 'proposals' && $a === 'pdf' && $method === 'GET' && $b => self::requireAuth('content.read', fn() => self::proposalPdf((int)$b)),
@@ -162,7 +134,6 @@ final class ApiController
                 $action === 'analytics' && $a === 'sources' && $method === 'GET' => self::requireAuth('analytics.view', fn() => self::analyticsSources()),
                 $action === 'analytics' && $a === 'daily' && $method === 'GET' => self::requireAuth('analytics.view', fn() => self::analyticsDaily()),
                 $action === 'analytics' && $a === 'campaigns' && $method === 'GET' => self::requireAuth('analytics.view', fn() => self::analyticsCampaigns()),
-                $action === 'analytics' && $a === 'content' && $method === 'GET' => self::requireAuth('analytics.view', fn() => self::analyticsContent()),
                 $action === 'analytics' && $a === 'track' && $method === 'POST' => self::analyticsTrack(),
                 // ---------- V2: Automation / notifications / webhooks / flags / keys / knowledge / errors / email ----------
                 $action === 'automations' && $a === 'check-inactive' && $method === 'POST' => self::requireAuth('settings.write', fn() => self::automationCheckInactive()),
@@ -204,13 +175,8 @@ final class ApiController
                 $action === 'content-health' && $method === 'GET' => self::requireAuth('content.read', fn() => self::contentHealth()),
                 $action === 'ai' && $a === 'usage' && $method === 'GET' => self::requireAuth('ai.read', fn() => self::aiUsage()),
                 $action === 'sites' && $method === 'GET' => self::requireAuth('settings.read', fn() => self::sites()),
-                $action === 'search' && $method === 'GET' => self::requireAuth('content.read', fn() => self::search()),
                 $action === 'copilot' && $method === 'POST' => self::requireAuth('ai.use', fn() => self::copilot()),
                 // ---------- V1 public API ----------
-                $action === 'v1' && $a === 'projects' && $method === 'GET' => self::projects(),
-                $action === 'v1' && $a === 'case-studies' && $method === 'GET' => self::projects(),
-                $action === 'v1' && $a === 'leads' && $method === 'POST' => self::publicLead(),
-                $action === 'v1' && $a === 'posts' && $method === 'GET' => self::posts(),
                 $action === 'seo' && $a === 'keywords' && $method === 'GET' => self::requireAuth('content.read', fn() => self::seoKeywords()),
                 $action === 'seo' && $a === 'keywords' && $method === 'POST' => self::requireAuth('content.write', fn() => self::seoKeywordSave(0)),
                 $action === 'seo' && $a === 'keywords' && $method === 'PUT' && $b => self::requireAuth('content.write', fn() => self::seoKeywordSave((int)$b)),
@@ -227,7 +193,6 @@ final class ApiController
                 $action === 'seo' && $a === 'issues' && $method === 'GET' => self::requireAuth('content.read', fn() => self::seoIssues()),
                 $action === 'seo' && $a === 'issues' && $method === 'PUT' && $b => self::requireAuth('content.write', fn() => self::seoIssueStatus((int)$b)),
                 $action === 'seo' && $a === 'decay' && $method === 'GET' => self::requireAuth('content.read', fn() => self::seoDecay()),
-                $action === 'seo' && $a === 'internal-links' && $method === 'GET' => self::requireAuth('content.read', fn() => self::seoInternalLinks()),
                 $action === 'seo' && $a === 'brief' && $method === 'POST' => self::requireAuth('content.read', fn() => self::seoBrief()),
                 $action === 'seo' && $a === 'backlinks' && $method === 'GET' => self::requireAuth('content.read', fn() => self::seoBacklinks()),
                 $action === 'seo' && $a === 'backlinks' && $method === 'POST' => self::requireAuth('content.write', fn() => self::seoBacklinkSave(0)),
@@ -240,11 +205,6 @@ final class ApiController
                 $action === 'engagement' && $a === 'ctas' && $method === 'GET' => self::requireAuth('analytics.view', fn() => self::engagementCtas()),
                 $action === 'engagement' && $a === 'funnel' && $method === 'GET' => self::requireAuth('analytics.view', fn() => self::engagementFunnel()),
                 $action === 'intelligence' && $a === 'next-actions' && $method === 'GET' => self::requireAuth('content.read', fn() => self::intelNextActions()),
-                $action === 'intelligence' && $a === 'daily-brief' && $method === 'GET' => self::requireAuth('content.read', fn() => self::intelDailyBrief()),
-                $action === 'intelligence' && $a === 'weekly-report' && $method === 'GET' => self::requireAuth('content.read', fn() => self::intelWeeklyReport()),
-                $action === 'intelligence' && $a === 'social-drafts' && $method === 'GET' => self::requireAuth('content.read', fn() => self::intelSocialDrafts()),
-                $action === 'intelligence' && $a === 'social-drafts' && $method === 'POST' => self::requireAuth('content.write', fn() => self::intelSocialDraftCreate()),
-                $action === 'intelligence' && $a === 'social-drafts' && $method === 'PUT' && $b => self::requireAuth('content.write', fn() => self::intelSocialDraftStatus((int)$b)),
                 $action === 'agents' && $method === 'GET' && !$a => self::requireAuth('ai.read', fn() => self::agents()),
                 $action === 'agents' && $a === 'jobs' && $method === 'GET' => self::requireAuth('ai.read', fn() => self::agentJobs()),
                 $action === 'agents' && $a === 'memory' && $method === 'GET' => self::requireAuth('ai.read', fn() => self::agentMemory()),
@@ -255,7 +215,6 @@ final class ApiController
                 $action === 'agents' && $a && $method === 'PUT' => self::requireAuth('settings.write', fn() => self::agentUpdate($a)),
                 $action === 'agents' && $a && $b === 'run' && $method === 'POST' => self::requireAuth('ai.write', fn() => self::agentRun($a)),
                 $action === 'status' && $method === 'GET' => self::status(),
-                $action === 'system' && $a === 'doctor' && $method === 'GET' => self::requireAuth('settings.read', fn() => self::systemDoctor()),
                 $action === 'system' && $a === 'sync-frontend' && $method === 'GET' => self::requireAuth('content.read', fn() => self::syncFrontendStatus()),
                 $action === 'system' && $a === 'sync-frontend' && $method === 'POST' => self::requireAuth('content.write', fn() => self::syncFrontendRun()),
                 $action === 'system' && $a === 'backup-settings' && $method === 'GET' => self::requireAuth('settings.read', fn() => self::backupSettingsGet()),
@@ -270,13 +229,6 @@ final class ApiController
                 $action === 'integrations' && $a && $b === 'disable' && $method === 'POST' => self::requireAuth('integrations.manage', fn() => IntegrationController::setEnabled($a, false)),
                 $action === 'integrations' && $a && $method === 'PUT' => self::requireAuth('integrations.manage', fn() => IntegrationController::save($a)),
                 // ---------- V2.4: Search Console ----------
-                $action === 'search-console' && $a === 'overview' && $method === 'GET' => self::requireAuth('analytics.view', fn() => IntegrationController::scOverview()),
-                $action === 'search-console' && $a === 'queries' && $method === 'GET' => self::requireAuth('analytics.view', fn() => IntegrationController::scQueries()),
-                $action === 'search-console' && $a === 'pages' && $method === 'GET' => self::requireAuth('analytics.view', fn() => IntegrationController::scPages()),
-                $action === 'search-console' && $a === 'quick-wins' && $method === 'GET' => self::requireAuth('analytics.view', fn() => IntegrationController::scQuickWins()),
-                $action === 'search-console' && $a === 'opportunities' && $method === 'GET' => self::requireAuth('content.read', fn() => IntegrationController::scOpportunities()),
-                $action === 'search-console' && $a === 'cro-candidates' && $method === 'GET' => self::requireAuth('analytics.view', fn() => IntegrationController::scCro()),
-                $action === 'search-console' && $a === 'import' && $method === 'POST' => self::requireAuth('integrations.manage', fn() => IntegrationController::scImport()),
                 // ---------- V2.4: Research ----------
                 $action === 'research' && $a === 'sources' && $method === 'GET' => self::requireAuth('content.read', fn() => IntegrationController::researchSources()),
                 $action === 'research' && $a === 'sources' && $method === 'POST' => self::requireAuth('content.write', fn() => IntegrationController::researchSourceSave(null)),
@@ -288,7 +240,6 @@ final class ApiController
                 // ---------- V2.4: Knowledge graph + truth layer ----------
                 $action === 'knowledge-graph' && $method === 'GET' => self::requireAuth('content.read', fn() => IntegrationController::graph()),
                 $action === 'knowledge-graph' && $a === 'build' && $method === 'POST' => self::requireAuth('content.write', fn() => IntegrationController::graphBuild()),
-                $action === 'knowledge-graph' && $a === 'edge' && $method === 'POST' => self::requireAuth('content.write', fn() => IntegrationController::graphAddEdge()),
                 $action === 'facts' && $method === 'GET' => self::requireAuth('content.read', fn() => IntegrationController::facts()),
                 $action === 'facts' && $method === 'POST' => self::requireAuth('content.write', fn() => IntegrationController::factCreate()),
                 $action === 'facts' && $a && $b === 'status' && $method === 'PUT' => self::requireAuth('content.write', fn() => IntegrationController::factStatus((int)$a)),
@@ -303,16 +254,12 @@ final class ApiController
                 $action === 'social' && $a === 'profiles' && $b && $method === 'DELETE' => self::requireAuth('content.write', fn() => IntegrationController::socialProfileDelete($b)),
                 $action === 'social' && $a === 'sync' && $method === 'POST' => self::requireAuth('integrations.manage', fn() => IntegrationController::socialSync()),
                 // ---------- V2.4: Trackable links ----------
-                $action === 'links' && $a === 'click' && $method === 'POST' => IntegrationController::linkTrackPublic(),
                 $action === 'links' && $a && $b === 'clicks' && $method === 'GET' => self::requireAuth('content.read', fn() => IntegrationController::linkClicks((int)$a)),
                 $action === 'links' && $method === 'GET' && !$a => self::requireAuth('content.read', fn() => IntegrationController::links()),
                 $action === 'links' && $method === 'POST' && !$a => self::requireAuth('content.write', fn() => IntegrationController::linkSave(null)),
                 $action === 'links' && $method === 'DELETE' && $a => self::requireAuth('content.write', fn() => IntegrationController::linkDelete((int)$a)),
                 // ---------- V2.4: Intelligence ----------
                 $action === 'positioning' && $method === 'GET' => self::requireAuth('content.read', fn() => IntegrationController::positioning()),
-                $action === 'outcomes' && $method === 'GET' => self::requireAuth('content.read', fn() => IntegrationController::outcomes()),
-                $action === 'dev-intel' && $method === 'GET' => self::requireAuth('settings.read', fn() => IntegrationController::devIntel()),
-                $action === 'knowledge-ingest' && $method === 'GET' => self::requireAuth('content.read', fn() => IntegrationController::knowledgeIngest()),
                 default => Response::error('Not found', 404, 'NOT_FOUND'),
             };
         } catch (Throwable $e) {
@@ -410,55 +357,6 @@ final class ApiController
             '2fa_pending' => $pending !== null,
             'user' => $u ? ['id' => (int)$u['id'], 'name' => $u['name'], 'email' => $u['email'], 'role' => $u['role_name']] : null,
         ]);
-    }
-
-    /* ---------- public reads ---------- */
-    private static function site(): void
-    {
-        $doc = ContentStore::all();
-        Response::json([
-            'settings' => $doc['settings'] ?? [],
-            'nav' => $doc['nav'] ?? [],
-            'sections' => $doc['sections'] ?? [],
-            'pages' => $doc['pages'] ?? [],
-            'projects' => array_values(array_filter($doc['projects'] ?? [], fn($p) => ($p['status'] ?? '') === 'published')),
-            'articles' => array_values(array_filter($doc['articles'] ?? [], fn($a) => ($a['status'] ?? '') === 'published')),
-            'clients' => $doc['clients'] ?? [],
-        ]);
-    }
-
-    private static function pages(): void
-    {
-        Response::json(array_values(array_filter(ContentStore::get('pages'), fn($p) => ($p['status'] ?? '') === 'published' && !in_array($p['slug'] ?? '', ['', 'home', 'index']))));
-    }
-    private static function pageBySlug(string $slug): void
-    {
-        foreach (ContentStore::get('pages') as $p) {
-            if (($p['slug'] ?? '') === $slug && ($p['status'] ?? '') === 'published') Response::json($p);
-        }
-        Response::error('Page not found', 404, 'NOT_FOUND');
-    }
-    private static function projects(): void
-    {
-        Response::json(array_values(array_filter(ContentStore::get('projects'), fn($p) => ($p['status'] ?? '') === 'published')));
-    }
-    private static function projectBySlug(string $slug): void
-    {
-        foreach (ContentStore::get('projects') as $p) {
-            if (((($p['slug'] ?? '') === $slug) || (($p['title'] ?? '') && Input::slug($p['title']) === $slug)) && ($p['status'] ?? '') === 'published') Response::json($p);
-        }
-        Response::error('Project not found', 404, 'NOT_FOUND');
-    }
-    private static function posts(): void
-    {
-        Response::json(array_values(array_filter(ContentStore::get('articles'), fn($a) => ($a['status'] ?? '') === 'published')));
-    }
-    private static function postBySlug(string $slug): void
-    {
-        foreach (ContentStore::get('articles') as $a) {
-            if (($a['slug'] ?? '') === $slug && ($a['status'] ?? '') === 'published') Response::json($a);
-        }
-        Response::error('Post not found', 404, 'NOT_FOUND');
     }
 
     /* ---------- public lead (CRM) + spam protection ---------- */
@@ -645,52 +543,6 @@ final class ApiController
         return preg_match('/^[1-9]\d{6,14}$/', $digits) === 1;
     }
 
-    /* ---------- public form submissions ---------- */
-    private static function publicSubmit(): void
-    {
-        self::rateLimit(Auth::ip(), 'submit');
-        $d = Input::body();
-        if (!empty($d['website'])) Response::json(['ok' => true]); // honeypot
-        // optional turnstile
-        if (!empty(AV_TURNSTILE['secret_key'])) {
-            $token = Input::str($d, 'turnstile_token', 4000);
-            $ch = curl_init('https://challenges.cloudflare.com/turnstile/v0/siteverify');
-            curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true,
-                CURLOPT_POSTFIELDS => http_build_query(['secret' => AV_TURNSTILE['secret_key'], 'response' => $token])]);
-            $res = json_decode((string)curl_exec($ch), true);
-            curl_close($ch);
-            if (empty($res['success'])) Response::error('Spam check failed', 422, 'SPAM_BLOCKED');
-        }
-        $data = $d['data'] ?? $d;
-        if (!is_array($data)) Response::error('Invalid payload', 422, 'VALIDATION_ERROR');
-        $formId = (int)($data['form_id'] ?? 0);
-        // size limit
-        if (strlen(json_encode($data)) > 30000) Response::error('Payload too large', 413, 'PAYLOAD_TOO_LARGE');
-        // allowed fields only
-        $allowed = ['name', 'email', 'phone', 'company', 'organization', 'message', 'subject', 'type', 'project_type', 'source', 'page', 'referrer', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'form_id', 'timeline', 'date', 'time'];
-        $clean = [];
-        foreach ($allowed as $f) {
-            if (array_key_exists($f, $data)) {
-                $v = is_scalar($data[$f]) ? trim((string)$data[$f]) : '';
-                if (mb_strlen($v) <= 4000) $clean[$f] = $v;
-            }
-        }
-        if (isset($clean['email']) && $clean['email'] !== '' && !filter_var($clean['email'], FILTER_VALIDATE_EMAIL)) {
-            Response::error('Invalid email', 422, 'VALIDATION_ERROR');
-        }
-        if ($formId) {
-            $form = Database::one("SELECT config FROM forms WHERE id=? AND active=1", [$formId]);
-            if ($form) {
-                $cfg = json_decode($form['config'], true) ?: [];
-                foreach (($cfg['required'] ?? []) as $req) {
-                    if (empty($clean[$req])) Response::error('Missing required field: ' . $req, 422, 'VALIDATION_ERROR');
-                }
-            }
-        }
-        $id = FormModel::submit($clean, $formId ?: null);
-        Response::json(['ok' => true, 'id' => $id], 201);
-    }
-
     /* ---------- admin: content ---------- */
     private static function content(): void
     {
@@ -728,7 +580,7 @@ final class ApiController
                 }
             }
         }
-        $allowed = ['settings', 'nav', 'sections', 'pages', 'projects', 'articles', 'clients', 'testimonials', 'downloads', 'media', 'forms', 'seo', 'analytics', 'availability', 'notifications', 'dashboard'];
+        $allowed = self::CONTENT_KEYS;
         $uid = Auth::user()['id'] ?? null;
         foreach ($allowed as $key) {
             if (array_key_exists($key, $d)) ContentStore::put($key, $d[$key], $uid, 'saved from CMS');
@@ -904,7 +756,7 @@ final class ApiController
         Response::json(['ok' => true]);
     }
 
-    /* ---------- admin: leads / forms ---------- */
+    /* ---------- admin: leads ---------- */
     private static function leads(): void
     {
         $opts = [
@@ -996,49 +848,6 @@ final class ApiController
         Audit::log(Auth::user()['id'], 'lead_restore', 'lead', (string)$id);
         Response::json(['ok' => true]);
     }
-    private static function forms(): void
-    {
-        Response::json(FormModel::all());
-    }
-    private static function formsExport(): void
-    {
-        $rows = FormModel::all();
-        $csv = fopen('php://output', 'w');
-        header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="avos-submissions.csv"');
-        fputcsv($csv, ['id', 'form_id', 'data', 'status', 'ip', 'created_at']);
-        foreach ($rows as $r) fputcsv($csv, $r);
-        fclose($csv);
-        exit;
-    }
-    private static function formSubmissions(): void
-    {
-        $limit = min(200, max(1, (int)($_GET['limit'] ?? 100)));
-        $status = preg_match('/^[a-z]+$/', (string)($_GET['status'] ?? '')) ? $_GET['status'] : '';
-        $where = $status !== '' ? "WHERE status=?" : "";
-        $params = $status !== '' ? [$status] : [];
-        Response::json(Database::all(
-            "SELECT * FROM form_submissions $where ORDER BY id DESC LIMIT $limit", $params
-        ));
-    }
-
-    private static function formSubmissionStatus(int $id): void
-    {
-        $d = Input::body();
-        $status = Input::str($d, 'status', 20);
-        if (!in_array($status, ['new', 'read', 'replied', 'archived', 'spam'], true)) Response::error('Invalid status', 422, 'VALIDATION_ERROR');
-        Database::q("UPDATE form_submissions SET status=? WHERE id=?", [$status, $id]);
-        Audit::log(Auth::user()['id'], 'form_submission_status', 'form_submission', (string)$id, ['status' => $status]);
-        Response::json(['ok' => true]);
-    }
-
-    private static function formStatus(int $id): void
-    {
-        FormModel::setStatus($id, Input::str(Input::body(), 'status', 20));
-        Audit::log(Auth::user()['id'], 'form_status', 'form_submission', (string)$id);
-        Response::json(['ok' => true]);
-    }
-
     /* ---------- admin: audit / versions ---------- */
     private static function audit(): void
     {
@@ -1174,7 +983,6 @@ Output is a DRAFT for human review — never mark it as final.";
             'exported' => date('c'),
             'content' => ContentStore::all(),
             'leads' => LeadModel::all(),
-            'submissions' => FormModel::all(),
             'users' => array_map(fn($u) => ['name' => $u['name'], 'email' => $u['email'], 'role' => $u['role_name']], UserModel::all()),
             'ai_providers' => array_map(fn($r) => ['code' => $r['code'], 'model' => $r['model'], 'is_default' => (bool)$r['is_default']], Database::all("SELECT code, model, is_default FROM ai_providers")),
         ];
@@ -1269,7 +1077,7 @@ password=" . $db['pass'] . "
         // content (each key becomes a new version — history preserved)
         $restored = 0;
         foreach (($pkg['content'] ?? []) as $key => $value) {
-            if (is_array($value) && in_array($key, ['settings', 'nav', 'sections', 'pages', 'projects', 'articles', 'clients', 'testimonials', 'downloads', 'media', 'forms', 'seo', 'analytics', 'availability', 'notifications', 'dashboard'], true)) {
+            if (is_array($value) && in_array($key, self::CONTENT_KEYS, true)) {
                 ContentStore::put($key, $value, $uid, 'restored from backup ' . basename($file));
                 $restored++;
             }
@@ -1288,21 +1096,15 @@ password=" . $db['pass'] . "
                  $l['status'] ?? 'new', $l['score'] ?? 50, $l['tags'] ?? '[]', $l['notes'] ?? '', $l['created_at'] ?? date('Y-m-d H:i:s')]);
             $leads++;
         }
-        $subs = 0;
-        Database::q("DELETE FROM form_submissions");
-        foreach (($pkg['submissions'] ?? []) as $fs) {
-            Database::q("INSERT INTO form_submissions (form_id, data) VALUES (?,?)", [($fs['form_id'] ?? 0) ? (int)$fs['form_id'] : null, json_encode($fs['data'] ?? [])]);
-            $subs++;
-        }
             $pdo->commit();
         } catch (Throwable $e) {
             $pdo->rollBack();
             ErrorModel::log('error', 'backup_restore', $e->getMessage());
             Response::error('Restore failed and was rolled back: ' . $e->getMessage(), 500, 'RESTORE_FAILED');
         }
-        Audit::log($uid, 'backup_restore', 'site', basename($file), ['content_keys' => $restored, 'leads' => $leads, 'submissions' => $subs]);
+        Audit::log($uid, 'backup_restore', 'site', basename($file), ['content_keys' => $restored, 'leads' => $leads]);
         NotificationModel::push('Backup restored', "Restored from " . basename($file) . " — {$restored} content keys, {$leads} leads", 'publish');
-        Response::json(['ok' => true, 'content_keys' => $restored, 'leads' => $leads, 'submissions' => $subs]);
+        Response::json(['ok' => true, 'content_keys' => $restored, 'leads' => $leads]);
     }
 
     private static function backupDownload(string $name): void
@@ -1482,7 +1284,6 @@ password=" . $db['pass'] . "
                 'contacts' => CrmModel::deleteContact($id),
                 'opportunities' => CrmModel::deleteOpportunity($id),
                 'meetings' => CrmModel::deleteMeeting($id),
-                'tasks' => CrmModel::deleteTask($id),
                 default => null,
             };
             Audit::log(Auth::user()['id'], 'delete', 'crm_' . $which, (string)$id);
@@ -1490,39 +1291,9 @@ password=" . $db['pass'] . "
         Response::json(['ok' => true, 'soft' => !$permanent]);
     }
 
-    private static function crmRestore(string $which, int $id): void
-    {
-        if (!in_array($which, ['companies', 'contacts', 'opportunities', 'meetings', 'tasks'], true)) {
-            Response::error('Invalid entity', 422, 'VALIDATION_ERROR');
-        }
-        if (!TrashModel::restore($which, $id)) Response::error('Not found in trash', 404, 'NOT_FOUND');
-        Audit::log(Auth::user()['id'], 'restore', 'crm_' . $which, (string)$id);
-        Response::json(['ok' => true]);
-    }
     private static function crmPipeline(): void
     {
         Response::json(CrmModel::pipelineSummary());
-    }
-    private static function crmTasks(): void
-    {
-        $status = Input::str($_GET, 'status', 20) ?: null;
-        Response::json(CrmModel::tasks($status));
-    }
-    private static function crmTaskCreate(): void
-    {
-        $id = CrmModel::createTask(Input::body());
-        Audit::log(Auth::user()['id'], 'create', 'task', (string)$id);
-        Response::json(['id' => $id], 201);
-    }
-    private static function crmTaskUpdate(int $id): void
-    {
-        CrmModel::updateTask($id, Input::body());
-        Response::json(['ok' => true]);
-    }
-    private static function crmTaskDelete(int $id): void
-    {
-        CrmModel::deleteTask($id);
-        Response::json(['ok' => true]);
     }
     private static function crmActivities(string $type, int $id): void
     {
@@ -1530,20 +1301,6 @@ password=" . $db['pass'] . "
             Response::error('Invalid activity type', 422, 'VALIDATION_ERROR');
         }
         Response::json(CrmModel::activities($type, $id));
-    }
-
-    /* ---------- lead scoring ---------- */
-    private static function scoringRules(): void { Response::json(CrmModel::scoringRules()); }
-    private static function scoringRuleSave(int $id): void
-    {
-        CrmModel::saveScoringRule($id, Input::body());
-        Audit::log(Auth::user()['id'], 'update', 'scoring_rule', (string)$id);
-        Response::json(['ok' => true]);
-    }
-    private static function scoringRuleDelete(int $id): void
-    {
-        CrmModel::deleteScoringRule($id);
-        Response::json(['ok' => true]);
     }
 
     /* ---------- business projects ---------- */
@@ -1565,14 +1322,6 @@ password=" . $db['pass'] . "
         BusinessProjectModel::delete($id);
         Response::json(['ok' => true]);
     }
-    private static function bizMilestones(int $pid): void { Response::json(BusinessProjectModel::milestones($pid)); }
-    private static function bizMilestoneAdd(int $pid): void { Response::json(['id' => BusinessProjectModel::addMilestone($pid, Input::body())], 201); }
-    private static function bizMilestoneUpdate(int $id): void { BusinessProjectModel::updateMilestone($id, Input::body()); Response::json(['ok' => true]); }
-    private static function bizMilestoneDelete(int $id): void { BusinessProjectModel::deleteMilestone($id); Response::json(['ok' => true]); }
-    private static function bizDocuments(int $pid): void { Response::json(BusinessProjectModel::documents($pid)); }
-    private static function bizDocumentAdd(int $pid): void { Response::json(['id' => BusinessProjectModel::addDocument($pid, Input::body())], 201); }
-    private static function bizDocumentDelete(int $id): void { BusinessProjectModel::deleteDocument($id); Response::json(['ok' => true]); }
-
     /* ---------- proposals ---------- */
     private static function proposals(): void { Response::json(ProposalModel::all()); }
     private static function proposalCreate(): void
@@ -1690,7 +1439,6 @@ password=" . $db['pass'] . "
     private static function analyticsSources(): void { Response::json(AnalyticsModel::sources((int)(Input::str($_GET, 'days', 4) ?: 30))); }
     private static function analyticsDaily(): void { Response::json(AnalyticsModel::daily((int)(Input::str($_GET, 'days', 4) ?: 30))); }
     private static function analyticsCampaigns(): void { Response::json(AnalyticsModel::campaigns()); }
-    private static function analyticsContent(): void { Response::json(AnalyticsModel::contentMetrics()); }
     private static function analyticsTrack(): void
     {
         // first-party analytics pixel — public, rate-limited, minimal data
@@ -1743,8 +1491,6 @@ password=" . $db['pass'] . "
         Response::json(['ok' => true, 'id' => $id], $id ? 201 : 200);
     }
     private static function webhookDelete(int $id): void { WebhookModel::delete($id); Response::json(['ok' => true]); }
-    private static function webhookDeliveries(int $id): void { Response::json(WebhookModel::deliveries($id)); }
-
     /* ---------- api keys ---------- */
     private static function apiKeys(): void { Response::json(ApiKeyModel::all()); }
     private static function apiKeyCreate(): void
@@ -1881,14 +1627,6 @@ password=" . $db['pass'] . "
         header('Content-Length: ' . strlen($pdf));
         echo $pdf;
         exit;
-    }
-
-    /* ---------- global search ---------- */
-    private static function search(): void
-    {
-        $q = Input::str($_GET, 'q', 120);
-        if ($q === '') Response::json([]);
-        Response::json(SearchModel::search($q));
     }
 
     /* ---------- AI copilot (tool router, permission checked, no raw SQL) ---------- */
@@ -2408,9 +2146,7 @@ Sent at " . date('c'));
         Response::json(['ok' => $r['ok'], 'error' => $r['error'] ?? null, 'email_log_id' => $id]);
     }
 
-    /* ---------- frontend sync (backend pulls frontend design assets) ---------- */
-
-    /* ---------- system: backup settings / doctor ---------- */
+    /* ---------- system: backup settings ---------- */
     private static function backupSettingsGet(): void
     {
         Response::json(['settings' => BackupSettings::get()]);
@@ -2425,33 +2161,6 @@ Sent at " . date('c'));
 
 
 
-
-    private static function systemDoctor(): void
-    {
-        $checks = [];
-        $add = function (string $key, string $label, bool $ok, string $detail = '') use (&$checks): void {
-            $checks[] = ['key' => $key, 'label' => $label, 'ok' => $ok, 'detail' => $detail, 'level' => $ok ? 'ready' : 'critical'];
-        };
-        $add('php', 'PHP version', PHP_VERSION_ID >= 80000, PHP_VERSION);
-        $add('pdo_mysql', 'PDO MySQL', extension_loaded('pdo_mysql'), '');
-        $dbOk = true;
-        try { Database::one("SELECT 1"); } catch (Throwable $e) { $dbOk = false; }
-        $add('database', 'Database', $dbOk, $dbOk ? 'connected' : 'unreachable');
-        $add('storage', 'Storage writable', is_writable(AV_STORAGE));
-        $add('uploads', 'Uploads writable', is_writable(AV_UPLOADS));
-        $add('backups', 'Backups writable', is_writable(AV_BACKUPS));
-        $add('site', 'Static website (index.html + css/styles.css)', is_file(AV_SITE_DIR . '/index.html') && is_file(AV_SITE_DIR . '/css/styles.css'), AV_SITE_DIR);
-        $add('https', 'HTTPS (production)', AV_ENV !== 'production' || str_starts_with(AV_SITE_URL, 'https://'), AV_SITE_URL);
-        $add('enc_key', 'Encryption key (32+)', strlen((string)AV_ENC_KEY) >= 32, strlen((string)AV_ENC_KEY) . ' chars');
-        $add('config', 'Production guard', !(AV_ENV === 'production' && ((($GLOBALS['db']['pass'] ?? '') === 'aV0s_d3v_9xKq2mN7') || (($GLOBALS['db']['user'] ?? '') === 'avos'))), 'no default credentials');
-        $add('htaccess', 'Web root .htaccess', is_file(AV_PUBLIC . '/.htaccess'));
-        $add('installer', 'Installer disabled', is_file(AV_PUBLIC . '/install/.installed'), 'self-locked');
-        $add('cron', 'Agent runner cron/watcher', is_file(AV_CACHE . '/agent-runner-state.json'), 'state file present (cron has run)');
-        $add('mail', 'Mail', function_exists('mail') ? 'mail() available' : 'missing');
-        $add('locks', 'Lock directory', is_writable(AV_STORAGE . '/locks') || @mkdir(AV_STORAGE . '/locks', 0775, true) || is_writable(AV_STORAGE . '/locks'));
-        $ok = count(array_filter($checks, fn($c) => $c['ok']));
-        Response::json(['ready' => $ok === count($checks), 'passed' => $ok, 'total' => count($checks), 'checks' => $checks, 'timestamp' => date('c')]);
-    }
 
     /* ============================================================
        SEO + INTELLIGENCE HANDLERS
@@ -2535,17 +2244,6 @@ Sent at " . date('c'));
 
     private static function seoDecay(): void { Response::json(SeoCrawlerModel::contentDecay((int)($_GET['days'] ?? 30))); }
 
-    private static function seoInternalLinks(): void
-    {
-        // pages with few internal links pointing at them (weakest pages first)
-        $out = [];
-        foreach (SeoCrawlerModel::incomingLinks() as $url => $count) {
-            if ($count <= 1 && $url !== '/' && $url !== '/404.html') $out[] = ['page' => $url, 'incoming_links' => $count, 'opportunity' => 'Add internal links from related pages'];
-        }
-        usort($out, fn($x, $y) => $x['incoming_links'] <=> $y['incoming_links']);
-        Response::json($out);
-    }
-
     private static function seoBrief(): void
     {
         $d = Input::body();
@@ -2620,22 +2318,6 @@ Sent at " . date('c'));
 
     /* ---------- intelligence ---------- */
     private static function intelNextActions(): void { Response::json(IntelligenceModel::nextActions((int)($_GET['limit'] ?? 10))); }
-    private static function intelDailyBrief(): void { Response::json(IntelligenceModel::dailyBrief()); }
-    private static function intelWeeklyReport(): void { Response::json(IntelligenceModel::weeklyReport()); }
-    private static function intelSocialDrafts(): void { Response::json(IntelligenceModel::socialDrafts()); }
-
-    private static function intelSocialDraftCreate(): void
-    {
-        $r = IntelligenceModel::socialDraft(Input::body(), Auth::user()['id'] ?? null);
-        Response::json($r, 201);
-    }
-
-    private static function intelSocialDraftStatus(int $id): void
-    {
-        IntelligenceModel::socialDraftStatus($id, Input::body()['status'] ?? 'draft');
-        Response::json(['ok' => true]);
-    }
-
     /* ============================================================
        AI AGENT OS HANDLERS
        ============================================================ */

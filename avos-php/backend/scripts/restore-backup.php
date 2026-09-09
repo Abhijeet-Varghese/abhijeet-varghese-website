@@ -5,8 +5,8 @@
  * Usage:
  *   php backend/scripts/restore-backup.php <backup-file.json>
  *
- * Restores: content (each key becomes a new version), leads, form
- * submissions. NEVER restores users (password hashes are not and must
+ * Restores: content (each key becomes a new version) and leads. NEVER
+ * restores users (password hashes are not and must
  * never be stored in backups). Requires a working database (run
  * migrations first with `php database/migrate.php`).
  */
@@ -50,12 +50,6 @@ foreach (($pkg['leads'] ?? []) as $l) {
          $l['status'] ?? 'new', $l['score'] ?? 50, $l['tags'] ?? '[]', $l['notes'] ?? '', $l['created_at'] ?? date('Y-m-d H:i:s')]);
     $leads++;
 }
-$subs = 0;
-Database::q("DELETE FROM form_submissions");
-foreach (($pkg['submissions'] ?? []) as $fs) {
-    Database::q("INSERT INTO form_submissions (form_id, data) VALUES (?,?)", [($fs['form_id'] ?? 0) ? (int)$fs['form_id'] : null, json_encode($fs['data'] ?? [])]);
-    $subs++;
-}
 $secs = round(microtime(true) - $start, 2);
-printf("[restore] %s — %d content keys, %d leads, %d submissions restored in %ss\n", date('c'), $restored, $leads, $subs, $secs);
+printf("[restore] %s — %d content keys, %d leads restored in %ss\n", date('c'), $restored, $leads, $secs);
 exit(0);

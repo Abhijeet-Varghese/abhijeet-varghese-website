@@ -35,7 +35,7 @@ at 5 viewports with CSS rule-usage tracking + a static selector scan of HTML/JS)
   `?v=2.5.0-reel` tag to the standard content fingerprint.
 - BPCL sub-site `main.css`: unused `.foot`, `.foot__h`, `.foot__nav*`, `.foot__legal` rules
   (page uses the shared arena footer).
-- Stylesheet fingerprint re-hashed on every page (`styles.css?v=2.4.20-d48550315ad5`).
+- Stylesheet fingerprint re-hashed on every page (`styles.css?v=2.4.20-8d66bbde8bed`, `main.js?v=2.4.20-413ff5a8256b`).
 
 **AV OS admin — demo/seed leftovers replaced by live data**
 - `data.js`: the 330-line v1 demo seed (fake visitors, meetings with "Acme Inc", leads,
@@ -51,10 +51,42 @@ at 5 viewports with CSS rule-usage tracking + a static selector scan of HTML/JS)
   static site instead of hard-coded rows. Orphaned `.kb-result*` CSS removed.
 - Deep links with a tab (`#platform?tab=knowledge`) now open that tab on a cold load, and the
   Platform tab strip no longer hard-codes Webhooks as active.
-- 47 admin views render with 0 JS errors / 0 failing API calls.
+- 46 admin views render with 0 JS errors / 0 failing API calls.
+
+**Backend — API surface reduced to what the static site and the admin actually call**
+- Public content API removed: `GET /api/site`, `/api/pages(/slug)`, `/api/projects(/slug)`,
+  `/api/posts(/slug)`, the whole `/api/v1/*` block and `POST /api/public/submit`. The website
+  is static HTML; it only calls `POST /api/public/lead` and `POST /api/analytics/track`.
+  Public surface is now exactly: auth login/logout, session, public/lead, analytics/track.
+- Admin routes with no caller in the admin app removed together with their handlers and
+  model methods: `forms/*` (+ the Forms view, `FormModel`, backup/restore of
+  `form_submissions` — nothing wrote that table once `public/submit` was gone),
+  `crm/tasks`, `crm/restore`, `scoring/rules`, `business/milestones`, `business/documents`,
+  `webhooks/deliveries`, `analytics/content`, `search` (+ `SearchModel`),
+  `seo/internal-links`, `intelligence/daily-brief|weekly-report|social-drafts`,
+  `system/doctor`, `search-console/*` (7), `knowledge-graph/edge`, `links/click`,
+  `outcomes`, `dev-intel`, `knowledge-ingest`. 55 routes → 0 dead. Agents/cron keep the model
+  methods they call directly (`SearchConsoleModel::overview/queries/quickWins/croCandidates`,
+  `OutcomeModel::record`, `DevIntelModel::signals`, `KnowledgeIngestModel::record`, …).
+- `PUT /api/content` key allow-list is one constant (`ApiController::CONTENT_KEYS`) matching
+  the real store keys; the phantom `forms/analytics/availability/notifications/dashboard`
+  entries are gone.
+- `Installer`: the unused opt-in JSON `seed_file` path removed — install mirrors the static
+  site, full stop. `backend/scripts/remove-dummy-content.php` and `prod-cleanup.php` (test-data
+  scrubbers for the deleted battery) removed; runbooks updated.
+
+**Admin — account & booking**
+- Avatar button opens a live **Account** modal (name / e-mail / role from `/api/session`)
+  with Users and **Sign out** (`POST /api/auth/logout`, local cache cleared, back to login).
+  Sidebar footer and avatar initials come from the session instead of hard-coded text.
+- Website booking widget: the "live availability" plumbing (`/api/availability` fetch,
+  month cache, `is-unavail`/`is-off` states) had no backend endpoint and was dead on every
+  request; removed from `main.js`/`styles.css`, and the hint under the time slots now says
+  what actually happens ("All standard times shown — final confirmation happens at booking").
+  Booking on `/` and `/contact.html` verified end-to-end (date → slot → `public/lead` → done state).
 
 **Verification (private copy of the former battery run from outside the repo)**
 - link audit 0 broken · static integrity clean · full-site responsive 24 routes × 25 sizes clean ·
   visual precision clean · accessibility/resilience clean · axe 0/0 · chrome consistency clean ·
   Orange Business clean · performance budget clean · contact/booking/case-nav/history-close PASS ·
-  doctor SYSTEM READY · frontend→CMS sync clean.
+  doctor SYSTEM READY · frontend→CMS sync clean · admin 46 views 0 errors · functional suite PASS.

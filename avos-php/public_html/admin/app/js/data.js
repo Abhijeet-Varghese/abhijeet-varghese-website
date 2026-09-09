@@ -65,6 +65,7 @@ AV.api = {
         this.csrf = d.data.csrf || "";
         AV.sessionMustChange = !!d.data.must_change_password;
         AV.permissions = d.data.permissions || [];
+        AV.sessionUser = d.data.user || null;
         return true;
       }
       return false;

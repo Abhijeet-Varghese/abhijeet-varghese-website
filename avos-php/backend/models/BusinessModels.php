@@ -116,24 +116,6 @@ final class CrmModel
              $d['status'] ?? 'todo', $d['priority'] ?? 'medium', $d['assignee'] ?? null, Auth::user()['id'] ?? null]);
         return (int)Database::pdo()->lastInsertId();
     }
-    public static function tasks(?string $status = null): array
-    {
-        $sql = "SELECT * FROM tasks";
-        $p = [];
-        if ($status) { $sql .= " WHERE status=?"; $p[] = $status; }
-        $sql .= " ORDER BY created_at DESC LIMIT 200";
-        return Database::all($sql, $p);
-    }
-    public static function updateTask(int $id, array $d): void
-    {
-        $sets = []; $p = [];
-        foreach (['title','description','due_at','status','priority'] as $f) {
-            if (array_key_exists($f, $d)) { $sets[] = "$f=?"; $p[] = $d[$f]; }
-        }
-        if ($sets) { $p[] = $id; Database::q("UPDATE tasks SET " . implode(',', $sets) . " WHERE id=?", $p); }
-    }
-    public static function deleteTask(int $id): void { TrashModel::trash('tasks', $id); }
-
     /* ---- lead scoring (configurable) ---- */
     public static function scoreLead(array $lead): int
     {
@@ -158,13 +140,6 @@ final class CrmModel
         }
         return max(0, min(100, $score));
     }
-    public static function scoringRules(): array { return Database::all("SELECT * FROM lead_scoring_rules ORDER BY sort"); }
-    public static function saveScoringRule(int $id, array $d): void
-    {
-        if ($id) Database::q("UPDATE lead_scoring_rules SET name=?, match_field=?, match_value=?, points=?, enabled=?, sort=? WHERE id=?", [$d['name'], $d['match_field'], $d['match_value'], (int)$d['points'], (int)($d['enabled'] ?? 1), (int)($d['sort'] ?? 0), $id]);
-        else Database::q("INSERT INTO lead_scoring_rules (name, match_field, match_value, points, enabled, sort) VALUES (?,?,?,?,?,?)", [$d['name'], $d['match_field'], $d['match_value'], (int)$d['points'], (int)($d['enabled'] ?? 1), (int)($d['sort'] ?? 0)]);
-    }
-    public static function deleteScoringRule(int $id): void { Database::q("DELETE FROM lead_scoring_rules WHERE id=?", [$id]); }
 }
 
 /* ============================================================
@@ -194,24 +169,6 @@ final class BusinessProjectModel
         if ($sets) { $p[] = $id; Database::q("UPDATE projects SET " . implode(',', $sets) . " WHERE id=?", $p); }
     }
     public static function delete(int $id): void { TrashModel::trash('projects', $id); }
-    public static function milestones(int $projectId): array { return Database::all("SELECT * FROM project_milestones WHERE project_id=? ORDER BY due_at", [$projectId]); }
-    public static function addMilestone(int $projectId, array $d): int
-    {
-        Database::q("INSERT INTO project_milestones (project_id, title, due_at, status) VALUES (?,?,?,?)", [$projectId, $d['title'], $d['due_at'] ?? null, $d['status'] ?? 'pending']);
-        return (int)Database::pdo()->lastInsertId();
-    }
-    public static function updateMilestone(int $id, array $d): void
-    {
-        Database::q("UPDATE project_milestones SET title=?, due_at=?, status=? WHERE id=?", [$d['title'], $d['due_at'] ?? null, $d['status'] ?? 'pending', $id]);
-    }
-    public static function deleteMilestone(int $id): void { Database::q("DELETE FROM project_milestones WHERE id=?", [$id]); }
-    public static function documents(int $projectId): array { return Database::all("SELECT * FROM project_documents WHERE project_id=? ORDER BY created_at DESC", [$projectId]); }
-    public static function addDocument(int $projectId, array $d): int
-    {
-        Database::q("INSERT INTO project_documents (project_id, title, media_id, kind) VALUES (?,?,?,?)", [$projectId, $d['title'], $d['media_id'] ?? null, $d['kind'] ?? 'file']);
-        return (int)Database::pdo()->lastInsertId();
-    }
-    public static function deleteDocument(int $id): void { Database::q("DELETE FROM project_documents WHERE id=?", [$id]); }
 }
 
 /* ============================================================
@@ -557,10 +514,6 @@ final class WebhookModel
         }
     }
 
-    public static function deliveries(int $hookId): array
-    {
-        return Database::all("SELECT * FROM webhook_deliveries WHERE webhook_id=? ORDER BY id DESC LIMIT 50", [$hookId]);
-    }
 }
 
 /* ============================================================
@@ -711,42 +664,6 @@ final class EmailModel
 /* ============================================================
    GLOBAL SEARCH
    ============================================================ */
-final class SearchModel
-{
-    public static function search(string $q): array
-    {
-        $like = '%' . $q . '%';
-        $out = ['pages' => [], 'projects' => [], 'articles' => [], 'clients' => [], 'leads' => [], 'media' => [], 'knowledge' => [], 'contacts' => [], 'companies' => []];
-        $doc = ContentStore::all();
-        foreach (($doc['pages'] ?? []) as $p) {
-            if (stripos($p['title'] ?? '', $q) !== false || stripos($p['slug'] ?? '', $q) !== false) $out['pages'][] = ['id' => $p['id'] ?? '', 'title' => $p['title'] ?? '', 'slug' => $p['slug'] ?? ''];
-        }
-        foreach (($doc['projects'] ?? []) as $p) {
-            if (stripos($p['title'] ?? '', $q) !== false || stripos($p['client'] ?? '', $q) !== false) $out['projects'][] = ['id' => $p['id'] ?? '', 'title' => $p['title'] ?? '', 'client' => $p['client'] ?? ''];
-        }
-        foreach (($doc['articles'] ?? []) as $a) {
-            if (stripos($a['title'] ?? '', $q) !== false || stripos($a['excerpt'] ?? '', $q) !== false) $out['articles'][] = ['id' => $a['id'] ?? '', 'title' => $a['title'] ?? ''];
-        }
-        foreach (($doc['clients'] ?? []) as $c) {
-            if (stripos($c['name'] ?? '', $q) !== false) $out['clients'][] = ['id' => $c['id'] ?? '', 'name' => $c['name'] ?? ''];
-        }
-        foreach (LeadModel::all() as $l) {
-            if (stripos($l['name'] ?? '', $q) !== false || stripos($l['company'] ?? '', $q) !== false || stripos($l['email'] ?? '', $q) !== false) $out['leads'][] = ['id' => $l['id'], 'name' => $l['name'] ?? '', 'company' => $l['company'] ?? ''];
-        }
-        foreach (MediaModel::all() as $m) {
-            if (stripos($m['original_name'] ?? '', $q) !== false || stripos($m['alt_text'] ?? '', $q) !== false) $out['media'][] = ['id' => $m['id'], 'name' => $m['original_name'] ?? ''];
-        }
-        foreach (KnowledgeModel::search($q) as $k) $out['knowledge'][] = $k;
-        foreach (CrmModel::contacts() as $c) {
-            if (stripos($c['name'] ?? '', $q) !== false || stripos($c['email'] ?? '', $q) !== false) $out['contacts'][] = ['id' => $c['id'], 'name' => $c['name'] ?? ''];
-        }
-        foreach (CrmModel::companies() as $c) {
-            if (stripos($c['name'] ?? '', $q) !== false) $out['companies'][] = ['id' => $c['id'], 'name' => $c['name'] ?? ''];
-        }
-        return $out;
-    }
-}
-
 /* ============================================================
    EMAIL TEMPLATES (server-side, CMS-editable)
    ============================================================ */

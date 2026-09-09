@@ -198,13 +198,9 @@ backend paths. `/api`, `/admin`, `/install` are ordinary directories beside the 
 Note: `database/migrations/*` are immutable history — never edit them. Ship new numbered files.
 
 
-## Clean-first installs (v2.0.3+)
+## Clean-first installs
 
 There is no bundled seed file: the installer mirrors the static website
 (`abhijeetvarghese/`) into the CMS store, so a fresh install contains only
-real portfolio content — no demo leads/analytics/dashboard data. If you ever need to strip a working install down to
-production state, run:
-
-    php backend/scripts/remove-dummy-content.php
-    php backend/scripts/prod-cleanup.php --dry-run   # preview
-    php backend/scripts/prod-cleanup.php --execute   # apply
+real portfolio content — no demo data. `php backend/scripts/sync-frontend.php --force`
+re-derives the store from the website at any time.

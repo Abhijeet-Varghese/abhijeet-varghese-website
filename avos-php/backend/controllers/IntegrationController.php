@@ -68,47 +68,6 @@ final class IntegrationController
     }
 
     /* ================= search console ================= */
-    public static function scOverview(): void
-    {
-        Response::json(SearchConsoleModel::overview((int)($_GET['days'] ?? 28)));
-    }
-
-    public static function scQueries(): void
-    {
-        Response::json(['items' => SearchConsoleModel::queries(min(500, max(1, (int)($_GET['limit'] ?? 100))), (string)($_GET['source'] ?? ''))]);
-    }
-
-    public static function scPages(): void
-    {
-        Response::json(['items' => SearchConsoleModel::pages(min(500, max(1, (int)($_GET['limit'] ?? 100))))]);
-    }
-
-    public static function scQuickWins(): void
-    {
-        Response::json(['items' => SearchConsoleModel::quickWins(min(100, max(1, (int)($_GET['limit'] ?? 20))))]);
-    }
-
-    public static function scOpportunities(): void
-    {
-        Response::json(['items' => SearchConsoleModel::opportunities(min(50, max(1, (int)($_GET['limit'] ?? 15))))]);
-    }
-
-    public static function scCro(): void
-    {
-        Response::json(['items' => SearchConsoleModel::croCandidates(min(50, max(1, (int)($_GET['limit'] ?? 10))))]);
-    }
-
-    public static function scImport(): void
-    {
-        $d = Input::body();
-        $csv = (string)($d['csv'] ?? '');
-        $source = ($d['source'] ?? 'google') === 'bing' ? 'bing' : 'google';
-        if ($csv === '') Response::error('CSV content is required (paste the Search Console export)', 422, 'VALIDATION');
-        $res = SearchConsoleModel::importCsv($csv, $source);
-        Audit::log(Auth::user()['id'] ?? null, 'search_import', 'search_console', $source, $res);
-        Response::json($res);
-    }
-
     /* ================= research engine ================= */
     public static function researchSources(): void
     {
@@ -166,19 +125,6 @@ final class IntegrationController
         $n = KnowledgeGraphModel::buildFromContent();
         $f = FactsModel::seedFromContent();
         Response::json(['nodes' => $n, 'facts_seeded' => $f]);
-    }
-
-    public static function graphAddEdge(): void
-    {
-        $d = Input::body();
-        if (empty($d['from_type']) || empty($d['from_id']) || empty($d['to_type']) || empty($d['to_id']) || empty($d['relation'])) {
-            Response::error('from/to entity and relation are required', 422, 'VALIDATION');
-        }
-        KnowledgeGraphModel::upsertNode((string)$d['from_type'], (string)$d['from_id'], (string)($d['from_label'] ?? $d['from_id']));
-        KnowledgeGraphModel::upsertNode((string)$d['to_type'], (string)$d['to_id'], (string)($d['to_label'] ?? $d['to_id']));
-        KnowledgeGraphModel::upsertEdge((string)$d['from_type'], (string)$d['from_id'], (string)$d['to_type'], (string)$d['to_id'],
-            (string)$d['relation'], (int)($d['weight'] ?? 1), (string)($d['evidence'] ?? ''), (int)($d['verified'] ?? 0));
-        Response::json(['saved' => true]);
     }
 
     /* ================= truth layer ================= */
@@ -291,40 +237,11 @@ final class IntegrationController
         Response::json(['link' => $row, 'clicks' => TrackableLinkModel::clicks($id)]);
     }
 
-    /** PUBLIC click tracking — no auth (fires from redirect links on the site). */
-    public static function linkTrackPublic(): void
-    {
-        $linkId = (int)($_GET['id'] ?? 0);
-        if ($linkId <= 0) Response::error('Link id required', 422, 'VALIDATION');
-        $row = Database::one("SELECT * FROM trackable_links WHERE id=?", [$linkId]);
-        if (!$row) Response::error('Link not found', 404, 'NOT_FOUND');
-        TrackableLinkModel::trackClick($linkId, [
-            'referrer' => (string)($_SERVER['HTTP_REFERER'] ?? ''),
-            'page' => (string)($_GET['page'] ?? ''),
-            'ip' => (string)($_SERVER['REMOTE_ADDR'] ?? ''),
-            'ua' => mb_substr((string)($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 300),
-        ]);
-        Response::json(['ok' => true, 'redirect' => TrackableLinkModel::url($row)]);
-    }
-
     /* ================= intelligence ================= */
     public static function positioning(): void
     {
         Response::json(IntelligenceMetricModel::positioningHealth());
     }
 
-    public static function outcomes(): void
-    {
-        Response::json(['items' => OutcomeModel::recent((string)($_GET['agent'] ?? '')), 'summary' => OutcomeModel::summary()]);
-    }
 
-    public static function devIntel(): void
-    {
-        Response::json(['repos' => DevIntelModel::repos(), 'signals' => DevIntelModel::signals()]);
-    }
-
-    public static function knowledgeIngest(): void
-    {
-        Response::json(['items' => KnowledgeIngestModel::ledger(), 'sources' => KnowledgeModel::sources()]);
-    }
 }

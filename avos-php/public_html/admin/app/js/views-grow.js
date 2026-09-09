@@ -1,6 +1,6 @@
 /* ============================================================
    AV OS — views: media, downloads, testimonials,
-   forms, bookings, leads, SEO, analytics
+   bookings, leads, SEO, analytics
    ============================================================ */
 (() => {
   const { icon, toast, modal, confirmDlg, esc, $, $$ } = AV.ui;
@@ -184,68 +184,6 @@
           <div style="margin-top:14px">${statusChip(t.status || "draft")}</div>
         </div>`).join("") || `<div class="empty" style="grid-column:1/-1;padding:30px"><p>No testimonials on the website yet.</p></div>`}
     </div>`;
-  });
-
-  /* ============ FORMS ============ */
-  R.register("forms", () => `
-    <div class="view__head">
-      <div><h1 class="view__title">Forms</h1>
-      <p class="view__desc">Real submissions from the public contact/booking flow — statuses, spam flag, CSV export.</p></div>
-      <div class="view__head-actions">
-        <button class="btn btn--ghost" data-export>${icon("download")} Export CSV</button>
-        <select class="select" id="subStatus" style="min-height:38px">
-          <option value="">All statuses</option>
-          <option value="new">new</option><option value="read">read</option><option value="replied">replied</option>
-          <option value="archived">archived</option><option value="spam">spam</option>
-        </select>
-      </div>
-    </div>
-    <div class="card" style="overflow:auto">
-      <table class="table">
-        <thead><tr><th>#</th><th>Form</th><th>Data</th><th>Status</th><th>Received</th><th></th></tr></thead>
-        <tbody id="subsBody"></tbody>
-      </table>
-    </div>`);
-  R.after("forms", view => {
-    const load = async () => {
-      const st = $("#subStatus", view).value;
-      const r = await AV.api.get("/api/forms/submissions" + (st ? "?status=" + st : ""));
-      const rows = (r.data || []);
-      $("#subsBody", view).innerHTML = rows.map(fs => {
-        const d = (typeof fs.data === "string" ? JSON.parse(fs.data || "{}") : (fs.data || {}));
-        const who = [d.name, d.email].filter(Boolean).join(" · ") || "—";
-        const msg = String(d.message || d.msg || "").slice(0, 90);
-        return `
-        <tr>
-          <td style="color:var(--ink-4);font-size:12px">#${fs.id}</td>
-          <td style="font-size:12.5px">${esc(fs.form_id || "contact")}</td>
-          <td><p class="cell-main">${esc(who)}</p><p class="cell-sub">${esc(msg)}</p></td>
-          <td><select class="sub-status" data-id="${fs.id}" style="min-height:30px;border-radius:8px;border:1px solid var(--line-2);font-size:12px;padding:3px 6px">
-            ${["new","read","replied","archived","spam"].map(st2 => `<option ${fs.status === st2 ? "selected" : ""}>${st2}</option>`).join("")}
-          </select></td>
-          <td style="font-size:12px;color:var(--ink-3)">${esc((fs.created_at || "").slice(0, 16).replace("T", " "))}</td>
-          <td>${fs.ip ? `<span class="chip chip--muted" style="font-size:10.5px">${esc(fs.ip)}</span>` : ""}</td>
-        </tr>`;
-      }).join("") || `<tr><td colspan="6" style="text-align:center;color:var(--ink-3);padding:30px">No submissions yet.</td></tr>`;
-      $$(".sub-status", view).forEach(sel => sel.addEventListener("change", async () => {
-        await AV.api.send("/api/forms/submissions/" + sel.dataset.id, "PUT", { status: sel.value });
-        toast("Status → " + sel.value);
-      }));
-    };
-    $("#subStatus", view).addEventListener("change", load);
-    $("[data-export]", view).addEventListener("click", async () => {
-      try {
-        const r = await fetch("/api/forms/export", { credentials: "same-origin" });
-        if (!r.ok) { toast("Export failed", "error"); return; }
-        const blob = await r.blob();
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = "form-submissions-" + new Date().toISOString().slice(0, 10) + ".csv";
-        document.body.appendChild(a); a.click(); a.remove();
-        URL.revokeObjectURL(a.href);
-      } catch (e) { toast("Export failed", "error"); }
-    });
-    load();
   });
 
   /* ============ BOOKINGS ============ */

@@ -1369,7 +1369,7 @@
           <select class="select" id="verKey" style="flex:1;min-width:220px">
             <option value="settings">settings</option><option value="nav">nav</option><option value="sections">sections (homepage)</option>
             <option value="pages">pages</option><option value="projects">projects</option><option value="articles">articles</option>
-            <option value="clients">clients</option><option value="testimonials">testimonials</option><option value="forms">forms</option>
+            <option value="clients">clients</option><option value="testimonials">testimonials</option>
           </select>
           <button class="btn btn--soft" data-load>${icon("clock", 13)} Load versions</button>
         </div>

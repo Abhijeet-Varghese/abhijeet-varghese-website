@@ -641,32 +641,6 @@ final class IntelligenceModel
     }
 
     /* ---------- weekly growth report ---------- */
-    public static function weeklyReport(): array
-    {
-        $cur = AnalyticsModel::summary(7);
-        $prevViews = (int)Database::one("SELECT COUNT(*) n FROM analytics_events WHERE created_at BETWEEN NOW() - INTERVAL 14 DAY AND NOW() - INTERVAL 7 DAY AND event_type IN ('pageview','essay_view','journal_view','case_study_view')")['n'];
-        $leadsCur = (int)Database::one("SELECT COUNT(*) n FROM leads WHERE created_at > NOW() - INTERVAL 7 DAY")['n'];
-        $leadsPrev = (int)Database::one("SELECT COUNT(*) n FROM leads WHERE created_at BETWEEN NOW() - INTERVAL 14 DAY AND NOW() - INTERVAL 7 DAY")['n'];
-        $top = Database::all("SELECT path, COUNT(*) n FROM analytics_events WHERE created_at > NOW() - INTERVAL 7 DAY AND event_type IN ('pageview','essay_view','journal_view','case_study_view') GROUP BY path ORDER BY n DESC LIMIT 5");
-        $worst = Database::all("SELECT path, COUNT(*) n FROM analytics_events WHERE created_at > NOW() - INTERVAL 7 DAY AND event_type IN ('pageview','essay_view','journal_view','case_study_view') GROUP BY path ORDER BY n ASC LIMIT 5");
-        $leadQuality = Database::one("SELECT ROUND(AVG(score)) s, COUNT(*) n FROM leads WHERE created_at > NOW() - INTERVAL 7 DAY");
-        $rankings = KeywordModel::rankingHistory(7);
-        $improved = 0;
-        foreach ($rankings as $r) if ((int)$r['position'] <= 10) $improved++;
-        return [
-            'week' => date('Y-m-d', strtotime('-7 days')) . ' → ' . date('Y-m-d'),
-            'pageviews' => (int)$cur['pageviews'],
-            'pageviews_delta_pct' => $prevViews > 0 ? round(((int)$cur['pageviews'] - $prevViews) / $prevViews * 100, 1) : 0,
-            'leads' => $leadsCur,
-            'leads_delta_pct' => $leadsPrev > 0 ? round(($leadsCur - $leadsPrev) / $leadsPrev * 100, 1) : 0,
-            'avg_lead_score' => (int)($leadQuality['s'] ?? 0),
-            'top_content' => $top,
-            'worst_content' => $worst,
-            'keywords_top10' => $improved,
-            'recommended' => array_map(fn($x) => $x['title'], self::nextActions(5)),
-        ];
-    }
-
     /* ---------- social drafts (drafts only — never auto-post) ---------- */
     public static function socialDraft(array $d, ?int $userId): array
     {
@@ -695,15 +669,4 @@ final class IntelligenceModel
         return ['id' => $id, 'platform' => $platform, 'draft' => $draft, 'status' => 'draft', 'note' => 'Draft only — never posted automatically.'];
     }
 
-    public static function socialDrafts(): array
-    {
-        return Database::all("SELECT * FROM social_drafts ORDER BY id DESC LIMIT 50");
-    }
-
-    public static function socialDraftStatus(int $id, string $status): void
-    {
-        if (in_array($status, ['draft', 'approved', 'posted'], true)) {
-            Database::q("UPDATE social_drafts SET status=? WHERE id=?", [$status, $id]);
-        }
-    }
 }

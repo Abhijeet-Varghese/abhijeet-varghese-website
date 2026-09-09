@@ -168,28 +168,6 @@ final class LeadModel
     }
 }
 
-final class FormModel
-{
-    public static function submit(array $data, ?int $formId = null, string $status = 'new'): int
-    {
-        Database::q(
-            "INSERT INTO form_submissions (form_id, data, status, ip) VALUES (?,?,?,?)",
-            [$formId, json_encode($data), $status, Auth::ip()]
-        );
-        return (int)Database::pdo()->lastInsertId();
-    }
-
-    public static function all(): array
-    {
-        return Database::all("SELECT * FROM form_submissions ORDER BY created_at DESC");
-    }
-
-    public static function setStatus(int $id, string $status): void
-    {
-        Database::q("UPDATE form_submissions SET status=? WHERE id=?", [$status, $id]);
-    }
-}
-
 final class UserModel
 {
     public static function create(string $name, string $email, string $password, int $roleId): int

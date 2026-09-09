@@ -15,7 +15,7 @@ final class Installer
 {
     /**
      * @param array $opts {
-     *   email, name, password, create_pass (bool), seed_file, lock_path
+     *   email, name, password, create_pass (bool), lock_path
      * }
      * @return array{ok:bool, errors:array, temp_pass:string, email:string}
      */
@@ -55,19 +55,7 @@ final class Installer
                 $errors[] = 'No migration files found in ' . AV_ROOT . '/database/migrations';
             }
 
-            // 2. optional JSON seed (opt-in via $opts['seed_file']; there is no bundled
-            //    seed any more — the static frontend is the only source of content)
-            $seedFile = (string)($opts['seed_file'] ?? '');
-            if ($seedFile !== '' && is_file($seedFile) && !$errors) {
-                $doc = json_decode((string)file_get_contents($seedFile), true) ?: [];
-                $keys = ['settings','sections','pages','projects','articles','media','seo','clients','testimonials','downloads','nav'];
-                $up = $pdo->prepare("INSERT INTO content_store (key_name, data) VALUES (?,?) ON DUPLICATE KEY UPDATE data=VALUES(data)");
-                foreach ($keys as $k) {
-                    if (array_key_exists($k, $doc)) $up->execute([$k, json_encode($doc[$k], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]);
-                }
-            }
-
-            // 2b. mirror the static frontend into the store (frontend = source of truth); never fatal.
+            // 2. mirror the static frontend into the store (frontend = source of truth); never fatal.
             if (!$errors && defined('AV_SITE_DIR') && is_file(AV_SITE_DIR . '/index.html')) {
                 try {
                     // install.php loads only config + this class; pull in the runtime autoloader for SiteSync's deps
