@@ -4,6 +4,38 @@
      files change. This file records the CURRENT variant only — superseded
      revisions are removed when the code they describe is removed. -->
 
+## v2.4.20-r10 · INDIAN ARMY CASE STUDY — FULL PAGE REPLACES THE "COMING SOON" PLACEHOLDER
+
+**Public website**
+- `case-studies/indian-army/index.html` is now the complete case study of the Immersive
+  Training & Qualification Ecosystem (28 numbered sections, 20 images, sticky 10-chapter nav
+  with progress indicator). The "coming soon / in development" placeholder is gone, together
+  with its `.case-coming*` CSS block in `styles.css`.
+- Copy follows the approved brief: real, completed project — no "visual reconstruction",
+  conceptual or illustrative disclaimers; no invented metrics, dates, locations, specs, software
+  or readiness/deployment claims. Digital → physical is always described as progression toward
+  physical training. The one generated dashboard image carries a neutral "figures indicative only"
+  caption.
+- Role is stated at project-lead level: experience strategy, creative direction, immersive
+  experience, content development, stakeholder management (daily with the Major, weekly with
+  the Colonel, Brigadier-level approval — framed as project review/approval, not military
+  authority), team leadership, client coordination, execution. Dedicated sections: Project
+  Leadership (requirements → strategy → build → review → approval → implemented experience
+  bridge), Stakeholder Management (three cadence cards) and an 8-item role matrix.
+- New assets: `css/indian-army-case-study.css`, `js/indian-army-case-study.js`
+  (IntersectionObserver reveals, ±16px desktop parallax, scroll-driven digital→physical gate,
+  chapter nav; all disabled under `prefers-reduced-motion`),
+  `assets/media/indian-army/ia-01..20.webp` full-res 1672px + `-960.webp` responsive variants
+  (7.2 MB total; hero preloaded, everything else lazy).
+- Article / BreadcrumbList / ImageObject JSON-LD, OG and Twitter meta for the page;
+  `sitemap.html` label updated.
+- Fingerprints: `styles.css?v=2.4.20-2f70fe04f51a` on all 24 pages,
+  `indian-army-case-study.css?v=2.4.20-f71e9100b03b`, `indian-army-case-study.js?v=2.4.20-c221ec25c670`.
+
+**Verification** — 0 console errors, 0 broken images, no horizontal overflow at 390 / 1440 / 1920;
+link audit 0 broken across 22 crawled pages; static integrity clean; axe 0 critical/serious/moderate
+on the 14-page battery; `sync-frontend --status` in_sync; `doctor` READY.
+
 ## v2.4.20-r9 · CURRENT VARIANT ONLY — DOCS, TESTS AND OLD-VERSION CODE REMOVED
 
 **Removed from the repository**

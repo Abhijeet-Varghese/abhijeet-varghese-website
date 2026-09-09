@@ -27,8 +27,8 @@ repo root
 ├── abhijeetvarghese/              ← THE PUBLIC WEBSITE (final static frontend; deployed as-is)
 │   ├── index.html · story.html · portfolio.html · contact.html · insights.html · …  (24 pages)
 │   ├── experience/ · case-studies/{,orange-business,indian-army,bharat-petroleum-corporation-limited}/
-│   ├── css/{tokens,styles,portfolio-reel,orange-business-case-study}.css
-│   ├── js/{main,portfolio-reel,orange-business-case-study}.js   (contact form → /api/public/lead)
+│   ├── css/{tokens,styles,portfolio-reel,orange-business-case-study,indian-army-case-study}.css
+│   ├── js/{main,portfolio-reel,orange-business-case-study,indian-army-case-study}.js   (contact form → /api/public/lead)
 │   ├── assets/                    ← images, fonts, résumé
 │   └── .htaccess                  ← legacy-URL 301 map, cache headers, 404
 ├── avos-php/                      ← AV OS (admin + API) — works around the site, never renders it
@@ -63,7 +63,10 @@ browser pass over the 24 routes.
   wall, "More work — coming soon" panel. Custom reel cursor is intentional.
 - **Case studies** (`/case-studies/`): index + three dedicated pages — Orange Business EBC
   (long-form, hotspots/tabs/journey all keyboard + touch operable; MP4s intentionally absent),
-  Indian Army, BPCL (self-contained sub-site; optional `walkthrough.mp4` probed by HEAD, absent by design).
+  Indian Army (Immersive Training & Qualification Ecosystem — 28 sections, 20 images, own
+  css/js, sticky chapter nav; copy is fact-locked: no invented metrics/dates/specs, no
+  "reconstruction" disclaimers), BPCL (self-contained sub-site; optional `walkthrough.mp4`
+  probed by HEAD, absent by design).
 - **Contact**: on-site scheduler (date/time saved to AV OS, in-page confirmation, no Calendly),
   country-code field, 44 px touch targets.
 - Chrome (nav + footer) identical on every page; compact focus-trapped navigation ≤900 px.
