@@ -23,7 +23,7 @@
   <link rel="icon" type="image/png" href="../assets/logo.png">
   <link rel="stylesheet" href="../css/styles.css?v=2.4.20-2f70fe04f51a">
   <link rel="stylesheet" href="../css/tokens.css">
-  <link rel="stylesheet" href="../css/recruitment.css?v=3.0.0">
+  <link rel="stylesheet" href="../css/recruitment.css?v=4.0.0">
   <script>
     document.documentElement.className += " js";
     setTimeout(function () {
@@ -70,11 +70,11 @@
 
   <div class="r-stage" id="rStage" aria-hidden="true">
     <div class="r-stage__base"></div>
-    <div class="r-stage__aurora" data-parallax="0.12">
+    <div class="r-stage__aurora" data-parallax="0.10">
       <i class="r-stage__blob r-stage__blob--a"></i>
       <i class="r-stage__blob r-stage__blob--b"></i>
     </div>
-    <div class="r-stage__grid" data-parallax="0.24"></div>
+    <div class="r-stage__grid" data-parallax="0.22"></div>
     <div class="r-stage__light" id="rStageLight"></div>
   </div>
 
@@ -121,312 +121,401 @@
     </div>
   </header>
 
-  <nav class="r-rail" id="rRail" aria-label="Recruiter page sections">
-    <div class="r-rail__inner">
-      <a class="r-rail__link is-active" href="#intro" data-rail="intro">Intro</a>
-      <a class="r-rail__link" href="#think" data-rail="think">Think</a>
-      <a class="r-rail__link" href="#work" data-rail="work">Work</a>
-      <a class="r-rail__link" href="#own" data-rail="own">Own</a>
-      <a class="r-rail__link" href="#fit" data-rail="fit">Fit</a>
-      <a class="r-rail__link r-rail__link--cta" href="#contact" data-rail="contact">Contact</a>
-    </div>
-  </nav>
-
-
   <main id="main">
-    <!-- ============================================================
-         01 — HERO  (who is Abhijeet?)
-         ============================================================ -->
-    <section class="r-hero" id="intro" data-act="01" aria-label="Introduction">
-      <div class="r-wrap r-hero__inner">
-        <div class="r-hero__copy">
-          <p class="r-kicker" data-reveal><span class="r-kicker__num">Recruiter</span>Recruitment</p>
-          <h1 class="r-hero__title" data-reveal style="--d:.05s">I don't fit neatly into one job title.<em>And that's the point.</em></h1>
-          <div class="r-id" data-reveal style="--d:.13s">
-            <p class="r-id__name">Abhijeet Varghese</p>
-            <p class="r-id__role">Creative Systems Leader</p>
-            <p class="r-id__sub">Experience Design • Enterprise Innovation • AI-Enabled Creative Production</p>
-          </div>
-          <p class="r-lead" data-reveal style="--d:.2s">I work at the intersection of <strong>creativity, technology and human understanding</strong> — connecting strategy, storytelling, experience, people and execution to build meaningful physical, digital and immersive experiences.</p>
-          <div class="r-ctarow" data-reveal style="--d:.28s">
-            <a class="r-cta r-cta--accent" href="#contact">Start a conversation <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
-            <a class="r-cta r-cta--ghost" href="#work">View selected work <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
-          </div>
-        </div>
-        <div class="r-hero__viz" id="rHeroViz" aria-hidden="true">
-          <div class="r-hero__frags">
-            <figure class="r-hero__frag r-hero__frag--a"><img src="../assets/media/orange-business-executive-briefing-center-mumbai-panoramic-640.webp" alt="" width="640" height="427" loading="lazy" decoding="async"></figure>
-            <figure class="r-hero__frag r-hero__frag--b"><img src="../assets/media/indian-army/ia-01-960.webp" alt="" width="960" height="640" loading="lazy" decoding="async"></figure>
-          </div>
-          <svg class="r-hero__constellation" id="rHeroConstellation" viewBox="0 0 480 500" fill="none" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-            <g class="r-cnode__lines" stroke="rgba(110,168,255,.24)" stroke-width="1">
-              <path d="M240 78 L362 128"/><path d="M362 128 L412 250"/><path d="M412 250 L362 372"/><path d="M362 372 L240 422"/>
-              <path d="M240 422 L118 372"/><path d="M118 372 L68 250"/><path d="M68 250 L118 128"/><path d="M118 128 L240 78"/>
-              <path d="M240 78 L240 422"/><path d="M362 128 L118 372"/><path d="M412 250 L68 250"/><path d="M362 372 L118 128"/>
-            </g>
-            <g class="r-cnode"><circle class="r-cnode__pulse" cx="240" cy="78" r="15"/><circle class="r-cnode__halo" cx="240" cy="78" r="15"/><circle class="r-cnode__dot" cx="240" cy="78" r="4"/><text class="r-cnode__label" x="240" y="116" text-anchor="middle">Strategy</text></g>
-            <g class="r-cnode"><circle class="r-cnode__halo" cx="362" cy="128" r="15"/><circle class="r-cnode__dot" cx="362" cy="128" r="4"/><text class="r-cnode__label" x="362" y="166" text-anchor="middle">Story</text></g>
-            <g class="r-cnode"><circle class="r-cnode__pulse" cx="412" cy="250" r="15"/><circle class="r-cnode__halo" cx="412" cy="250" r="15"/><circle class="r-cnode__dot" cx="412" cy="250" r="4"/><text class="r-cnode__label" x="412" y="288" text-anchor="middle">Design</text></g>
-            <g class="r-cnode"><circle class="r-cnode__halo" cx="362" cy="372" r="15"/><circle class="r-cnode__dot" cx="362" cy="372" r="4"/><text class="r-cnode__label" x="362" y="410" text-anchor="middle">Space</text></g>
-            <g class="r-cnode"><circle class="r-cnode__pulse" cx="240" cy="422" r="15"/><circle class="r-cnode__halo" cx="240" cy="422" r="15"/><circle class="r-cnode__dot" cx="240" cy="422" r="4"/><text class="r-cnode__label" x="240" y="460" text-anchor="middle">Technology</text></g>
-            <g class="r-cnode"><circle class="r-cnode__halo" cx="118" cy="372" r="15"/><circle class="r-cnode__dot" cx="118" cy="372" r="4"/><text class="r-cnode__label" x="118" y="410" text-anchor="middle">Content</text></g>
-            <g class="r-cnode"><circle class="r-cnode__halo" cx="68" cy="250" r="15"/><circle class="r-cnode__dot" cx="68" cy="250" r="4"/><text class="r-cnode__label" x="68" y="288" text-anchor="middle">People</text></g>
-            <g class="r-cnode"><circle class="r-cnode__halo" cx="118" cy="128" r="15"/><circle class="r-cnode__dot" cx="118" cy="128" r="4"/><text class="r-cnode__label" x="118" y="166" text-anchor="middle">Execution</text></g>
-          </svg>
-        </div>
-      </div>
-    </section>
 
     <!-- ============================================================
-         02 — THE SHORT VERSION  (what does he do?)
+         CHAPTER 01 — HERO  (typography-led, editorial)
          ============================================================ -->
-    <section class="r-sec" id="short" data-act="02" aria-label="The short version">
+        <!-- ============================================================
+         CHAPTER 01 — HERO  (typography-led, cinematic)
+         ============================================================ -->
+    <section class="r-hero" id="intro" data-act="01" data-act-label="Introduction" aria-label="Introduction">
       <div class="r-wrap">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">01</span>The short version</p>
-        <h2 class="r-display" data-reveal>I connect <em>the dots.</em></h2>
-        <ol class="r-flow" data-reveal>
-          <li class="r-flow__node">Idea</li>
-          <li class="r-flow__arrow" aria-hidden="true"></li>
-          <li class="r-flow__node">Strategy</li>
-          <li class="r-flow__arrow" aria-hidden="true"></li>
-          <li class="r-flow__node">Story</li>
-          <li class="r-flow__arrow" aria-hidden="true"></li>
-          <li class="r-flow__node">Experience</li>
-          <li class="r-flow__arrow" aria-hidden="true"></li>
-          <li class="r-flow__node">Technology</li>
-          <li class="r-flow__arrow" aria-hidden="true"></li>
-          <li class="r-flow__node">Execution</li>
-        </ol>
-        <div class="r-snap" data-reveal>
-          <div class="r-snap__cell"><strong>Core</strong><span>Creative Leadership + Experience Design</span></div>
-          <div class="r-snap__cell"><strong>Specialisation</strong><span>Creative Strategy + Immersive Technology</span></div>
-          <div class="r-snap__cell"><strong>Experience</strong><span>Physical + Digital + Interactive + Immersive</span></div>
-          <div class="r-snap__cell"><strong>Leadership</strong><span>Creative + Teams + Stakeholders + Execution</span></div>
+        <p class="r-label r-hero__label" data-hero-reveal style="--d:0s">Recruitment</p>
+        <div class="r-hero__stage">
+          <div class="r-hero__sheen" id="rHeroSheen" aria-hidden="true"></div>
+          <h1 class="r-hero__name" data-hparallax="-0.09" aria-label="Abhijeet Varghese — Creative Systems Leader">
+            <span class="r-hero__line" style="--d:.12s"><span class="r-hero__txt">Abhijeet</span></span>
+            <span class="r-hero__line r-hero__line--ghost" style="--d:.26s"><span class="r-hero__txt">Varghese</span></span>
+          </h1>
+          <div class="r-hero__viz" id="rHeroViz" aria-hidden="true">
+            <svg class="r-hero__constellation" id="rHeroConstellation" viewBox="0 0 560 560" fill="none" preserveAspectRatio="xMidYMid meet">
+              <g class="r-cnode__orbits">
+                <circle cx="280" cy="280" r="150"/>
+                <circle cx="280" cy="280" r="222"/>
+              </g>
+              <g class="r-cnode__lines" stroke="rgba(110,168,255,.18)" stroke-width="1">
+                <path d="M280 80 L421 139"/><path d="M421 139 L480 280"/><path d="M480 280 L421 421"/><path d="M421 421 L280 480"/>
+                <path d="M280 480 L139 421"/><path d="M139 421 L80 280"/><path d="M80 280 L139 139"/><path d="M139 139 L280 80"/>
+                <path d="M280 280 L280 80"/><path d="M280 280 L421 139"/><path d="M280 280 L480 280"/><path d="M280 280 L421 421"/>
+                <path d="M280 280 L280 480"/><path d="M280 280 L139 421"/><path d="M280 280 L80 280"/><path d="M280 280 L139 139"/>
+              </g>
+              <g class="r-cnode__core">
+                <circle class="r-cnode__core-halo" cx="280" cy="280" r="26"/>
+                <circle class="r-cnode__core-pulse" cx="280" cy="280" r="26"/>
+                <circle class="r-cnode__core-dot" cx="280" cy="280" r="7"/>
+              </g>
+              <g class="r-cnode" data-x="280" data-y="80"><circle class="r-cnode__pulse" cx="280" cy="80" r="16"/><circle class="r-cnode__halo" cx="280" cy="80" r="16"/><circle class="r-cnode__dot" cx="280" cy="80" r="4"/><text class="r-cnode__label" x="280" y="118" text-anchor="middle">Strategy</text></g>
+              <g class="r-cnode" data-x="421" data-y="139"><circle class="r-cnode__halo" cx="421" cy="139" r="16"/><circle class="r-cnode__dot" cx="421" cy="139" r="4"/><text class="r-cnode__label" x="421" y="177" text-anchor="middle">Story</text></g>
+              <g class="r-cnode" data-x="480" data-y="280"><circle class="r-cnode__pulse" cx="480" cy="280" r="16"/><circle class="r-cnode__halo" cx="480" cy="280" r="16"/><circle class="r-cnode__dot" cx="480" cy="280" r="4"/><text class="r-cnode__label" x="480" y="318" text-anchor="middle">Design</text></g>
+              <g class="r-cnode" data-x="421" data-y="421"><circle class="r-cnode__halo" cx="421" cy="421" r="16"/><circle class="r-cnode__dot" cx="421" cy="421" r="4"/><text class="r-cnode__label" x="421" y="459" text-anchor="middle">Space</text></g>
+              <g class="r-cnode" data-x="280" data-y="480"><circle class="r-cnode__pulse" cx="280" cy="480" r="16"/><circle class="r-cnode__halo" cx="280" cy="480" r="16"/><circle class="r-cnode__dot" cx="280" cy="480" r="4"/><text class="r-cnode__label" x="280" y="518" text-anchor="middle">Technology</text></g>
+              <g class="r-cnode" data-x="139" data-y="421"><circle class="r-cnode__halo" cx="139" cy="421" r="16"/><circle class="r-cnode__dot" cx="139" cy="421" r="4"/><text class="r-cnode__label" x="139" y="459" text-anchor="middle">Content</text></g>
+              <g class="r-cnode" data-x="80" data-y="280"><circle class="r-cnode__halo" cx="80" cy="280" r="16"/><circle class="r-cnode__dot" cx="80" cy="280" r="4"/><text class="r-cnode__label" x="80" y="318" text-anchor="middle">People</text></g>
+              <g class="r-cnode" data-x="139" data-y="139"><circle class="r-cnode__halo" cx="139" cy="139" r="16"/><circle class="r-cnode__dot" cx="139" cy="139" r="4"/><text class="r-cnode__label" x="139" y="177" text-anchor="middle">Execution</text></g>
+            </svg>
+          </div>
         </div>
-        <p class="r-lead" data-reveal>My work sits between disciplines. I move from defining the problem and developing the idea to shaping the experience, aligning teams and helping the work survive execution.</p>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         03 — HOW I THINK  (what makes his approach different?)
-         ============================================================ -->
-    <section class="r-sec" id="think" data-act="03" aria-label="How I think">
-      <div class="r-wrap">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">02</span>How I think</p>
-        <h2 class="r-display" data-reveal>Five principles.<em>One point of view.</em></h2>
-        <div class="r-think" id="rThink" data-reveal>
-          <div class="r-think__item">
-            <button class="r-think__head" type="button" aria-expanded="false" aria-controls="th1">
-              <span class="r-think__num">01</span>
-              <span class="r-think__title">Start with people.</span>
-              <span class="r-think__plus" aria-hidden="true"></span>
-            </button>
-            <div class="r-think__clip" id="th1" role="region" aria-label="Principle one"><div class="r-think__body"><p>Before the technology. Before the interface. Before the visual. Who is experiencing this? What do they need? What should happen next?</p></div></div>
-          </div>
-          <div class="r-think__item">
-            <button class="r-think__head" type="button" aria-expanded="false" aria-controls="th2">
-              <span class="r-think__num">02</span>
-              <span class="r-think__title">The medium serves the idea.</span>
-              <span class="r-think__plus" aria-hidden="true"></span>
-            </button>
-            <div class="r-think__clip" id="th2" role="region" aria-label="Principle two"><div class="r-think__body"><p>I don't choose technology because it is available. I choose it when it creates something the experience genuinely needs.</p></div></div>
-          </div>
-          <div class="r-think__item">
-            <button class="r-think__head" type="button" aria-expanded="false" aria-controls="th3">
-              <span class="r-think__num">03</span>
-              <span class="r-think__title">Content is part of design.</span>
-              <span class="r-think__plus" aria-hidden="true"></span>
-            </button>
-            <div class="r-think__clip" id="th3" role="region" aria-label="Principle three"><div class="r-think__body"><p>Words, images, sound, motion, narration and interaction are not separate from the experience. They are the experience.</p></div></div>
-          </div>
-          <div class="r-think__item">
-            <button class="r-think__head" type="button" aria-expanded="false" aria-controls="th4">
-              <span class="r-think__num">04</span>
-              <span class="r-think__title">Technology earns its place.</span>
-              <span class="r-think__plus" aria-hidden="true"></span>
-            </button>
-            <div class="r-think__clip" id="th4" role="region" aria-label="Principle four"><div class="r-think__body"><p>Technology earns its place when it makes the experience clearer or more human — not when it simply impresses.</p></div></div>
-          </div>
-          <div class="r-think__item">
-            <button class="r-think__head" type="button" aria-expanded="false" aria-controls="th5">
-              <span class="r-think__num">05</span>
-              <span class="r-think__title">Execution is creative work.</span>
-              <span class="r-think__plus" aria-hidden="true"></span>
-            </button>
-            <div class="r-think__clip" id="th5" role="region" aria-label="Principle five"><div class="r-think__body"><p>The final 20% can change the quality of the entire experience. That is why I stay involved.</p></div></div>
+        <div class="r-hero__meta">
+          <div class="r-hero__role" data-hero-reveal style="--d:.42s"><p><em>Creative Systems</em> Leader</p></div>
+          <div class="r-hero__disc" data-hero-reveal style="--d:.52s"><p>Experience Design<br>Enterprise Innovation<br>AI-Enabled Creative Production</p></div>
+          <div class="r-hero__right" data-hero-reveal style="--d:.62s">
+            <p class="r-hero__pos">I move between the places where an idea is defined and where it has to become real.</p>
+            <div class="r-hero__cta">
+              <a class="r-cta" href="../contact.html">Start a conversation <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
+              <a class="r-cta--line" href="../assets/Abhijeet-Varghese-Resume.pdf" download>Download résumé</a>
+            </div>
+            <p class="r-hero__clients">Enterprise engagements — <a href="../case-studies/orange-business/">Orange Business</a> · <a href="../case-studies/indian-army/">Indian Army</a> · <a href="../case-studies/bharat-petroleum-corporation-limited/">Bharat Petroleum</a></p>
           </div>
         </div>
       </div>
     </section>
 
+
     <!-- ============================================================
-         04 — THE WORK IS THE PROOF  (what has he actually done?)
+         CHAPTER 02 — THE SHORT VERSION  (one statement, words activate)
          ============================================================ -->
-    <section class="r-sec r-sec--deep" id="work" data-act="04" aria-label="Selected proof">
+    <section class="r-chapter r-chapter--light" id="short" data-act="02" data-act-label="The short version" aria-label="The short version">
       <div class="r-wrap">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">03</span>Selected proof</p>
-        <div class="r-proofhead" data-reveal>
+        <p class="r-label" data-reveal><span class="r-label__num">01</span>The short version</p>
+        <h2 class="r-statement" id="rStatement" data-reveal>
+          I work at the intersection of
+          <span class="r-w" data-w="creativity">creativity</span>,
+          <span class="r-w" data-w="technology">technology</span> and
+          <span class="r-w" data-w="human">human</span> understanding.
+        </h2>
+        <p class="r-statement__sub" data-reveal>
+          My work spans <span class="r-w" data-w="experience">experience</span> design, creative strategy, immersive experiences,
+          enterprise innovation, brand <span class="r-w" data-w="systems">systems</span>, spatial experiences, interactive experiences,
+          storytelling and creative technology.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         CHAPTER 03 — HOW I THINK  (one flowing system)
+         ============================================================ -->
+    <section class="r-chapter r-chapter--light" id="think" data-act="03" data-act-label="How I think" aria-label="How I think">
+      <div class="r-wrap">
+        <p class="r-label" data-reveal><span class="r-label__num">02</span>How I think</p>
+        <h2 class="r-display" data-reveal>Seven stages.<br><em>One intent.</em></h2>
+        <div class="r-stages" id="rStages">
+          <div class="r-stage-item" data-reveal>
+            <div class="r-stage-item__row">
+              <button class="r-stage-item__head" type="button" aria-expanded="false" aria-controls="stg1">
+                <span class="r-stage-item__num">01</span>
+                <span class="r-stage-item__title">Understand</span>
+                <span class="r-stage-item__mark" aria-hidden="true"></span>
+              </button>
+            </div>
+            <p class="r-stage-item__note" id="stg1" aria-hidden="true">I start by understanding the problem rather than immediately designing the answer.</p>
+          </div>
+          <div class="r-stage-item" data-reveal>
+            <div class="r-stage-item__row">
+              <button class="r-stage-item__head" type="button" aria-expanded="false" aria-controls="stg2">
+                <span class="r-stage-item__num">02</span>
+                <span class="r-stage-item__title">Find the opportunity</span>
+                <span class="r-stage-item__mark" aria-hidden="true"></span>
+              </button>
+            </div>
+            <p class="r-stage-item__note" id="stg2" aria-hidden="true">The brief gives you requirements. The interesting idea is often hiding underneath them.</p>
+          </div>
+          <div class="r-stage-item" data-reveal>
+            <div class="r-stage-item__row">
+              <button class="r-stage-item__head" type="button" aria-expanded="false" aria-controls="stg3">
+                <span class="r-stage-item__num">03</span>
+                <span class="r-stage-item__title">Build the idea</span>
+                <span class="r-stage-item__mark" aria-hidden="true"></span>
+              </button>
+            </div>
+            <p class="r-stage-item__note" id="stg3" aria-hidden="true">I develop the creative territory, experience logic and narrative — the central idea and how it unfolds.</p>
+          </div>
+          <div class="r-stage-item" data-reveal>
+            <div class="r-stage-item__row">
+              <button class="r-stage-item__head" type="button" aria-expanded="false" aria-controls="stg4">
+                <span class="r-stage-item__num">04</span>
+                <span class="r-stage-item__title">Design the experience</span>
+                <span class="r-stage-item__mark" aria-hidden="true"></span>
+              </button>
+            </div>
+            <p class="r-stage-item__note" id="stg4" aria-hidden="true">This is where the idea becomes a journey — spatial, digital, interactive, immersive. The medium changes. The thinking doesn't.</p>
+          </div>
+          <div class="r-stage-item" data-reveal>
+            <div class="r-stage-item__row">
+              <button class="r-stage-item__head" type="button" aria-expanded="false" aria-controls="stg5">
+                <span class="r-stage-item__num">05</span>
+                <span class="r-stage-item__title">Bring technology in</span>
+                <span class="r-stage-item__mark" aria-hidden="true"></span>
+              </button>
+            </div>
+            <p class="r-stage-item__note" id="stg5" aria-hidden="true">Technology becomes part of the experience architecture — not decoration, not a checkbox, not something added at the end.</p>
+          </div>
+          <div class="r-stage-item" data-reveal>
+            <div class="r-stage-item__row">
+              <button class="r-stage-item__head" type="button" aria-expanded="false" aria-controls="stg6">
+                <span class="r-stage-item__num">06</span>
+                <span class="r-stage-item__title">Align the people</span>
+                <span class="r-stage-item__mark" aria-hidden="true"></span>
+              </button>
+            </div>
+            <p class="r-stage-item__note" id="stg6" aria-hidden="true">Creative work is made by people. The experience only becomes coherent when they move toward the same thing.</p>
+          </div>
+          <div class="r-stage-item" data-reveal>
+            <div class="r-stage-item__row">
+              <button class="r-stage-item__head" type="button" aria-expanded="false" aria-controls="stg7">
+                <span class="r-stage-item__num">07</span>
+                <span class="r-stage-item__title">Stay with the work</span>
+                <span class="r-stage-item__mark" aria-hidden="true"></span>
+              </button>
+            </div>
+            <p class="r-stage-item__note" id="stg7" aria-hidden="true">Creative leadership doesn't end when the concept is approved. That is when the idea meets reality.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         CHAPTER 04 — SELECTED PROOF  (horizontal cinematic rail)
+         ============================================================ -->
+        <!-- ============================================================
+         CHAPTER 04 — SELECTED PROOF  (cinematic index + rail)
+         ============================================================ -->
+    <section class="r-chapter" id="work" data-act="04" data-act-label="Selected proof" aria-label="Selected proof">
+      <div class="r-wrap">
+        <p class="r-label" data-reveal><span class="r-label__num">03</span>Selected proof</p>
+        <div class="r-proof__head" data-reveal>
           <h2 class="r-display">The work <em>is the proof.</em></h2>
-          <p class="r-lead" style="max-width:44ch">The portfolio shows the outcome. The case studies show the thinking behind it. <a class="r-inline" href="../portfolio.html">View the portfolio →</a></p>
-        </div>
-        <div class="r-proj" data-reveal>
-          <div class="r-proj-tabs" role="tablist" aria-label="Selected projects">
-            <button class="r-proj-tab" type="button" role="tab" id="ptab0" aria-selected="true" aria-controls="ppanel0">01&nbsp;Orange</button>
-            <button class="r-proj-tab" type="button" role="tab" id="ptab1" aria-selected="false" aria-controls="ppanel1">02&nbsp;Indian Army</button>
-            <button class="r-proj-tab" type="button" role="tab" id="ptab2" aria-selected="false" aria-controls="ppanel2">03&nbsp;BPCL</button>
+          <div class="r-proof__meta">
+            <p>The portfolio shows the outcome. The case studies show the thinking behind it. <a class="r-arrow" href="../portfolio.html">View the portfolio →</a></p>
+            <p class="r-proof__count"><span id="rProofCur" aria-live="polite">01</span> / 03</p>
           </div>
-          <div class="r-proj-stage">
-            <article class="r-proj__panel is-active" id="ppanel0" role="tabpanel" aria-labelledby="ptab0">
-              <figure class="r-proj__media">
-                <img src="../assets/media/orange-business-executive-briefing-center-mumbai-panoramic-1280.webp" alt="Orange Experience Center — immersive brand experience environment" width="1280" height="853" loading="lazy" decoding="async">
-                <figcaption>Orange Experience Center</figcaption>
-              </figure>
-              <div class="r-proj__body">
-                <p class="r-proj__num">01</p>
-                <h3 class="r-proj__title">An experience is never just the room.</h3>
-                <p class="r-proj__desc">A multidisciplinary experience where my involvement extended across creative development, storytelling, content, interaction, VR, client coordination, stakeholder management, team coordination and execution.</p>
-                <ul class="r-proj__tags"><li>Creative Direction</li><li>Content</li><li>Experience Design</li><li>Interaction</li><li>VR</li><li>Stakeholder Management</li><li>Execution</li></ul>
-                <a class="r-cta r-cta--ghost" href="../case-studies/orange-business/">View case study <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
-              </div>
-            </article>
-            <article class="r-proj__panel" id="ppanel1" role="tabpanel" aria-labelledby="ptab1">
-              <figure class="r-proj__media">
-                <img src="../assets/case-army.webp" alt="Indian Army immersive training — VR training and qualification environment" width="1280" height="853" loading="lazy" decoding="async">
-                <figcaption>Indian Army Immersive Training</figcaption>
-              </figure>
-              <div class="r-proj__body">
-                <p class="r-proj__num">02</p>
-                <h3 class="r-proj__title">When immersive technology has a real job to do.</h3>
-                <p class="r-proj__desc">An immersive training environment combining VR-based training and qualification with a progression model connecting digital performance to physical, battlefield-based training.</p>
-                <div class="r-proj__sys" aria-hidden="true"><span>Train</span><i></i><span>Qualify</span><i></i><span>Progress</span></div>
-                <ul class="r-proj__facts"><li><strong>15</strong> high-end training computers</li><li>Trainer monitoring environment</li></ul>
-                <ul class="r-proj__tags"><li>Immersive Technology</li><li>VR Training</li><li>Qualification</li><li>Trainer Monitoring</li><li>Experience Design</li></ul>
-                <a class="r-cta r-cta--ghost" href="../case-studies/indian-army/">View case study <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
-              </div>
-            </article>
-            <article class="r-proj__panel" id="ppanel2" role="tabpanel" aria-labelledby="ptab2">
-              <figure class="r-proj__media">
-                <img src="../assets/case-bpcl.webp" alt="Bharat Petroleum Corporation Limited — immersive experience visualisation" width="1280" height="853" loading="lazy" decoding="async">
-                <figcaption>Bharat Petroleum Corporation Limited</figcaption>
-              </figure>
-              <div class="r-proj__body">
-                <p class="r-proj__num">03</p>
-                <h3 class="r-proj__title">Visualisation is the medium. The thinking is the contribution.</h3>
-                <p class="r-proj__desc">A project where visual communication, experience thinking, stakeholder coordination and production came together to communicate complex ideas through a physical and visual environment.</p>
-                <ul class="r-proj__tags"><li>Brand Experience</li><li>Visualization</li><li>Communication</li><li>Stakeholders</li><li>Production</li></ul>
-                <a class="r-cta r-cta--ghost" href="../case-studies/bharat-petroleum-corporation-limited/">View case study <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
-              </div>
-            </article>
+        </div>
+        <div class="r-proof">
+          <div class="r-proof__index" id="rProofIndex" role="tablist" aria-label="Selected projects">
+            <button class="r-proof__index-item is-active" type="button" role="tab" aria-selected="true" aria-controls="pp-0" data-idx="0">
+              <span class="r-proof__index-num">01</span>
+              <span class="r-proof__index-name">Orange Experience Center</span>
+            </button>
+            <button class="r-proof__index-item" type="button" role="tab" aria-selected="false" aria-controls="pp-1" data-idx="1">
+              <span class="r-proof__index-num">02</span>
+              <span class="r-proof__index-name">Indian Army Immersive Training</span>
+            </button>
+            <button class="r-proof__index-item" type="button" role="tab" aria-selected="false" aria-controls="pp-2" data-idx="2">
+              <span class="r-proof__index-num">03</span>
+              <span class="r-proof__index-name">Bharat Petroleum Corporation Limited</span>
+            </button>
+          </div>
+          <div class="r-proof__stage">
+            <div class="r-proof__rail" id="rProofRail" tabindex="0" role="region" aria-label="Selected projects — scroll horizontally">
+              <article class="r-proof__panel" id="pp-0" role="tabpanel" aria-label="Orange Experience Center">
+                <p class="r-proof__ghost" aria-hidden="true">01</p>
+                <div class="r-proof__body">
+                  <div class="r-proof__head2">
+                    <p class="r-proof__num">01</p>
+                    <h3 class="r-proof__name">Orange <em>Experience Center</em></h3>
+                  </div>
+                  <p class="r-proof__sector">Enterprise Technology</p>
+                  <p class="r-proof__roles">Experience Strategy · Creative Direction · Interactive / VR / Spatial</p>
+                  <figure class="r-proof__media">
+                    <img src="../assets/media/orange-business-executive-briefing-center-mumbai-panoramic-1280.webp" alt="Orange Experience Center — immersive brand experience environment" width="1280" height="853" loading="lazy" decoding="async">
+                    <span class="r-proof__sweep" aria-hidden="true"></span>
+                  </figure>
+                  <div class="r-proof__lines">
+                    <p class="r-proof__line">An experience is never just the room.</p>
+                    <p class="r-proof__result">Between the idea and the people making it real.</p>
+                  </div>
+                  <a class="r-arrow" href="../case-studies/orange-business/">View case study →</a>
+                </div>
+              </article>
+              <article class="r-proof__panel" id="pp-1" role="tabpanel" aria-label="Indian Army Immersive Training">
+                <p class="r-proof__ghost" aria-hidden="true">02</p>
+                <div class="r-proof__body">
+                  <div class="r-proof__head2">
+                    <p class="r-proof__num">02</p>
+                    <h3 class="r-proof__name">Indian Army <em>Immersive Training</em></h3>
+                  </div>
+                  <p class="r-proof__sector">Defence & Training</p>
+                  <p class="r-proof__roles">Immersive Training · XR · Qualification Systems</p>
+                  <figure class="r-proof__media">
+                    <img src="../assets/case-army.webp" alt="Indian Army immersive training — VR training and qualification environment" width="1280" height="853" loading="lazy" decoding="async">
+                    <span class="r-proof__sweep" aria-hidden="true"></span>
+                  </figure>
+                  <div class="r-proof__lines">
+                    <p class="r-proof__line">When immersive technology has a real job to do.</p>
+                    <p class="r-proof__result">Designing what the virtual world is supposed to accomplish.</p>
+                  </div>
+                  <a class="r-arrow" href="../case-studies/indian-army/">View case study →</a>
+                </div>
+              </article>
+              <article class="r-proof__panel" id="pp-2" role="tabpanel" aria-label="Bharat Petroleum Corporation Limited">
+                <p class="r-proof__ghost" aria-hidden="true">03</p>
+                <div class="r-proof__body">
+                  <div class="r-proof__head2">
+                    <p class="r-proof__num">03</p>
+                    <h3 class="r-proof__name">Bharat Petroleum <em>Corporation Limited</em></h3>
+                  </div>
+                  <p class="r-proof__sector">Energy</p>
+                  <p class="r-proof__roles">Brand Experience · Visualization · Creative Direction · Production</p>
+                  <figure class="r-proof__media">
+                    <img src="../assets/case-bpcl.webp" alt="Bharat Petroleum Corporation Limited — immersive experience visualisation" width="1280" height="853" loading="lazy" decoding="async">
+                    <span class="r-proof__sweep" aria-hidden="true"></span>
+                  </figure>
+                  <div class="r-proof__lines">
+                    <p class="r-proof__line">Visualisation is the medium. The thinking is the contribution.</p>
+                    <p class="r-proof__result">Communicating complex ideas through a physical and visual environment.</p>
+                  </div>
+                  <a class="r-arrow" href="../case-studies/bharat-petroleum-corporation-limited/">View case study →</a>
+                </div>
+              </article>
+            </div>
+            <div class="r-proof__progress" aria-hidden="true"><i id="rProofProgress"></i></div>
+            <div class="r-proof__nav">
+              <button class="r-nav" id="rProofPrev" type="button" aria-label="Previous project">←</button>
+              <button class="r-nav" id="rProofNext" type="button" aria-label="Next project">→</button>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
+
     <!-- ============================================================
-         05 — WHAT I CAN OWN  (what can he be put in charge of?)
+         CHAPTER 05 — WHAT I CAN OWN  (typographic matrix)
          ============================================================ -->
-    <section class="r-sec" id="own" data-act="05" aria-label="What I can own">
+    <section class="r-chapter r-chapter--light" id="own" data-act="05" data-act-label="What I can own" aria-label="What I can own">
       <div class="r-wrap">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">04</span>What I can own</p>
+        <p class="r-label" data-reveal><span class="r-label__num">04</span>What I can own</p>
         <h2 class="r-display" data-reveal>What I <em>can own.</em></h2>
         <div class="r-own" id="rOwn" data-reveal>
-          <div class="r-own__card is-selected">
-            <button class="r-own__head" type="button" aria-expanded="true" aria-controls="own1">
-              <span class="r-own__idx">01</span><span class="r-own__title">Creative</span><span class="r-own__plus" aria-hidden="true"></span>
-            </button>
-            <ul class="r-own__chips"><li>Creative Direction</li><li>Creative Strategy</li><li>Concept Development</li></ul>
-            <p class="r-own__note" id="own1">I own the idea and its point of view — from first concept to the story that holds it together.</p>
+          <div class="r-own__row">
+            <button class="r-own__word" type="button" aria-expanded="false" aria-controls="ownp1">Creative Leadership</button>
+            <span class="r-own__phrase" id="ownp1">Defining what the work needs to be — and protecting the central idea through execution.</span>
           </div>
-          <div class="r-own__card">
-            <button class="r-own__head" type="button" aria-expanded="false" aria-controls="own2">
-              <span class="r-own__idx">02</span><span class="r-own__title">Experience</span><span class="r-own__plus" aria-hidden="true"></span>
-            </button>
-            <ul class="r-own__chips"><li>Experience Strategy</li><li>Experience Design</li><li>Narrative</li><li>Content Direction</li></ul>
-            <p class="r-own__note" id="own2">I shape how people move through a physical, digital or immersive moment — and what it should make them feel and do.</p>
+          <div class="r-own__row">
+            <button class="r-own__word" type="button" aria-expanded="false" aria-controls="ownp2">Experience Design</button>
+            <span class="r-own__phrase" id="ownp2">Turning complex ideas into experiences people can understand, navigate and remember.</span>
           </div>
-          <div class="r-own__card">
-            <button class="r-own__head" type="button" aria-expanded="false" aria-controls="own3">
-              <span class="r-own__idx">03</span><span class="r-own__title">Technology</span><span class="r-own__plus" aria-hidden="true"></span>
-            </button>
-            <ul class="r-own__chips"><li>Immersive Technology</li><li>XR / AR / VR</li><li>Creative Technology</li><li>AI-Enabled Creative Production</li></ul>
-            <p class="r-own__note" id="own3">I decide where immersive, spatial and AI-enabled tools genuinely earn their place — and where they don't.</p>
+          <div class="r-own__row">
+            <button class="r-own__word" type="button" aria-expanded="false" aria-controls="ownp3">Creative Strategy</button>
+            <span class="r-own__phrase" id="ownp3">Understanding the audience, objective and journey before deciding on the medium.</span>
           </div>
-          <div class="r-own__card">
-            <button class="r-own__head" type="button" aria-expanded="false" aria-controls="own4">
-              <span class="r-own__idx">04</span><span class="r-own__title">Leadership</span><span class="r-own__plus" aria-hidden="true"></span>
-            </button>
-            <ul class="r-own__chips"><li>Multidisciplinary Teams</li><li>Clients &amp; Stakeholders</li><li>Execution</li></ul>
-            <p class="r-own__note" id="own4">I align multidisciplinary teams, clients and stakeholders so the work survives contact with execution.</p>
+          <div class="r-own__row">
+            <button class="r-own__word" type="button" aria-expanded="false" aria-controls="ownp4">Immersive Technology</button>
+            <span class="r-own__phrase" id="ownp4">Connecting what technology can do with what the experience actually needs.</span>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         06 — WHERE I FIT  (what roles make sense?)
-         ============================================================ -->
-    <section class="r-sec" id="fit" data-act="06" aria-label="Where I fit">
-      <div class="r-wrap">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">05</span>Where I fit</p>
-        <h2 class="r-display" data-reveal>The role matters less <em>than the problem.</em></h2>
-        <p class="r-lead" data-reveal style="max-width:58ch">I'm interested in senior opportunities where creative thinking can influence the problem, the experience and the outcome — not simply the final execution.</p>
-        <div class="r-roles" data-reveal>
-          <div class="r-roles__g">
-            <h3>Creative Leadership</h3>
-            <ul><li>Creative Director</li><li>Executive Creative Director</li><li>Creative Head</li></ul>
+          <div class="r-own__row">
+            <button class="r-own__word" type="button" aria-expanded="false" aria-controls="ownp5">Brand Experience</button>
+            <span class="r-own__phrase" id="ownp5">Every touchpoint should feel like a different part of the same thought.</span>
           </div>
-          <div class="r-roles__g">
-            <h3>Experience</h3>
-            <ul><li>Experience Design Director</li><li>Experience Strategy Lead</li><li>Brand Experience Director</li><li>Immersive Experience Director</li></ul>
+          <div class="r-own__row">
+            <button class="r-own__word" type="button" aria-expanded="false" aria-controls="ownp6">Spatial Experience</button>
+            <span class="r-own__phrase" id="ownp6">The idea becomes a journey — spatial, digital, interactive, immersive.</span>
           </div>
-          <div class="r-roles__g">
-            <h3>Technology / Innovation</h3>
-            <ul><li>Creative Technology Lead</li><li>Innovation Lead</li><li>AI / Creative Technology Strategy Lead</li></ul>
+          <div class="r-own__row">
+            <button class="r-own__word" type="button" aria-expanded="false" aria-controls="ownp7">Interactive Experiences</button>
+            <span class="r-own__phrase" id="ownp7">Interaction is not separate from the experience. It is the experience.</span>
           </div>
-          <div class="r-roles__g">
-            <h3>Consulting</h3>
-            <ul><li>Senior Creative Consultant</li><li>Brand &amp; Experience Strategy</li></ul>
+          <div class="r-own__row">
+            <button class="r-own__word" type="button" aria-expanded="false" aria-controls="ownp8">AI-Enabled Creative Production</button>
+            <span class="r-own__phrase" id="ownp8">Exploration, judgement, one direction — compressing the path from idea to execution.</span>
+          </div>
+          <div class="r-own__row">
+            <button class="r-own__word" type="button" aria-expanded="false" aria-controls="ownp9">Stakeholder &amp; Team Leadership</button>
+            <span class="r-own__phrase" id="ownp9">Creating clarity across creative, design, technology and production.</span>
+          </div>
+          <div class="r-own__row">
+            <button class="r-own__word" type="button" aria-expanded="false" aria-controls="ownp10">Production &amp; Delivery</button>
+            <span class="r-own__phrase" id="ownp10">Staying close enough to the details so the original idea survives production.</span>
           </div>
         </div>
       </div>
     </section>
 
     <!-- ============================================================
-         07 — GIVE ME A DIFFICULT PROBLEM  (start the conversation)
+         CHAPTER 06 — MY WAY  (one principle at a time)
          ============================================================ -->
-    <section class="r-sec r-sec--deep" id="contact" data-act="07" aria-label="Start a conversation">
+    <section class="r-chapter" id="way" data-act="06" data-act-label="My way" aria-label="My way">
       <div class="r-wrap">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">06</span>Start a conversation</p>
-        <h2 class="r-display" data-reveal>Give me <em>a difficult problem.</em></h2>
-        <div class="r-contact">
-          <div class="r-contact__side" data-reveal>
-            <p class="r-lead">If you're building an experience, leading an innovation initiative, assembling a multidisciplinary creative team or looking for someone who can connect strategy, creativity, technology and execution, let's talk.</p>
-            <p class="r-ctaline">Don't just send me the job description. Tell me what you're trying to build.</p>
-            <div class="r-ctarow">
-              <a class="r-cta r-cta--accent" href="#recruitForm">Start a conversation <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
-              <a class="r-cta r-cta--ghost" href="../case-studies/">View full case studies <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
-            </div>
-            <p class="r-mail"><a href="mailto:hi@abhijeetvarghese.com">hi@abhijeetvarghese.com</a> &nbsp;·&nbsp; <a href="tel:+919694080706">+91-96940 80706</a></p>
+        <p class="r-label" data-reveal><span class="r-label__num">05</span>My way</p>
+        <p class="r-lead" data-reveal>The simplest way to understand my approach.</p>
+        <div class="r-way" id="rWay">
+          <div class="r-way__item" data-reveal>
+            <p class="r-way__num">01</p>
+            <h3 class="r-way__title">I don't start <em>with the medium.</em></h3>
+            <p class="r-way__sub">The better question is: what does the audience need to experience?</p>
           </div>
-          <form class="r-form" id="recruitForm" novalidate data-reveal>
-            <div class="r-form__row">
-              <label><span>Name</span><input type="text" id="rfName" name="name" autocomplete="name" placeholder="Full name" required></label>
-              <label><span>Email</span><input type="email" id="rfEmail" name="email" autocomplete="email" placeholder="you@company.com" required></label>
-            </div>
-            <div class="r-form__row">
-              <label><span>Organisation</span><input type="text" id="rfOrg" name="organization" autocomplete="organization" placeholder="Company or institution"></label>
-              <label><span>Role / Opportunity</span><input type="text" id="rfRole" name="role" placeholder="e.g. Experience Design Director"></label>
-            </div>
-            <label><span>Message</span><textarea id="rfMsg" name="message" rows="4" placeholder="The problem, the opportunity, what success looks like…"></textarea></label>
-            <p class="r-form__note" id="rfNote" role="status" aria-live="polite"></p>
-            <button class="r-cta r-cta--accent" type="submit" id="rfSubmit">Start the conversation <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
-          </form>
+          <div class="r-way__item" data-reveal>
+            <p class="r-way__num">02</p>
+            <h3 class="r-way__title">I think <em>in systems.</em></h3>
+            <p class="r-way__sub">I don't look at an experience as disconnected assets. I look at the system around it.</p>
+          </div>
+          <div class="r-way__item" data-reveal>
+            <p class="r-way__num">03</p>
+            <h3 class="r-way__title">I use technology <em>when it earns its place.</em></h3>
+            <p class="r-way__sub">The technology is never the idea. The human experience is the idea.</p>
+          </div>
+          <div class="r-way__item" data-reveal>
+            <p class="r-way__num">04</p>
+            <h3 class="r-way__title">I work with people <em>as much as I work with ideas.</em></h3>
+            <p class="r-way__sub">Leadership is creating a shared understanding of what everyone is building.</p>
+          </div>
         </div>
-        <div class="r-idbar" data-reveal>
-          <div class="r-idbar__mark" aria-hidden="true">AV</div>
-          <div class="r-idbar__who"><strong>Abhijeet Varghese</strong> — Creative Systems Leader</div>
-          <div class="r-idbar__sub">Experience Design • Enterprise Innovation • AI-Enabled Creative Production</div>
-          <div class="r-idbar__mem">Professional Member — AVGC-XR Rajasthan</div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         CHAPTER 07 — WHERE I FIT  (statement + spectrum)
+         ============================================================ -->
+    <section class="r-chapter r-chapter--light" id="fit" data-act="07" data-act-label="Where I fit" aria-label="Where I fit">
+      <div class="r-wrap">
+        <p class="r-label" data-reveal><span class="r-label__num">06</span>Where I fit</p>
+        <h2 class="r-display r-display--xl" data-reveal>I don't fit neatly<br>into one job title.<br><em>And that's the point.</em></h2>
+        <p class="r-lead" data-reveal>The role matters less than the problem.</p>
+        <div class="r-spectrum" data-reveal>
+          <span>Creative Leadership</span>
+          <span>Experience Design</span>
+          <span>Creative Technology</span>
+          <span>Immersive / XR</span>
+          <span>Innovation</span>
+          <span>Brand Experience</span>
+          <span>AI Creative Production</span>
+        </div>
+        <div class="r-fit__titles" data-reveal>
+          <p class="r-fit__note">Titles I'm most often considered for</p>
+          <p class="r-fit__list">Creative Director · Executive Creative Director · Creative Head · Experience Design Director · Experience Strategy Lead · Brand Experience Director · Immersive Experience Director · Creative Technology Lead · Innovation Lead · Senior Creative Consultant</p>
+          <p class="r-fit__line">The problem matters more than the title.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         CHAPTER 08 — FINAL CTA  (almost empty)
+         ============================================================ -->
+    <section class="r-final" id="contact" data-act="08" data-act-label="Start a conversation" aria-label="Start a conversation">
+      <div class="r-wrap">
+        <h2 class="r-final__big" data-reveal>Give me<br><em>a difficult problem.</em></h2>
+        <p class="r-lead" data-reveal style="--d:.1s">If you're building something ambitious across experience, creativity, technology or innovation — let's talk.</p>
+        <div class="r-final__cta" data-reveal style="--d:.18s">
+          <a class="r-cta r-cta--solid" href="../contact.html">Start a conversation <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
+        </div>
+        <div class="r-final__info" data-reveal style="--d:.26s">
+          <p class="r-final__mail"><a href="mailto:hi@abhijeetvarghese.com">hi@abhijeetvarghese.com</a> <span aria-hidden="true">·</span> <a href="tel:+919694080706">+91-96940 80706</a></p>
+          <div class="r-final__links">
+            <a href="https://www.linkedin.com/in/abhijeetvarghese/" target="_blank" rel="noopener">LinkedIn ↗</a>
+            <a href="../assets/Abhijeet-Varghese-Resume.pdf" download>Download résumé</a>
+            <a href="../experience/">Career history →</a>
+            <span class="r-final__mem">Professional Member — AVGC-XR Rajasthan</span>
+          </div>
         </div>
       </div>
     </section>
@@ -495,11 +584,11 @@
   </footer>
 
 
-  <div class="r-act" id="rAct" aria-hidden="true">Recruiter <strong id="rActNum">01</strong> / 07</div>
+  <div class="r-act" id="rAct" aria-hidden="true">Recruiter <strong id="rActNum">01</strong> / 08 <span class="r-act__name" id="rActName">Introduction</span></div>
   <div class="r-prail" id="rPrail" aria-hidden="true"><i id="rPrailFill"></i><span id="rPrailCap"></span></div>
 
   <script src="../js/main.js?v=2.4.20-413ff5a8256b" defer></script>
-  <script src="../js/recruitment.js?v=3.0.0" defer></script>
+  <script src="../js/recruitment.js?v=4.0.0" defer></script>
 <script>
   /* AV OS first-party analytics — minimal, privacy-respecting (mirrors the
      rest of the site) plus recruiter-journey event classification. */
@@ -530,7 +619,7 @@
       if (href.indexOf("case-studies") !== -1) { avTrack({ event_type: "recruiter_case_study_click", content: href }); return; }
       if (href.indexOf("portfolio") !== -1) { avTrack({ event_type: "recruiter_portfolio_click", content: href }); return; }
       if (href.indexOf("linkedin") !== -1) { avTrack({ event_type: "recruiter_linkedin_click", content: href }); return; }
-      if (href.indexOf("contact") !== -1 || href === "#talk" || /start a conversation/i.test(txt)) {
+      if (href.indexOf("contact") !== -1 || href === "#contact" || /start a conversation/i.test(txt)) {
         avTrack({ event_type: "recruiter_start_conversation_click", content: href });
       }
     });
