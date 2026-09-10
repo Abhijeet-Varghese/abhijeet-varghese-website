@@ -284,6 +284,7 @@
       if (!visible) { raf = null; return; }
       ctx.clearRect(0, 0, W, H);
       const col = cfg.connect > 0 ? "110,168,255" : "148,170,230";
+      const prefix = "rgba(" + col + ",";
       for (const p of pts) {
         p.x += p.vx; p.y += p.vy;
         if (p.x < 0) p.x = W; else if (p.x > W) p.x = 0;
@@ -292,7 +293,7 @@
         const a = p.a * (0.6 + 0.4 * Math.sin(p.tw));
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${col},${a.toFixed(3)})`;
+        ctx.fillStyle = prefix + ((a * 200 + 0.5) | 0) / 200 + ")";
         ctx.fill();
       }
       if (cfg.connect > 0) {
@@ -304,7 +305,7 @@
               const alpha = (1 - Math.sqrt(d2) / 130) * 0.12;
               ctx.beginPath();
               ctx.moveTo(pts[i].x, pts[i].y); ctx.lineTo(pts[j].x, pts[j].y);
-              ctx.strokeStyle = `rgba(${col},${alpha.toFixed(3)})`;
+              ctx.strokeStyle = prefix + ((alpha * 400 + 0.5) | 0) / 400 + ")";
               ctx.lineWidth = 0.5;
               ctx.stroke();
             }
@@ -325,6 +326,12 @@
 
   /* ============================================================
      POINTER PARALLAX — scene layers drift with a fine pointer
+
+     One passive listener + one rAF loop drives every pointer-reactive
+     layer. Previously three listeners each scheduled their own rAF and
+     the code-tilt read `getBoundingClientRect()` on every move, which
+     forces a synchronous layout in the middle of the frame. The rect is
+     now measured once and only re-measured on resize.
      ============================================================ */
   if (fine && !reduce) {
     const layers = [
@@ -333,48 +340,63 @@
       [$(".error-scene__glow"), 0.012]
     ].filter(([el]) => el);
     const glowAlt = $(".error-scene__glow.alt");
-    let px = 0, py = 0, rx = 0, ry = 0, raf = null;
+    const tiltOn = codeEl && cfg.scene !== "assemble" && cfg.scene !== "signal";
+    if (tiltOn) codeEl.classList.add("is-tilted");
+
+    /* cached geometry — measured lazily, refreshed only on resize */
+    let rect = null;
+    const measureRect = () => {
+      rect = tiltOn ? codeEl.getBoundingClientRect() : null;
+    };
+
+    let px = 0, py = 0, cx = 0, cy = 0, rx = 0, ry = 0, raf = null;
+
+    const frame = () => {
+      raf = null;
+      rx = lerp(rx, px, 0.08); ry = lerp(ry, py, 0.08);
+      for (const [el, f] of layers) {
+        el.style.transform = `translate3d(${(-rx * f * 100).toFixed(2)}px, ${(-ry * f * 100).toFixed(2)}px, 0)`;
+      }
+      if (glowAlt) glowAlt.style.transform = `translate3d(${(ry * 44).toFixed(2)}px, ${(rx * 30).toFixed(2)}px, 0)`;
+      if (cursorLamp) cursorLamp.style.transform = `translate3d(${cx.toFixed(1)}px, ${cy.toFixed(1)}px, 0)`;
+      if (tiltOn) {
+        if (!rect) measureRect();          /* invalidated by resize/scroll */
+        if (rect && (px || py)) {
+          const dx = (cx - (rect.left + rect.width / 2)) / (rect.width / 2);
+          const dy = (cy - (rect.top + rect.height / 2)) / (rect.height / 2);
+          codeEl.style.transform =
+            `perspective(1000px) rotateX(${(-dy * 5).toFixed(1)}deg) rotateY(${(dx * 6).toFixed(1)}deg)`;
+        }
+      }
+    };
+
     window.addEventListener("pointermove", e => {
       px = (e.clientX / window.innerWidth - 0.5);
       py = (e.clientY / window.innerHeight - 0.5);
-      if (!raf) raf = requestAnimationFrame(() => {
-        rx = lerp(rx, px, 0.08); ry = lerp(ry, py, 0.08);
-        for (const [el, f] of layers) {
-          if (el) el.style.transform = `translate3d(${(-rx * f * 100).toFixed(2)}px, ${(-ry * f * 100).toFixed(2)}px, 0)`;
-        }
-        if (glowAlt) glowAlt.style.transform = `translate3d(${(ry * 44).toFixed(2)}px, ${(rx * 30).toFixed(2)}px, 0)`;
-        raf = null;
-      });
+      cx = e.clientX; cy = e.clientY;
+      if (!raf) raf = requestAnimationFrame(frame);
     }, { passive: true });
 
-    /* cursor lamp — a soft reveal that follows the pointer */
-    if (cursorLamp) {
-      let lraf = false;
-      window.addEventListener("pointermove", e => {
-        if (lraf) return;
-        lraf = requestAnimationFrame(() => {
-          cursorLamp.style.setProperty("--cx", e.clientX + "px");
-          cursorLamp.style.setProperty("--cy", e.clientY + "px");
-          lraf = false;
-        });
+    if (tiltOn) {
+      codeEl.addEventListener("pointerleave", () => {
+        px = 0; py = 0;
+        codeEl.style.transform = "";
+        if (!raf) raf = requestAnimationFrame(frame);
       }, { passive: true });
     }
 
-    /* tilt the error code gently toward the pointer */
-    if (codeEl && cfg.scene !== "assemble" && cfg.scene !== "signal") {
-      codeEl.classList.add("is-tilted");
-      let traf = false;
-      window.addEventListener("pointermove", e => {
-        if (traf) return;
-        traf = requestAnimationFrame(() => {
-          const r = codeEl.getBoundingClientRect();
-          const dx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
-          const dy = (e.clientY - (r.top + r.height / 2)) / (r.height / 2);
-          codeEl.style.transform = `perspective(1000px) rotateX(${(-dy * 5).toFixed(1)}deg) rotateY(${(dx * 6).toFixed(1)}deg)`;
-          traf = false;
-        });
-      }, { passive: true });
-      codeEl.addEventListener("pointerleave", () => { codeEl.style.transform = ""; }, { passive: true });
+    window.addEventListener("resize", () => { rect = null; }, { passive: true });
+    window.addEventListener("scroll", () => { rect = null; }, { passive: true });
+    measureRect();
+    /* the entrance transition shifts the code element, so re-measure once the
+       reveal has settled rather than keeping a stale rect */
+    window.setTimeout(() => { rect = null; }, 1900);
+
+    /* start the lamp centred rather than at the top-left origin */
+    if (cursorLamp) {
+      cx = window.innerWidth / 2;
+      cy = window.innerHeight * 0.46;
+      cursorLamp.style.transform = `translate3d(${cx.toFixed(1)}px, ${cy.toFixed(1)}px, 0)`;
     }
   }
 

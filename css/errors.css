@@ -54,38 +54,36 @@ body.av-error {
 .error-scene__aurora {
   position: absolute; inset: -40% -20%; z-index: 0;
   background:
-    radial-gradient(46% 42% at 22% 24%, rgba(var(--err-tint), 0.16), transparent 70%),
-    radial-gradient(40% 46% at 82% 70%, rgba(var(--err-glow-rgb), 0.10), transparent 72%);
-  filter: blur(60px);
+    radial-gradient(52% 48% at 22% 24%, rgba(var(--err-tint), 0.15) 0%, rgba(var(--err-tint), 0.06) 45%, transparent 72%),
+    radial-gradient(46% 52% at 82% 70%, rgba(var(--err-glow-rgb), 0.10) 0%, rgba(var(--err-glow-rgb), 0.04) 45%, transparent 74%);
   opacity: 0.7;
   animation: errAuroraDrift 26s var(--ease-inout) infinite alternate;
-  will-change: transform;
 }
 @keyframes errAuroraDrift {
   0%   { transform: translate3d(0, 0, 0) scale(1); }
   100% { transform: translate3d(-60px, 40px, 0) scale(1.12); }
 }
 
-/* light field — slow ambient drift, per-state tinted */
+/* light field — slow ambient drift, per-state tinted.
+   NOTE: no `filter: blur()` — a multi-stop radial-gradient gives the same
+   soft falloff for free, while blurring a ~1100px layer costs a huge
+   offscreen pass on every frame (this was the single biggest jank source). */
 .error-scene__glow {
   position: absolute; z-index: 1; pointer-events: none;
   top: -22%; right: -12%; width: 68vw; height: 68vw;
   max-width: 1100px; max-height: 1100px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(var(--err-glow-rgb), 0.18), transparent 62%);
-  filter: blur(42px);
+  background: radial-gradient(circle,
+    rgba(var(--err-glow-rgb), 0.20) 0%,
+    rgba(var(--err-glow-rgb), 0.14) 32%,
+    rgba(var(--err-glow-rgb), 0.06) 52%,
+    transparent 70%);
   animation: errGlowDrift 22s var(--ease-inout) infinite alternate;
-  will-change: transform;
 }
 @keyframes errGlowDrift {
   0%   { transform: translate3d(0, 0, 0) scale(1); }
   50%  { transform: translate3d(-40px, 34px, 0) scale(1.06); }
   100% { transform: translate3d(-84px, 12px, 0) scale(1.1); }
-}
-.error-scene__glow::after {
-  content: ""; position: absolute; inset: -40% -40%;
-  background: radial-gradient(circle, rgba(var(--err-glow-rgb), 0.08), transparent 60%);
-  filter: blur(60px);
 }
 .error-scene__glow.alt {
   top: 40%; left: -18%; right: auto; width: 46vw; height: 46vw;
@@ -102,7 +100,7 @@ body.av-error {
           mask-image: radial-gradient(58% 100% at var(--err-x) 50%, #000 0%, transparent 72%);
   animation: errHorizon 14s var(--ease-inout) infinite alternate;
 }
-@keyframes errHorizon { 0% { opacity: 0.5; transform: translateY(-50%) translateX(0); } 100% { opacity: 0.9; transform: translateY(-50%) translateX(-30px); } }
+@keyframes errHorizon { 0% { opacity: 0.45; } 100% { opacity: 0.85; } }
 .error-scene__horizon::after {
   content: ""; position: absolute; left: 0; right: 0; top: 50%;
   height: 1px; background: linear-gradient(90deg, transparent, rgba(var(--err-glow-rgb), 0.55), transparent);
@@ -119,12 +117,9 @@ body.av-error {
           mask-image: radial-gradient(circle at var(--err-x) 46%, #000 0%, transparent 72%);
   transform: perspective(700px) rotateX(58deg) translateY(10%);
   transform-origin: 50% 40%;
-  animation: errGridDrift 26s ease-out infinite alternate;
-  will-change: transform;
-}
-@keyframes errGridDrift {
-  0%   { transform: perspective(700px) rotateX(58deg) translateY(10%) translateX(0); }
-  100% { transform: perspective(700px) rotateX(58deg) translateY(6%) translateX(-52px); }
+  /* static: animating this perspective-transformed, masked, full-bleed layer
+     re-rasterises a very large surface every frame for a barely visible drift.
+     Ambient motion now comes from the aurora + particle field. */
 }
 /* a centred origin crosshair on the grid (subtle waypoint) */
 .error-scene__grid::after {
@@ -134,13 +129,18 @@ body.av-error {
   box-shadow: 0 0 0 6px rgba(var(--err-glow-rgb), 0.06), 0 0 0 14px rgba(var(--err-glow-rgb), 0.03);
 }
 
-/* cursor light — a soft radial lamp that reveals the scene (fine pointer only) */
+/* cursor light — a soft radial lamp that reveals the scene (fine pointer only).
+   A fixed-size composited element moved with `transform`, instead of
+   repainting a full-viewport gradient on every pointer move. */
 .error-scene__cursor {
-  position: absolute; inset: 0; z-index: 4; pointer-events: none;
-  background: radial-gradient(360px 360px at var(--cx, 50%) var(--cy, 50%), rgba(var(--err-glow-rgb), 0.14), transparent 70%);
-  mix-blend-mode: screen;
+  position: absolute; left: 0; top: 0; z-index: 4; pointer-events: none;
+  width: 720px; height: 720px; margin: -360px 0 0 -360px;
+  background: radial-gradient(circle,
+    rgba(var(--err-glow-rgb), 0.13) 0%,
+    rgba(var(--err-glow-rgb), 0.07) 38%,
+    transparent 70%);
   opacity: 0.6;
-  will-change: background;
+  will-change: transform;
 }
 
 /* ambient particle field (canvas) */
@@ -184,8 +184,7 @@ body.av-error {
 .error-brand__pill {
   display: inline-flex; align-items: center; gap: 12px;
   padding: 9px 18px 9px 12px;
-  background: rgba(8, 15, 34, 0.72);
-  -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+  background: rgba(8, 15, 34, 0.86);
   border: 1px solid rgba(148, 170, 230, 0.18); border-radius: 999px;
   box-shadow: 0 18px 50px -20px rgba(4, 8, 20, 0.55);
   transition: border-color 0.3s var(--ease), transform 0.3s var(--ease);
@@ -230,11 +229,14 @@ body.av-error {
   font-size: clamp(5rem, 19vw, 15rem);
   line-height: 0.92; letter-spacing: -0.055em;
   color: #EFF0EA;
-  /* subtle two-tone via a soft layered glow + light bias — robust (no clip) */
-  text-shadow: 0 1px 0 #FFFFFF, 0 2px 0 #DCE4FA, 0 14px 44px rgba(0, 0, 0, 0.5);
-  filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 44px rgba(var(--err-glow-rgb), 0.22));
+  /* two-tone via layered text-shadow only — `filter: drop-shadow()` over a
+     15rem glyph rasterises the whole element into an offscreen surface. */
+  text-shadow:
+    0 1px 0 #FFFFFF,
+    0 2px 0 #DCE4FA,
+    0 10px 30px rgba(0, 0, 0, 0.45),
+    0 0 46px rgba(var(--err-glow-rgb), 0.20);
   user-select: none;
-  will-change: transform;
 }
 /* ghost echo — a dupe of the number offset behind, giving the code depth */
 .error-code::before {
@@ -250,11 +252,12 @@ body.av-error {
 /* deep glow bloom, breathing slowly — the code casts light into the scene */
 .error-code::after {
   content: ""; position: absolute; left: 50%; top: 50%; z-index: -2;
-  width: 70%; aspect-ratio: 1; transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgba(var(--err-glow-rgb), 0.22), transparent 62%);
-  filter: blur(34px);
+  width: 78%; aspect-ratio: 1; transform: translate(-50%, -50%);
+  background: radial-gradient(circle,
+    rgba(var(--err-glow-rgb), 0.20) 0%,
+    rgba(var(--err-glow-rgb), 0.10) 40%,
+    transparent 68%);
   animation: errCodeBloom 6s var(--ease-inout) infinite alternate;
-  will-change: transform, opacity;
 }
 @keyframes errCodeBloom {
   0%   { opacity: 0.8; transform: translate(-50%, -50%) scale(0.96); }
@@ -266,7 +269,7 @@ body.av-error {
 
 /* logo variant (maintenance) — official SV mark assembling */
 .error-code--logo { min-height: clamp(150px, 30vh, 240px); display: grid; place-items: center; }
-.error-code--logo img { width: clamp(150px, 30vh, 238px); height: auto; filter: drop-shadow(0 26px 50px rgba(0,0,0,0.5)) drop-shadow(0 0 46px rgba(var(--err-glow-rgb), 0.28)); }
+.error-code--logo img { width: clamp(150px, 30vh, 238px); height: auto; }
 
 /* signal variant (offline) — a fading signal waveform (discrete bars) */
 .error-code--signal {
@@ -353,22 +356,19 @@ body.av-reduce .error-status__dot { animation: none; }
           mask-image: radial-gradient(circle at var(--err-x) 50%, #000 0%, transparent 75%);
   animation: errScan 7s var(--ease-inout) infinite alternate;
 }
-@keyframes errScan { 0% { opacity: 0.25; transform: scaleY(1); } 100% { opacity: 0.6; transform: scaleY(1.02); } }
+@keyframes errScan { 0% { opacity: 0.25; } 100% { opacity: 0.6; } }
 
-/* 500 — controlled displacement on the code + a faint signal-spike haze */
+/* 500 — controlled displacement on the code.
+   Transform + opacity only: animating `filter` re-rasterises the element
+   every frame, which is what made this state stutter. */
 .error--500 .error-code { animation: errUnstable 8s var(--ease) infinite; }
 @keyframes errUnstable {
-  0%, 100% { filter: drop-shadow(0 30px 60px rgba(0,0,0,0.5)) drop-shadow(0 0 44px rgba(122,168,255,0.22)); transform: translate(0,0); }
-  12% { transform: translate(0, 0); }
-  13% { transform: translate(-3px, 1px); filter: drop-shadow(0 30px 60px rgba(0,0,0,0.5)) drop-shadow(-2px 0 6px rgba(122,168,255,0.5)); }
-  14% { transform: translate(3px, -1px); }
-  15% { transform: translate(0, 0); filter: drop-shadow(0 30px 60px rgba(0,0,0,0.5)) drop-shadow(0 0 44px rgba(122,168,255,0.22)); }
-  48% { transform: translate(0, 0); }
-  49% { transform: translate(2px, 2px); filter: drop-shadow(0 30px 60px rgba(0,0,0,0.5)) drop-shadow(2px 0 5px rgba(122,168,255,0.45)); }
-  50% { transform: translate(0, 0); }
+  0%, 12%, 15%, 48%, 50%, 100% { transform: translate3d(0, 0, 0); }
+  13% { transform: translate3d(-3px, 1px, 0); }
+  14% { transform: translate3d(3px, -1px, 0); }
+  49% { transform: translate3d(2px, 2px, 0); }
 }
 .error--500 .error-code::after { animation-duration: 1.8s; }
-.error--500 .error-scene__art { filter: saturate(0.9); }
 
 /* 502 / 504 — connection line lives in the injected art */
 
@@ -429,7 +429,7 @@ body.av-reduce [data-reveal] { opacity: 1 !important; transform: none !important
   /* simplify the atmosphere on small screens: drop the cursor lamp + horizon */
   .error-scene__cursor { display: none; }
   .error-scene__horizon { display: none; }
-  .error-scene__aurora { filter: blur(40px); opacity: 0.55; }
+  .error-scene__aurora { opacity: 0.5; }
 }
 @media (prefers-reduced-motion: reduce) {
   body.av-error { scroll-behavior: auto; }
