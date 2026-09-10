@@ -232,3 +232,102 @@
     }, true);
   }
 })();
+
+/* ============================================================
+   EXPERIENCE LAYER — ambient environment
+   dust, cursor light, scroll parallax, progress rail
+   transform/opacity only · one rAF loop · reduced-motion safe
+   ============================================================ */
+(() => {
+  "use strict";
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const finePointer = window.matchMedia("(pointer: fine)").matches;
+  const stage = document.getElementById("rStage");
+  if (!stage) return;
+
+  /* ---------- dust: slow drifting specks ---------- */
+  const dust = stage.querySelector(".r-stage__dust");
+  if (dust && !reduced) {
+    const frag = document.createDocumentFragment();
+    const n = window.innerWidth < 700 ? 14 : 26;
+    for (let i = 0; i < n; i++) {
+      const d = document.createElement("span");
+      const size = (1.5 + Math.random() * 2.2).toFixed(1);
+      d.style.left = (Math.random() * 100).toFixed(2) + "%";
+      d.style.top = (Math.random() * 100).toFixed(2) + "%";
+      d.style.width = size + "px";
+      d.style.height = size + "px";
+      d.style.animationDuration = (14 + Math.random() * 18).toFixed(2) + "s";
+      d.style.animationDelay = (-Math.random() * 30).toFixed(2) + "s";
+      d.style.opacity = (0.15 + Math.random() * 0.4).toFixed(2);
+      frag.appendChild(d);
+    }
+    dust.appendChild(frag);
+  }
+
+  /* ---------- shared rAF loop for parallax + progress + cursor ---------- */
+  let scrollY = window.scrollY;
+  let docH = 1, viewH = 1;
+  let railLen = 1;
+  const parallaxEls = [];
+  stage.querySelectorAll("[data-parallax]").forEach((el) => {
+    parallaxEls.push({ el, f: parseFloat(el.dataset.parallax || "0") });
+  });
+  const railFill = document.getElementById("rPrailFill");
+  const railCap = document.getElementById("rPrailCap");
+  const rail = document.getElementById("rPrail");
+  const light = document.getElementById("rStageLight");
+
+  const measure = () => {
+    docH = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    viewH = Math.max(1, window.innerHeight);
+    railLen = rail && rail.offsetHeight ? rail.offsetHeight : 1;
+  };
+  measure();
+  window.addEventListener("resize", measure, { passive: true });
+
+  let raf = null;
+  let tx = -600, ty = -600;   // cursor target
+  let cx = -600, cy = -600;   // cursor current (lerped)
+  let py = scrollY, y = scrollY; // parallax target/current
+  const tick = () => {
+    raf = null;
+    /* progress */
+    const p = Math.min(1, Math.max(0, scrollY / docH));
+    if (railFill) railFill.style.transform = "scaleY(" + p.toFixed(4) + ")";
+    if (railCap && rail) railCap.style.transform = "translateY(" + (p * railLen).toFixed(1) + "px)";
+    if (!reduced) {
+      /* parallax */
+      y += (py - y) * 0.08;
+      for (const l of parallaxEls) {
+        l.el.style.transform = "translate3d(0," + (y * l.f).toFixed(2) + "px,0)";
+      }
+      /* cursor light */
+      if (light && light.classList.contains("is-on")) {
+        cx += (tx - cx) * 0.09;
+        cy += (ty - cy) * 0.09;
+        light.style.transform = "translate3d(" + cx.toFixed(1) + "px," + cy.toFixed(1) + "px,0)";
+      }
+    }
+  };
+
+  /* schedule from scroll */
+  const onScroll = () => {
+    scrollY = window.scrollY;
+    py = scrollY;
+    if (!raf) raf = requestAnimationFrame(tick);
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+
+  /* cursor light — fine pointers only */
+  if (light && finePointer && !reduced) {
+    const move = (e) => {
+      tx = e.clientX; ty = e.clientY;
+      if (!light.classList.contains("is-on")) light.classList.add("is-on");
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+    window.addEventListener("pointermove", move, { passive: true });
+  }
+  /* paint first frame */
+  onScroll();
+})();

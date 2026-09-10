@@ -692,3 +692,183 @@
 .r-final__id { margin-top: clamp(48px, 7vh, 84px); padding-top: clamp(30px, 4vh, 46px); }
 .r-cs__module { padding: clamp(32px, 4.5vh, 52px) 0; }
 .r-own, .r-acc { margin-top: 0; }
+
+/* ============================================================
+   EXPERIENCE LAYER — ambient environment, immersive depth
+   (transform/opacity only · low frequency · reduced-motion safe)
+   ============================================================ */
+
+/* the content plane floats above the ambient stage */
+.r-realm { position: relative; z-index: 1; }
+
+/* ambient stage — fixed behind the whole journey */
+.r-stage {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  overflow: clip; will-change: transform;
+}
+.r-stage__base {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(160% 120% at 50% -10%, rgba(24, 46, 96, 0.55), transparent 62%),
+    radial-gradient(140% 110% at 50% 118%, rgba(10, 20, 44, 0.85), transparent 58%),
+    linear-gradient(180deg, #05070D 0%, #070C1C 46%, #05070D 100%);
+}
+.r-stage__aurora { position: absolute; inset: -20%; }
+.r-stage__blob { position: absolute; border-radius: 50%; filter: none; }
+.r-stage__blob--a {
+  width: 62vw; height: 62vw; left: -12vw; top: -6vh;
+  background: radial-gradient(circle, rgba(110, 168, 255, 0.13), transparent 62%);
+  animation: rblob-a 34s var(--ease-io) infinite alternate;
+}
+.r-stage__blob--b {
+  width: 54vw; height: 54vw; right: -14vw; bottom: -12vh;
+  background: radial-gradient(circle, rgba(46, 90, 172, 0.17), transparent 60%);
+  animation: rblob-b 40s var(--ease-io) infinite alternate;
+}
+@keyframes rblob-a {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(9vw, 7vh, 0) scale(1.12); }
+}
+@keyframes rblob-b {
+  from { transform: translate3d(0, 0, 0) scale(1.08); }
+  to   { transform: translate3d(-8vw, -6vh, 0) scale(1); }
+}
+.r-stage__grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(148, 170, 230, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 170, 230, 0.045) 1px, transparent 1px);
+  background-size: 96px 96px;
+  -webkit-mask-image: radial-gradient(120% 90% at 50% 40%, #000 30%, transparent 78%);
+  mask-image: radial-gradient(120% 90% at 50% 40%, #000 30%, transparent 78%);
+}
+.r-stage__dust { position: absolute; inset: 0; }
+.r-stage__dust span {
+  position: absolute; width: 3px; height: 3px; border-radius: 50%;
+  background: rgba(148, 170, 230, 0.55);
+  box-shadow: 0 0 8px rgba(110, 168, 255, 0.35);
+  animation: rdust 16s linear infinite;
+  opacity: 0;
+}
+@keyframes rdust {
+  0%   { transform: translate3d(0, 26vh, 0); opacity: 0; }
+  12%  { opacity: 0.55; }
+  50%  { opacity: 0.25; }
+  88%  { opacity: 0.55; }
+  100% { transform: translate3d(0, -118vh, 0); opacity: 0; }
+}
+.r-stage__light {
+  position: absolute; left: 0; top: 0; width: 980px; height: 980px;
+  margin: -490px 0 0 -490px; border-radius: 50%; opacity: 0;
+  background: radial-gradient(circle, rgba(110, 168, 255, 0.11), rgba(110, 168, 255, 0.035) 42%, transparent 66%);
+  mix-blend-mode: screen;
+  transition: opacity 0.8s var(--ease);
+}
+.r-stage__light.is-on { opacity: 1; }
+
+/* dark chapters become translucent glass — the stage glows through */
+.r-sec.t-dark { background: rgba(8, 15, 34, 0.94); }
+.r-sec--deep { background: rgba(5, 7, 13, 0.90); }
+.r-final { background: rgba(5, 7, 13, 0.90); }
+.r-hero {
+  background:
+    radial-gradient(1200px 720px at 82% -12%, rgba(110, 168, 255, 0.14), transparent 60%),
+    radial-gradient(900px 560px at -8% 112%, rgba(46, 90, 172, 0.20), transparent 62%),
+    rgba(5, 7, 13, 0.88);
+}
+
+/* scroll progress rail — right edge */
+.r-prail {
+  position: fixed; right: 16px; top: 50%; transform: translateY(-50%);
+  width: 2px; height: min(38vh, 340px); z-index: 240; pointer-events: none;
+  background: rgba(148, 170, 230, 0.16); border-radius: 999px;
+}
+.r-prail i {
+  position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+  background: linear-gradient(180deg, var(--azure), rgba(110, 168, 255, 0.35));
+  border-radius: 999px; transform-origin: top center; transform: scaleY(0);
+  box-shadow: 0 0 14px rgba(110, 168, 255, 0.45);
+}
+.r-prail span {
+  position: absolute; left: 50%; top: -6px; width: 7px; height: 7px;
+  margin-left: -3.5px; border-radius: 50%; background: #EFF0EA;
+  box-shadow: 0 0 10px rgba(110, 168, 255, 0.8);
+  transform: translateY(calc(min(38vh, 340px) * 0)); transition: transform 0.2s linear;
+}
+
+/* ============================================================
+   EXPERIENCE LAYER — tighter layout (keeps every word, reads shorter)
+   ============================================================ */
+.r-hero { min-height: 92svh; }
+.r-hero__inner { padding-top: clamp(120px, 16vh, 172px); }
+.r-hero__title { font-size: clamp(2.5rem, 1.7rem + 4.2vw, 4.7rem); }
+.r-hero__actions { margin-top: clamp(24px, 3vh, 34px); }
+.r-hero__copy { padding-bottom: clamp(22px, 3vh, 40px); }
+
+.r-sec { padding: clamp(40px, 6vh, 78px) 0; }
+.r-sec--tight { padding: clamp(28px, 4.2vh, 54px) 0; }
+.r-display { font-size: clamp(2rem, 1.4rem + 3.2vw, 3.7rem); line-height: 1.02; }
+.r-h2 { font-size: clamp(1.65rem, 1.25rem + 1.9vw, 2.6rem); }
+.r-chainhead { font-size: clamp(1.8rem, 1.3rem + 2.5vw, 3.1rem); margin-bottom: clamp(20px, 3vh, 34px); }
+.r-kicker { margin-bottom: clamp(14px, 2vh, 24px); }
+.r-lead { font-size: clamp(1.05rem, 1rem + 0.4vw, 1.25rem); }
+.r-statement__lines { margin-top: clamp(20px, 3vh, 36px); }
+.r-statement__line { font-size: clamp(1.35rem, 1.05rem + 1.5vw, 2.3rem); padding: 14px 0; }
+.r-dialogue { gap: 18px; margin-top: clamp(20px, 3vh, 34px); }
+.r-dialogue__q, .r-dialogue__a { font-size: clamp(1.15rem, 1.05rem + 0.8vw, 1.6rem); }
+.r-split { gap: clamp(22px, 3.5vw, 56px); }
+.r-snapshot { margin-top: clamp(28px, 4vh, 44px); }
+.r-snapshot__cell { padding: 20px 20px 20px 0; }
+.r-evolve li, .r-spaces li { padding: 15px 0; }
+.r-notlist li { padding: 12px 0; }
+.r-three { margin-top: clamp(24px, 3.4vh, 38px); }
+.r-three__col { padding: 26px 24px 26px 0; }
+.r-three__close { margin-top: 26px; }
+.r-role-groups { margin-top: clamp(24px, 3.4vh, 38px); }
+.r-role-groups__g { padding: 24px 20px 24px 0; }
+.r-role-groups__g:nth-child(n+2) { padding-left: 20px; }
+.r-canlist, .r-syslist { margin-top: 20px; gap: 8px 24px; }
+.r-contact__q { margin-bottom: 22px; }
+.r-contact__q li { padding: 10px 0 10px 26px; }
+.r-form { gap: 12px; }
+.r-form__row { gap: 12px; }
+.r-form input, .r-form textarea { padding: 13px 14px; }
+.r-cs__module { padding: clamp(22px, 3vh, 38px) 0; gap: clamp(22px, 3vw, 44px); }
+.r-cs__title { font-size: clamp(1.7rem, 1.4rem + 1.4vw, 2.6rem); margin-bottom: 14px; }
+.r-cs__body p { margin-bottom: 12px; }
+.r-cs__kicker { margin: 10px 0 12px; }
+.r-chips { margin: 14px 0 18px; }
+.r-cs__media { border-radius: 12px; }
+.r-cs__media img { max-height: 420px; object-fit: cover; }
+.r-eco { padding-top: 34px; gap: clamp(22px, 3.5vw, 48px); }
+.r-eco__mark { width: 96px; height: 96px; }
+.r-final { padding: clamp(52px, 7vh, 90px) 0 clamp(44px, 6vh, 72px); }
+.r-final__big { font-size: clamp(1.65rem, 1.2rem + 2.2vw, 2.9rem); margin-bottom: clamp(18px, 2.6vh, 28px); }
+.r-final__id { margin-top: clamp(30px, 4vh, 50px); padding-top: clamp(18px, 2.6vh, 30px); gap: 22px; }
+.r-between { margin-bottom: 22px; }
+.r-acc__item, .r-acc__head { transition: border-color 0.3s var(--ease), background 0.3s var(--ease); }
+
+/* ============================================================
+   EXPERIENCE LAYER — responsive
+   ============================================================ */
+@media (max-width: 1080px) {
+  .r-prail { display: none; }
+  .r-stage__blob--a { width: 90vw; height: 90vw; }
+  .r-stage__blob--b { width: 80vw; height: 80vw; }
+}
+@media (max-width: 640px) {
+  .r-sec { padding: clamp(34px, 7vh, 56px) 0; }
+  .r-hero { min-height: 0; }
+  .r-hero__inner { padding-top: clamp(108px, 18vh, 140px); }
+}
+
+/* ============================================================
+   EXPERIENCE LAYER — reduced motion
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .r-stage__blob--a, .r-stage__blob--b { animation: none; }
+  .r-stage__dust span { animation: none; opacity: 0.35; }
+  .r-stage__light { display: none; }
+  .r-prail i { transition: none; }
+  .r-prail span { transition: none; }
+}
