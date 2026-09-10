@@ -35,7 +35,7 @@
 
   /* ---------- hero pointer parallax (fine pointer only) ---------- */
   const viz = $("#rHeroViz");
-  if (viz && finePointer.matches && !reduced) {
+  if (viz && finePointer && !reduced) {
     const layers = $$(".r-hero__constellation, .r-hero__frags", viz).map((el, i) => ({
       el, depth: i === 0 ? 14 : 8
     }));
@@ -187,5 +187,56 @@
       }
     }, { rootMargin: "-35% 0px -55% 0px", threshold: 0 });
     sections.forEach((s) => io.observe(s.sec));
+  }
+
+  /* ---------- immersive: constellation lines glow while a node is hovered ---------- */
+  const constellation = $(".r-hero__constellation");
+  if (constellation && finePointer && !reduced) {
+    constellation.addEventListener("pointerenter", () => constellation.classList.add("is-node-hot"), { passive: true });
+    constellation.addEventListener("pointerleave", () => constellation.classList.remove("is-node-hot"), { passive: true });
+  }
+
+  /* ---------- immersive: systems diagram — hovering a node reveals its neighbours ---------- */
+  const sysEl = $("#rSys");
+  if (sysEl && !reduced) {
+    const sysSteps = $$(".r-sys__step", sysEl);
+    const sysClear = () => {
+      sysSteps.forEach((s) => s.classList.remove("is-hot", "is-neighbor"));
+      sysEl.classList.remove("is-neighbor-on");
+    };
+    const sysActivate = (el) => {
+      sysClear();
+      const i = sysSteps.indexOf(el);
+      el.classList.add("is-hot");
+      if (sysSteps[i - 1]) sysSteps[i - 1].classList.add("is-neighbor");
+      if (sysSteps[i + 1]) sysSteps[i + 1].classList.add("is-neighbor");
+      sysEl.classList.add("is-neighbor-on");
+    };
+    sysSteps.forEach((el) => {
+      el.addEventListener("pointerenter", () => sysActivate(el));
+      el.addEventListener("focusin", () => sysActivate(el));
+    });
+    sysEl.addEventListener("pointerleave", sysClear);
+    sysEl.addEventListener("focusout", (e) => {
+      if (!sysEl.contains(e.relatedTarget)) sysClear();
+    });
+  }
+
+  /* ---------- immersive: how-I-work — emphasise the stage in view ---------- */
+  const hw = $(".r-hw");
+  if (hw && !reduced && "IntersectionObserver" in window) {
+    const hwSteps = $$(".r-hw__step", hw);
+    const hwIO = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) hwSteps.forEach((s) => s.classList.toggle("is-active", s === e.target));
+      }
+    }, { rootMargin: "-44% 0px -44% 0px", threshold: 0 });
+    hwSteps.forEach((s) => hwIO.observe(s));
+    const hwGate = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) { hw.classList.add("is-scrolled"); hwGate.disconnect(); }
+      }
+    }, { threshold: 0.05 });
+    hwGate.observe(hw);
   }
 })();

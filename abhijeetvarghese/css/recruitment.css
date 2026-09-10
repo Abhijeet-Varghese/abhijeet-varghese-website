@@ -99,6 +99,17 @@
     var(--r-deep);
   color: #EFF0EA; overflow: clip;
 }
+.r-hero::before {
+  content: ""; position: absolute; inset: -26% -18%; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(42% 38% at 28% 16%, rgba(110, 168, 255, 0.09), transparent 70%),
+    radial-gradient(38% 42% at 78% 84%, rgba(46, 90, 172, 0.15), transparent 72%);
+  animation: raurora 32s var(--ease-io) infinite alternate;
+}
+@keyframes raurora {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(-46px, 34px, 0) scale(1.08); }
+}
 .r-hero__grid-veil {
   position: absolute; inset: 0; pointer-events: none;
   background-image:
@@ -368,11 +379,23 @@
   to { transform: translate(var(--tx, 0), var(--ty, 0)) scale(0.35); opacity: 0; }
 }
 
-/* hero constellation — soft breathing light (opacity-only, no layout cost) */
-.r-hero__constellation g[fill="#6EA8FF"] circle { animation: rglow 6s ease-in-out infinite alternate; }
-.r-hero__constellation g[fill="#6EA8FF"] circle:nth-child(2) { animation-delay: -2s; }
-.r-hero__constellation g[fill="#6EA8FF"] circle:nth-child(3) { animation-delay: -4s; }
-@keyframes rglow { from { opacity: 0.08; } to { opacity: 0.22; } }
+/* hero constellation — interactive node network (transform/opacity only) */
+.r-cnode__lines { transition: opacity 0.35s var(--ease); }
+.r-hero__constellation.is-node-hot .r-cnode__lines { opacity: 0.62; }
+.r-cnode__label {
+  fill: rgba(233, 240, 250, 0.9); font-family: var(--font);
+  font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+  opacity: 0; transition: opacity 0.3s var(--ease);
+}
+.r-cnode__halo { opacity: 0.35; transition: opacity 0.3s var(--ease); }
+.r-cnode__dot { transition: fill 0.3s var(--ease); }
+.r-cnode:hover .r-cnode__label { opacity: 1; }
+.r-cnode:hover .r-cnode__halo { opacity: 0.95; }
+.r-cnode:hover .r-cnode__dot { fill: #FFFFFF; }
+.r-cnode--core .r-cnode__label { opacity: 0.35; }
+.r-cnode--core:hover .r-cnode__label { opacity: 1; }
+.r-cnode__pulse { opacity: 0.16; animation: rpulse 4.5s ease-in-out infinite alternate; }
+@keyframes rpulse { from { opacity: 0.1; } to { opacity: 0.38; } }
 
 /* ============================================================
    PROBLEM SPACES + ROLES
@@ -562,6 +585,76 @@
 }
 
 /* ============================================================
+   IMMERSIVE LAYER — interaction deepening (transform/opacity only)
+   ============================================================ */
+
+/* systems — hovering a node reveals its relationship to its neighbours */
+.r-sys__step { transition: opacity 0.35s var(--ease); }
+.r-sys.is-neighbor-on .r-sys__step { opacity: 0.38; }
+.r-sys.is-neighbor-on .r-sys__step.is-hot,
+.r-sys.is-neighbor-on .r-sys__step.is-neighbor { opacity: 1; }
+
+/* how I work — the stage in view is emphasised, the rest recede */
+.r-hw__step { transition: background 0.3s var(--ease), opacity 0.45s var(--ease); }
+.r-hw__num { transition: transform 0.45s var(--ease), color 0.45s var(--ease); }
+.r-hw.is-scrolled .r-hw__step { opacity: 0.5; }
+.r-hw.is-scrolled .r-hw__step.is-active {
+  opacity: 1;
+  background: linear-gradient(90deg, rgba(46, 90, 172, 0.05), transparent 72%);
+}
+.r-hw__step.is-active .r-hw__num { color: var(--r-blue); transform: translateY(-3px); }
+
+/* forces — the tensions around the idea breathe (scale-only, no layout) */
+.r-forces__force { animation: rforce 7s var(--ease-io) infinite alternate; }
+.r-forces__force:nth-child(2n) { animation-delay: -3.5s; }
+.r-forces__force:nth-child(3n) { animation-delay: -5.2s; }
+@keyframes rforce {
+  from { transform: translate(-50%, -50%) scale(1); opacity: 0.82; }
+  to   { transform: translate(-50%, -50%) scale(1.09); opacity: 1; }
+}
+.r-forces__core strong::before {
+  content: ""; position: absolute; inset: -16px; border-radius: 18px;
+  border: 1px solid rgba(110, 168, 255, 0.16); z-index: -1;
+  animation: rcore 5s ease-in-out infinite alternate;
+}
+@keyframes rcore { from { transform: scale(0.9); opacity: 0.4; } to { transform: scale(1.05); opacity: 0.85; } }
+
+/* what I can own — hover focuses one row, the others recede */
+@media (hover: hover) and (pointer: fine) {
+  .r-own li { transition: opacity 0.35s var(--ease), background 0.3s var(--ease); }
+  .r-own:hover li { opacity: 0.45; }
+  .r-own li:hover { opacity: 1; }
+}
+
+/* case studies — media breathes on hover; proof keywords cycle across it */
+.r-cs__media img { transition: transform 1.4s var(--ease); }
+@media (hover: hover) and (pointer: fine) {
+  .r-cs__media:hover img { transform: scale(1.045); }
+}
+.r-cs__proof {
+  position: absolute; z-index: 2; left: 18px; right: 18px; bottom: 16px;
+  height: 22px; overflow: hidden; pointer-events: none;
+}
+.r-cs__proof span {
+  position: absolute; left: 0; bottom: 0; opacity: 0;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: #fff;
+}
+@media (hover: hover) and (pointer: fine) {
+  .r-cs__media:hover .r-cs__proof span { animation: rproof 6.3s linear infinite; }
+}
+.r-cs__proof span:nth-child(2) { animation-delay: 0.9s !important; }
+.r-cs__proof span:nth-child(3) { animation-delay: 1.8s !important; }
+.r-cs__proof span:nth-child(4) { animation-delay: 2.7s !important; }
+.r-cs__proof span:nth-child(5) { animation-delay: 3.6s !important; }
+.r-cs__proof span:nth-child(6) { animation-delay: 4.5s !important; }
+.r-cs__proof span:nth-child(7) { animation-delay: 5.4s !important; }
+@keyframes rproof {
+  0%, 10%  { opacity: 0; transform: translateY(8px); }
+  20%, 34% { opacity: 1; transform: translateY(0); }
+  44%, 100% { opacity: 0; transform: translateY(-8px); }
+}
+
+/* ============================================================
    REDUCED MOTION
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {
@@ -569,6 +662,11 @@
   .r-sys__fill { transition: none; }
   .r-ai__collapse { animation: none; }
   .r-hero__constellation circle { animation: none; }
+  .r-hero::before { animation: none; }
+  .r-cnode__pulse, .r-forces__force, .r-forces__core strong::before { animation: none; }
+  .r-cs__proof { display: none; }
   .r-hero__frag img { transform: none; }
   .r-cta, .r-cta svg, .r-cs__cta svg, .r-chain__node { transition: none; }
+  .r-sys__step, .r-hw__step, .r-hw__num, .r-own li, .r-cs__media img,
+  .r-cnode__label, .r-cnode__halo, .r-cnode__dot, .r-cnode__lines { transition: none; }
 }
