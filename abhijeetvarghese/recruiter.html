@@ -23,7 +23,7 @@
   <link rel="icon" type="image/png" href="../assets/logo.png">
   <link rel="stylesheet" href="../css/styles.css?v=2.4.20-2f70fe04f51a">
   <link rel="stylesheet" href="../css/tokens.css">
-  <link rel="stylesheet" href="../css/recruitment.css?v=2.0.0">
+  <link rel="stylesheet" href="../css/recruitment.css?v=3.0.0">
   <script>
     document.documentElement.className += " js";
     setTimeout(function () {
@@ -75,11 +75,10 @@
       <i class="r-stage__blob r-stage__blob--b"></i>
     </div>
     <div class="r-stage__grid" data-parallax="0.24"></div>
-    <div class="r-stage__dust" data-parallax="0.44"></div>
     <div class="r-stage__light" id="rStageLight"></div>
   </div>
 
-  <header class="site-nav" id="siteNav">
+<header class="site-nav" id="siteNav">
     <nav class="site-nav__inner" aria-label="Primary">
       <a class="brand" href="../index.html" aria-label="Abhijeet Varghese — home">
         <img class="brand__logo" src="../assets/logo.png" alt="Abhijeet Varghese logo" width="36" height="36" decoding="async">
@@ -122,821 +121,292 @@
     </div>
   </header>
 
-  <nav class="r-rail" id="rRail" aria-label="Recruiter profile sections">
+  <nav class="r-rail" id="rRail" aria-label="Recruiter page sections">
     <div class="r-rail__inner">
-      <a class="r-rail__link is-active" href="#profile" data-rail="profile">Profile</a>
-      <a class="r-rail__link" href="../experience/">Experience</a>
-      <a class="r-rail__link" href="../portfolio.html">Work</a>
-      <a class="r-rail__link" href="#systems" data-rail="systems">How I think</a>
-      <a class="r-rail__link" href="../case-studies/">Case studies</a>
-      <a class="r-rail__link" href="#own" data-rail="own">What I can own</a>
-      <a class="r-rail__link" href="#fit" data-rail="fit">Opportunities</a>
-      <a class="r-rail__link r-rail__link--cta" href="../contact.html">Contact</a>
+      <a class="r-rail__link is-active" href="#intro" data-rail="intro">Intro</a>
+      <a class="r-rail__link" href="#think" data-rail="think">Think</a>
+      <a class="r-rail__link" href="#work" data-rail="work">Work</a>
+      <a class="r-rail__link" href="#own" data-rail="own">Own</a>
+      <a class="r-rail__link" href="#fit" data-rail="fit">Fit</a>
+      <a class="r-rail__link r-rail__link--cta" href="#contact" data-rail="contact">Contact</a>
     </div>
   </nav>
 
-  <main id="main">
-    <div class="r-realm">
-    <!-- ============================================================
-         ACT 01 — HERO
-         ============================================================ -->
-    <section class="r-hero" id="profile" data-act="01" aria-label="Introduction">
-      <div class="r-hero__grid-veil" aria-hidden="true"></div>
-      <div class="r-hero__inner">
-        <div class="r-hero__copy">
-          <p class="r-hero__kicker" data-reveal><span>Recruiter</span><i aria-hidden="true"></i></p>
-          <h1 class="r-hero__title" data-reveal style="--d:.05s">
-            I don't fit neatly into one job title.
-            <em>And that's the point.</em>
-          </h1>
-          <div class="r-hero__id" data-reveal style="--d:.14s">
-            <p class="r-hero__name">Abhijeet Varghese</p>
-            <p class="r-hero__role">Creative Systems Leader</p>
-            <p class="r-hero__sub">Experience Design • Enterprise Innovation • AI-Enabled Creative Production</p>
-          </div>
-          <p class="r-hero__lead" data-reveal style="--d:.2s">I work at the intersection of <strong>creativity, technology and human understanding</strong>.</p>
-          <div class="r-hero__actions" data-reveal style="--d:.28s">
-            <a class="r-cta r-cta--accent" href="../contact.html">Start a conversation <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
-            <a class="r-cta r-cta--ghost" href="#work">Explore the work <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
-          </div>
-          <p class="r-hero__span" data-reveal style="--d:.34s">My work spans <strong>experience design, creative strategy, immersive experiences, enterprise innovation, brand systems, spatial experiences, interactive experiences, storytelling and creative technology</strong>. I move between the places where an idea is defined and where it has to become real.</p>
-          <ul class="r-hero__sometimes" data-reveal-group data-dbase=".36">
-            <li data-reveal>Sometimes that means shaping the strategy.</li>
-            <li data-reveal>Sometimes it means finding the idea.</li>
-            <li data-reveal>Sometimes it means designing the experience.</li>
-            <li data-reveal>Sometimes it means working through the content, technology or interaction.</li>
-            <li data-reveal>And often, it means bringing the people, teams, stakeholders and partners together to make the whole thing work.</li>
-          </ul>
-          <p class="r-hero__creed" data-reveal style="--d:.42s"><strong>I don't just create outputs.</strong><strong>I build systems around ideas so they can <em>become experiences.</em></strong></p>
-        </div>
 
+  <main id="main">
+    <!-- ============================================================
+         01 — HERO  (who is Abhijeet?)
+         ============================================================ -->
+    <section class="r-hero" id="intro" data-act="01" aria-label="Introduction">
+      <div class="r-wrap r-hero__inner">
+        <div class="r-hero__copy">
+          <p class="r-kicker" data-reveal><span class="r-kicker__num">Recruiter</span>Recruitment</p>
+          <h1 class="r-hero__title" data-reveal style="--d:.05s">I don't fit neatly into one job title.<em>And that's the point.</em></h1>
+          <div class="r-id" data-reveal style="--d:.13s">
+            <p class="r-id__name">Abhijeet Varghese</p>
+            <p class="r-id__role">Creative Systems Leader</p>
+            <p class="r-id__sub">Experience Design • Enterprise Innovation • AI-Enabled Creative Production</p>
+          </div>
+          <p class="r-lead" data-reveal style="--d:.2s">I work at the intersection of <strong>creativity, technology and human understanding</strong> — connecting strategy, storytelling, experience, people and execution to build meaningful physical, digital and immersive experiences.</p>
+          <div class="r-ctarow" data-reveal style="--d:.28s">
+            <a class="r-cta r-cta--accent" href="#contact">Start a conversation <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
+            <a class="r-cta r-cta--ghost" href="#work">View selected work <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
+          </div>
+        </div>
         <div class="r-hero__viz" id="rHeroViz" aria-hidden="true">
           <div class="r-hero__frags">
             <figure class="r-hero__frag r-hero__frag--a"><img src="../assets/media/orange-business-executive-briefing-center-mumbai-panoramic-640.webp" alt="" width="640" height="427" loading="lazy" decoding="async"></figure>
-            <figure class="r-hero__frag"><img src="../assets/media/indian-army/ia-01-960.webp" alt="" width="960" height="640" loading="lazy" decoding="async"></figure>
-            <figure class="r-hero__frag"><img src="../case-studies/bharat-petroleum-corporation-limited/assets/images/miniature/day-720.webp" alt="" width="720" height="480" loading="lazy" decoding="async"></figure>
+            <figure class="r-hero__frag r-hero__frag--b"><img src="../assets/media/indian-army/ia-01-960.webp" alt="" width="960" height="640" loading="lazy" decoding="async"></figure>
           </div>
-          <svg class="r-hero__constellation" viewBox="0 0 480 560" fill="none" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-            <g class="r-cnode__lines" stroke="rgba(110,168,255,.26)" stroke-width="1">
-              <path d="M240 300 L84 74"/>
-              <path d="M240 300 L400 60"/>
-              <path d="M240 300 L452 200"/>
-              <path d="M240 300 L430 452"/>
-              <path d="M240 300 L78 468"/>
-              <path d="M240 300 L46 260"/>
-              <path d="M84 74 L400 60"/>
-              <path d="M400 60 L452 200"/>
-              <path d="M452 200 L430 452"/>
-              <path d="M430 452 L78 468"/>
-              <path d="M78 468 L46 260"/>
-              <path d="M46 260 L84 74"/>
+          <svg class="r-hero__constellation" id="rHeroConstellation" viewBox="0 0 480 500" fill="none" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <g class="r-cnode__lines" stroke="rgba(110,168,255,.24)" stroke-width="1">
+              <path d="M240 78 L362 128"/><path d="M362 128 L412 250"/><path d="M412 250 L362 372"/><path d="M362 372 L240 422"/>
+              <path d="M240 422 L118 372"/><path d="M118 372 L68 250"/><path d="M68 250 L118 128"/><path d="M118 128 L240 78"/>
+              <path d="M240 78 L240 422"/><path d="M362 128 L118 372"/><path d="M412 250 L68 250"/><path d="M362 372 L118 128"/>
             </g>
-            <g class="r-cnode">
-              <circle class="r-cnode__halo" cx="84" cy="74" r="15" fill="rgba(110,168,255,.12)"/>
-              <circle class="r-cnode__dot" cx="84" cy="74" r="4" fill="#9CC2FF"/>
-              <text class="r-cnode__label" x="84" y="98" text-anchor="middle">Strategy</text>
-            </g>
-            <g class="r-cnode">
-              <circle class="r-cnode__halo" cx="400" cy="60" r="15" fill="rgba(110,168,255,.12)"/>
-              <circle class="r-cnode__dot" cx="400" cy="60" r="4" fill="#9CC2FF"/>
-              <text class="r-cnode__label" x="400" y="84" text-anchor="middle">Idea</text>
-            </g>
-            <g class="r-cnode">
-              <circle class="r-cnode__halo" cx="452" cy="200" r="15" fill="rgba(110,168,255,.12)"/>
-              <circle class="r-cnode__dot" cx="452" cy="200" r="4" fill="#9CC2FF"/>
-              <text class="r-cnode__label" x="452" y="224" text-anchor="middle">Story</text>
-            </g>
-            <g class="r-cnode">
-              <circle class="r-cnode__halo" cx="430" cy="452" r="15" fill="rgba(110,168,255,.12)"/>
-              <circle class="r-cnode__dot" cx="430" cy="452" r="4" fill="#9CC2FF"/>
-              <text class="r-cnode__label" x="430" y="476" text-anchor="middle">Technology</text>
-            </g>
-            <g class="r-cnode">
-              <circle class="r-cnode__halo" cx="78" cy="468" r="15" fill="rgba(110,168,255,.12)"/>
-              <circle class="r-cnode__dot" cx="78" cy="468" r="4" fill="#9CC2FF"/>
-              <text class="r-cnode__label" x="78" y="492" text-anchor="middle">People</text>
-            </g>
-            <g class="r-cnode">
-              <circle class="r-cnode__halo" cx="46" cy="260" r="15" fill="rgba(110,168,255,.12)"/>
-              <circle class="r-cnode__dot" cx="46" cy="260" r="4" fill="#9CC2FF"/>
-              <text class="r-cnode__label" x="46" y="284" text-anchor="middle">Execution</text>
-            </g>
-            <g class="r-cnode r-cnode--core">
-              <circle class="r-cnode__pulse" cx="240" cy="300" r="26" fill="none" stroke="rgba(110,168,255,.4)"/>
-              <circle class="r-cnode__halo" cx="240" cy="300" r="20" fill="rgba(110,168,255,.14)"/>
-              <circle class="r-cnode__dot" cx="240" cy="300" r="5.5" fill="#6EA8FF"/>
-              <text class="r-cnode__label" x="240" y="324" text-anchor="middle">Experience</text>
-            </g>
+            <g class="r-cnode"><circle class="r-cnode__pulse" cx="240" cy="78" r="15"/><circle class="r-cnode__halo" cx="240" cy="78" r="15"/><circle class="r-cnode__dot" cx="240" cy="78" r="4"/><text class="r-cnode__label" x="240" y="116" text-anchor="middle">Strategy</text></g>
+            <g class="r-cnode"><circle class="r-cnode__halo" cx="362" cy="128" r="15"/><circle class="r-cnode__dot" cx="362" cy="128" r="4"/><text class="r-cnode__label" x="362" y="166" text-anchor="middle">Story</text></g>
+            <g class="r-cnode"><circle class="r-cnode__pulse" cx="412" cy="250" r="15"/><circle class="r-cnode__halo" cx="412" cy="250" r="15"/><circle class="r-cnode__dot" cx="412" cy="250" r="4"/><text class="r-cnode__label" x="412" y="288" text-anchor="middle">Design</text></g>
+            <g class="r-cnode"><circle class="r-cnode__halo" cx="362" cy="372" r="15"/><circle class="r-cnode__dot" cx="362" cy="372" r="4"/><text class="r-cnode__label" x="362" y="410" text-anchor="middle">Space</text></g>
+            <g class="r-cnode"><circle class="r-cnode__pulse" cx="240" cy="422" r="15"/><circle class="r-cnode__halo" cx="240" cy="422" r="15"/><circle class="r-cnode__dot" cx="240" cy="422" r="4"/><text class="r-cnode__label" x="240" y="460" text-anchor="middle">Technology</text></g>
+            <g class="r-cnode"><circle class="r-cnode__halo" cx="118" cy="372" r="15"/><circle class="r-cnode__dot" cx="118" cy="372" r="4"/><text class="r-cnode__label" x="118" y="410" text-anchor="middle">Content</text></g>
+            <g class="r-cnode"><circle class="r-cnode__halo" cx="68" cy="250" r="15"/><circle class="r-cnode__dot" cx="68" cy="250" r="4"/><text class="r-cnode__label" x="68" y="288" text-anchor="middle">People</text></g>
+            <g class="r-cnode"><circle class="r-cnode__halo" cx="118" cy="128" r="15"/><circle class="r-cnode__dot" cx="118" cy="128" r="4"/><text class="r-cnode__label" x="118" y="166" text-anchor="middle">Execution</text></g>
           </svg>
-          <p class="r-hero__cue" data-reveal>Scroll <i aria-hidden="true"></i></p>
-        </div>
-      </div>
-      <div class="r-marquee" aria-hidden="true">
-        <div class="r-marquee__track">
-          <span>Creative Strategy</span><span class="r-marquee__dot">✦</span><span>Experience Design</span><span class="r-marquee__dot">✦</span><span>Immersive Experiences</span><span class="r-marquee__dot">✦</span><span>Enterprise Innovation</span><span class="r-marquee__dot">✦</span><span>Brand Systems</span><span class="r-marquee__dot">✦</span><span>Spatial Experiences</span><span class="r-marquee__dot">✦</span><span>Interactive Experiences</span><span class="r-marquee__dot">✦</span><span>Storytelling</span><span class="r-marquee__dot">✦</span><span>Creative Technology</span><span class="r-marquee__dot">✦</span><span>AI-Enabled Creative Production</span><span class="r-marquee__dot">✦</span>
-          <span>Creative Strategy</span><span class="r-marquee__dot">✦</span><span>Experience Design</span><span class="r-marquee__dot">✦</span><span>Immersive Experiences</span><span class="r-marquee__dot">✦</span><span>Enterprise Innovation</span><span class="r-marquee__dot">✦</span><span>Brand Systems</span><span class="r-marquee__dot">✦</span><span>Spatial Experiences</span><span class="r-marquee__dot">✦</span><span>Interactive Experiences</span><span class="r-marquee__dot">✦</span><span>Storytelling</span><span class="r-marquee__dot">✦</span><span>Creative Technology</span><span class="r-marquee__dot">✦</span><span>AI-Enabled Creative Production</span><span class="r-marquee__dot">✦</span>
         </div>
       </div>
     </section>
 
     <!-- ============================================================
-         ACT 02 — BEFORE YOU READ MY CV
+         02 — THE SHORT VERSION  (what does he do?)
          ============================================================ -->
-    <section class="r-sec t-light" id="premise" data-act="02" aria-label="Before you read my CV">
+    <section class="r-sec" id="short" data-act="02" aria-label="The short version">
       <div class="r-wrap">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">02</span>Before you read my CV</p>
-        <p class="r-lead r-mut" data-reveal style="max-width:56ch">There is a useful distinction.</p>
-        <div class="r-statement__lines" data-reveal-group>
-          <p class="r-statement__line" data-reveal>A CV tells you <em>where I have been.</em></p>
-          <p class="r-statement__line" data-reveal>A portfolio tells you <em>what I have made.</em></p>
-          <p class="r-statement__line" data-reveal>Neither completely explains <em>how I work.</em></p>
+        <p class="r-kicker" data-reveal><span class="r-kicker__num">01</span>The short version</p>
+        <h2 class="r-display" data-reveal>I connect <em>the dots.</em></h2>
+        <ol class="r-flow" data-reveal>
+          <li class="r-flow__node">Idea</li>
+          <li class="r-flow__arrow" aria-hidden="true"></li>
+          <li class="r-flow__node">Strategy</li>
+          <li class="r-flow__arrow" aria-hidden="true"></li>
+          <li class="r-flow__node">Story</li>
+          <li class="r-flow__arrow" aria-hidden="true"></li>
+          <li class="r-flow__node">Experience</li>
+          <li class="r-flow__arrow" aria-hidden="true"></li>
+          <li class="r-flow__node">Technology</li>
+          <li class="r-flow__arrow" aria-hidden="true"></li>
+          <li class="r-flow__node">Execution</li>
+        </ol>
+        <div class="r-snap" data-reveal>
+          <div class="r-snap__cell"><strong>Core</strong><span>Creative Leadership + Experience Design</span></div>
+          <div class="r-snap__cell"><strong>Specialisation</strong><span>Creative Strategy + Immersive Technology</span></div>
+          <div class="r-snap__cell"><strong>Experience</strong><span>Physical + Digital + Interactive + Immersive</span></div>
+          <div class="r-snap__cell"><strong>Leadership</strong><span>Creative + Teams + Stakeholders + Execution</span></div>
         </div>
-        <div class="r-split" style="margin-top:clamp(20px,3.3vh,38px)">
-          <h2 class="r-h2" data-reveal>My career has increasingly moved toward problems that <em>sit between disciplines.</em></h2>
-          <div class="r-prose r-body r-mut" data-reveal>
-            <p>Problems where a creative idea has to work with technology. Where technology has to serve a human experience. Where content has to work inside a physical environment. Where a brand has to become something people can actually experience. Where multiple teams need to work toward one outcome. And where the person leading the creative thinking also needs to understand what happens when the idea enters production.</p>
-            <p class="r-kick-note">That space between disciplines is where I do my best work.</p>
+        <p class="r-lead" data-reveal>My work sits between disciplines. I move from defining the problem and developing the idea to shaping the experience, aligning teams and helping the work survive execution.</p>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         03 — HOW I THINK  (what makes his approach different?)
+         ============================================================ -->
+    <section class="r-sec" id="think" data-act="03" aria-label="How I think">
+      <div class="r-wrap">
+        <p class="r-kicker" data-reveal><span class="r-kicker__num">02</span>How I think</p>
+        <h2 class="r-display" data-reveal>Five principles.<em>One point of view.</em></h2>
+        <div class="r-think" id="rThink" data-reveal>
+          <div class="r-think__item">
+            <button class="r-think__head" type="button" aria-expanded="false" aria-controls="th1">
+              <span class="r-think__num">01</span>
+              <span class="r-think__title">Start with people.</span>
+              <span class="r-think__plus" aria-hidden="true"></span>
+            </button>
+            <div class="r-think__clip" id="th1" role="region" aria-label="Principle one"><div class="r-think__body"><p>Before the technology. Before the interface. Before the visual. Who is experiencing this? What do they need? What should happen next?</p></div></div>
+          </div>
+          <div class="r-think__item">
+            <button class="r-think__head" type="button" aria-expanded="false" aria-controls="th2">
+              <span class="r-think__num">02</span>
+              <span class="r-think__title">The medium serves the idea.</span>
+              <span class="r-think__plus" aria-hidden="true"></span>
+            </button>
+            <div class="r-think__clip" id="th2" role="region" aria-label="Principle two"><div class="r-think__body"><p>I don't choose technology because it is available. I choose it when it creates something the experience genuinely needs.</p></div></div>
+          </div>
+          <div class="r-think__item">
+            <button class="r-think__head" type="button" aria-expanded="false" aria-controls="th3">
+              <span class="r-think__num">03</span>
+              <span class="r-think__title">Content is part of design.</span>
+              <span class="r-think__plus" aria-hidden="true"></span>
+            </button>
+            <div class="r-think__clip" id="th3" role="region" aria-label="Principle three"><div class="r-think__body"><p>Words, images, sound, motion, narration and interaction are not separate from the experience. They are the experience.</p></div></div>
+          </div>
+          <div class="r-think__item">
+            <button class="r-think__head" type="button" aria-expanded="false" aria-controls="th4">
+              <span class="r-think__num">04</span>
+              <span class="r-think__title">Technology earns its place.</span>
+              <span class="r-think__plus" aria-hidden="true"></span>
+            </button>
+            <div class="r-think__clip" id="th4" role="region" aria-label="Principle four"><div class="r-think__body"><p>Technology earns its place when it makes the experience clearer or more human — not when it simply impresses.</p></div></div>
+          </div>
+          <div class="r-think__item">
+            <button class="r-think__head" type="button" aria-expanded="false" aria-controls="th5">
+              <span class="r-think__num">05</span>
+              <span class="r-think__title">Execution is creative work.</span>
+              <span class="r-think__plus" aria-hidden="true"></span>
+            </button>
+            <div class="r-think__clip" id="th5" role="region" aria-label="Principle five"><div class="r-think__body"><p>The final 20% can change the quality of the entire experience. That is why I stay involved.</p></div></div>
           </div>
         </div>
       </div>
     </section>
 
     <!-- ============================================================
-         ACT 02 — THE SHORT VERSION
+         04 — THE WORK IS THE PROOF  (what has he actually done?)
          ============================================================ -->
-    <section class="r-sec t-dark" id="short" data-act="02" aria-label="The short version">
+    <section class="r-sec r-sec--deep" id="work" data-act="04" aria-label="Selected proof">
       <div class="r-wrap">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">02</span>The short version</p>
-        <h2 class="r-chainhead" data-reveal>I connect <em>the dots.</em></h2>
-        <div class="r-chain" data-reveal-group data-dbase=".05">
-          <span class="r-chain__node" data-reveal>Idea</span><span class="r-chain__link" aria-hidden="true">→</span>
-          <span class="r-chain__node" data-reveal>Strategy</span><span class="r-chain__link" aria-hidden="true">→</span>
-          <span class="r-chain__node" data-reveal>Story</span><span class="r-chain__link" aria-hidden="true">→</span>
-          <span class="r-chain__node" data-reveal>Experience</span><span class="r-chain__link" aria-hidden="true">→</span>
-          <span class="r-chain__node" data-reveal>Technology</span><span class="r-chain__link" aria-hidden="true">→</span>
-          <span class="r-chain__node" data-reveal>People</span><span class="r-chain__link" aria-hidden="true">→</span>
-          <span class="r-chain__node" data-reveal>Execution</span>
+        <p class="r-kicker" data-reveal><span class="r-kicker__num">03</span>Selected proof</p>
+        <div class="r-proofhead" data-reveal>
+          <h2 class="r-display">The work <em>is the proof.</em></h2>
+          <p class="r-lead" style="max-width:44ch">The portfolio shows the outcome. The case studies show the thinking behind it. <a class="r-inline" href="../portfolio.html">View the portfolio →</a></p>
         </div>
-        <p class="r-lead" data-reveal style="max-width:56ch;margin-top:clamp(16px,2.8vh,26px)">I can enter the process at different points, but I am always looking at the whole system.</p>
-        <ul class="r-syslist" data-reveal>
-          <li>The audience.</li><li>The objective.</li><li>The story.</li><li>The environment.</li><li>The interaction.</li><li>The technology.</li><li>The team.</li><li>The stakeholder.</li><li>The production reality.</li><li>The final experience.</li>
-        </ul>
-        <p class="r-lead" data-reveal style="max-width:56ch;margin-top:16px">That perspective is what allows me to work across disciplines without losing sight of the bigger picture.</p>
-
-        <div class="r-snapshot" data-reveal-group data-dbase=".05" aria-label="Recruiter snapshot">
-          <div class="r-snapshot__cell" data-reveal><strong>Role</strong><span>Creative Systems Leader</span></div>
-          <div class="r-snapshot__cell" data-reveal><strong>Core</strong><span>Experience Design</span></div>
-          <div class="r-snapshot__cell" data-reveal><strong>Strategic</strong><span>Enterprise Innovation</span></div>
-          <div class="r-snapshot__cell" data-reveal><strong>Technology</strong><span>Immersive / XR / AI-enabled creative production</span></div>
-          <div class="r-snapshot__cell" data-reveal><strong>Experience</strong><span>Physical / Digital / Interactive / Immersive</span></div>
-          <div class="r-snapshot__cell" data-reveal><strong>Leadership</strong><span>Creative / Teams / Stakeholders / Execution</span></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         ACT 03 — WHAT I AM REALLY GOOD AT
-         ============================================================ -->
-    <section class="r-sec t-light" data-act="03" aria-label="What I am really good at">
-      <div class="r-wrap">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">03</span>What I am really good at</p>
-        <h2 class="r-display" data-reveal>Not software.<br>Not buzzwords.<br>Not collecting disciplines.</h2>
-        <div class="r-split" style="margin-top:clamp(22px,3.3vh,40px)">
-          <h3 class="r-h2" data-reveal>Seeing <em>the whole picture.</em></h3>
-          <div class="r-prose r-body r-mut" data-reveal>
-            <p>A project can have a brilliant visual identity and still fail. A technologically impressive installation can still be confusing. A beautiful space can still have no story. A powerful story can disappear inside a poor experience. A great concept can collapse during production.</p>
-            <p>I am interested in the relationship between all of these things.</p>
+        <div class="r-proj" data-reveal>
+          <div class="r-proj-tabs" role="tablist" aria-label="Selected projects">
+            <button class="r-proj-tab" type="button" role="tab" id="ptab0" aria-selected="true" aria-controls="ppanel0">01&nbsp;Orange</button>
+            <button class="r-proj-tab" type="button" role="tab" id="ptab1" aria-selected="false" aria-controls="ppanel1">02&nbsp;Indian Army</button>
+            <button class="r-proj-tab" type="button" role="tab" id="ptab2" aria-selected="false" aria-controls="ppanel2">03&nbsp;BPCL</button>
           </div>
-        </div>
-        <ul class="r-questions" data-reveal-group data-dbase=".03" style="margin-top:clamp(24px,3.9vh,42px)">
-          <li data-reveal><i>01</i>What is the idea?</li>
-          <li data-reveal><i>02</i>Who is it for?</li>
-          <li data-reveal><i>03</i>What should they understand?</li>
-          <li data-reveal><i>04</i>What should they feel?</li>
-          <li data-reveal><i>05</i>What should they do?</li>
-          <li data-reveal><i>06</i>What should they remember?</li>
-          <li data-reveal><i>07</i>What does the technology make possible?</li>
-          <li data-reveal><i>08</i>What does the team need to build it?</li>
-          <li data-reveal><i>09</i>What will make the idea survive reality?</li>
-        </ul>
-        <p class="r-kick-note r-prose" data-reveal style="margin-top:12px">That is where my thinking starts.</p>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         ACT 03 — MY WORK HAS EVOLVED
-         ============================================================ -->
-    <section class="r-sec t-dark" data-act="03" aria-label="My work has evolved">
-      <div class="r-wrap">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">03</span>My work has evolved</p>
-        <h2 class="r-display" data-reveal>From making things to shaping <em>what things need to be.</em></h2>
-        <p class="r-lead r-mut" data-reveal style="max-width:60ch;margin-top:clamp(15px,2.2vh,24px)">The evolution of my work has been less about moving from one job title to another and more about expanding the scope of the problem I can work on.</p>
-        <ul class="r-evolve" data-reveal-group data-dbase=".03" style="margin-top:clamp(20px,3.3vh,33px)">
-          <li data-reveal><b>Design</b><span>taught me how to communicate.</span></li>
-          <li data-reveal><b>Creative work</b><span>taught me how to develop ideas.</span></li>
-          <li data-reveal><b>Experience design</b><span>taught me to think about people and journeys.</span></li>
-          <li data-reveal><b>Immersive technology</b><span>expanded the canvas.</span></li>
-          <li data-reveal><b>Enterprise projects</b><span>taught me how to work with complexity.</span></li>
-          <li data-reveal><b>Leadership</b><span>taught me that the quality of an idea is only one part of the equation.</span></li>
-          <li data-reveal><b>The other part</b><span>is whether you can bring people together to make it happen.</span></li>
-        </ul>
-        <div class="r-split" style="margin-top:clamp(22px,3.3vh,35px)">
-          <p class="r-lead" data-reveal>That is where I am today.</p>
-          <p class="r-kick-note r-prose" data-reveal>I want to work on the problem before the deliverable.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         ACT 03 — I DON'T START WITH THE MEDIUM
-         ============================================================ -->
-    <section class="r-sec t-light" data-act="03" aria-label="I don't start with the medium">
-      <div class="r-wrap r-wrap--narrow">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">03</span>I don't start with the medium</p>
-        <h2 class="r-h2" data-reveal>I don't start <em>with the medium.</em></h2>
-        <div class="r-dialogue" data-reveal-group data-dbase=".05">
-          <p class="r-dialogue__q" data-reveal>A common question in experience work is: “Should we use VR?”</p>
-          <p class="r-dialogue__a" data-reveal>I think the better question is: <em>“What does the audience need to experience?”</em></p>
-          <p class="r-dialogue__a" data-reveal>Then: <em>“What is the best way to create that experience?”</em></p>
-        </div>
-        <p class="r-body r-mut" data-reveal style="max-width:58ch;margin-top:clamp(16px,2.8vh,26px)">Sometimes the answer is spatial. Sometimes digital. Sometimes interactive. Sometimes immersive. Sometimes a combination. Sometimes the simplest solution is the strongest one.</p>
-        <p class="r-body r-mut" data-reveal style="max-width:58ch;margin-top:14px">I am interested in <strong style="color:var(--r-ink)">technology that earns its place</strong>. AR, VR, XR, interactive systems, AI and emerging technologies are powerful tools. But the technology is never the idea.</p>
-        <p class="r-kick-note r-prose" data-reveal style="margin-top:12px">The human experience is the idea.</p>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         ACT 04 — I THINK IN SYSTEMS
-         ============================================================ -->
-    <section class="r-sec t-dark" id="systems" data-act="04" aria-label="I think in systems">
-      <div class="r-wrap r-wrap--narrow">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">04</span>I think in systems</p>
-        <h2 class="r-display" data-reveal>I think <em>in systems.</em></h2>
-        <p class="r-lead r-mut" data-reveal style="max-width:56ch;margin-top:clamp(14px,2.2vh,22px)">This is probably the simplest way to understand my approach. I don't look at an experience as a collection of disconnected assets. I look at the system around it.</p>
-
-        <div class="r-sys" id="rSys" data-reveal>
-          <div class="r-sys__flow" role="list">
-            <div class="r-sys__line" aria-hidden="true"><div class="r-sys__fill"></div></div>
-            <div class="r-sys__step" role="listitem"><span class="r-sys__node" aria-hidden="true"></span><span class="r-sys__label">Audience</span></div>
-            <div class="r-sys__step" role="listitem"><span class="r-sys__node" aria-hidden="true"></span><span class="r-sys__label">Objective</span></div>
-            <div class="r-sys__step" role="listitem"><span class="r-sys__node" aria-hidden="true"></span><span class="r-sys__label">Narrative</span></div>
-            <div class="r-sys__step" role="listitem"><span class="r-sys__node" aria-hidden="true"></span><span class="r-sys__label">Content</span></div>
-            <div class="r-sys__step" role="listitem"><span class="r-sys__node" aria-hidden="true"></span><span class="r-sys__label">Interaction</span></div>
-            <div class="r-sys__step" role="listitem"><span class="r-sys__node" aria-hidden="true"></span><span class="r-sys__label">Environment</span></div>
-            <div class="r-sys__step" role="listitem"><span class="r-sys__node" aria-hidden="true"></span><span class="r-sys__label">Technology</span></div>
-            <div class="r-sys__step" role="listitem"><span class="r-sys__node" aria-hidden="true"></span><span class="r-sys__label">People</span></div>
-            <div class="r-sys__step" role="listitem"><span class="r-sys__node" aria-hidden="true"></span><span class="r-sys__label">Operations</span></div>
-            <div class="r-sys__step" role="listitem"><span class="r-sys__node" aria-hidden="true"></span><span class="r-sys__label"><em>Experience</em></span></div>
-          </div>
-        </div>
-
-        <div class="r-split" style="margin-top:clamp(22px,3.3vh,35px)">
-          <p class="r-lead" data-reveal style="max-width:52ch">Everything influences everything else. Change one part and another part often has to change with it.</p>
-          <div class="r-sys__note" data-reveal>
-            <p>That is why I am comfortable moving between <strong>strategy, creative, content, design, technology and execution</strong>.</p>
-            <p style="margin-top:14px">I am looking at the relationships between them.</p>
+          <div class="r-proj-stage">
+            <article class="r-proj__panel is-active" id="ppanel0" role="tabpanel" aria-labelledby="ptab0">
+              <figure class="r-proj__media">
+                <img src="../assets/media/orange-business-executive-briefing-center-mumbai-panoramic-1280.webp" alt="Orange Experience Center — immersive brand experience environment" width="1280" height="853" loading="lazy" decoding="async">
+                <figcaption>Orange Experience Center</figcaption>
+              </figure>
+              <div class="r-proj__body">
+                <p class="r-proj__num">01</p>
+                <h3 class="r-proj__title">An experience is never just the room.</h3>
+                <p class="r-proj__desc">A multidisciplinary experience where my involvement extended across creative development, storytelling, content, interaction, VR, client coordination, stakeholder management, team coordination and execution.</p>
+                <ul class="r-proj__tags"><li>Creative Direction</li><li>Content</li><li>Experience Design</li><li>Interaction</li><li>VR</li><li>Stakeholder Management</li><li>Execution</li></ul>
+                <a class="r-cta r-cta--ghost" href="../case-studies/orange-business/">View case study <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
+              </div>
+            </article>
+            <article class="r-proj__panel" id="ppanel1" role="tabpanel" aria-labelledby="ptab1">
+              <figure class="r-proj__media">
+                <img src="../assets/case-army.webp" alt="Indian Army immersive training — VR training and qualification environment" width="1280" height="853" loading="lazy" decoding="async">
+                <figcaption>Indian Army Immersive Training</figcaption>
+              </figure>
+              <div class="r-proj__body">
+                <p class="r-proj__num">02</p>
+                <h3 class="r-proj__title">When immersive technology has a real job to do.</h3>
+                <p class="r-proj__desc">An immersive training environment combining VR-based training and qualification with a progression model connecting digital performance to physical, battlefield-based training.</p>
+                <div class="r-proj__sys" aria-hidden="true"><span>Train</span><i></i><span>Qualify</span><i></i><span>Progress</span></div>
+                <ul class="r-proj__facts"><li><strong>15</strong> high-end training computers</li><li>Trainer monitoring environment</li></ul>
+                <ul class="r-proj__tags"><li>Immersive Technology</li><li>VR Training</li><li>Qualification</li><li>Trainer Monitoring</li><li>Experience Design</li></ul>
+                <a class="r-cta r-cta--ghost" href="../case-studies/indian-army/">View case study <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
+              </div>
+            </article>
+            <article class="r-proj__panel" id="ppanel2" role="tabpanel" aria-labelledby="ptab2">
+              <figure class="r-proj__media">
+                <img src="../assets/case-bpcl.webp" alt="Bharat Petroleum Corporation Limited — immersive experience visualisation" width="1280" height="853" loading="lazy" decoding="async">
+                <figcaption>Bharat Petroleum Corporation Limited</figcaption>
+              </figure>
+              <div class="r-proj__body">
+                <p class="r-proj__num">03</p>
+                <h3 class="r-proj__title">Visualisation is the medium. The thinking is the contribution.</h3>
+                <p class="r-proj__desc">A project where visual communication, experience thinking, stakeholder coordination and production came together to communicate complex ideas through a physical and visual environment.</p>
+                <ul class="r-proj__tags"><li>Brand Experience</li><li>Visualization</li><li>Communication</li><li>Stakeholders</li><li>Production</li></ul>
+                <a class="r-cta r-cta--ghost" href="../case-studies/bharat-petroleum-corporation-limited/">View case study <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
+              </div>
+            </article>
           </div>
         </div>
       </div>
     </section>
 
     <!-- ============================================================
-         ACT 05 — HOW I WORK
+         05 — WHAT I CAN OWN  (what can he be put in charge of?)
          ============================================================ -->
-    <section class="r-sec t-light" id="method" data-act="05" aria-label="How I work">
+    <section class="r-sec" id="own" data-act="05" aria-label="What I can own">
       <div class="r-wrap">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">05</span>How I work</p>
-        <h2 class="r-h2" data-reveal style="margin-bottom:clamp(36px,5vh,56px)">Seven stages. <em>One intent.</em></h2>
-        <div class="r-acc" data-reveal-group data-dbase=".02" data-acc="hw">
-          <details class="r-acc__item" data-reveal name="acc-hw">
-            <summary class="r-acc__head">
-              <span class="r-acc__num">01</span>
-              <h3 class="r-acc__title">Understand</h3>
-              <span class="r-acc__toggle" aria-hidden="true"></span>
-            </summary>
-            <div class="r-acc__body">
-              <p class="r-acc__desc r-body">I start by understanding the problem rather than immediately designing the answer.</p>
-              <ul class="r-acc__qs"><li>What is happening?</li><li>Why does it matter?</li><li>Who is involved?</li><li>What needs to change?</li><li>What does success actually mean?</li></ul>
-            </div>
-          </details>
-          <details class="r-acc__item" data-reveal name="acc-hw">
-            <summary class="r-acc__head">
-              <span class="r-acc__num">02</span>
-              <h3 class="r-acc__title">Find the opportunity</h3>
-              <span class="r-acc__toggle" aria-hidden="true"></span>
-            </summary>
-            <div class="r-acc__body">
-              <p class="r-acc__desc r-body">The brief gives you requirements. The interesting idea is often hiding underneath them. I look for the opportunity that can make the experience more useful, meaningful, memorable or effective.</p>
-            </div>
-          </details>
-          <details class="r-acc__item" data-reveal name="acc-hw">
-            <summary class="r-acc__head">
-              <span class="r-acc__num">03</span>
-              <h3 class="r-acc__title">Build the idea</h3>
-              <span class="r-acc__toggle" aria-hidden="true"></span>
-            </summary>
-            <div class="r-acc__body">
-              <p class="r-acc__desc r-body">I develop the creative territory, experience logic and narrative.</p>
-              <ul class="r-acc__qs"><li>What is the central idea?</li><li>How does it unfold?</li><li>What does the audience encounter first?</li><li>What happens next?</li><li>What holds everything together?</li></ul>
-            </div>
-          </details>
-          <details class="r-acc__item" data-reveal name="acc-hw">
-            <summary class="r-acc__head">
-              <span class="r-acc__num">04</span>
-              <h3 class="r-acc__title">Design the experience</h3>
-              <span class="r-acc__toggle" aria-hidden="true"></span>
-            </summary>
-            <div class="r-acc__body">
-              <p class="r-acc__desc r-body">This is where the idea becomes a journey. Spatial. Digital. Interactive. Immersive. Visual. Auditory. Physical. The medium changes. The thinking doesn't.</p>
-            </div>
-          </details>
-          <details class="r-acc__item" data-reveal name="acc-hw">
-            <summary class="r-acc__head">
-              <span class="r-acc__num">05</span>
-              <h3 class="r-acc__title">Bring technology in</h3>
-              <span class="r-acc__toggle" aria-hidden="true"></span>
-            </summary>
-            <div class="r-acc__body">
-              <p class="r-acc__desc r-body">Technology becomes part of the experience architecture. Not decoration. Not a checkbox. Not something added at the end. It has to have a reason to exist.</p>
-            </div>
-          </details>
-          <details class="r-acc__item" data-reveal name="acc-hw">
-            <summary class="r-acc__head">
-              <span class="r-acc__num">06</span>
-              <h3 class="r-acc__title">Align the people</h3>
-              <span class="r-acc__toggle" aria-hidden="true"></span>
-            </summary>
-            <div class="r-acc__body">
-              <p class="r-acc__desc r-body">Creative work is made by people. Designers. Developers. Artists. Technologists. Content teams. Production teams. Clients. Stakeholders. Vendors. Partners. The experience only becomes coherent when those people are moving toward the same thing.</p>
-            </div>
-          </details>
-          <details class="r-acc__item" data-reveal name="acc-hw">
-            <summary class="r-acc__head">
-              <span class="r-acc__num">07</span>
-              <h3 class="r-acc__title">Stay with the work</h3>
-              <span class="r-acc__toggle" aria-hidden="true"></span>
-            </summary>
-            <div class="r-acc__body">
-              <p class="r-acc__desc r-body">I don't believe creative leadership ends when the concept is approved. That is when the idea meets reality. Technical constraints. Budgets. Timelines. Fabrication. Content revisions. Client feedback. Production decisions. Unexpected problems. The job is to protect the intent while finding a way forward.</p>
-            </div>
-          </details>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         ACT 05 — WHAT I CAN OWN
-         ============================================================ -->
-    <section class="r-sec t-dark" id="own" data-act="05" aria-label="What I can own">
-      <div class="r-wrap">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">05</span>What I can own</p>
+        <p class="r-kicker" data-reveal><span class="r-kicker__num">04</span>What I can own</p>
         <h2 class="r-display" data-reveal>What I <em>can own.</em></h2>
-        <p class="r-lead r-mut" data-reveal style="max-width:56ch;margin-top:clamp(14px,2.2vh,22px)">This is where I believe my role becomes particularly useful.</p>
-        <div class="r-acc r-acc--dark" data-reveal-group data-dbase=".02" data-acc="own" style="margin-top:clamp(12px,1.9vh,20px)">
-          <details class="r-acc__item" data-reveal name="acc-own"><summary class="r-acc__head"><span class="r-acc__num">01</span><h3 class="r-acc__title">The creative direction</h3><span class="r-acc__toggle" aria-hidden="true"></span></summary><div class="r-acc__body"><p class="r-acc__desc r-body">Defining what the work needs to be and protecting the central idea through development and execution.</p></div></details>
-          <details class="r-acc__item" data-reveal name="acc-own"><summary class="r-acc__head"><span class="r-acc__num">02</span><h3 class="r-acc__title">The experience strategy</h3><span class="r-acc__toggle" aria-hidden="true"></span></summary><div class="r-acc__body"><p class="r-acc__desc r-body">Understanding the audience, objective and journey before deciding on the medium.</p></div></details>
-          <details class="r-acc__item" data-reveal name="acc-own"><summary class="r-acc__head"><span class="r-acc__num">03</span><h3 class="r-acc__title">The experience concept</h3><span class="r-acc__toggle" aria-hidden="true"></span></summary><div class="r-acc__body"><p class="r-acc__desc r-body">Turning a complex requirement into an experience architecture people can understand.</p></div></details>
-          <details class="r-acc__item" data-reveal name="acc-own"><summary class="r-acc__head"><span class="r-acc__num">04</span><h3 class="r-acc__title">The narrative</h3><span class="r-acc__toggle" aria-hidden="true"></span></summary><div class="r-acc__body"><p class="r-acc__desc r-body">Finding the story and shaping how information unfolds through the experience.</p></div></details>
-          <details class="r-acc__item" data-reveal name="acc-own"><summary class="r-acc__head"><span class="r-acc__num">05</span><h3 class="r-acc__title">The content direction</h3><span class="r-acc__toggle" aria-hidden="true"></span></summary><div class="r-acc__body"><p class="r-acc__desc r-body">Making content part of the experience rather than something added after the design.</p></div></details>
-          <details class="r-acc__item" data-reveal name="acc-own"><summary class="r-acc__head"><span class="r-acc__num">06</span><h3 class="r-acc__title">The technology conversation</h3><span class="r-acc__toggle" aria-hidden="true"></span></summary><div class="r-acc__body"><p class="r-acc__desc r-body">Connecting what technology can do with what the experience actually needs.</p></div></details>
-          <details class="r-acc__item" data-reveal name="acc-own"><summary class="r-acc__head"><span class="r-acc__num">07</span><h3 class="r-acc__title">The multidisciplinary team</h3><span class="r-acc__toggle" aria-hidden="true"></span></summary><div class="r-acc__body"><p class="r-acc__desc r-body">Creating clarity across creative, design, technology and production.</p></div></details>
-          <details class="r-acc__item" data-reveal name="acc-own"><summary class="r-acc__head"><span class="r-acc__num">08</span><h3 class="r-acc__title">The client relationship</h3><span class="r-acc__toggle" aria-hidden="true"></span></summary><div class="r-acc__body"><p class="r-acc__desc r-body">Understanding feedback, managing expectations and keeping the work moving.</p></div></details>
-          <details class="r-acc__item" data-reveal name="acc-own"><summary class="r-acc__head"><span class="r-acc__num">09</span><h3 class="r-acc__title">The execution</h3><span class="r-acc__toggle" aria-hidden="true"></span></summary><div class="r-acc__body"><p class="r-acc__desc r-body">Staying close enough to the details to ensure the original idea survives production.</p></div></details>
+        <div class="r-own" id="rOwn" data-reveal>
+          <div class="r-own__card is-selected">
+            <button class="r-own__head" type="button" aria-expanded="true" aria-controls="own1">
+              <span class="r-own__idx">01</span><span class="r-own__title">Creative</span><span class="r-own__plus" aria-hidden="true"></span>
+            </button>
+            <ul class="r-own__chips"><li>Creative Direction</li><li>Creative Strategy</li><li>Concept Development</li></ul>
+            <p class="r-own__note" id="own1">I own the idea and its point of view — from first concept to the story that holds it together.</p>
+          </div>
+          <div class="r-own__card">
+            <button class="r-own__head" type="button" aria-expanded="false" aria-controls="own2">
+              <span class="r-own__idx">02</span><span class="r-own__title">Experience</span><span class="r-own__plus" aria-hidden="true"></span>
+            </button>
+            <ul class="r-own__chips"><li>Experience Strategy</li><li>Experience Design</li><li>Narrative</li><li>Content Direction</li></ul>
+            <p class="r-own__note" id="own2">I shape how people move through a physical, digital or immersive moment — and what it should make them feel and do.</p>
+          </div>
+          <div class="r-own__card">
+            <button class="r-own__head" type="button" aria-expanded="false" aria-controls="own3">
+              <span class="r-own__idx">03</span><span class="r-own__title">Technology</span><span class="r-own__plus" aria-hidden="true"></span>
+            </button>
+            <ul class="r-own__chips"><li>Immersive Technology</li><li>XR / AR / VR</li><li>Creative Technology</li><li>AI-Enabled Creative Production</li></ul>
+            <p class="r-own__note" id="own3">I decide where immersive, spatial and AI-enabled tools genuinely earn their place — and where they don't.</p>
+          </div>
+          <div class="r-own__card">
+            <button class="r-own__head" type="button" aria-expanded="false" aria-controls="own4">
+              <span class="r-own__idx">04</span><span class="r-own__title">Leadership</span><span class="r-own__plus" aria-hidden="true"></span>
+            </button>
+            <ul class="r-own__chips"><li>Multidisciplinary Teams</li><li>Clients &amp; Stakeholders</li><li>Execution</li></ul>
+            <p class="r-own__note" id="own4">I align multidisciplinary teams, clients and stakeholders so the work survives contact with execution.</p>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- ============================================================
-         ACT 06 — CASE STUDIES (the proof)
+         06 — WHERE I FIT  (what roles make sense?)
          ============================================================ -->
-    <section class="r-sec t-dark r-sec--deep" id="work" data-act="06" aria-label="What this looks like in real projects">
+    <section class="r-sec" id="fit" data-act="06" aria-label="Where I fit">
       <div class="r-wrap">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">06</span>What this looks like in real projects</p>
-        <h2 class="r-display" data-reveal>Three projects.<br><em>One way of working.</em></h2>
-
-        <!-- ORANGE -->
-        <article class="r-cs__module" data-reveal>
-          <figure class="r-cs__media" data-parallax="0.05">
-            <img src="../assets/media/orange-business-executive-briefing-center-mumbai-panoramic-1280.webp" alt="Orange Experience Center — immersive brand experience environment" width="1280" height="853" loading="lazy" decoding="async">
-            <figcaption class="r-cs__media-tag">Orange Experience Center</figcaption>
-            <div class="r-cs__proof" aria-hidden="true"><span>Content</span><span>Storyboard</span><span>Voice-over</span><span>Interaction</span><span>Client</span><span>Team</span><span>Execution</span></div>
-          </figure>
-          <div class="r-cs__body">
-            <span class="r-cs__num">01</span>
-            <p class="r-cs__kicker">Orange Experience Center</p>
-            <h3 class="r-cs__title">An experience is never just the room.</h3>
-            <p>The Orange Experience Center is an important example of the kind of multidisciplinary work I enjoy. My contribution extended across the <strong>content and experience lifecycle</strong>, rather than being limited to the physical environment.</p>
-            <p>I was involved in:</p>
-            <div class="r-chips">
-              <span>Creative / design development</span><span>Storyboarding</span><span>Content development</span><span>Voice-over direction and coordination</span><span>Client coordination</span><span>Incorporating client feedback</span><span>Stakeholder management</span><span>Team leadership</span><span>Team coordination</span><span>Content execution</span><span>Experience execution</span>
-            </div>
-            <details class="r-cs__more">
-              <summary class="r-cs__more-head">Read the full story <span class="r-acc__toggle" aria-hidden="true"></span></summary>
-              <div class="r-cs__more-body">
-                <p>The work brought together physical space, content, interaction and technology. It also meant coordinating across teams and locations, including <strong>Mumbai and Gurgaon</strong>, while working through the realities of clients, stakeholders, vendors, fabrication and delivery.</p>
-                <p>This is the kind of environment where I naturally operate: <strong>between the idea and the people making it real.</strong></p>
-              </div>
-            </details>
-            <a class="r-cs__cta" href="../case-studies/orange-business/">View the case study <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
+        <p class="r-kicker" data-reveal><span class="r-kicker__num">05</span>Where I fit</p>
+        <h2 class="r-display" data-reveal>The role matters less <em>than the problem.</em></h2>
+        <p class="r-lead" data-reveal style="max-width:58ch">I'm interested in senior opportunities where creative thinking can influence the problem, the experience and the outcome — not simply the final execution.</p>
+        <div class="r-roles" data-reveal>
+          <div class="r-roles__g">
+            <h3>Creative Leadership</h3>
+            <ul><li>Creative Director</li><li>Executive Creative Director</li><li>Creative Head</li></ul>
           </div>
-        </article>
-
-        <!-- INDIAN ARMY -->
-        <article class="r-cs__module" data-reveal>
-          <figure class="r-cs__media" data-parallax="0.05">
-            <img src="../assets/case-army.webp" alt="Indian Army immersive training — VR training and qualification environment" width="1280" height="853" loading="lazy" decoding="async">
-            <figcaption class="r-cs__media-tag">Indian Army Immersive Training</figcaption>
-            <div class="r-cs__proof" aria-hidden="true"><span>VR Training</span><span>Qualification</span><span>Trainer Monitoring</span><span>Assessment</span><span>Progression</span></div>
-          </figure>
-          <div class="r-cs__body">
-            <span class="r-cs__num">02</span>
-            <p class="r-cs__kicker">Indian Army Immersive Training</p>
-            <h3 class="r-cs__title">When immersive technology has a real job to do.</h3>
-            <p>The Indian Army immersive training project represents another side of my work. Here, VR isn't being used simply because immersive technology is impressive. It is part of a larger training system.</p>
-            <p>A dedicated training room was established for Army personnel with <strong>15 high-end computers</strong> and a high-end trainer display that allows the trainer to monitor what trainees are doing inside their VR headsets. The immersive platform also incorporates <strong>qualification and testing inside the VR environment</strong>.</p>
-            <p>The training model introduces a progression gate:</p>
-            <ul class="r-prog">
-              <li>Immersive training</li>
-              <li>Qualification</li>
-              <li>Demonstrated performance</li>
-              <li>Progression to <em>physical / battlefield-based training</em></li>
-            </ul>
-            <details class="r-cs__more">
-              <summary class="r-cs__more-head">Read the full story <span class="r-acc__toggle" aria-hidden="true"></span></summary>
-              <div class="r-cs__more-body">
-                <p>That changes the role of immersive technology. It becomes part of the learning and qualification process. The experience therefore has to work for more than one person. It has to work for the trainee. It has to work for the trainer. It has to support learning. It has to support assessment. And it has to connect the digital environment to the physical training that follows.</p>
-                <p>For me, this is what makes immersive design interesting: <strong>not putting someone inside a virtual world, but designing what that virtual world is supposed to accomplish.</strong></p>
-              </div>
-            </details>
-            <a class="r-cs__cta" href="../case-studies/indian-army/">View the case study <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
-          </div>
-        </article>
-
-        <!-- BPCL -->
-        <article class="r-cs__module" data-reveal>
-          <figure class="r-cs__media" data-parallax="0.05">
-            <img src="../assets/case-bpcl.webp" alt="Bharat Petroleum Corporation Limited — immersive experience visualization" width="1280" height="853" loading="lazy" decoding="async">
-            <figcaption class="r-cs__media-tag">Bharat Petroleum Corporation Limited</figcaption>
-            <div class="r-cs__proof" aria-hidden="true"><span>Strategy</span><span>Creative Direction</span><span>Visualization</span><span>Stakeholders</span><span>Production</span><span>Delivery</span></div>
-          </figure>
-          <div class="r-cs__body">
-            <span class="r-cs__num">03</span>
-            <p class="r-cs__kicker">Bharat Petroleum Corporation Limited</p>
-            <h3 class="r-cs__title">Visualization is the medium. The thinking is the contribution.</h3>
-            <p>The BPCL work is another example of why I don't define my role simply by the final visual output. The work involved a broader process of <strong>strategy, creative direction, visualization, stakeholder coordination, team coordination, vendor interaction, production, quality assurance and delivery</strong>.</p>
-            <p>The miniature and visualization are important. But they are the medium through which the larger idea is communicated. The real work is understanding:</p>
-            <ul class="r-contact__q" style="margin:18px 0 0">
-              <li>What needs to be communicated?</li>
-              <li>How should people understand it?</li>
-              <li>How should the environment guide them?</li>
-              <li>How does the visual system support the story?</li>
-              <li>How does the final experience survive the transition from concept to production?</li>
-            </ul>
-            <details class="r-cs__more">
-              <summary class="r-cs__more-head">Read the full story <span class="r-acc__toggle" aria-hidden="true"></span></summary>
-              <div class="r-cs__more-body">
-                <p>That is the level at which I approach this kind of work.</p>
-              </div>
-            </details>
-            <a class="r-cs__cta" href="../case-studies/bharat-petroleum-corporation-limited/">View the case study <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         ACT 06 — THREE PROJECTS. THREE DIFFERENT PROBLEMS.
-         ============================================================ -->
-    <section class="r-sec t-light" data-act="06" aria-label="Three projects, three problems">
-      <div class="r-wrap">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">06</span>Three projects. Three different problems.</p>
-        <h2 class="r-h2" data-reveal>The projects are different.<br><em>The thinking connects them.</em></h2>
-        <div class="r-three" data-reveal-group data-dbase=".05">
-          <div class="r-three__col" data-reveal><h3>Orange Experience Center</h3><p>Brand + Content + Space + Interaction + Technology + Execution</p></div>
-          <div class="r-three__col" data-reveal><h3>Indian Army</h3><p>Immersive Technology + Training + Qualification + Human Behaviour</p></div>
-          <div class="r-three__col" data-reveal><h3>BPCL</h3><p>Brand + Visualization + Communication + Stakeholders + Production</p></div>
-        </div>
-        <p class="r-body r-three__close" data-reveal>Different contexts. Different audiences. Different technologies. Different challenges. But the same underlying approach: <strong>Understand the problem. Design the experience. Connect the disciplines. Make it real.</strong></p>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         ACT 07 — MY CREATIVE PRINCIPLES
-         ============================================================ -->
-    <section class="r-sec t-dark" id="principles" data-act="07" aria-label="My creative principles">
-      <div class="r-wrap">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">07</span>My creative principles</p>
-        <h2 class="r-display" data-reveal>Rules inside <em>a creative operating system.</em></h2>
-        <div class="r-acc r-acc--dark" data-reveal-group data-dbase=".02" data-acc="principles" style="margin-top:clamp(12px,1.9vh,20px)">
-          <details class="r-acc__item" data-reveal name="acc-principles"><summary class="r-acc__head"><span class="r-acc__num">01</span><h3 class="r-acc__title">Start with people.</h3><span class="r-acc__toggle" aria-hidden="true"></span></summary><div class="r-acc__body"><p class="r-acc__desc r-body">Before the technology. Before the interface. Before the visual. Who is experiencing this? What do they need? What are they thinking? What should happen next?</p></div></details>
-          <details class="r-acc__item" data-reveal name="acc-principles"><summary class="r-acc__head"><span class="r-acc__num">02</span><h3 class="r-acc__title">The medium serves the idea.</h3><span class="r-acc__toggle" aria-hidden="true"></span></summary><div class="r-acc__body"><p class="r-acc__desc r-body">I don't choose technology because it is available. I choose it when it creates something the experience genuinely needs.</p></div></details>
-          <details class="r-acc__item" data-reveal name="acc-principles"><summary class="r-acc__head"><span class="r-acc__num">03</span><h3 class="r-acc__title">Content is part of design.</h3><span class="r-acc__toggle" aria-hidden="true"></span></summary><div class="r-acc__body"><p class="r-acc__desc r-body">Words, images, sound, motion, narration and interaction are not separate from the experience. They are the experience.</p></div></details>
-          <details class="r-acc__item" data-reveal name="acc-principles"><summary class="r-acc__head"><span class="r-acc__num">04</span><h3 class="r-acc__title">Complexity needs clarity.</h3><span class="r-acc__toggle" aria-hidden="true"></span></summary><div class="r-acc__body"><p class="r-acc__desc r-body">The more complicated the subject, the more carefully the experience has to be designed. Good design doesn't hide complexity. It makes complexity understandable.</p></div></details>
-          <details class="r-acc__item" data-reveal name="acc-principles"><summary class="r-acc__head"><span class="r-acc__num">05</span><h3 class="r-acc__title">Everything should belong to one idea.</h3><span class="r-acc__toggle" aria-hidden="true"></span></summary><div class="r-acc__body"><p class="r-acc__desc r-body">The room. The screen. The interaction. The content. The technology. The sound. The interface. The physical journey. They should feel like different parts of the same thought.</p></div></details>
-          <details class="r-acc__item" data-reveal name="acc-principles"><summary class="r-acc__head"><span class="r-acc__num">06</span><h3 class="r-acc__title">Execution is creative work.</h3><span class="r-acc__toggle" aria-hidden="true"></span></summary><div class="r-acc__body"><p class="r-acc__desc r-body">The final 20% can change the quality of the entire experience. That is why I stay involved.</p></div></details>
-          <details class="r-acc__item" data-reveal name="acc-principles"><summary class="r-acc__head"><span class="r-acc__num">07</span><h3 class="r-acc__title">Make technology human.</h3><span class="r-acc__toggle" aria-hidden="true"></span></summary><div class="r-acc__body"><p class="r-acc__desc r-body">Technology is powerful when people understand what to do with it. The goal isn't to impress someone with technology. The goal is to make technology disappear into the experience.</p></div></details>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         ACT 07 — I WORK WITH PEOPLE (leadership ecosystem)
-         ============================================================ -->
-    <section class="r-sec t-light" data-act="07" aria-label="I work with people as much as I work with ideas">
-      <div class="r-wrap">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">07</span>Leadership</p>
-        <h2 class="r-h2" data-reveal>I work with people <em>as much as I work with ideas.</em></h2>
-        <div class="r-split" style="margin-top:clamp(16px,2.8vh,28px)">
-          <p class="r-lead r-mut" data-reveal style="max-width:52ch">The work is multidisciplinary by nature. That means leadership isn't simply assigning tasks. It is creating a shared understanding of what everyone is building.</p>
-          <div class="r-prose r-body r-mut" data-reveal>
-            <p>I work across conversations between:</p>
-            <ul class="r-syslist" style="grid-template-columns:1fr 1fr;margin-top:14px">
-              <li>Creative ↔ Client</li><li>Strategy ↔ Design</li><li>Design ↔ Technology</li><li>Content ↔ Experience</li><li>Concept ↔ Production</li><li>Vision ↔ Reality</li>
-            </ul>
-            <p style="margin-top:16px">Sometimes the most important contribution isn't creating another asset. It is getting five people to agree on what the experience is actually trying to achieve.</p>
-          </div>
-        </div>
-
-        <div class="r-radial" data-reveal aria-hidden="true">
-          <div class="r-radial__core">
-            <span class="r-radial__ring"></span>
-            <span class="r-radial__ring r-radial__ring--in"></span>
-            <span class="r-radial__node" style="left:50%;top:6%">Strategy</span>
-            <span class="r-radial__node" style="left:86%;top:20%">Creative</span>
-            <span class="r-radial__node" style="left:96%;top:52%">Design</span>
-            <span class="r-radial__node" style="left:82%;top:84%">Content</span>
-            <span class="r-radial__node" style="left:50%;top:95%">Technology</span>
-            <span class="r-radial__node" style="left:18%;top:84%">Client</span>
-            <span class="r-radial__node" style="left:4%;top:52%">Team</span>
-            <span class="r-radial__node" style="left:14%;top:20%">Production</span>
-            <div class="r-radial__center"><div><strong>ABHIJEET</strong><span>the connecting layer</span></div></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         ACT 07 — I AM COMFORTABLE IN THE MIDDLE
-         ============================================================ -->
-    <section class="r-sec t-dark" data-act="07" aria-label="I am comfortable in the middle">
-      <div class="r-wrap r-wrap--narrow">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">07</span>The middle</p>
-        <h2 class="r-display" data-reveal>I am comfortable <em>in the middle.</em></h2>
-        <p class="r-lead r-mut" data-reveal style="max-width:54ch;margin-top:clamp(14px,2.2vh,22px)">The middle is where things get messy. The client wants one thing. The technology allows another. The timeline says something else. The production team finds a constraint. The designer has another interpretation. The stakeholder introduces a new requirement.</p>
-        <p class="r-lead" data-reveal style="max-width:54ch;margin-top:14px">That is not necessarily a failure of the process. <em style="font-family:var(--serif);font-style:italic;font-weight:400;color:var(--azure)">That is the process.</em></p>
-        <p class="r-lead r-mut" data-reveal style="max-width:54ch;margin-top:14px">I am comfortable working in that space. Understanding what changed. Understanding what matters. Making the decision. And moving the work forward.</p>
-
-        <div class="r-forces" data-reveal aria-hidden="true">
-          <div class="r-forces__core">
-            <span class="r-forces__force" style="left:50%;top:4%"><i></i>Time</span>
-            <span class="r-forces__force" style="left:88%;top:30%"><i style="transform:rotate(-55deg)"></i>Budget</span>
-            <span class="r-forces__force" style="left:96%;top:64%"><i style="transform:rotate(-90deg)"></i>Technology</span>
-            <span class="r-forces__force" style="left:70%;top:94%"><i style="transform:rotate(35deg)"></i>Client</span>
-            <span class="r-forces__force" style="left:30%;top:94%"><i style="transform:rotate(-35deg)"></i>Team</span>
-            <span class="r-forces__force" style="left:4%;top:64%"><i style="transform:rotate(90deg)"></i>Production</span>
-            <strong>The idea</strong>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         ACT 07 — ENTERPRISE / NEXT EVOLUTION / AI
-         ============================================================ -->
-    <section class="r-sec t-light" data-act="07" aria-label="Enterprise work, the next evolution and AI">
-      <div class="r-wrap">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">07</span>Enterprise work changed how I think</p>
-        <div class="r-split">
-          <h2 class="r-h2" data-reveal>Enterprise work <em>changed how I think.</em></h2>
-          <div class="r-prose r-body r-mut" data-reveal>
-            <p>Enterprise projects are rarely just creative exercises. They involve: <strong style="color:var(--r-ink)">multiple stakeholders, complex information, business objectives, operational realities, technology, content, physical environments, approval structures, production, delivery</strong>.</p>
-            <p>That complexity has shaped the way I approach creative work. I have learned to hold two things at the same time: <strong style="color:var(--r-ink)">creative ambition</strong> and <strong style="color:var(--r-ink)">executional reality</strong>. Neither should cancel the other.</p>
-          </div>
-        </div>
-
-        <div class="r-split" style="margin-top:clamp(31px,5.0vh,55px)">
-          <h2 class="r-h2" data-reveal>Where I see <em>the next evolution.</em></h2>
-          <div class="r-prose r-body r-mut" data-reveal>
-            <p>The boundaries between creative disciplines are disappearing. Experience is becoming increasingly: <strong style="color:var(--r-ink)">physical + digital, human + machine, brand + environment, content + interaction, design + technology, creative + AI</strong>.</p>
-            <p>This is the direction I am interested in. Not technology for its own sake. Not AI for its own sake. But what happens when new tools allow creative teams to think, prototype, communicate and produce differently.</p>
-            <p>I am particularly interested in the emerging relationship between: <strong style="color:var(--r-ink)">Experience Design, Enterprise Innovation, Creative Technology, AI-Enabled Creative Production, Human Understanding</strong>.</p>
-            <p class="r-kick-note">That intersection is where I want to keep building.</p>
-          </div>
-        </div>
-
-        <div style="margin-top:clamp(31px,5.0vh,55px)">
-          <h2 class="r-h2" data-reveal>AI is a tool. <em>The thinking still matters.</em></h2>
-          <div class="r-ai" id="rAi" data-reveal aria-hidden="true"></div>
-          <div class="r-split" style="margin-top:clamp(19px,2.8vh,29px)">
-            <p class="r-lead r-mut" data-reveal style="max-width:52ch">AI is changing creative production. It can accelerate exploration. Expand possibilities. Help prototype ideas. Generate variations. Support production. Change how teams work. But faster production does not automatically mean better creative work.</p>
-            <div class="r-prose r-body r-mut" data-reveal>
-              <p>The real advantage comes from knowing: <strong style="color:var(--r-ink)">what to make, why to make it, what to reject, what to refine, and how to connect the result back to the human problem</strong>.</p>
-              <p>That is where creative judgment becomes even more important.</p>
-              <p class="r-kick-note">I see AI as an extension of the creative system—not a replacement for thinking.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         ACT 07 — THE KIND OF WORK I WANT TO LEAD
-         ============================================================ -->
-    <section class="r-sec t-dark" data-act="07" aria-label="The kind of work I want to lead">
-      <div class="r-wrap">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">07</span>The kind of work I want to lead</p>
-        <h2 class="r-display" data-reveal>I am most interested in work where the problem is <em>larger than a single discipline.</em></h2>
-        <ul class="r-spaces" data-reveal-group data-dbase=".03" style="margin-top:clamp(24px,3.9vh,40px)">
-          <li data-reveal><i>01</i>Where a team needs to rethink an experience.</li>
-          <li data-reveal><i>02</i>Where a brand needs to become more experiential.</li>
-          <li data-reveal><i>03</i>Where technology can change how people learn, understand or interact.</li>
-          <li data-reveal><i>04</i>Where a physical environment needs a digital layer.</li>
-          <li data-reveal><i>05</i>Where an organisation needs to communicate complexity differently.</li>
-          <li data-reveal><i>06</i>Where immersive technology has a meaningful purpose.</li>
-          <li data-reveal><i>07</i>Where creative strategy needs to become an actual system.</li>
-          <li data-reveal><i>08</i>Where the opportunity is still being defined.</li>
-        </ul>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         ACT 07 — ROLE FIT
-         ============================================================ -->
-    <section class="r-sec t-light" id="fit" data-act="07" aria-label="Role fit">
-      <div class="r-wrap">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">07</span>Role fit</p>
-        <h2 class="r-h2" data-reveal>The role matters less <em>than the problem.</em></h2>
-        <p class="r-lead r-mut" data-reveal style="max-width:56ch;margin-top:16px">The right title could be:</p>
-        <div class="r-role-groups" data-reveal-group data-dbase=".04">
-          <div class="r-role-groups__g" data-reveal>
-            <h3>Creative leadership</h3>
-            <ul><li>Creative Director</li><li>Executive Creative Director</li><li>Creative Head</li><li>Creative Systems Leader</li></ul>
-          </div>
-          <div class="r-role-groups__g" data-reveal>
+          <div class="r-roles__g">
             <h3>Experience</h3>
-            <ul><li>Experience Design Director</li><li>Experience Strategy Lead</li><li>Creative Strategy Director</li><li>Design Director</li><li>Brand Experience Director</li><li>Immersive Experience Director</li></ul>
+            <ul><li>Experience Design Director</li><li>Experience Strategy Lead</li><li>Brand Experience Director</li><li>Immersive Experience Director</li></ul>
           </div>
-          <div class="r-role-groups__g" data-reveal>
+          <div class="r-roles__g">
             <h3>Technology / Innovation</h3>
-            <ul><li>Creative Technology Lead</li><li>Innovation Lead</li><li>Experience Innovation Lead</li><li>AI / Creative Technology Strategy Lead</li></ul>
+            <ul><li>Creative Technology Lead</li><li>Innovation Lead</li><li>AI / Creative Technology Strategy Lead</li></ul>
           </div>
-          <div class="r-role-groups__g" data-reveal>
+          <div class="r-roles__g">
             <h3>Consulting</h3>
-            <ul><li>Senior Creative Consultant</li></ul>
+            <ul><li>Senior Creative Consultant</li><li>Brand &amp; Experience Strategy</li></ul>
           </div>
-        </div>
-        <div class="r-split" style="margin-top:clamp(22px,3.3vh,33px)">
-          <p class="r-lead r-mut" data-reveal style="max-width:52ch">But I am not looking for a title simply because it sounds senior.</p>
-          <p class="r-lead" data-reveal>I am looking for a place where I can <em style="font-family:var(--serif);font-style:italic;font-weight:400;color:var(--r-blue)">think, lead, build and make a meaningful difference to the work.</em></p>
         </div>
       </div>
     </section>
 
     <!-- ============================================================
-         ACT 07 — LOOKING FOR / NOT LOOKING FOR
+         07 — GIVE ME A DIFFICULT PROBLEM  (start the conversation)
          ============================================================ -->
-    <section class="r-sec t-dark" data-act="07" aria-label="What I am looking for">
-      <div class="r-wrap r-wrap--narrow">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">07</span>What I am looking for</p>
+    <section class="r-sec r-sec--deep" id="contact" data-act="07" aria-label="Start a conversation">
+      <div class="r-wrap">
+        <p class="r-kicker" data-reveal><span class="r-kicker__num">06</span>Start a conversation</p>
         <h2 class="r-display" data-reveal>Give me <em>a difficult problem.</em></h2>
-        <ul class="r-notlist" data-reveal-group data-dbase=".03" style="margin-top:clamp(20px,3.3vh,31px)">
-          <li data-reveal><i>—</i>Something that isn't solved by making another campaign.</li>
-          <li data-reveal><i>—</i>Something that needs thinking.</li>
-          <li data-reveal><i>—</i>Something that needs an experience.</li>
-          <li data-reveal><i>—</i>Something that needs people from different disciplines to work together.</li>
-          <li data-reveal><i>—</i>Something where the answer isn't obvious.</li>
-          <li data-reveal><i>—</i>Something where technology might change the possibilities.</li>
-          <li data-reveal><i>—</i>Something where creativity needs to create actual value.</li>
-        </ul>
-        <p class="r-lead" data-reveal style="margin-top:12px">That is the kind of opportunity that interests me.</p>
-      </div>
-    </section>
-
-    <section class="r-sec t-dark r-sec--tight" data-act="07" aria-label="What I am not looking for">
-      <div class="r-wrap r-wrap--narrow">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">07</span>What I am not looking for</p>
-        <h2 class="r-h2" data-reveal>Working principles, <em>not rules against.</em></h2>
-        <ul class="r-notlist" data-reveal-group data-dbase=".03" style="margin-top:clamp(20px,3.3vh,31px)">
-          <li data-reveal><i>—</i>A role where creative direction means approving artwork.</li>
-          <li data-reveal><i>—</i>A role where technology is added because it sounds innovative.</li>
-          <li data-reveal><i>—</i>A role where strategy ends in a PowerPoint.</li>
-          <li data-reveal><i>—</i>A role where experience design means making things look impressive.</li>
-          <li data-reveal><i>—</i>A role where disciplines work in isolation.</li>
-          <li data-reveal><i>—</i>A role where the title is bigger than the problem.</li>
-        </ul>
-        <p class="r-lead" data-reveal style="margin-top:12px">I want to be close to the <strong style="color:#EFF0EA">thinking, the people, the decisions and the making</strong>.</p>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         ACT 07 — WHY HIRE ME / SIMPLEST DESCRIPTION
-         ============================================================ -->
-    <section class="r-sec t-light" data-act="07" aria-label="Why hire me">
-      <div class="r-wrap">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">07</span>Why hire me</p>
-        <h2 class="r-h2" data-reveal>Not because I fit perfectly <em>into a predefined box.</em></h2>
-        <p class="r-lead" data-reveal style="margin-top:16px;max-width:56ch">Because I can operate <strong style="color:var(--r-ink)">across the boxes</strong>.</p>
-        <ul class="r-canlist" data-reveal-group data-dbase=".02">
-          <li data-reveal>I can understand the strategy.</li>
-          <li data-reveal>I can develop the idea.</li>
-          <li data-reveal>I can shape the experience.</li>
-          <li data-reveal>I can work through the story.</li>
-          <li data-reveal>I can understand the technology.</li>
-          <li data-reveal>I can communicate with the client.</li>
-          <li data-reveal>I can align the team.</li>
-          <li data-reveal>I can work through production.</li>
-          <li data-reveal>And I can keep asking whether the final thing still solves the original problem.</li>
-        </ul>
-        <p class="r-lead" data-reveal style="margin-top:18px;max-width:56ch">That combination is the value I bring.</p>
-
-        <div class="r-split" style="margin-top:clamp(31px,5.0vh,55px)">
-          <h2 class="r-h2" data-reveal>The simplest description <em>of my work.</em></h2>
-          <div class="r-prose r-body r-mut" data-reveal>
-            <p>I turn complexity into experiences. Complex ideas. Complex organisations. Complex technologies. Complex environments. Complex stakeholder ecosystems.</p>
-            <p>The work is about finding the structure underneath the complexity. Then making that structure understandable, engaging and human.</p>
-            <p>Sometimes the result is a physical experience. Sometimes an immersive environment. Sometimes an interactive system. Sometimes a digital experience. Sometimes a brand system. Sometimes a new creative workflow.</p>
-            <p><strong style="color:var(--r-ink)">The output changes.</strong></p>
-            <p class="r-kick-note">The thinking stays.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         ACT 07 — PROFESSIONAL ECOSYSTEM
-         ============================================================ -->
-    <section class="r-sec t-dark" data-act="07" aria-label="Professional ecosystem">
-      <div class="r-wrap">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">07</span>My professional ecosystem</p>
-        <div class="r-eco" data-reveal>
-          <div class="r-eco__mark" aria-hidden="true">AV</div>
-          <div>
-            <p class="r-eco__label">Professional Member</p>
-            <h2>AVGC-XR Rajasthan</h2>
-            <p class="r-body">My work sits within the broader creative-technology ecosystem spanning animation, visual effects, gaming, comics, XR and emerging creative technologies. I see this ecosystem as part of a larger transformation in how ideas are created, communicated and experienced. The boundaries are becoming increasingly fluid. That is exactly where I want my work to exist.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         ACT 08 — CONVERSATION
-         ============================================================ -->
-    <section class="r-sec t-dark r-sec--deep" id="talk" data-act="08" aria-label="Start a conversation">
-      <div class="r-wrap">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">08</span>If you are a recruiter</p>
-        <h2 class="r-display" data-reveal>Don't just send me the job description.<br><em>Tell me the problem.</em></h2>
-        <ul class="r-contact__q" data-reveal-group data-dbase=".03" style="margin-top:clamp(20px,3.3vh,31px);max-width:640px">
-          <li data-reveal>What are you trying to build?</li>
-          <li data-reveal>What needs to change?</li>
-          <li data-reveal>Why does the role exist?</li>
-          <li data-reveal>What would I own?</li>
-          <li data-reveal>Who would I work with?</li>
-          <li data-reveal>What does success look like?</li>
-          <li data-reveal>What is difficult about the opportunity?</li>
-        </ul>
-        <p class="r-lead r-mut" data-reveal style="max-width:60ch">Those questions tell me much more about a role than the title alone. If the answer involves <strong style="color:#EFF0EA">creative leadership, experience design, innovation, immersive technology, brand experience, spatial thinking, storytelling, AI-enabled creative production or connecting multiple disciplines</strong>, let's talk.</p>
-
-        <div class="r-split r-split--even" style="margin-top:clamp(31px,5.0vh,55px)">
-          <details class="r-acc__item" data-reveal name="acc-talk">
-            <summary class="r-acc__head r-acc__head--plain">
-              <h3 class="r-h3">If you are a <em>hiring leader</em></h3>
-              <span class="r-acc__toggle" aria-hidden="true"></span>
-            </summary>
-            <div class="r-acc__body">
-              <div class="r-prose r-body r-mut">
-                <p>If you're looking for someone who can sit between strategy, creative, design, technology and execution, I would like to understand what you're building.</p>
-                <p>I am particularly interested in situations where the role requires: <strong style="color:#EFF0EA">creative ownership, strategic thinking, multidisciplinary leadership, client / stakeholder engagement, experience design, technology understanding, content thinking, executional involvement, the ability to navigate ambiguity</strong>.</p>
-                <p>That's the environment in which I can contribute most.</p>
-              </div>
+        <div class="r-contact">
+          <div class="r-contact__side" data-reveal>
+            <p class="r-lead">If you're building an experience, leading an innovation initiative, assembling a multidisciplinary creative team or looking for someone who can connect strategy, creativity, technology and execution, let's talk.</p>
+            <p class="r-ctaline">Don't just send me the job description. Tell me what you're trying to build.</p>
+            <div class="r-ctarow">
+              <a class="r-cta r-cta--accent" href="#recruitForm">Start a conversation <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
+              <a class="r-cta r-cta--ghost" href="../case-studies/">View full case studies <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
             </div>
-          </details>
-          <details class="r-acc__item" data-reveal name="acc-talk">
-            <summary class="r-acc__head r-acc__head--plain">
-              <h3 class="r-h3">If the role <em>doesn't exist yet</em></h3>
-              <span class="r-acc__toggle" aria-hidden="true"></span>
-            </summary>
-            <div class="r-acc__body">
-              <div class="r-prose r-body r-mut">
-                <p>That's interesting too. Some of the most useful creative roles are created because an organisation realises it has a problem that doesn't fit an existing department.</p>
-                <p>If you need someone who can connect:</p>
-                <ul class="r-syslist" style="margin-top:12px">
-                  <li>Creative + Strategy</li><li>Experience + Technology</li><li>Brand + Space</li><li>Content + Interaction</li><li>AI + Creative Production</li><li>Innovation + Human Experience</li>
-                </ul>
-                <p style="margin-top:14px">Then perhaps the conversation should begin with the problem rather than the job title.</p>
-              </div>
-            </div>
-          </details>
-        </div>
-
-        <!-- form -->
-        <div class="r-contact" style="margin-top:clamp(31px,5.0vh,55px)">
-          <div>
-            <h2 class="r-h2" data-reveal>Let's talk.</h2>
-            <p class="r-lead r-mut" data-reveal style="max-width:48ch;margin-top:12px">You don't need to have the perfect job description. <strong style="color:#EFF0EA">Just bring me the problem.</strong></p>
-            <div class="r-hero__actions" data-reveal style="margin-top:18px">
-              <a class="r-cta r-cta--accent" href="mailto:hi@abhijeetvarghese.com">Email me directly <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
-            </div>
+            <p class="r-mail"><a href="mailto:hi@abhijeetvarghese.com">hi@abhijeetvarghese.com</a> &nbsp;·&nbsp; <a href="tel:+919694080706">+91-96940 80706</a></p>
           </div>
           <form class="r-form" id="recruitForm" novalidate data-reveal>
             <div class="r-form__row">
@@ -947,55 +417,23 @@
               <label><span>Organisation</span><input type="text" id="rfOrg" name="organization" autocomplete="organization" placeholder="Company or institution"></label>
               <label><span>Role / Opportunity</span><input type="text" id="rfRole" name="role" placeholder="e.g. Experience Design Director"></label>
             </div>
-            <label><span>Location</span><input type="text" id="rfLoc" name="location" autocomplete="address-level2" placeholder="City / remote"></label>
             <label><span>Message</span><textarea id="rfMsg" name="message" rows="4" placeholder="The problem, the opportunity, what success looks like…"></textarea></label>
             <p class="r-form__note" id="rfNote" role="status" aria-live="polite"></p>
             <button class="r-cta r-cta--accent" type="submit" id="rfSubmit">Start the conversation <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
           </form>
         </div>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         FINAL — one last thing + identity
-         ============================================================ -->
-    <section class="r-final" data-act="08" aria-label="One last thing">
-      <div class="r-wrap">
-        <p class="r-kicker" data-reveal><span class="r-kicker__num">08</span>One last thing</p>
-        <h2 class="r-final__big" data-reveal>I don't believe a creative career should be defined by one discipline.<em>The interesting work is increasingly happening between them.</em></h2>
-        <ul class="r-between" data-reveal>
-          <li>Between physical and digital</li><li>Between human and machine</li><li>Between strategy and design</li><li>Between story and technology</li><li>Between concept and execution</li><li>Between what exists today and what could exist tomorrow</li>
-        </ul>
-        <h2 class="r-final__big" data-reveal style="font-size:clamp(2.2rem,1.5rem+4.2vw,4.8rem)"><em>That is where I work.</em></h2>
-        <h2 class="r-final__big" data-reveal>Let's talk about <em>what's next.</em></h2>
-        <p class="r-lead r-mut" data-reveal style="max-width:60ch">If you're building something ambitious, I'd like to hear about it. If you're assembling a team, I'd like to understand the problem. If you're looking for creative leadership, experience design, innovation or immersive technology thinking, let's have the conversation.</p>
-        <p class="r-lead r-mut" data-reveal style="max-width:60ch;margin-top:16px">You don't need to have the perfect job description. <strong style="color:#EFF0EA">Just bring me the problem.</strong></p>
-        <div class="r-final__cta" data-reveal style="margin-top:12px">
-          <a class="r-cta r-cta--accent" href="../contact.html">Start a conversation <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
-          <a class="r-cta r-cta--ghost" href="../case-studies/">View case studies <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
-          <a class="r-cta r-cta--ghost" href="../portfolio.html">View portfolio <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
-        </div>
-
-        <div class="r-final__id" data-reveal>
-          <div>
-            <p class="r-final__id-name">Abhijeet Varghese</p>
-            <p class="r-final__id-role">Creative Systems Leader</p>
-            <p class="r-final__id-sub">Experience Design • Enterprise Innovation • AI-Enabled Creative Production</p>
-          </div>
-          <div class="r-final__skills">
-            <span>Creative Strategy</span><span>Experience Design</span><span>Immersive Experiences</span><span>XR / AR / VR</span><span>Brand Experience</span><span>Spatial Experience</span><span>Interactive Experiences</span><span>Digital Experiences</span><span>Storytelling</span><span>Creative Technology</span><span>AI-Enabled Creative Production</span><span>Innovation</span>
-          </div>
-          <div class="r-final__tag">
-            <p class="r-final__id-sub" style="letter-spacing:.18em">Professional Member — AVGC-XR Rajasthan</p>
-            <p class="r-final__id-role" style="margin-top:12px">Ideas for a more human tomorrow.</p>
-          </div>
+        <div class="r-idbar" data-reveal>
+          <div class="r-idbar__mark" aria-hidden="true">AV</div>
+          <div class="r-idbar__who"><strong>Abhijeet Varghese</strong> — Creative Systems Leader</div>
+          <div class="r-idbar__sub">Experience Design • Enterprise Innovation • AI-Enabled Creative Production</div>
+          <div class="r-idbar__mem">Professional Member — AVGC-XR Rajasthan</div>
         </div>
       </div>
     </section>
-    </div>
   </main>
 
-  <footer class="footer footer--arena">
+
+<footer class="footer footer--arena">
     <div class="container footer__inner">
       <div class="footer__brand">
         <a class="footer__brandtop" href="../index.html" aria-label="Abhijeet Varghese — home">
@@ -1056,12 +494,13 @@
     </div>
   </footer>
 
-  <div class="r-act" id="rAct" aria-hidden="true">Recruiter <strong id="rActNum">01</strong> / 08</div>
+
+  <div class="r-act" id="rAct" aria-hidden="true">Recruiter <strong id="rActNum">01</strong> / 07</div>
   <div class="r-prail" id="rPrail" aria-hidden="true"><i id="rPrailFill"></i><span id="rPrailCap"></span></div>
 
   <script src="../js/main.js?v=2.4.20-413ff5a8256b" defer></script>
-  <script src="../js/recruitment.js?v=2.0.0" defer></script>
-  <script>
+  <script src="../js/recruitment.js?v=3.0.0" defer></script>
+<script>
   /* AV OS first-party analytics — minimal, privacy-respecting (mirrors the
      rest of the site) plus recruiter-journey event classification. */
   (function () {
