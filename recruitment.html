@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Abhijeet Varghese | Creative Executive &amp; Experience Design Leader | Immersive Technology</title>
   <meta name="description" content="Abhijeet Varghese is a Creative Executive and Experience Design Leader working across creative strategy, experience design, immersive technology, storytelling, spatial experiences and execution.">
   <meta name="keywords" content="Abhijeet Varghese, creative director, creative executive, experience design leader, experience design director, creative strategy, brand experience, immersive experience, XR, AR, VR, spatial design, creative technology, experiential design, digital experience, India">
@@ -22,7 +22,8 @@
   <link rel="icon" type="image/png" href="assets/logo.png">
   <link rel="preload" href="assets/fonts/inter-tight-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="css/styles.css?v=2.4.20-2f70fe04f51a">
-  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/tokens.css?v=3.1.0">
+  <link rel="stylesheet" href="css/elevate.css?v=3.3.2">
   <link rel="stylesheet" href="css/recruitment.css?v=1.0.0">
   <script type="application/ld+json">
   {
@@ -89,7 +90,7 @@
           <p class="r-hero__lead r-hero__lead--small reveal">My work is about what happens between an idea and the person experiencing it: what they understand, what they feel, what they do, and what they remember.</p>
           <div class="r-actions reveal"><a class="r-button r-button--light" href="contact.html">START A CONVERSATION <span>↗</span></a><a class="r-button r-button--line" href="#work">SEE THE WORK <span>↓</span></a></div>
         </div>
-        <figure class="r-hero__portrait reveal"><img src="assets/hero-portrait.webp" alt="Editorial portrait of Abhijeet Varghese" width="1024" height="1024" fetchpriority="high"><figcaption>Creative Executive · Experience Design · Immersive Technology</figcaption></figure>
+        <figure class="r-hero__portrait reveal"><img decoding="async" src="assets/hero-portrait.webp" alt="Editorial portrait of Abhijeet Varghese" width="1024" height="1024" fetchpriority="high"><figcaption>Creative Executive · Experience Design · Immersive Technology</figcaption></figure>
       </div>
       <div class="r-marquee" aria-hidden="true"><div>CREATIVE DIRECTION <i>✦</i> EXPERIENCE DESIGN <i>✦</i> IMMERSIVE TECHNOLOGY <i>✦</i> STORYTELLING <i>✦</i> SPATIAL EXPERIENCES <i>✦</i> CREATIVE LEADERSHIP <i>✦</i></div></div>
     </section>
@@ -245,8 +246,8 @@
   <script>
   (function(){
     var toggle=document.getElementById('navToggle'), menu=document.getElementById('mobileMenu'), close=document.getElementById('mobileClose');
-    function openMenu(){if(!menu)return;menu.hidden=false;document.body.classList.add('menu-open');toggle&&toggle.setAttribute('aria-expanded','true');}
-    function closeMenu(){if(!menu)return;menu.hidden=true;document.body.classList.remove('menu-open');toggle&&toggle.setAttribute('aria-expanded','false');}
+    function openMenu(){if(!menu)return;menu.hidden=false;requestAnimationFrame(function(){requestAnimationFrame(function(){menu.classList.add('is-open');});});document.body.classList.add('menu-open');toggle&&toggle.setAttribute('aria-expanded','true');}
+    function closeMenu(){if(!menu)return;menu.classList.remove('is-open');document.body.classList.remove('menu-open');toggle&&toggle.setAttribute('aria-expanded','false');setTimeout(function(){if(!menu.classList.contains('is-open'))menu.hidden=true;},450);}
     toggle&&toggle.addEventListener('click',function(){menu&&menu.hidden?openMenu():closeMenu();}); close&&close.addEventListener('click',closeMenu);
     menu&&menu.addEventListener('click',function(e){if(e.target.closest('a'))closeMenu();});
     var progress=document.getElementById('progress');
@@ -255,5 +256,6 @@
     if('IntersectionObserver' in window){var io=new IntersectionObserver(function(entries){entries.forEach(function(entry){if(entry.isIntersecting){entry.target.classList.add('is-visible');io.unobserve(entry.target);}})},{threshold:.08});items.forEach(function(el){io.observe(el);});}else{items.forEach(function(el){el.classList.add('is-visible');});}
   })();
   </script>
+  <script src="js/elevate.js?v=3.3.1" defer></script>
 </body>
 </html>

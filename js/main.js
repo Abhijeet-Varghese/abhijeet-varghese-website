@@ -570,11 +570,11 @@
   if (document.body.classList.contains("about-page")) {
     const INTERACTIVE = "a, button, [role='button'], summary";
     document.addEventListener("pointerdown", e => {
-      const t = e.target.closest(INTERACTIVE);
+      const t = e.target.closest?.(INTERACTIVE);
       if (t) t.classList.add("is-pressing");
     }, { passive: true });
     const pressClear = e => {
-      const t = e.target.closest(INTERACTIVE);
+      const t = e.target.closest?.(INTERACTIVE);
       if (t) t.classList.remove("is-pressing");
     };
     ["pointerup", "pointerleave", "pointercancel"].forEach(ev =>

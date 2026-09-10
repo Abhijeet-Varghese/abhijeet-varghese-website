@@ -32,10 +32,11 @@
         imagesrcset="assets/images/miniature/night-720.webp 720w, assets/images/miniature/night-1100.webp 1100w, assets/images/miniature/night-1672.webp 1672w"
         imagesizes="100vw">
   <link rel="preload" href="../../assets/fonts/inter-tight-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="../../css/tokens.css">
+  <link rel="stylesheet" href="../../css/tokens.css?v=3.1.0">
+  <link rel="stylesheet" href="../../css/elevate.css?v=3.3.2">
   <link rel="stylesheet" href="../../css/styles.css?v=2.4.20-2f70fe04f51a">
-  <link rel="stylesheet" href="assets/css/main.css">
-  <link rel="stylesheet" href="assets/css/site-theme.css">
+  <link rel="stylesheet" href="assets/css/main.css?v=3.1.0">
+  <link rel="stylesheet" href="assets/css/site-theme.css?v=3.1.5">
   <script>
     document.documentElement.className += " js";
     setTimeout(function () { document.documentElement.className += " reveal-failsafe"; }, 2600);
@@ -353,6 +354,13 @@
     </div>
   </section>
 
+  <nav class="e-next" aria-label="Next case study">
+    <div class="e-next__in">
+      <div><p class="e-next__eyebrow">Next case study</p>
+      <p class="e-next__title"><a href="../indian-army/">Indian Army <svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true"><path d="M4 15h19M17 8.5 23.5 15 17 21.5" stroke="currentColor" stroke-width="1.8"/></svg></a></p></div>
+      <a class="btn btn--ghost" href="../">All case studies</a>
+    </div>
+  </nav>
   <footer class="footer footer--arena">
     <div class="container footer__inner">
       <div class="footer__brand">
@@ -413,7 +421,7 @@
     </div>
   </footer>
 
-  <script src="assets/js/config.js"></script>
+  <script src="assets/js/config.js?v=3.1.0"></script>
   <script defer src="assets/js/core.js"></script>
   <script defer src="assets/js/navigation.js"></script>
   <script defer src="assets/js/imageViewer.js"></script>
@@ -422,7 +430,7 @@
   <script defer src="assets/js/walkthrough.js"></script>
   <script defer src="assets/js/content.js"></script>
   <script defer src="assets/js/scrollAnimations.js"></script>
-  <script defer src="../../js/main.js?v=2.4.20-413ff5a8256b"></script>
+  <script defer src="../../js/main.js?v=2.4.21"></script>
 <script>
 /* AV OS first-party analytics — minimal, privacy-respecting */
 (function () {
@@ -490,5 +498,6 @@
   })();
 })();
 </script>
+  <script src="../../js/elevate.js?v=3.3.1" defer></script>
 </body>
 </html>
