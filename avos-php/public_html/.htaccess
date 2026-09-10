@@ -12,7 +12,13 @@
 # deployment uses that file on its own).
 # ============================================================
 Options -Indexes
+# Custom AV error experiences — served with the correct status code.
+ErrorDocument 403 /403.html
 ErrorDocument 404 /404.html
+ErrorDocument 500 /500.html
+ErrorDocument 502 /502.html
+ErrorDocument 503 /503.html
+ErrorDocument 504 /504.html
 
 <IfModule mod_headers.c>
   Header always set X-Content-Type-Options "nosniff"
@@ -61,6 +67,16 @@ RewriteRule ^ - [F,L]
 # Media library (admin previews) — served from private storage via media.php
 RewriteRule ^media/(.+)$ media.php?f=$1 [L,QSA]
 RewriteRule ^admin/app/media/(.+)$ media.php?f=$1 [L,QSA]
+
+# ---- custom AV error experiences (clean routes -> .html pages) ----
+RewriteRule ^403/?$ /403.html [L]
+RewriteRule ^404/?$ /404.html [L]
+RewriteRule ^500/?$ /500.html [L]
+RewriteRule ^502/?$ /502.html [L]
+RewriteRule ^503/?$ /503.html [L]
+RewriteRule ^504/?$ /504.html [L]
+RewriteRule ^maintenance/?$ /maintenance.html [L]
+RewriteRule ^offline/?$ /offline.html [L]
 
 # ---- static frontend: legacy flat pages → canonical clean URLs (no chains) ----
 RewriteRule ^case-studies\.html/?$ /case-studies/ [R=301,L]

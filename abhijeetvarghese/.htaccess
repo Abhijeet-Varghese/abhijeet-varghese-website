@@ -1,7 +1,13 @@
 # abhijeetvarghese.com — static frontend (hand-authored; deployed as-is to the web root).
 # Keep in sync with avos-php/public_html/.htaccess when AV OS shares the same web root.
 Options -Indexes
+# Custom AV error experiences — served with the correct status code.
+ErrorDocument 403 /403.html
 ErrorDocument 404 /404.html
+ErrorDocument 500 /500.html
+ErrorDocument 502 /502.html
+ErrorDocument 503 /503.html
+ErrorDocument 504 /504.html
 
 # Compress text at the edge; already-compressed media/fonts pass through.
 <IfModule mod_brotli.c>
@@ -45,6 +51,27 @@ ErrorDocument 404 /404.html
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
+  # Custom AV error experiences (clean routes -> .html pages)
+  RewriteRule ^403/?$ /403.html [L]
+  RewriteRule ^404/?$ /404.html [L]
+  RewriteRule ^500/?$ /500.html [L]
+  RewriteRule ^502/?$ /502.html [L]
+  RewriteRule ^503/?$ /503.html [L]
+  RewriteRule ^504/?$ /504.html [L]
+  RewriteRule ^maintenance/?$ /maintenance.html [L]
+  RewriteRule ^offline/?$ /offline.html [L]
+
+  # --- Maintenance mode (Apache, one-time set-up) -------------------------
+  # The AV router honours AV_MAINTENANCE=1 / storage/maintenance.lock, but on a
+  # pure static Apache host you can instead serve the maintenance screen for
+  # every request by uncommenting the block below. Remove it to go live again.
+  # RewriteCond %{REQUEST_URI} !^/maintenance\.html$ [NC]
+  # RewriteCond %{REQUEST_URI} !^/assets/ [NC]
+  # RewriteCond %{REQUEST_URI} !^/css/ [NC]
+  # RewriteCond %{REQUEST_URI} !^/js/ [NC]
+  # RewriteCond %{REQUEST_URI} !sw\.js [NC]
+  # RewriteRule ^.*$ /maintenance.html [L]
+
   # Case Studies + Experience clean URLs (legacy flat pages -> canonical directories)
   RewriteRule ^case-studies\.html/?$ /case-studies/ [R=301,L]
   RewriteRule ^experience\.html/?$ /experience/ [R=301,L]

@@ -43,6 +43,54 @@ if (str_starts_with($path, '/admin/') || str_starts_with($path, '/install/') || 
     return avServeStatic($real);
 }
 
+/* ---------- custom error experiences ----------
+   Dedicated AV error pages, served with the correct status code.
+   Unknown routes fall through to the 404 page (avNotFound). */
+/* Each entry: file, the HTTP status to set, and whether that status is safe
+   to send down a reverse proxy. 502/504 are "gateway" codes: a CDN / reverse
+   proxy (including this sandbox's preview proxy) treats a *downstream* 502/504
+   as ITS OWN upstream failure and replaces the body with a proxy error page,
+   so the designed AV experience never reaches the browser. For those two we
+   serve the page as an HTTP 200 document and report the true status in an
+   X-AV-Error-Status header instead. Real 502/504 conditions on Apache are
+   still answered by ErrorDocument with the genuine status code. */
+$errorPages = [
+    '403'         => ['file' => '403.html',         'status' => 403, 'display' => 403],
+    '404'         => ['file' => '404.html',         'status' => 404, 'display' => 404],
+    '500'         => ['file' => '500.html',         'status' => 500, 'display' => 500],
+    '502'         => ['file' => '502.html',         'status' => 502, 'display' => 200],
+    '503'         => ['file' => '503.html',         'status' => 503, 'display' => 503],
+    '504'         => ['file' => '504.html',         'status' => 504, 'display' => 200],
+    'maintenance' => ['file' => 'maintenance.html', 'status' => 503, 'display' => 503],
+    'offline'     => ['file' => 'offline.html',     'status' => 200, 'display' => 200],
+];
+$seg = trim($path, '/');
+if (isset($errorPages[$seg])) {
+    $e = $errorPages[$seg];
+    return avServeError($siteRoot, $e['file'], $e['display'], $e['status']);
+}
+// honour the .html forms too (e.g. /404.html for direct linkage / ErrorDocument)
+if (preg_match('/^([a-zA-Z0-9][a-zA-Z0-9-]*)\.html$/', $seg, $m) && isset($errorPages[strtolower($m[1])])) {
+    $e = $errorPages[strtolower($m[1])];
+    return avServeError($siteRoot, $e['file'], $e['display'], $e['status']);
+}
+
+/* ---------- maintenance mode (reversible) ----------
+   Activate by setting AV_MAINTENANCE=1 or by creating
+   storage/maintenance.lock. Only frontend document requests are
+   intercepted — /api, /admin, /install, /media and all static
+   assets (css/js/fonts/images) continue to stream normally, so the
+   maintenance screen renders fully and the app keeps working. */
+$maintenanceOn = getenv('AV_MAINTENANCE') === '1' || is_file(AV_ROOT . '/storage/maintenance.lock');
+if ($maintenanceOn && !str_starts_with($path, '/api') && !str_starts_with($path, '/admin')
+    && !str_starts_with($path, '/install') && !str_starts_with($path, '/media')) {
+    $segExt = pathinfo($seg, PATHINFO_EXTENSION);
+    $isDocument = ($seg === '' || $segExt === '' || $segExt === 'html');
+    if ($isDocument) {
+        return avServeError($siteRoot, 'maintenance.html', 503);
+    }
+}
+
 /* ---------- static frontend ---------- */
 // legacy → canonical redirects (mirrors abhijeetvarghese/.htaccess)
 $redirects = [
@@ -75,6 +123,28 @@ if (str_starts_with(basename($real), '.')) return avNotFound($siteRoot);
 return avServeStatic($real);
 
 /* ---------- helpers ---------- */
+function avServeError(string $siteRoot, string $file, int $displayStatus, ?int $trueStatus = null): bool
+{
+    $trueStatus = $trueStatus ?? $displayStatus;
+    if ($trueStatus !== $displayStatus) {
+        // Report the intended error code to clients/tools without letting a
+        // reverse proxy replace the body (gateway codes 502/504 are masked).
+        header('X-AV-Error-Status: ' . $trueStatus);
+    }
+    http_response_code($displayStatus);
+    $p = $siteRoot . '/' . $file;
+    if (is_file($p)) {
+        header('Content-Type: text/html; charset=utf-8');
+        header('Cache-Control: no-cache, must-revalidate');
+        echo file_get_contents($p);
+    } else {
+        // fall back to the 404 page if the requested error page is missing
+        if ($file !== '404.html') return avNotFound($siteRoot);
+        echo 'Not found';
+    }
+    return true;
+}
+
 function avNotFound(string $siteRoot): bool
 {
     http_response_code(404);
