@@ -1,0 +1,552 @@
+/* ============================================================
+   AV — CUSTOM ERROR EXPERIENCE SYSTEM
+   ============================================================
+   Built on top of the existing AV design system (css/styles.css):
+   inherits typography (Inter Tight / Instrument Serif / Poppins),
+   the --ease / --ease-out motion curves, the navy spatial palette
+   (--azure / --azure-hi / --chrome-text), the .btn and .page-close
+   components, the .chapter__tag chip and the data-reveal system.
+
+   These pages are "alternate states" of the AV universe — not
+   generic error templates. Each state is a different moment inside
+   the same digital world, driven by a single shared architecture:
+
+     .error-scene   → ErrorEnvironment  (atmosphere, grid, particles, art)
+     .error-core    → ErrorCode + ErrorContent + ErrorActions + ErrorNav
+     body.error--x  → per-state accent + behaviour variation
+
+   Only this file is new; nothing on the main site is redesigned.
+   ============================================================ */
+
+/* ---------- visually-hidden (screen-reader only) ---------- */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ============================================================
+   ERROR SCENE BASE — the spatial environment
+   ============================================================ */
+body.av-error {
+  background: #050B1A;
+  color: var(--chrome-text);
+  overflow: hidden;
+  --err-accent: var(--azure);
+  --err-glow-rgb: 110, 168, 255;
+  --err-grid: rgba(148, 170, 230, 0.12);
+  /* horizontal position of the content axis — used to focus the art/light fields */
+  --err-x: 50%;
+  --err-tint: 110, 168, 255;   /* scene colour cast */
+  min-height: 100svh;
+}
+
+.error-scene {
+  position: fixed; inset: 0; z-index: 0;
+  overflow: hidden; pointer-events: none;
+  background:
+    radial-gradient(900px 620px at 22% 0%, rgba(var(--err-glow-rgb), 0.12), transparent 60%),
+    radial-gradient(820px 560px at 84% 92%, rgba(var(--err-tint), 0.08), transparent 62%),
+    linear-gradient(180deg, #05070D 0%, #070D1C 52%, #0B1430 100%);
+}
+
+/* per-state scene colour cast — a soft aurora that slowly drifts */
+.error-scene__aurora {
+  position: absolute; inset: -40% -20%; z-index: 0;
+  background:
+    radial-gradient(46% 42% at 22% 24%, rgba(var(--err-tint), 0.16), transparent 70%),
+    radial-gradient(40% 46% at 82% 70%, rgba(var(--err-glow-rgb), 0.10), transparent 72%);
+  filter: blur(60px);
+  opacity: 0.7;
+  animation: errAuroraDrift 26s var(--ease-inout) infinite alternate;
+  will-change: transform;
+}
+@keyframes errAuroraDrift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  100% { transform: translate3d(-60px, 40px, 0) scale(1.12); }
+}
+
+/* light field — slow ambient drift, per-state tinted */
+.error-scene__glow {
+  position: absolute; z-index: 1; pointer-events: none;
+  top: -22%; right: -12%; width: 68vw; height: 68vw;
+  max-width: 1100px; max-height: 1100px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--err-glow-rgb), 0.18), transparent 62%);
+  filter: blur(42px);
+  animation: errGlowDrift 22s var(--ease-inout) infinite alternate;
+  will-change: transform;
+}
+@keyframes errGlowDrift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(-40px, 34px, 0) scale(1.06); }
+  100% { transform: translate3d(-84px, 12px, 0) scale(1.1); }
+}
+.error-scene__glow::after {
+  content: ""; position: absolute; inset: -40% -40%;
+  background: radial-gradient(circle, rgba(var(--err-glow-rgb), 0.08), transparent 60%);
+  filter: blur(60px);
+}
+.error-scene__glow.alt {
+  top: 40%; left: -18%; right: auto; width: 46vw; height: 46vw;
+  max-width: 720px; max-height: 720px; opacity: 0.7;
+  animation-delay: -11s;
+}
+
+/* horizon — a soft light line at the content axis, giving depth to the floor */
+.error-scene__horizon {
+  position: absolute; z-index: 1; pointer-events: none;
+  left: 0; right: 0; top: 46%; height: 22vh; transform: translateY(-50%);
+  background: linear-gradient(180deg, transparent, rgba(var(--err-glow-rgb), 0.10) 50%, transparent);
+  -webkit-mask-image: radial-gradient(58% 100% at var(--err-x) 50%, #000 0%, transparent 72%);
+          mask-image: radial-gradient(58% 100% at var(--err-x) 50%, #000 0%, transparent 72%);
+  animation: errHorizon 14s var(--ease-inout) infinite alternate;
+}
+@keyframes errHorizon { 0% { opacity: 0.5; transform: translateY(-50%) translateX(0); } 100% { opacity: 0.9; transform: translateY(-50%) translateX(-30px); } }
+.error-scene__horizon::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 50%;
+  height: 1px; background: linear-gradient(90deg, transparent, rgba(var(--err-glow-rgb), 0.55), transparent);
+}
+
+/* faint spatial grid — receding into depth, masked to centre */
+.error-scene__grid {
+  position: absolute; inset: -30% -10%; z-index: 1;
+  background-image:
+    linear-gradient(rgba(var(--err-glow-rgb), 0.10) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--err-glow-rgb), 0.10) 1px, transparent 1px);
+  background-size: 64px 64px;
+  -webkit-mask-image: radial-gradient(circle at var(--err-x) 46%, #000 0%, transparent 72%);
+          mask-image: radial-gradient(circle at var(--err-x) 46%, #000 0%, transparent 72%);
+  transform: perspective(700px) rotateX(58deg) translateY(10%);
+  transform-origin: 50% 40%;
+  animation: errGridDrift 26s ease-out infinite alternate;
+  will-change: transform;
+}
+@keyframes errGridDrift {
+  0%   { transform: perspective(700px) rotateX(58deg) translateY(10%) translateX(0); }
+  100% { transform: perspective(700px) rotateX(58deg) translateY(6%) translateX(-52px); }
+}
+/* a centred origin crosshair on the grid (subtle waypoint) */
+.error-scene__grid::after {
+  content: ""; position: absolute; left: var(--err-x); top: 46%;
+  width: 2px; height: 2px; border-radius: 50%;
+  background: rgba(var(--err-glow-rgb), 0.5);
+  box-shadow: 0 0 0 6px rgba(var(--err-glow-rgb), 0.06), 0 0 0 14px rgba(var(--err-glow-rgb), 0.03);
+}
+
+/* cursor light — a soft radial lamp that reveals the scene (fine pointer only) */
+.error-scene__cursor {
+  position: absolute; inset: 0; z-index: 4; pointer-events: none;
+  background: radial-gradient(360px 360px at var(--cx, 50%) var(--cy, 50%), rgba(var(--err-glow-rgb), 0.14), transparent 70%);
+  mix-blend-mode: screen;
+  opacity: 0.6;
+  will-change: background;
+}
+
+/* ambient particle field (canvas) */
+.error-scene__canvas { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; }
+
+/* state-specific centrepiece (injected SVG) */
+.error-scene__art {
+  position: absolute; inset: 0; z-index: 3;
+  display: grid; place-items: center;
+  opacity: 0;
+  transform: scale(0.94) translateY(18px);
+  transition: opacity 1.7s var(--ease), transform 1.7s var(--ease);
+}
+.js-ok .error-scene__art.is-ready { opacity: 1; transform: scale(1) translateY(0); }
+.error-scene__art svg { width: min(78vw, 900px); height: auto; overflow: visible; }
+
+/* vignette */
+.error-scene__veil {
+  position: absolute; inset: 0; z-index: 5;
+  background:
+    radial-gradient(circle at var(--err-x) 46%, transparent 46%, rgba(4, 8, 20, 0.55) 100%),
+    linear-gradient(180deg, rgba(5, 7, 13, 0.35), rgba(var(--err-tint), 0.02) 22%, transparent 76%, rgba(5, 7, 13, 0.5));
+}
+/* subtle grain (reuses the site's home-hero noise) */
+.error-scene__grain {
+  position: absolute; inset: 0; z-index: 6;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+  opacity: 0.045;
+  pointer-events: none;
+}
+
+/* ============================================================
+   ERROR CHROME — brand anchor + close control (existing components)
+   ============================================================ */
+.error-brand {
+  position: fixed; z-index: 250;
+  top: 14px; left: var(--pad-x);
+}
+.error-brand .brand__logo { width: 40px; height: 40px; }
+.error-brand__pill {
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 9px 18px 9px 12px;
+  background: rgba(8, 15, 34, 0.72);
+  -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+  border: 1px solid rgba(148, 170, 230, 0.18); border-radius: 999px;
+  box-shadow: 0 18px 50px -20px rgba(4, 8, 20, 0.55);
+  transition: border-color 0.3s var(--ease), transform 0.3s var(--ease);
+}
+.error-brand__pill:hover { border-color: var(--azure); transform: translateY(-1px); }
+.error-brand__name {
+  font-family: "Poppins", var(--font);
+  font-size: 14.5px; font-weight: 600; letter-spacing: -0.005em;
+  color: var(--chrome-text); white-space: nowrap;
+}
+.error-brand__status {
+  font-size: 10.5px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--chrome-muted); padding-left: 12px;
+  border-left: 1px solid rgba(148, 170, 230, 0.22);
+}
+
+/* ============================================================
+   ERROR MAIN — centred content composition
+   ============================================================ */
+.error-main {
+  position: relative; z-index: 8;
+  min-height: 100svh;
+  display: grid; place-items: center;
+  padding: clamp(96px, 16vh, 150px) var(--pad-x) clamp(64px, 9vh, 96px);
+  text-align: center;
+}
+.error-core { max-width: 46ch; position: relative; z-index: 9; }
+
+/* kicker chip */
+.error-kicker { display: flex; justify-content: center; margin-bottom: clamp(24px, 3.6vh, 40px); }
+.error-kicker .chapter__tag {
+  padding: 6px 16px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--chrome-muted); border: 1px solid rgba(148, 170, 230, 0.22);
+  border-radius: 999px; background: rgba(110, 168, 255, 0.05);
+}
+
+/* the big error code — a physical object in the environment, not text */
+.error-code {
+  position: relative; z-index: 1;
+  font-family: var(--font); font-weight: 600;
+  font-size: clamp(5rem, 19vw, 15rem);
+  line-height: 0.92; letter-spacing: -0.055em;
+  color: #EFF0EA;
+  /* subtle two-tone via a soft layered glow + light bias — robust (no clip) */
+  text-shadow: 0 1px 0 #FFFFFF, 0 2px 0 #DCE4FA, 0 14px 44px rgba(0, 0, 0, 0.5);
+  filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 44px rgba(var(--err-glow-rgb), 0.22));
+  user-select: none;
+  will-change: transform;
+}
+/* ghost echo — a dupe of the number offset behind, giving the code depth */
+.error-code::before {
+  content: attr(data-code);
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%) translate(-0.6%, 1.2%);
+  z-index: -1;
+  font: inherit; letter-spacing: inherit; line-height: inherit;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(var(--err-glow-rgb), 0.18);
+  opacity: 0.9;
+}
+/* deep glow bloom, breathing slowly — the code casts light into the scene */
+.error-code::after {
+  content: ""; position: absolute; left: 50%; top: 50%; z-index: -2;
+  width: 70%; aspect-ratio: 1; transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(var(--err-glow-rgb), 0.22), transparent 62%);
+  filter: blur(34px);
+  animation: errCodeBloom 6s var(--ease-inout) infinite alternate;
+  will-change: transform, opacity;
+}
+@keyframes errCodeBloom {
+  0%   { opacity: 0.8; transform: translate(-50%, -50%) scale(0.96); }
+  100% { opacity: 1;   transform: translate(-50%, -50%) scale(1.06); }
+}
+
+/* pointer tilt — the number leans gently toward the cursor (fine pointer) */
+.error-code.is-tilted { transition: transform 0.6s var(--ease-out); }
+
+/* logo variant (maintenance) — official SV mark assembling */
+.error-code--logo { min-height: clamp(150px, 30vh, 240px); display: grid; place-items: center; }
+.error-code--logo img { width: clamp(150px, 30vh, 238px); height: auto; filter: drop-shadow(0 26px 50px rgba(0,0,0,0.5)) drop-shadow(0 0 46px rgba(var(--err-glow-rgb), 0.28)); }
+
+/* signal variant (offline) — a fading signal waveform (discrete bars) */
+.error-code--signal {
+  min-height: clamp(120px, 22vh, 200px);
+  display: grid; place-items: center; gap: 0.45em;
+}
+.error-code--signal .error-code__bars {
+  display: inline-flex; align-items: center; gap: 0.5em;
+}
+.error-code--signal .error-code__bar {
+  display: inline-block; width: 0.28em; height: var(--h, 1em);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #FFFFFF, #8FA3CF);
+  transform-origin: center;
+  animation: errSignal var(--t, 2.6s) var(--ease-inout) infinite;
+  animation-delay: var(--dl, 0s);
+  box-shadow: 0 0 24px rgba(110, 168, 255, 0.25);
+}
+@keyframes errSignal {
+  0%, 100% { opacity: 0.18; transform: scaleY(0.3); }
+  50% { opacity: 1; transform: scaleY(1); }
+}
+
+/* headline + copy */
+.error-headline {
+  margin-top: clamp(16px, 2.4vh, 26px);
+  font-size: clamp(1.9rem, 1.1rem + 3.1vw, 3.4rem);
+  font-weight: 600; line-height: 1.06; letter-spacing: -0.03em;
+  color: #EFF0EA; text-wrap: balance;
+}
+.error-headline em { font-family: var(--serif); font-style: italic; font-weight: 400; color: var(--azure-hi); }
+.error-copy {
+  margin-top: clamp(16px, 2.4vh, 24px);
+  font-size: var(--f-lede); color: var(--chrome-muted);
+  line-height: 1.6; max-width: 40ch; margin-inline: auto;
+}
+
+/* actions */
+.error-actions {
+  margin-top: clamp(28px, 4.4vh, 44px);
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 14px;
+}
+.error-actions .btn { min-width: 186px; }
+
+/* quiet system status readout — in flow, under the actions, so it never
+   collides with the CTAs regardless of content height or viewport */
+.error-status {
+  margin-top: clamp(24px, 3.6vh, 38px);
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 10.5px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--chrome-muted);
+  white-space: nowrap;
+}
+.error-status__dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--err-accent);
+  box-shadow: 0 0 12px rgba(var(--err-glow-rgb), 0.9);
+  animation: errPulse 2s var(--ease-inout) infinite;
+}
+@keyframes errPulse { 0%,100% { opacity: 0.4; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.1); } }
+.error-status__sep { opacity: 0.4; }
+body.av-reduce .error-status__dot { animation: none; }
+
+/* ============================================================
+   PER-STATE VARIATION
+   ============================================================ */
+.error--404 { --err-glow-rgb: 110, 168, 255; --err-accent: var(--azure); --err-tint: 110, 168, 255; }
+.error--403 {
+  --err-glow-rgb: 110, 168, 255; --err-accent: var(--azure);
+  --err-grid: rgba(148, 170, 230, 0.14); --err-tint: 96, 168, 255;
+}
+.error--500 { --err-glow-rgb: 122, 168, 255; --err-accent: var(--azure-hi); --err-tint: 130, 168, 255; }
+.error--502 { --err-glow-rgb: 110, 168, 255; --err-accent: var(--azure-hi); --err-tint: 110, 168, 255; }
+.error--503 { --err-glow-rgb: 110, 168, 255; --err-accent: var(--azure); --err-tint: 96, 170, 255; }
+.error--504 { --err-glow-rgb: 120, 168, 255; --err-accent: var(--azure-hi); --err-tint: 120, 168, 255; }
+.error--maintenance { --err-glow-rgb: 224, 160, 60; --err-accent: #E0A03C; --err-tint: 224, 160, 60; }
+.error--offline { --err-glow-rgb: 120, 134, 180; --err-accent: #96A0BE; --err-tint: 120, 134, 180; }
+
+/* 403 — restrained scan lines + a soft security haze */
+.error--403 .error-scene__scan {
+  position: absolute; inset: 0; z-index: 5;
+  background: repeating-linear-gradient(180deg, rgba(148, 170, 230, 0.06) 0 1px, transparent 1px 4px);
+  -webkit-mask-image: radial-gradient(circle at var(--err-x) 50%, #000 0%, transparent 75%);
+          mask-image: radial-gradient(circle at var(--err-x) 50%, #000 0%, transparent 75%);
+  animation: errScan 7s var(--ease-inout) infinite alternate;
+}
+@keyframes errScan { 0% { opacity: 0.25; transform: scaleY(1); } 100% { opacity: 0.6; transform: scaleY(1.02); } }
+
+/* 500 — controlled displacement on the code + a faint signal-spike haze */
+.error--500 .error-code { animation: errUnstable 8s var(--ease) infinite; }
+@keyframes errUnstable {
+  0%, 100% { filter: drop-shadow(0 30px 60px rgba(0,0,0,0.5)) drop-shadow(0 0 44px rgba(122,168,255,0.22)); transform: translate(0,0); }
+  12% { transform: translate(0, 0); }
+  13% { transform: translate(-3px, 1px); filter: drop-shadow(0 30px 60px rgba(0,0,0,0.5)) drop-shadow(-2px 0 6px rgba(122,168,255,0.5)); }
+  14% { transform: translate(3px, -1px); }
+  15% { transform: translate(0, 0); filter: drop-shadow(0 30px 60px rgba(0,0,0,0.5)) drop-shadow(0 0 44px rgba(122,168,255,0.22)); }
+  48% { transform: translate(0, 0); }
+  49% { transform: translate(2px, 2px); filter: drop-shadow(0 30px 60px rgba(0,0,0,0.5)) drop-shadow(2px 0 5px rgba(122,168,255,0.45)); }
+  50% { transform: translate(0, 0); }
+}
+.error--500 .error-code::after { animation-duration: 1.8s; }
+.error--500 .error-scene__art { filter: saturate(0.9); }
+
+/* 502 / 504 — connection line lives in the injected art */
+
+/* maintenance — warm construction atmosphere */
+.error--maintenance .error-scene__grid { animation-duration: 18s; }
+.error--maintenance .error-scene__glow { animation-duration: 16s; }
+.error--maintenance .error-scene__aurora { opacity: 0.9; }
+
+/* offline — subdued, dimmer */
+.error--offline .error-scene__grid { opacity: 0.5; }
+.error--offline .error-scene__glow { opacity: 0.5; animation-duration: 30s; }
+.error--offline .error-scene__cursor { opacity: 0.35; }
+
+/* ============================================================
+   REVEAL — error pages animate in on load (staggered)
+   (progressive enhancement; html.js adds the .js gate)
+   ============================================================ */
+html.js body.av-error [data-reveal] {
+  opacity: 0; transform: translateY(26px);
+  transition: opacity 1s var(--ease), transform 1s var(--ease);
+  transition-delay: var(--d, 0s);
+}
+html.js body.av-error .in-view[data-reveal] { opacity: 1; transform: none; }
+/* fail-safe — if errors.js throws, force the content visible so it's never blank */
+html.js body.av-error.js-error [data-reveal] { opacity: 1 !important; transform: none !important; transition: none !important; }
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+body.av-reduce .error-scene__glow,
+body.av-reduce .error-scene__grid,
+body.av-reduce .error-scene__scan,
+body.av-reduce .error-scene__aurora,
+body.av-reduce .error-scene__horizon,
+body.av-reduce .error--500 .error-code,
+body.av-reduce .error-code--signal .error-code__bar,
+body.av-reduce .error-code::after { animation: none !important; }
+/* when the pulse is disabled, keep the signal waveform legible (static) */
+body.av-reduce .error-code--signal .error-code__bar { opacity: 0.9; }
+body.av-reduce .error-scene__canvas { display: none; }
+body.av-reduce .error-scene__cursor { display: none; }
+body.av-reduce [data-reveal] { opacity: 1 !important; transform: none !important; transition: none !important; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 700px) {
+  .error-code { font-size: clamp(4.2rem, 27vw, 15rem); }
+  .error-headline { font-size: clamp(1.7rem, 1.05rem + 3.4vw, 2.7rem); }
+  .error-actions { flex-direction: column; width: 100%; }
+  .error-actions .btn { width: 100%; min-width: 0; }
+  .error-scene__grid { background-size: 48px 48px; }
+  .error-brand { top: 12px; }
+  .error-brand__status { display: none; }
+  .error-brand__name { font-size: 13.5px; }
+  .error-scene__art svg { width: 88vw; }
+  .error-status { font-size: 9.5px; letter-spacing: 0.16em; }
+  /* simplify the atmosphere on small screens: drop the cursor lamp + horizon */
+  .error-scene__cursor { display: none; }
+  .error-scene__horizon { display: none; }
+  .error-scene__aurora { filter: blur(40px); opacity: 0.55; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.av-error { scroll-behavior: auto; }
+}
+
+/* ============================================================
+   ATMOSPHERE ART — CSS-driven animation for the injected SVG
+   (GPU-friendly transforms/opacity only; no JS per-frame work)
+   ============================================================ */
+.error-scene__art [class^="art-"], .error-scene__art [class*=" art-"] { transform-box: fill-box; transform-origin: center; }
+
+/* rings — slow rotation / breathing */
+.art-ring, .art-spin { animation: artSpin 40s linear infinite; }
+.art-spin .art-spin { animation-duration: 24s; }
+@keyframes artSpin { to { transform: rotate(360deg); } }
+.art-spin:nth-child(2) .art-spin { animation-direction: reverse; }
+
+/* 404 spatial fold */
+.art-fold { animation: artFold 16s var(--ease-inout) infinite; }
+@keyframes artFold {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-14px) scale(1.03); }
+}
+
+/* 403 gate / lock */
+.art-gate { animation: artGate 18s var(--ease-inout) infinite; }
+@keyframes artGate { 0%,100% { opacity: 0.5; } 50% { opacity: 0.9; } }
+.art-lock { animation: artPulse 4s var(--ease-inout) infinite; }
+
+/* 500 displaced slices */
+.art-slices { animation: artSlices 9s var(--ease) infinite; }
+@keyframes artSlices {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-4px, 3px); }
+  40% { transform: translate(3px, -3px); }
+  60% { transform: translate(-2px, 2px); }
+}
+.art-threads { animation: artThread 9s var(--ease) infinite; }
+
+/* 502 packet travel → break */
+.art-line { stroke-dasharray: 5 7; animation: artDash 3.4s linear infinite; }
+@keyframes artDash { to { stroke-dashoffset: -240; } }
+.art-packet { animation: artPacket 3.4s var(--ease-inout) infinite; }
+@keyframes artPacket {
+  0% { transform: translateX(0); opacity: 1; }
+  55% { transform: translateX(178px); opacity: 1; }
+  56% { transform: translateX(178px); opacity: 0; }
+  100% { transform: translateX(178px); opacity: 0; }
+}
+
+/* 503 calibration */
+.art-pulse { animation: artPulse 3s var(--ease-inout) infinite; }
+
+/* 504 journey signal */
+.art-travel { animation: artDash 4.4s linear infinite; }
+.art-ghost { animation: artPulse 2.6s var(--ease-inout) infinite; }
+
+/* maintenance assembling fragments */
+.art-frag path, .art-frag { transform-box: view-box; transform-origin: center; }
+.art-frag { animation: artFrag 12s var(--ease-inout) infinite; }
+@keyframes artFrag {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(10px, -8px); }
+  50% { transform: translate(-6px, 9px); }
+  75% { transform: translate(7px, 6px); }
+}
+.art-grid { animation: artGrid 22s linear infinite; }
+@keyframes artGrid { to { transform: translateY(-30px); } }
+
+/* offline fading connection */
+.art-fade { animation: artFade 3s var(--ease-inout) infinite; }
+@keyframes artFade { 0%,100% { opacity: 0.16; } 50% { opacity: 0.7; } }
+.art-fade2 { animation: artFade 3s var(--ease-inout) 0.5s infinite; }
+
+/* radar ping (404 waypoint / 502 nodes) — expanding rings */
+.art-ping, .art-node { transform-box: fill-box; transform-origin: center; }
+.art-ping { animation: artPing 4s var(--ease-out) infinite; }
+@keyframes artPing {
+  0%   { transform: scale(0.5); opacity: 0.7; }
+  80%  { transform: scale(2.2); opacity: 0; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* 502 — the packet leaps, then the break flickers */
+.art-break { animation: artBreak 3.4s var(--ease-inout) infinite; }
+@keyframes artBreak {
+  0%, 54%, 100% { opacity: 0.85; }
+  55% { opacity: 0.15; }
+  60% { opacity: 0.85; }
+  64% { opacity: 0.2; }
+  70% { opacity: 0.85; }
+}
+
+/* 503 / maintenance — progress ring that fills */
+.art-progress { animation: artProgress 9s var(--ease-inout) infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes artProgress {
+  0%   { stroke-dashoffset: var(--pd, 200); }
+  55%  { stroke-dashoffset: var(--pd, 200); }
+  100% { stroke-dashoffset: 0; }
+}
+.art-spin reverse, .art-spin:nth-of-type(2) { animation-direction: reverse; }
+
+/* maintenance — blueprint construction lines draw in */
+.art-blue { stroke-dasharray: 10 6; animation: artDash 14s linear infinite; }
+
+/* 504 — the ghost tracks the destination then fades (timeout) */
+.art-ghost { animation: artPulse 2.6s var(--ease-inout) infinite; }
+.art-fade3 { opacity: 0; animation: artFadeIn 3s var(--ease-inout) infinite; }
+@keyframes artFadeIn { 0%, 60% { opacity: 0; } 100% { opacity: 0.7; } }
+
+@keyframes artPulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+@keyframes artThread { 0%,100% { opacity: 0.5; } 50% { opacity: 0.9; } }
+
+/* reduced motion — keep art static but readable */
+body.av-reduce .error-scene__art [class^="art-"],
+body.av-reduce .error-scene__art [class*=" art-"] { animation: none !important; }
+

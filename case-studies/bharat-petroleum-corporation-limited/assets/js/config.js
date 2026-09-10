@@ -8,28 +8,8 @@
    ═══════════════════════════════════════════════════════════════ */
 
 window.BPCL_ASSETS = {
-  miniature: [
-    "miniature 1.png",
-    "miniature 2.png",
-    "miniature 3.png",
-    "miniature 4.png",
-    "miniature 5.png",
-    "miniature day.png",
-    "miniature night.png"
-  ],
-  blueprint: "Blueprint.png",
-  walkthrough: [
-    "bpcl video 1.jpg",
-    "bpcl video 2.jpg",
-    "bpcl video 3.jpg",
-    "bpcl video 4.jpg",
-    "bpcl video 5.jpg",
-    "bpcl video 6.jpg",
-    "bpcl video 7.jpg",
-    "bpcl video 8.jpg",
-    "bpcl video 9.jpg",
-    "bpcl video 10.jpg"
-  ],
+  /* Only the walkthrough video is read by the app (see WALKTHROUGH_SRC below);
+     every other asset path is derived from APP.path() in core.js. */
   video: "assets/video/walkthrough.mp4"
 };
 
