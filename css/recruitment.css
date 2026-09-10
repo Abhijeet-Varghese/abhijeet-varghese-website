@@ -465,6 +465,38 @@
 @media (max-width: 900px) { .r-act { display: none; } }
 
 /* ============================================================
+   RECRUITER RAIL — recruiter-first chapter navigation
+   ============================================================ */
+.r-rail {
+  position: fixed; top: 78px; left: 0; right: 0; z-index: 230;
+  width: min(1280px, 100% - 2 * var(--pad-x)); margin-inline: auto;
+  background: rgba(8, 15, 34, 0.72);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border: 1px solid rgba(148, 170, 230, 0.16); border-radius: 999px;
+  box-shadow: 0 14px 40px -22px rgba(4, 8, 20, 0.6);
+}
+.r-rail__inner {
+  display: flex; align-items: center; gap: 2px; padding: 6px;
+  overflow-x: auto; scrollbar-width: none;
+}
+.r-rail__inner::-webkit-scrollbar { display: none; }
+.r-rail__link {
+  flex: 0 0 auto; padding: 9px 15px; border-radius: 999px;
+  font-size: 11px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--chrome-muted); white-space: nowrap;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.r-rail__link:hover { color: var(--chrome-text); }
+.r-rail__link.is-active { background: var(--azure); color: var(--azure-ink); font-weight: 600; }
+.r-rail__link--cta { color: var(--azure-hi); }
+@media (max-width: 900px) {
+  .r-rail { top: 70px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .r-rail__link { transition: none; }
+}
+
+/* ============================================================
    RESPONSIVE
    ============================================================ */
 @media (max-width: 1080px) {

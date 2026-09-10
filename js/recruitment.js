@@ -160,6 +160,9 @@
       } catch { saved = false; }
       btn.disabled = false;
       btn.innerHTML = label;
+      if (window.avTrack) {
+        try { window.avTrack({ event_type: "recruiter_contact_submit", content: saved ? "success" : "fallback" }); } catch (e) {}
+      }
       if (saved) {
         form.reset();
         setNote("Received — I'll reply from hi@abhijeetvarghese.com. Thank you.", true);
@@ -167,5 +170,22 @@
         setNote("I couldn't save that just now. Please email hi@abhijeetvarghese.com directly.", false);
       }
     });
+  }
+  /* ---------- recruiter rail — active chapter tracking ---------- */
+  const rail = $("#rRail");
+  if (rail && "IntersectionObserver" in window) {
+    const links = $$(".r-rail__link[data-rail]", rail);
+    const sections = [];
+    links.forEach((l) => {
+      const sec = document.getElementById(l.dataset.rail);
+      if (sec) sections.push({ id: l.dataset.rail, sec });
+    });
+    const setActive = (id) => links.forEach((l) => l.classList.toggle("is-active", l.dataset.rail === id));
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) setActive(e.target.id);
+      }
+    }, { rootMargin: "-35% 0px -55% 0px", threshold: 0 });
+    sections.forEach((s) => io.observe(s.sec));
   }
 })();
