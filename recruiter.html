@@ -164,33 +164,56 @@
             <figure class="r-hero__frag"><img src="../assets/media/indian-army/ia-01-960.webp" alt="" width="960" height="640" loading="lazy" decoding="async"></figure>
             <figure class="r-hero__frag"><img src="../case-studies/bharat-petroleum-corporation-limited/assets/images/miniature/day-720.webp" alt="" width="720" height="480" loading="lazy" decoding="async"></figure>
           </div>
-          <svg class="r-hero__constellation" viewBox="0 0 480 560" fill="none" preserveAspectRatio="xMidYMid meet">
-            <g stroke="rgba(110,168,255,.28)" stroke-width="1">
-              <path d="M92 96 L300 74"/>
-              <path d="M300 74 L418 158"/>
-              <path d="M92 96 L150 186"/>
-              <path d="M150 186 L300 74"/>
-              <path d="M150 186 L62 302"/>
-              <path d="M150 186 L238 252"/>
-              <path d="M238 252 L300 74"/>
-              <path d="M238 252 L392 318"/>
-              <path d="M62 302 L128 420"/>
-              <path d="M128 420 L238 252"/>
-              <path d="M128 420 L300 468"/>
-              <path d="M392 318 L430 430"/>
-              <path d="M300 468 L430 430"/>
+          <svg class="r-hero__constellation" viewBox="0 0 480 560" fill="none" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <g class="r-cnode__lines" stroke="rgba(110,168,255,.26)" stroke-width="1">
+              <path d="M240 300 L84 74"/>
+              <path d="M240 300 L400 60"/>
+              <path d="M240 300 L452 200"/>
+              <path d="M240 300 L430 452"/>
+              <path d="M240 300 L78 468"/>
+              <path d="M240 300 L46 260"/>
+              <path d="M84 74 L400 60"/>
+              <path d="M400 60 L452 200"/>
+              <path d="M452 200 L430 452"/>
+              <path d="M430 452 L78 468"/>
+              <path d="M78 468 L46 260"/>
+              <path d="M46 260 L84 74"/>
             </g>
-            <g fill="#9CC2FF">
-              <circle cx="92" cy="96" r="3"/><circle cx="300" cy="74" r="4"/>
-              <circle cx="418" cy="158" r="3"/><circle cx="150" cy="186" r="5"/>
-              <circle cx="62" cy="302" r="3"/><circle cx="238" cy="252" r="4"/>
-              <circle cx="392" cy="318" r="3"/><circle cx="128" cy="420" r="4"/>
-              <circle cx="300" cy="468" r="3"/><circle cx="430" cy="430" r="3"/>
+            <g class="r-cnode">
+              <circle class="r-cnode__halo" cx="84" cy="74" r="15" fill="rgba(110,168,255,.12)"/>
+              <circle class="r-cnode__dot" cx="84" cy="74" r="4" fill="#9CC2FF"/>
+              <text class="r-cnode__label" x="84" y="98" text-anchor="middle">Strategy</text>
             </g>
-            <g fill="#6EA8FF" opacity=".5">
-              <circle cx="150" cy="186" r="12" opacity=".16"/>
-              <circle cx="300" cy="74" r="14" opacity=".12"/>
-              <circle cx="238" cy="252" r="14" opacity=".12"/>
+            <g class="r-cnode">
+              <circle class="r-cnode__halo" cx="400" cy="60" r="15" fill="rgba(110,168,255,.12)"/>
+              <circle class="r-cnode__dot" cx="400" cy="60" r="4" fill="#9CC2FF"/>
+              <text class="r-cnode__label" x="400" y="84" text-anchor="middle">Idea</text>
+            </g>
+            <g class="r-cnode">
+              <circle class="r-cnode__halo" cx="452" cy="200" r="15" fill="rgba(110,168,255,.12)"/>
+              <circle class="r-cnode__dot" cx="452" cy="200" r="4" fill="#9CC2FF"/>
+              <text class="r-cnode__label" x="452" y="224" text-anchor="middle">Story</text>
+            </g>
+            <g class="r-cnode">
+              <circle class="r-cnode__halo" cx="430" cy="452" r="15" fill="rgba(110,168,255,.12)"/>
+              <circle class="r-cnode__dot" cx="430" cy="452" r="4" fill="#9CC2FF"/>
+              <text class="r-cnode__label" x="430" y="476" text-anchor="middle">Technology</text>
+            </g>
+            <g class="r-cnode">
+              <circle class="r-cnode__halo" cx="78" cy="468" r="15" fill="rgba(110,168,255,.12)"/>
+              <circle class="r-cnode__dot" cx="78" cy="468" r="4" fill="#9CC2FF"/>
+              <text class="r-cnode__label" x="78" y="492" text-anchor="middle">People</text>
+            </g>
+            <g class="r-cnode">
+              <circle class="r-cnode__halo" cx="46" cy="260" r="15" fill="rgba(110,168,255,.12)"/>
+              <circle class="r-cnode__dot" cx="46" cy="260" r="4" fill="#9CC2FF"/>
+              <text class="r-cnode__label" x="46" y="284" text-anchor="middle">Execution</text>
+            </g>
+            <g class="r-cnode r-cnode--core">
+              <circle class="r-cnode__pulse" cx="240" cy="300" r="26" fill="none" stroke="rgba(110,168,255,.4)"/>
+              <circle class="r-cnode__halo" cx="240" cy="300" r="20" fill="rgba(110,168,255,.14)"/>
+              <circle class="r-cnode__dot" cx="240" cy="300" r="5.5" fill="#6EA8FF"/>
+              <text class="r-cnode__label" x="240" y="324" text-anchor="middle">Experience</text>
             </g>
           </svg>
           <p class="r-hero__cue" data-reveal>Scroll <i aria-hidden="true"></i></p>
@@ -463,6 +486,7 @@
           <figure class="r-cs__media" data-parallax="0.05">
             <img src="../assets/media/orange-business-executive-briefing-center-mumbai-panoramic-1280.webp" alt="Orange Experience Center — immersive brand experience environment" width="1280" height="853" loading="lazy" decoding="async">
             <figcaption class="r-cs__media-tag">Orange Experience Center</figcaption>
+            <div class="r-cs__proof" aria-hidden="true"><span>Content</span><span>Storyboard</span><span>Voice-over</span><span>Interaction</span><span>Client</span><span>Team</span><span>Execution</span></div>
           </figure>
           <div class="r-cs__body">
             <span class="r-cs__num">01</span>
@@ -484,6 +508,7 @@
           <figure class="r-cs__media" data-parallax="0.05">
             <img src="../assets/case-army.webp" alt="Indian Army immersive training — VR training and qualification environment" width="1280" height="853" loading="lazy" decoding="async">
             <figcaption class="r-cs__media-tag">Indian Army Immersive Training</figcaption>
+            <div class="r-cs__proof" aria-hidden="true"><span>VR Training</span><span>Qualification</span><span>Trainer Monitoring</span><span>Assessment</span><span>Progression</span></div>
           </figure>
           <div class="r-cs__body">
             <span class="r-cs__num">02</span>
@@ -509,6 +534,7 @@
           <figure class="r-cs__media" data-parallax="0.05">
             <img src="../assets/case-bpcl.webp" alt="Bharat Petroleum Corporation Limited — immersive experience visualization" width="1280" height="853" loading="lazy" decoding="async">
             <figcaption class="r-cs__media-tag">Bharat Petroleum Corporation Limited</figcaption>
+            <div class="r-cs__proof" aria-hidden="true"><span>Strategy</span><span>Creative Direction</span><span>Visualization</span><span>Stakeholders</span><span>Production</span><span>Delivery</span></div>
           </figure>
           <div class="r-cs__body">
             <span class="r-cs__num">03</span>
