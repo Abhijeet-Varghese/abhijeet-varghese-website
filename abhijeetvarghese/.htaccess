@@ -61,9 +61,12 @@ ErrorDocument 504 /504.html
   RewriteRule ^maintenance/?$ /maintenance.html [L]
   RewriteRule ^offline/?$ /offline.html [L]
 
-  # Recruitment clean route + legacy recruiter URL.
-  RewriteRule ^recruitment/?$ /recruitment.html [L]
-  RewriteRule ^for-recruiters\.html/?$ /recruitment/ [R=301,L]
+  # Recruiter destination — the canonical recruiter URL + legacy redirects.
+  RewriteRule ^recruiter/?$ /recruiter.html [L]
+  RewriteRule ^recruiter\.html/?$ /recruiter/ [R=301,L]
+  RewriteRule ^recruitment/?$ /recruiter/ [R=301,L]
+  RewriteRule ^recruitment\.html/?$ /recruiter/ [R=301,L]
+  RewriteRule ^for-recruiters\.html/?$ /recruiter/ [R=301,L]
 
   # --- Maintenance mode (Apache, one-time set-up) -------------------------
   # The AV router honours AV_MAINTENANCE=1 / storage/maintenance.lock, but on a

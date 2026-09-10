@@ -101,6 +101,11 @@ $redirects = [
     'case-study-intuitive-experiences-for-industrial-environments.html' => '/case-studies/bharat-petroleum-corporation-limited/',
     'case-study-immersive-solutions-for-the-indian-army.html' => '/case-studies/indian-army/',
     'experience-design/bpcl-palakkad' => '/case-studies/bharat-petroleum-corporation-limited/',
+    // recruiter destination: canonical route + legacy URLs (mirrors .htaccess)
+    'recruiter.html' => '/recruiter/',
+    'recruitment' => '/recruiter/',
+    'recruitment.html' => '/recruiter/',
+    'for-recruiters.html' => '/recruiter/',
 ];
 $rel = trim($path, '/');
 if (isset($redirects[$rel])) {
