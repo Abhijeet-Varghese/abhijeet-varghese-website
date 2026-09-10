@@ -264,32 +264,62 @@
 .r-sys__note strong { color: #EFF0EA; font-weight: 600; }
 
 /* ============================================================
-   HOW I WORK — seven stages
+   ACCORDIONS — How I Work / What I Can Own / Principles
+   Native <details> with exclusive `name` groups. Every word stays in
+   the DOM and is fully accessible; the page just reads much shorter.
    ============================================================ */
-.r-hw { list-style: none; margin: 0; padding: 0; }
-.r-hw__step {
-  display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 30px;
-  padding: 34px 0; border-top: 1px solid var(--r-line-l);
+.r-acc { list-style: none; margin: 0; padding: 0; }
+.r-acc__item {
+  border-top: 1px solid var(--r-line-l);
   transition: background 0.3s var(--ease);
 }
-.r-hw__step:last-child { border-bottom: 1px solid var(--r-line-l); }
-.r-hw__step:hover { background: linear-gradient(90deg, rgba(46, 90, 172, 0.04), transparent 70%); }
-.r-hw__num { font-family: var(--serif); font-style: italic; font-size: 1.7rem; color: var(--r-blue); line-height: 1; padding-top: 4px; }
-.r-hw__title { font-size: clamp(1.6rem, 1.35rem + 1.3vw, 2.5rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1.05; margin: 0 0 14px; color: var(--r-ink); }
-.r-hw__desc { max-width: 58ch; color: #3D4460; }
-.r-hw__qs { list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 10px; }
-.r-hw__qs li { font-size: 12px; color: var(--r-mut-l); border: 1px solid var(--r-line-l); border-radius: 999px; padding: 7px 13px; }
+.r-acc__item:last-child { border-bottom: 1px solid var(--r-line-l); }
+.r-acc__item:hover { background: linear-gradient(90deg, rgba(46, 90, 172, 0.04), transparent 70%); }
+.r-acc__item[open] { background: linear-gradient(90deg, rgba(46, 90, 172, 0.05), transparent 72%); }
+.r-acc__head {
+  display: grid; grid-template-columns: 52px minmax(0, 1fr) 26px; gap: 20px; align-items: center;
+  padding: 15px 0; cursor: pointer; list-style: none;
+}
+.r-acc__head::-webkit-details-marker { display: none; }
+.r-acc__head::marker { content: ""; }
+.r-acc__num { font-family: var(--serif); font-style: italic; font-size: 1.15rem; color: var(--r-blue); }
+.r-acc__title { font-size: clamp(1.12rem, 1.02rem + 0.9vw, 1.65rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1.12; margin: 0; color: var(--r-ink); }
+.r-acc__toggle { position: relative; width: 22px; height: 22px; border: 1px solid var(--r-line-l); border-radius: 50%; flex: none; }
+.r-acc__toggle::before, .r-acc__toggle::after {
+  content: ""; position: absolute; left: 50%; top: 50%; background: var(--r-blue);
+  transform: translate(-50%, -50%); transition: transform 0.3s var(--ease);
+}
+.r-acc__toggle::before { width: 10px; height: 1.5px; }
+.r-acc__toggle::after { width: 1.5px; height: 10px; }
+.r-acc__item[open] .r-acc__toggle::after { transform: translate(-50%, -50%) rotate(90deg); }
+.r-acc__body { padding: 2px 0 20px 72px; max-width: 66ch; }
+.r-acc__desc { color: #3D4460; margin: 0 0 14px; }
+.r-acc__qs { list-style: none; margin: 2px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 10px; }
+.r-acc__qs li { font-size: 12px; color: var(--r-mut-l); border: 1px solid var(--r-line-l); border-radius: 999px; padding: 7px 13px; }
 
-/* ============================================================
-   WHAT I CAN OWN
-   ============================================================ */
-.r-own { list-style: none; margin: 0; padding: 0; }
-.r-own li { display: grid; grid-template-columns: 64px minmax(0, 0.92fr) minmax(0, 1.08fr); gap: 30px; align-items: baseline; padding: 30px 0; border-top: 1px solid var(--r-line-d); transition: background 0.3s var(--ease); }
-.r-own li:last-child { border-bottom: 1px solid var(--r-line-d); }
-.r-own li:hover { background: linear-gradient(90deg, rgba(110, 168, 255, 0.05), transparent 70%); }
-.r-own__num { font-family: var(--serif); font-style: italic; font-size: 1.3rem; color: var(--azure); }
-.r-own__title { font-size: clamp(1.5rem, 1.3rem + 1.5vw, 2.6rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1.05; color: #EFF0EA; }
-.r-own__desc { color: var(--r-mut-d); max-width: 52ch; }
+/* dark sections (t-dark / deep) — accordions adopt the navy theme automatically */
+.r-sec.t-dark .r-acc__item, .r-sec--deep .r-acc__item { border-color: var(--r-line-d); }
+.r-sec.t-dark .r-acc__item:hover, .r-sec--deep .r-acc__item:hover { background: linear-gradient(90deg, rgba(110, 168, 255, 0.05), transparent 70%); }
+.r-sec.t-dark .r-acc__item[open], .r-sec--deep .r-acc__item[open] { background: linear-gradient(90deg, rgba(110, 168, 255, 0.06), transparent 72%); }
+.r-sec.t-dark .r-acc__title, .r-sec--deep .r-acc__title { color: #EFF0EA; }
+.r-sec.t-dark .r-acc__desc, .r-sec--deep .r-acc__desc { color: var(--r-mut-d); }
+.r-sec.t-dark .r-acc__num, .r-sec--deep .r-acc__num { color: var(--azure); }
+.r-sec.t-dark .r-acc__toggle, .r-sec--deep .r-acc__toggle { border-color: var(--r-line-d); }
+.r-sec.t-dark .r-acc__toggle::before, .r-sec--deep .r-acc__toggle::before,
+.r-sec.t-dark .r-acc__toggle::after, .r-sec--deep .r-acc__toggle::after { background: var(--azure); }
+.r-acc__head--plain { grid-template-columns: minmax(0, 1fr) 26px; }
+
+/* case-study "read the full story" expander */
+.r-cs__more { border-top: 1px solid var(--r-line-d-soft); margin-top: 18px; }
+.r-cs__more-head {
+  display: inline-flex; align-items: center; gap: 10px; padding: 12px 0 2px; cursor: pointer; list-style: none;
+  font-size: 11.5px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--azure);
+}
+.r-cs__more-head::-webkit-details-marker { display: none; }
+.r-cs__more-head::marker { content: ""; }
+.r-cs__more-head .r-acc__toggle { width: 18px; height: 18px; }
+.r-cs__more[open] .r-acc__toggle::after { transform: translate(-50%, -50%) rotate(90deg); }
+.r-cs__more-body { padding: 8px 0 4px; }
 
 /* ============================================================
    CASE STUDIES — the proof engine
@@ -330,16 +360,6 @@
 .r-three__col p { font-family: var(--serif); font-style: italic; font-size: 1.05rem; line-height: 1.5; color: var(--r-blue); }
 .r-three__close { margin-top: 40px; max-width: 60ch; color: #3D4460; }
 .r-three__close strong { color: var(--r-ink); }
-
-/* ============================================================
-   PRINCIPLES
-   ============================================================ */
-.r-principle { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 30px; padding: 30px 0; border-top: 1px solid var(--r-line-d); transition: background 0.3s var(--ease); }
-.r-principle:last-child { border-bottom: 1px solid var(--r-line-d); }
-.r-principle:hover { background: linear-gradient(90deg, rgba(110, 168, 255, 0.05), transparent 70%); }
-.r-principle__num { font-family: var(--serif); font-style: italic; font-size: 1.3rem; color: var(--azure); padding-top: 5px; }
-.r-principle__title { font-size: clamp(1.5rem, 1.3rem + 1.4vw, 2.4rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1.08; color: #EFF0EA; margin: 0 0 12px; }
-.r-principle__desc { color: var(--r-mut-d); max-width: 62ch; }
 
 /* ============================================================
    LEADERSHIP — radial ecosystem
@@ -539,8 +559,7 @@
   .r-split, .r-split--even, .r-cs__module, .r-contact { grid-template-columns: 1fr; }
   .r-cs__module { gap: 26px; }
   .r-cs__media { order: -1; }
-  .r-own li { grid-template-columns: 44px 1fr; grid-template-rows: auto auto; }
-  .r-own__desc { grid-column: 2; }
+  .r-acc__body { padding-left: 0; }
   .r-three { grid-template-columns: 1fr; }
   .r-three__col, .r-three__col:nth-child(2) { padding: 28px 0; border-right: 0; border-bottom: 1px solid var(--r-line-l); }
   .r-three__col:last-child { border-bottom: 0; }
@@ -550,7 +569,7 @@
   .r-final__tag { text-align: left; }
   .r-syslist { grid-template-columns: 1fr; }
   .r-evolve li { grid-template-columns: 1fr; gap: 8px; }
-  .r-hw__step { grid-template-columns: 54px 1fr; gap: 20px; }
+  .r-acc__head { grid-template-columns: 40px minmax(0, 1fr) 24px; gap: 14px; }
 }
 @media (max-width: 640px) {
   .r-sec { padding: 82px 0; }
@@ -594,15 +613,7 @@
 .r-sys.is-neighbor-on .r-sys__step.is-hot,
 .r-sys.is-neighbor-on .r-sys__step.is-neighbor { opacity: 1; }
 
-/* how I work — the stage in view is emphasised, the rest recede */
-.r-hw__step { transition: background 0.3s var(--ease), opacity 0.45s var(--ease); }
-.r-hw__num { transition: transform 0.45s var(--ease), color 0.45s var(--ease); }
-.r-hw.is-scrolled .r-hw__step { opacity: 0.5; }
-.r-hw.is-scrolled .r-hw__step.is-active {
-  opacity: 1;
-  background: linear-gradient(90deg, rgba(46, 90, 172, 0.05), transparent 72%);
-}
-.r-hw__step.is-active .r-hw__num { color: var(--r-blue); transform: translateY(-3px); }
+/* how I work — open stages carry a persistent tint (accordion) */
 
 /* forces — the tensions around the idea breathe (scale-only, no layout) */
 .r-forces__force { animation: rforce 7s var(--ease-io) infinite alternate; }
@@ -619,12 +630,7 @@
 }
 @keyframes rcore { from { transform: scale(0.9); opacity: 0.4; } to { transform: scale(1.05); opacity: 0.85; } }
 
-/* what I can own — hover focuses one row, the others recede */
-@media (hover: hover) and (pointer: fine) {
-  .r-own li { transition: opacity 0.35s var(--ease), background 0.3s var(--ease); }
-  .r-own:hover li { opacity: 0.45; }
-  .r-own li:hover { opacity: 1; }
-}
+/* what I can own — hover + open state handled by the accordion */
 
 /* case studies — media breathes on hover; proof keywords cycle across it */
 .r-cs__media img { transition: transform 1.4s var(--ease); }
@@ -667,6 +673,22 @@
   .r-cs__proof { display: none; }
   .r-hero__frag img { transform: none; }
   .r-cta, .r-cta svg, .r-cs__cta svg, .r-chain__node { transition: none; }
-  .r-sys__step, .r-hw__step, .r-hw__num, .r-own li, .r-cs__media img,
-  .r-cnode__label, .r-cnode__halo, .r-cnode__dot, .r-cnode__lines { transition: none; }
+  .r-sys__step, .r-acc__item, .r-acc__toggle::before, .r-acc__toggle::after, .r-cs__media img,
+  .r-cs__more-head, .r-cnode__label, .r-cnode__halo, .r-cnode__dot, .r-cnode__lines { transition: none; }
 }
+
+/* ============================================================
+   DENSITY — tighter vertical rhythm so the page reads shorter
+   ============================================================ */
+.r-sec { padding: clamp(56px, 8.5vh, 108px) 0; }
+.r-sec--tight { padding: clamp(44px, 6vh, 76px) 0; }
+.r-display { font-size: clamp(2.2rem, 1.5rem + 4vw, 4.4rem); }
+.r-h2 { font-size: clamp(1.9rem, 1.4rem + 2.4vw, 3.1rem); }
+.r-chainhead { font-size: clamp(2rem, 1.4rem + 3.2vw, 3.7rem); margin-bottom: clamp(28px, 4vh, 48px); }
+.r-kicker { margin-bottom: clamp(20px, 3vh, 36px); }
+.r-statement__line { font-size: clamp(1.5rem, 1.15rem + 1.8vw, 2.7rem); }
+.r-final { padding: clamp(72px, 10vh, 132px) 0 clamp(60px, 8vh, 104px); }
+.r-final__big { font-size: clamp(1.9rem, 1.35rem + 3vw, 3.6rem); }
+.r-final__id { margin-top: clamp(48px, 7vh, 84px); padding-top: clamp(30px, 4vh, 46px); }
+.r-cs__module { padding: clamp(32px, 4.5vh, 52px) 0; }
+.r-own, .r-acc { margin-top: 0; }
