@@ -222,21 +222,13 @@
     });
   }
 
-  /* ---------- immersive: how-I-work — emphasise the stage in view ---------- */
-  const hw = $(".r-hw");
-  if (hw && !reduced && "IntersectionObserver" in window) {
-    const hwSteps = $$(".r-hw__step", hw);
-    const hwIO = new IntersectionObserver((entries) => {
-      for (const e of entries) {
-        if (e.isIntersecting) hwSteps.forEach((s) => s.classList.toggle("is-active", s === e.target));
+  /* ---------- exclusive accordions — native <details name> polyfill ---------- */
+  if (document.createElement("details").name === undefined) {
+    document.addEventListener("toggle", (e) => {
+      const d = e.target;
+      if (d && d.open && d.name) {
+        $$(`details[name="${d.name}"]`).forEach((o) => { if (o !== d) o.open = false; });
       }
-    }, { rootMargin: "-44% 0px -44% 0px", threshold: 0 });
-    hwSteps.forEach((s) => hwIO.observe(s));
-    const hwGate = new IntersectionObserver((entries) => {
-      for (const e of entries) {
-        if (e.isIntersecting) { hw.classList.add("is-scrolled"); hwGate.disconnect(); }
-      }
-    }, { threshold: 0.05 });
-    hwGate.observe(hw);
+    }, true);
   }
 })();
