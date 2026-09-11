@@ -4,7 +4,7 @@
    the hero, progressive-disclosure lists, a horizontal proof
    rail, staggered reveals. Transform/opacity only · rAF-driven ·
    reduced-motion safe. (No magnetic/cursor-following buttons.)
-   v8.1.1
+   v8.1.2 — nav auto-hide parity (hide on scroll down, show up)
    ============================================================ */
 (() => {
   "use strict";
@@ -191,5 +191,66 @@
       else if (e.key === "ArrowLeft") { e.preventDefault(); go(Math.max(0, active - 1)); }
     });
     update();
+  }
+
+  /* ---------- nav intelligent visibility (site parity) ----------
+     Hide on meaningful scroll DOWN, show on meaningful scroll UP.
+     Peak/valley hysteresis on scroll POSITION (not per-event
+     deltas) — identical thresholds to elevate.js §13, so this
+     page's nav behaves exactly like the rest of the site.
+     FOCUS + MENU + HOVER force VISIBLE. Transform-only. */
+  const navEl = $(".site-nav");
+  if (navEl) {
+    const HIDE_AFTER = 16; // net downward travel from valley before hiding
+    const SHOW_AFTER = 8;  // net upward travel from peak before showing
+    const TOP_Y = 4;       // at/below this scroll depth → always visible
+    const TOP_LOCK = 140;  // never hide above this depth (no instant vanish)
+    let navHidden = false;
+    let valley = window.scrollY || 0; // lowest y seen while visible
+    let peak = valley;                // highest y seen while hidden
+    let navFocus = false, menuOpen = false, hovering = false;
+    const apply = (hide) => {
+      if (hide === navHidden) return;
+      navHidden = hide;
+      navEl.classList.toggle("nav-hidden", hide);
+    };
+    const sync = () => { valley = peak = window.scrollY || 0; };
+    const onNavScroll = () => {
+      const y = window.scrollY || 0;
+      if (y <= TOP_Y) { sync(); apply(false); return; }
+      if (navFocus || menuOpen) { sync(); apply(false); return; }
+      if (!navHidden) {
+        if (y < valley) valley = y;           // new low → rebase, never punish
+        if (hovering) { valley = y; return; } // never hide mid-interaction
+        if (y - valley >= HIDE_AFTER && y > TOP_LOCK) { apply(true); peak = y; }
+      } else {
+        if (y > peak) peak = y;               // new high → rebase, never punish
+        if (peak - y >= SHOW_AFTER) { apply(false); valley = y; }
+      }
+    };
+    let navTick = false;
+    const rafNav = () => {
+      if (navTick) return;
+      navTick = true;
+      requestAnimationFrame(() => { navTick = false; onNavScroll(); });
+    };
+    navEl.addEventListener("focusin", () => { navFocus = true; sync(); apply(false); });
+    navEl.addEventListener("focusout", () => { navFocus = false; sync(); });
+    const navInner = navEl.querySelector(".site-nav__inner");
+    if (navInner) {
+      navInner.addEventListener("pointerenter", () => { hovering = true; });
+      navInner.addEventListener("pointerleave", () => { hovering = false; sync(); });
+    }
+    const mobileMenu = document.getElementById("mobileMenu");
+    if (mobileMenu) {
+      menuOpen = !mobileMenu.hidden;
+      new MutationObserver(() => {
+        menuOpen = !mobileMenu.hidden;
+        sync();
+        if (menuOpen) apply(false);
+      }).observe(mobileMenu, { attributes: true, attributeFilter: ["hidden"] });
+    }
+    window.addEventListener("scroll", rafNav, { passive: true });
+    onNavScroll(); // clean initial state: visible at top on every page load
   }
 })();
