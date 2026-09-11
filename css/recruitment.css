@@ -4,7 +4,7 @@
    controlled type scale, quiet ambient depth, progressive
    disclosure. Mixed paper/navy chapters (site identity).
    Transform/opacity only · reduced-motion safe.
-   v8.1.1 — enhanced pass (re-applied after sandbox reset)
+   v8.2.3 — responsive pass + nav auto-hide parity (site nav)
    ============================================================ */
 
 :root {
@@ -38,7 +38,12 @@ main { position: relative; z-index: 1; }
 .footer { position: relative; z-index: 1; }
 
 /* ---------- layout ---------- */
-.r-wrap { width: min(1240px, 100% - 2 * var(--pad-x)); margin-inline: auto; position: relative; z-index: 1; }
+.r-wrap {
+  width: min(1240px, 100% - 2 * var(--pad-x));
+  margin-inline: auto; position: relative; z-index: 1;
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
 .r-chap { position: relative; padding: clamp(96px, 15vh, 180px) 0; }
 .r-chap--deep { background: rgba(5, 7, 13, 0.55); }
 .r-hero, .r-chap, .r-contact { scroll-margin-top: 96px; }
@@ -162,9 +167,11 @@ main { position: relative; z-index: 1; }
    ============================================================ */
 .r-hero {
   position: relative; overflow: clip;
+  min-height: 96vh;                        /* fallback */
   min-height: min(96svh, 900px);
+  min-height: min(96dvh, 900px);
   display: flex; align-items: center;
-  padding: clamp(120px, 16vh, 168px) 0 clamp(72px, 10vh, 110px);
+  padding: calc(clamp(120px, 16vh, 168px) + env(safe-area-inset-top, 0px)) 0 clamp(72px, 10vh, 110px);
 }
 .r-hero__grid {
   display: grid; grid-template-columns: repeat(12, 1fr);
@@ -625,22 +632,26 @@ html.reveal-failsafe [data-hero-reveal] { opacity: 1 !important; transform: none
   .r-hero__grid { grid-template-columns: repeat(12, 1fr); }
   .r-hero__main { grid-column: 1 / 8; }
   .r-hero__viz { grid-column: 8 / 13; max-width: 340px; }
-  .r-profile__text { grid-column: 1 / 13; }
-  .r-profile__snap { grid-column: 1 / 13; margin-top: 8px; }
-  .r-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .r-profile__text { grid-column: 1 / -1; }
+  .r-profile__snap { grid-column: 1 / -1; margin-top: 8px; }
+  .r-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
   .r-stats > div { border-top: 1px solid var(--r-line); border-bottom: 0; }
   .r-stats > div:first-child { border-top: 1px solid var(--r-line); }
-  .r-cap__intro { grid-column: 1 / 13; position: static; margin-bottom: 20px; }
-  .r-cap__list { grid-column: 1 / 13; }
-  .r-now__eco { grid-column: 1 / 13; margin-bottom: 32px; }
-  .r-now__fit { grid-column: 1 / 13; }
+  .r-cap__intro { grid-column: 1 / -1; position: static; margin-bottom: 20px; }
+  .r-cap__list { grid-column: 1 / -1; }
+  .r-now__eco { grid-column: 1 / -1; margin-bottom: 32px; }
+  .r-now__fit { grid-column: 1 / -1; }
+  .r-profile, .r-cap__grid, .r-now__cols { grid-template-columns: minmax(0, 1fr); column-gap: 0; }
+  .r-profile__text, .r-profile__snap, .r-cap__intro, .r-cap__list, .r-now__eco, .r-now__fit, .r-stats > div { min-width: 0; }
   .r-levels__grid { grid-template-columns: 1fr 1fr; }
+  .r-proof__panel { flex-basis: min(74vw, 620px); }
 }
 @media (max-width: 720px) {
   .r-chap { padding: clamp(72px, 12vh, 120px) 0; }
-  .r-hero { min-height: auto; padding-top: clamp(108px, 16vh, 140px); }
-  .r-hero__main { grid-column: 1 / 13; }
-  .r-hero__viz { grid-column: 1 / 13; margin-top: 40px; max-width: 320px; justify-self: center; }
+  .r-hero { min-height: auto; padding-top: calc(clamp(108px, 16vh, 140px) + env(safe-area-inset-top, 0px)); }
+  .r-hero__grid { grid-template-columns: minmax(0, 1fr); column-gap: 0; }
+  .r-hero__main, .r-hero__viz { grid-column: 1 / -1; min-width: 0; }
+  .r-hero__viz { margin-top: 40px; max-width: 320px; justify-self: center; }
   .r-eyebrow__meta { display: none; }
   .r-proof__panel { flex-basis: 86vw; }
   .r-proof__head .r-h2 { max-width: none; }
@@ -649,16 +660,73 @@ html.reveal-failsafe [data-hero-reveal] { opacity: 1 !important; transform: none
   .r-method__desc, .r-evolve__desc { padding-left: 0; }
   .r-seek__list { grid-template-columns: 1fr; }
   .r-levels__grid { grid-template-columns: 1fr; }
-  .r-stats { gap: 0; grid-template-columns: 1fr 1fr 1fr; }
+  .r-stats { gap: 0; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .r-stats dt { font-size: clamp(1.6rem, 8vw, 2rem); }
   .r-ai__sep { width: 14px; }
   [data-num]::before { font-size: clamp(4rem, 16vw, 6.5rem); }
+  .r-stage__base::after { display: none; }
+  .r-stage__base::before { background-size: 120px 120px; }
 }
 @media (max-width: 480px) {
-  .r-stats { grid-template-columns: 1fr; }
+  .r-stats { grid-template-columns: minmax(0, 1fr); }
   .r-stats > div { padding: 16px 0; }
   .r-hero__disc li + li::before { margin: 0 10px; }
   .r-hero__viz { max-width: 260px; }
+  [data-num]::before { display: none; }
+  .r-proof__panel { flex-basis: 90vw; }
+  .r-hero__cta, .r-contact__cta { flex-direction: column; align-items: stretch; }
+  .r-hero__cta .r-cta, .r-contact__cta .r-cta { justify-content: center; }
+  .r-hero__cta .r-cta--line, .r-contact__cta .r-cta--line { align-self: center; }
+  .r-ai li:not(.r-ai__sep) { padding: 8px 13px; }
+  .r-eyebrow { gap: 12px; margin-bottom: clamp(30px, 5vh, 48px); }
+}
+
+/* ---- fluid tablet: stack the hero at tablet widths ---- */
+@media (min-width: 721px) and (max-width: 900px) {
+  .r-hero__grid { grid-template-columns: minmax(0, 1fr); column-gap: 0; }
+  .r-hero__main, .r-hero__viz { grid-column: 1 / -1; min-width: 0; }
+  .r-hero__viz { justify-self: start; max-width: 380px; margin-top: 44px; }
+}
+
+/* ---- short landscape screens (phones on their side) ---- */
+@media (max-height: 520px) and (orientation: landscape) {
+  .r-hero { min-height: auto; padding-top: calc(clamp(88px, 12vh, 112px) + env(safe-area-inset-top, 0px)); padding-bottom: 44px; }
+  .r-hero__cue { display: none; }
+  .r-hero__viz { max-width: 300px; }
+}
+
+/* ---- touch-first devices: enlarge targets, drop cursor-only effects ---- */
+@media (pointer: coarse) {
+  .r-cta, .r-nav { min-height: 48px; }
+  .r-nav { min-width: 48px; }
+  .r-cta--line, .r-arrow { display: inline-block; padding: 12px 4px; }
+  .r-hero__cue { display: none; }
+  .r-stage__base::after { display: none; }
+}
+
+/* ---- ultrawide: controlled content width, balanced whitespace ---- */
+@media (min-width: 1920px) {
+  .r-wrap { width: min(1360px, 100% - 2 * var(--pad-x)); }
+}
+
+/* ============================================================
+   NAV INTELLIGENT VISIBILITY — site parity
+   Hide on scroll DOWN, show on scroll UP. Same behaviour and
+   thresholds as the rest of the site (elevate.js §13). The
+   header is NEVER transformed — it must not become a containing
+   block for the fixed mobile menu — so the slide lives on
+   .site-nav__inner. Transform-only; FOCUS/MENU/HOVER force
+   visible (JS). No magnetic/cursor effects are introduced here.
+   ============================================================ */
+.site-nav__inner {
+  transition: transform 0.45s var(--ease);
+  will-change: transform;
+}
+.site-nav.nav-hidden { pointer-events: none; }
+.site-nav.nav-hidden .site-nav__inner { transform: translateY(-130%); }
+@media (prefers-reduced-motion: reduce) {
+  /* behaviour kept, motion gone — same policy as the main site */
+  .site-nav__inner { transition-duration: 0.01ms; }
 }
 
 /* ============================================================
