@@ -4,7 +4,7 @@
    controlled type scale, quiet ambient depth, progressive
    disclosure. Mixed paper/navy chapters (site identity).
    Transform/opacity only · reduced-motion safe.
-   v8.2.3 — responsive pass + nav auto-hide parity (site nav)
+   v8.2.4 — responsive pass (nav handled by the global elevate layer)
    ============================================================ */
 
 :root {
@@ -707,26 +707,6 @@ html.reveal-failsafe [data-hero-reveal] { opacity: 1 !important; transform: none
 /* ---- ultrawide: controlled content width, balanced whitespace ---- */
 @media (min-width: 1920px) {
   .r-wrap { width: min(1360px, 100% - 2 * var(--pad-x)); }
-}
-
-/* ============================================================
-   NAV INTELLIGENT VISIBILITY — site parity
-   Hide on scroll DOWN, show on scroll UP. Same behaviour and
-   thresholds as the rest of the site (elevate.js §13). The
-   header is NEVER transformed — it must not become a containing
-   block for the fixed mobile menu — so the slide lives on
-   .site-nav__inner. Transform-only; FOCUS/MENU/HOVER force
-   visible (JS). No magnetic/cursor effects are introduced here.
-   ============================================================ */
-.site-nav__inner {
-  transition: transform 0.45s var(--ease);
-  will-change: transform;
-}
-.site-nav.nav-hidden { pointer-events: none; }
-.site-nav.nav-hidden .site-nav__inner { transform: translateY(-130%); }
-@media (prefers-reduced-motion: reduce) {
-  /* behaviour kept, motion gone — same policy as the main site */
-  .site-nav__inner { transition-duration: 0.01ms; }
 }
 
 /* ============================================================
