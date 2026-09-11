@@ -162,3 +162,38 @@
   .display { font-size: clamp(2.1rem, 11vw, 2.9rem); }
   .topbar__sig { display: block; }
 }
+
+/* ── GODMODE P1 · notch / home-indicator safe-area (mobile-only) ──
+   env() is 0 where no inset exists, so desktop renders pixel-identical */
+@media (max-width: 860px) {
+  .mobbar { padding-bottom: calc(10px + var(--sab, 0px)); }
+  body { padding-bottom: calc(52px + var(--sab, 0px)); }
+}
+
+/* ── GODMODE P1 · invisible touch-hit expansion (coarse pointers only;
+   visuals, spacing and hierarchy untouched; DOM order sets overlap wins) ── */
+@media (pointer: coarse) {
+  /* chapter rail links 33px → 51px tall; ±4px sides stay in the 10px min gap */
+  .topnav a { position: relative; }
+  .topnav a::after {
+    content: ""; position: absolute; top: -9px; bottom: -9px; left: -4px; right: -4px;
+  }
+  /* film view/frame ticks 26px → 44px tall; flex:1 row → vertical only */
+  .vdot, .ftick { position: relative; }
+  .vdot::before, .ftick::before {
+    content: ""; position: absolute; left: 0; right: 0; top: -9px; bottom: -9px;
+  }
+  /* 40px square buttons (−/+ zoom, RESET, jump, ghost) → 44px.
+     inset resolves against the 38px padding box (1px border), so −3px
+     yields exactly 44px; control gaps are ≥8px (lightbox UI 14px),
+     leaving a dead zone between neighbors. */
+  .btn { position: relative; }
+  .btn::after { content: ""; position: absolute; inset: -3px; }
+  /* rail title link 37px → 45px tall; extensions stay inside bar padding/gaps */
+  .topbar__mark { position: relative; }
+  .topbar__mark::after {
+    content: ""; position: absolute; left: -4px; right: -4px; top: -4px; bottom: -4px;
+  }
+  /* lightbox keeps its own scroll; never chains into the page */
+  .lb { overscroll-behavior: contain; }
+}

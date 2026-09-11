@@ -173,8 +173,10 @@ section[id] { scroll-margin-top: 90px; }
    ============================================================ */
 .site-nav {
   position: fixed; inset: 14px 0 auto 0; z-index: 250;
-  /* always visible & clickable — this is a multi-page site; the
-     hide-until-scroll behaviour made nav clicks at the top do nothing */
+  /* v3.3.0: the header itself is never transformed (it must not become a
+     containing block for the fixed mobile menu) — the auto-hide slide
+     lives on .site-nav__inner; .nav-hidden on the header cuts
+     pointer-events so nothing clickable lingers while hidden. */
   opacity: 1; transform: none; pointer-events: auto;
   transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
 }
