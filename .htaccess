@@ -68,6 +68,10 @@ ErrorDocument 504 /504.html
   RewriteRule ^recruitment\.html/?$ /recruiter/ [R=301,L]
   RewriteRule ^for-recruiters\.html/?$ /recruiter/ [R=301,L]
 
+  # Consulting destination — the canonical consulting URL + legacy redirects.
+  RewriteRule ^consulting/?$ /consulting.html [L]
+  RewriteRule ^consulting\.html/?$ /consulting/ [R=301,L]
+
   # --- Maintenance mode (Apache, one-time set-up) -------------------------
   # The AV router honours AV_MAINTENANCE=1 / storage/maintenance.lock, but on a
   # pure static Apache host you can instead serve the maintenance screen for
