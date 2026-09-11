@@ -1,0 +1,118 @@
+/* ============================================================
+   CONSULTING — page-local components (professional, on-theme)
+   Reuses the AV design system: global nav/footer, tokens,
+   chapter themes (t-light / t-dark), reveal system, focus lists,
+   chip lists, link arrows. Minimal additions only.
+   v4.0.0
+   ============================================================ */
+
+/* Serif accents on section titles — matches the site-wide <em> pattern */
+body.consulting-page .chapter__title em,
+body.consulting-page .c-final__big em { font-family: var(--serif); font-style: italic; font-weight: 400; color: var(--ca); }
+
+/* ---------- hero intro + CTA ---------- */
+.c-hero__intro { margin-top: clamp(20px, 3vh, 30px); max-width: 62ch; }
+.c-hero__intro p { color: var(--cm); line-height: 1.72; font-size: 1.02rem; }
+.c-hero__intro p + p { margin-top: 12px; }
+.c-hero__intro strong { color: var(--ct); font-weight: 600; }
+.c-hero__cta { display: flex; flex-wrap: wrap; gap: 16px; margin-top: clamp(28px, 4vh, 40px); }
+.c-hero__cta .btn--ghost { border-color: rgba(148, 170, 230, 0.30); color: var(--cm); }
+.c-hero__cta .btn--ghost:hover { border-color: var(--ca); color: var(--ct); }
+
+/* ---------- pull-quote statement ---------- */
+.c-statement {
+  font-family: var(--serif); font-style: italic; font-weight: 400;
+  font-size: clamp(1.75rem, 1.2rem + 2.2vw, 2.9rem); line-height: 1.16;
+  letter-spacing: -0.01em; color: var(--ct); max-width: 24ch;
+  margin: clamp(28px, 4vh, 44px) 0;
+}
+.c-statement em { color: var(--ca); }
+
+/* ---------- focus list with name + description ---------- */
+.c-focus li { align-items: flex-start; }
+.c-focus .c-focus__body { display: block; }
+.c-focus .c-focus__body strong { display: block; font-weight: 600; letter-spacing: -0.01em; }
+.c-focus .c-focus__desc { display: block; margin-top: 6px; color: var(--cm); font-weight: 400; font-size: 1rem; line-height: 1.62; }
+
+/* ---------- services grid ---------- */
+.c-services {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(40px, 5vw, 72px) clamp(28px, 4vw, 64px);
+  margin-top: clamp(36px, 5vh, 52px);
+}
+.c-service { border-top: 1px solid var(--cl); padding-top: 24px; }
+.c-service__num { font-family: var(--serif); font-style: italic; font-weight: 400; color: var(--ca); font-size: 1.05rem; }
+.c-service h3 { font-size: clamp(1.35rem, 1.1rem + 1vw, 1.85rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; margin-top: 8px; }
+.c-service p { color: var(--cm); line-height: 1.7; margin-top: 12px; }
+.c-service p strong { color: var(--ct); font-weight: 600; }
+.c-service .chip-list { margin: 14px 0 0; }
+.c-service ul.c-qs { margin-top: 12px; }
+.c-qs li { position: relative; padding-left: 22px; color: var(--cm); line-height: 1.65; margin-bottom: 8px; }
+.c-qs li::before { content: ""; position: absolute; left: 4px; top: 0.72em; width: 7px; height: 7px; background: var(--ca); transform: rotate(45deg); }
+
+/* ---------- entry points ---------- */
+.c-entries {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 2.4vw, 26px); margin-top: clamp(32px, 4.5vh, 44px);
+}
+.c-entry { background: var(--cs); border: 1px solid var(--cl); border-radius: 16px; padding: clamp(24px, 3vw, 32px); }
+.c-entry h3 { font-size: 12.5px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ca); }
+.c-entry p { color: var(--cm); line-height: 1.65; margin-top: 12px; }
+.c-entry__do { display: block; margin-top: 14px; color: var(--ct); font-weight: 600; }
+
+/* ---------- cross-disciplinary flow ---------- */
+.c-flow { border-top: 1px solid var(--cl); margin-top: clamp(30px, 4.5vh, 44px); }
+.c-flow li { display: flex; align-items: baseline; gap: 24px; padding: 17px 4px; border-bottom: 1px solid var(--cl); }
+.c-flow__name { font-size: clamp(1.25rem, 1.05rem + 1vw, 1.7rem); font-weight: 600; letter-spacing: -0.015em; color: var(--ct); min-width: 9ch; }
+.c-flow__desc { color: var(--cm); line-height: 1.6; }
+
+/* ---------- selected work panels ---------- */
+.c-panels { display: grid; gap: clamp(24px, 3.5vw, 36px); margin-top: clamp(36px, 5vh, 52px); }
+.c-panel {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  border: 1px solid var(--cl); border-radius: 18px; overflow: hidden; background: var(--cs);
+  transition: border-color 0.4s var(--ease), transform 0.4s var(--ease);
+}
+.c-panel:hover { border-color: var(--cls); transform: translateY(-3px); }
+.c-panel__media { min-height: 300px; }
+.c-panel__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.c-panel__body { padding: clamp(24px, 3vw, 36px); display: flex; flex-direction: column; gap: 10px; justify-content: center; }
+.c-panel__sector { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ca); }
+.c-panel__title { font-size: clamp(1.35rem, 1.1rem + 1.3vw, 2rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; }
+.c-panel__client { color: var(--cm); font-weight: 600; font-size: 0.95rem; }
+.c-panel__challenge { color: var(--cm); line-height: 1.65; font-size: 0.96rem; }
+
+/* ---------- engagements ---------- */
+.c-engagements {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 2.4vw, 26px); margin-top: clamp(32px, 4.5vh, 44px);
+}
+.c-engagement { background: var(--cs); border: 1px solid var(--cl); border-radius: 16px; padding: clamp(22px, 3vw, 30px); }
+.c-engagement h3 { font-size: 1.12rem; font-weight: 600; letter-spacing: -0.01em; }
+.c-engagement p { color: var(--cm); margin-top: 9px; font-size: 0.96rem; line-height: 1.6; }
+
+/* ---------- final CTA + signature ---------- */
+.c-final { max-width: 800px; }
+.c-final__big { font-size: clamp(2.3rem, 1.5rem + 4.4vw, 5rem); font-weight: 600; letter-spacing: -0.03em; line-height: 1.02; }
+.c-final .prose { margin-top: clamp(22px, 3vh, 30px); }
+.c-final .c-work { display: flex; flex-wrap: wrap; gap: 16px; margin-top: clamp(26px, 3.5vh, 36px); }
+
+.c-sign { border-top: 1px solid var(--cl); padding-top: clamp(36px, 5vh, 56px); margin-top: clamp(36px, 5vh, 56px); }
+.c-sign__label { font-size: 12px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ca); }
+.c-sign__services { font-family: var(--serif); font-style: italic; font-weight: 400; font-size: clamp(1.4rem, 1.1rem + 1.4vw, 2.2rem); line-height: 1.3; color: var(--ct); margin-top: 14px; max-width: 30ch; }
+.c-sign__name { margin-top: 20px; color: var(--cm); font-weight: 600; }
+.c-sign__member { margin-top: 6px; color: var(--cm); font-size: 0.97rem; max-width: 52ch; line-height: 1.6; }
+.c-sign__member strong { color: var(--ct); font-weight: 600; }
+
+/* ---------- responsive ---------- */
+@media (max-width: 860px) {
+  .c-services, .c-entries, .c-engagements { grid-template-columns: 1fr; }
+  .c-panel { grid-template-columns: 1fr; }
+  .c-panel__media { min-height: 0; aspect-ratio: 16/9; }
+  .c-flow li { flex-direction: column; gap: 6px; }
+  .c-flow__name { min-width: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.consulting-page * { transition-duration: 0.01ms !important; }
+}
