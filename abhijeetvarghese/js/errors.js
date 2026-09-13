@@ -1,92 +1,6 @@
-/* ============================================================
-   AV — CUSTOM ERROR EXPERIENCE SYSTEM · interaction layer
-   ============================================================
-   Configuration-driven. One shared architecture renders all eight
-   states; the only thing that differs per route is the `data-error`
-   value and the ERROR_CONFIG entry that drives:
-     · the atmosphere variant (injected SVG centrepiece)
-     · the ambient particle field tuning
-     · the accent colour + which micro-interactions stay on
-
-   It deliberately does NOT hand-roll the design system — it reuses
-   the site's fonts, tokens, .btn / .page-close components, the
-   data-reveal system and the prefers-reduced-motion contract.
-   ============================================================ */
-(() => {
-  "use strict";
-
-  // If an unexpected runtime error occurs, surface it as a body class so the
-  // CSS reveal-failsafe can force the content visible — the page must never
-  // appear blank even if this script partially fails.
-  const fail = (e) => {
-    document.body.classList.add("js-error");
-    // eslint-disable-next-line no-console
-    if (window.console && console.error) console.error("[errors]", e);
-  };
-  window.addEventListener("error", (e) => fail(e.error || e.message));
-  window.addEventListener("unhandledrejection", (e) => fail(e.reason));
-
-  const doc = document.documentElement;
-  const body = document.body;
-  const code = (body.getAttribute("data-error") || "").toLowerCase();
-  if (!code) return;
-
-  doc.classList.add("js");
-  doc.classList.add("js-ok");
-
-  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const fine   = window.matchMedia("(pointer: fine)").matches;
-  body.classList.add("av-error", `error--${code}`);
-  if (reduce) body.classList.add("av-reduce");
-
-  const $  = (s, c = document) => c.querySelector(s);
-  const $$ = (s, c = document) => [...c.querySelectorAll(s)];
-  const lerp = (a, b, t) => a + (b - a) * t;
-
-  /* ============================================================
-     ERROR_CONFIG — the eight alternate states
-     ============================================================ */
-  const cfg = {
-    "404":  { scene: "anomaly",     label: "Navigation anomaly",    retryable: false, count: 64,  drift: 0.10, connect: 0 },
-    "403":  { scene: "restricted",  label: "Access restricted",     retryable: false, count: 40,  drift: 0.07, connect: 0 },
-    "500":  { scene: "unstable",    label: "Unexpected interruption", retryable: true, count: 54, drift: 0.16, connect: 0.12 },
-    "502":  { scene: "interrupted", label: "Bad gateway",           retryable: true, count: 50,  drift: 0.12, connect: 0.18 },
-    "503":  { scene: "calibrate",   label: "Service unavailable",   retryable: true, count: 48,  drift: 0.06, connect: 0 },
-    "504":  { scene: "timeout",     label: "Gateway timeout",       retryable: true, count: 44,  drift: 0.11, connect: 0.14 },
-    "maintenance": { scene: "assemble", label: "System · Calibrating", retryable: false, count: 66, drift: 0.05, connect: 0.10 },
-    "offline":     { scene: "signal",    label: "No connection",         retryable: true, count: 26,  drift: 0.03, connect: 0.05 }
-  }[code] || { scene: "anomaly", label: "Not found", retryable: false, count: 60, drift: 0.10, connect: 0 };
-
-  /* the kicker chip is authored in the HTML; keep it in sync where easy */
-  const kick = $(".error-kicker .chapter__tag");
-  if (kick) kick.textContent = cfg.label;
-
-  /* ============================================================
-     ATMOSPHERE LAYERS — inject the extra light fields / cursor lamp
-     (kept in JS so the authored HTML stays lean; CSS provides the
-     no-JS fallback of the base scene)
-     ============================================================ */
-  const scene = $(".error-scene");
-  if (scene && !$(".error-scene__aurora")) {
-    scene.insertAdjacentHTML("afterbegin",
-      '<div class="error-scene__aurora" aria-hidden="true"></div>' +
-      '<div class="error-scene__horizon" aria-hidden="true"></div>' +
-      '<div class="error-scene__cursor" aria-hidden="true"></div>');
-  }
-  const cursorLamp = $(".error-scene__cursor");
-
-  /* the code echo duplicates the digits via attr(data-code) */
-  const codeEl = $(".error-code");
-  if (codeEl && cfg.scene !== "assemble" && cfg.scene !== "signal") {
-    codeEl.setAttribute("data-code", code === "maintenance" ? "" : code.toUpperCase());
-  }
-
-  /* ============================================================
-     ATMOSPHERE — per-state SVG centrepiece (lightweight, CSS-animated)
-     ============================================================ */
-  const A = "#6EA8FF", B = "#96A0BE", C = "#EFF0EA";
-  const art = {
-    anomaly: `
+(()=>{"use strict";const fail=(e)=>{document.body.classList.add("js-error");if(window.console&&console.error)console.error("[errors]",e);};window.addEventListener("error",(e)=>fail(e.error||e.message));window.addEventListener("unhandledrejection",(e)=>fail(e.reason));const doc=document.documentElement;const body=document.body;const code=(body.getAttribute("data-error")||"").toLowerCase();if(!code)return;doc.classList.add("js");doc.classList.add("js-ok");const reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;const fine=window.matchMedia("(pointer: fine)").matches;body.classList.add("av-error",`error--${code}`);if(reduce)body.classList.add("av-reduce");const $=(s,c=document)=>c.querySelector(s);const $$=(s,c=document)=>[...c.querySelectorAll(s)];const lerp=(a,b,t)=>a+(b-a)*t;const cfg={"404":{scene:"anomaly",label:"Navigation anomaly",retryable:false,count:64,drift:0.10,connect:0},"403":{scene:"restricted",label:"Access restricted",retryable:false,count:40,drift:0.07,connect:0},"500":{scene:"unstable",label:"Unexpected interruption",retryable:true,count:54,drift:0.16,connect:0.12},"502":{scene:"interrupted",label:"Bad gateway",retryable:true,count:50,drift:0.12,connect:0.18},"503":{scene:"calibrate",label:"Service unavailable",retryable:true,count:48,drift:0.06,connect:0},"504":{scene:"timeout",label:"Gateway timeout",retryable:true,count:44,drift:0.11,connect:0.14},"maintenance":{scene:"assemble",label:"System · Calibrating",retryable:false,count:66,drift:0.05,connect:0.10},"offline":{scene:"signal",label:"No connection",retryable:true,count:26,drift:0.03,connect:0.05}}[code]||{scene:"anomaly",label:"Not found",retryable:false,count:60,drift:0.10,connect:0};const kick=$(".error-kicker .chapter__tag");if(kick)kick.textContent=cfg.label;const scene=$(".error-scene");if(scene&&!$(".error-scene__aurora")){scene.insertAdjacentHTML("afterbegin",'<div class="error-scene__aurora" aria-hidden="true"></div>'+'<div class="error-scene__horizon" aria-hidden="true"></div>'+'<div class="error-scene__cursor" aria-hidden="true"></div>');}
+const cursorLamp=$(".error-scene__cursor");const codeEl=$(".error-code");if(codeEl&&cfg.scene!=="assemble"&&cfg.scene!=="signal"){codeEl.setAttribute("data-code",code==="maintenance"?"":code.toUpperCase());}
+const A="#6EA8FF",B="#96A0BE",C="#EFF0EA";const art={anomaly:`
       <svg viewBox="0 0 900 640" fill="none" aria-hidden="true">
         <g class="art-ring" opacity="0.5">
           <circle cx="450" cy="320" r="250" stroke="${A}" stroke-width="1" stroke-dasharray="2 10"/>
@@ -112,8 +26,7 @@
           <circle cx="760" cy="430" r="3" fill="${A}"/>
           <circle cx="520" cy="90" r="2" fill="${C}" opacity="0.5"/>
         </g>
-      </svg>`,
-    restricted: `
+      </svg>`,restricted:`
       <svg viewBox="0 0 900 640" fill="none" aria-hidden="true">
         <g class="art-gate">
           <path d="M360 150v340M540 150v340" stroke="${A}" stroke-width="1"/>
@@ -136,8 +49,7 @@
         <g class="art-energy" opacity="0.4">
           <path d="M380 320h140" stroke="${C}" stroke-width="0.8" stroke-dasharray="1 14"/>
         </g>
-      </svg>`,
-    unstable: `
+      </svg>`,unstable:`
       <svg viewBox="0 0 900 640" fill="none" aria-hidden="true">
         <g class="art-slices">
           <path class="s1" d="M450 120 560 200 450 320 340 200Z" stroke="${A}" stroke-width="1"/>
@@ -156,8 +68,7 @@
           <path d="M380 470V430M440 470V450M500 470V414M560 470V440" stroke="${A}" stroke-width="1.2"/>
           <path d="M360 486h200" stroke="${B}" stroke-width="0.5" opacity="0.5"/>
         </g>
-      </svg>`,
-    interrupted: `
+      </svg>`,interrupted:`
       <svg viewBox="0 0 900 640" fill="none" aria-hidden="true">
         <g class="art-node">
           <circle cx="230" cy="320" r="22" stroke="${A}" stroke-width="1"/>
@@ -175,8 +86,7 @@
         <g class="art-flux" opacity="0.5">
           <path d="M252 320h168M498 320h172" stroke="${A}" stroke-width="0.5" stroke-dasharray="2 18"/>
         </g>
-      </svg>`,
-    calibrate: `
+      </svg>`,calibrate:`
       <svg viewBox="0 0 900 640" fill="none" aria-hidden="true">
         <g class="art-spin">
           <circle cx="450" cy="300" r="150" stroke="${A}" stroke-width="1" stroke-dasharray="2 12"/>
@@ -189,8 +99,7 @@
         <circle class="art-pulse" cx="450" cy="300" r="58" stroke="${A}" stroke-width="0.8" opacity="0.7"/>
         <circle class="art-progress" cx="450" cy="300" r="90" fill="none" stroke="${A}" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="565" stroke-dashoffset="565" style="--pd:565" opacity="0.9"/>
         <circle cx="450" cy="300" r="6" fill="${A}"/>
-      </svg>`,
-    timeout: `
+      </svg>`,timeout:`
       <svg viewBox="0 0 900 640" fill="none" aria-hidden="true">
         <path class="art-travel" d="M170 400 C 360 240 560 240 730 330" stroke="${A}" stroke-width="1" stroke-dasharray="4 10"/>
         <g class="art-node">
@@ -208,8 +117,7 @@
           <path d="M170 400h30" stroke="${B}" stroke-width="0.6"/>
           <path d="M700 330h30" stroke="${A}" stroke-width="0.6"/>
         </g>
-      </svg>`,
-    assemble: `
+      </svg>`,assemble:`
       <svg viewBox="0 0 900 640" fill="none" aria-hidden="true">
         <g class="art-frag">
           <path class="f1" d="M450 140 520 210 450 300 380 210Z" stroke="${A}" stroke-width="1"/>
@@ -229,8 +137,7 @@
         <g class="art-mark" opacity="0.7">
           <path d="M450 250v28M450 362v28M380 320h28M492 320h28" stroke="${C}" stroke-width="0.7"/>
         </g>
-      </svg>`,
-    signal: `
+      </svg>`,signal:`
       <svg viewBox="0 0 900 640" fill="none" aria-hidden="true">
         <g class="art-node" opacity="0.5">
           <circle cx="230" cy="320" r="16" stroke="${B}" stroke-width="1"/>
@@ -243,205 +150,14 @@
           <path d="M250 340h180" stroke="${B}" stroke-width="0.5" opacity="0.4"/>
           <path d="M270 340v-10M310 340v-18M350 340v-26M390 340v-14M430 340v-20" stroke="${A}" stroke-width="1"/>
         </g>
-      </svg>`
-  };
-
-  const artWrap = $("#errArt");
-  if (artWrap && art[cfg.scene]) {
-    artWrap.innerHTML = art[cfg.scene];
-    /* let the injection paint, then fade in */
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      artWrap.classList.add("is-ready");
-    }));
-  }
-
-  /* ============================================================
-     AMBIENT PARTICLES — one lightweight rAF loop (canvas)
-     ============================================================ */
-  const canvas = $("#errCanvas");
-  if (canvas && !reduce) {
-    const ctx = canvas.getContext("2d");
-    let W = 0, H = 0, pts = [], raf = null, dpr = 1, visible = true;
-    const DPRCAP = 1.5;
-
-    const resize = () => {
-      dpr = Math.min(window.devicePixelRatio || 1, DPRCAP);
-      W = canvas.clientWidth; H = canvas.clientHeight;
-      canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const target = Math.min(cfg.count, Math.round((W * H) / 26000));
-      pts = new Array(target).fill(0).map(() => ({
-        x: Math.random() * W, y: Math.random() * H,
-        r: 0.6 + Math.random() * 1.6,
-        a: 0.12 + Math.random() * 0.5,
-        vx: (Math.random() - 0.5) * cfg.drift,
-        vy: (Math.random() - 0.5) * cfg.drift,
-        tw: Math.random() * Math.PI * 2
-      }));
-    };
-
-    const step = () => {
-      if (!visible) { raf = null; return; }
-      ctx.clearRect(0, 0, W, H);
-      const col = cfg.connect > 0 ? "110,168,255" : "148,170,230";
-      const prefix = "rgba(" + col + ",";
-      for (const p of pts) {
-        p.x += p.vx; p.y += p.vy;
-        if (p.x < 0) p.x = W; else if (p.x > W) p.x = 0;
-        if (p.y < 0) p.y = H; else if (p.y > H) p.y = 0;
-        p.tw += 0.02;
-        const a = p.a * (0.6 + 0.4 * Math.sin(p.tw));
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = prefix + ((a * 200 + 0.5) | 0) / 200 + ")";
-        ctx.fill();
-      }
-      if (cfg.connect > 0) {
-        for (let i = 0; i < pts.length; i++) {
-          for (let j = i + 1; j < pts.length; j++) {
-            const dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y;
-            const d2 = dx * dx + dy * dy;
-            if (d2 < 130 * 130) {
-              const alpha = (1 - Math.sqrt(d2) / 130) * 0.12;
-              ctx.beginPath();
-              ctx.moveTo(pts[i].x, pts[i].y); ctx.lineTo(pts[j].x, pts[j].y);
-              ctx.strokeStyle = prefix + ((alpha * 400 + 0.5) | 0) / 400 + ")";
-              ctx.lineWidth = 0.5;
-              ctx.stroke();
-            }
-          }
-        }
-      }
-      raf = requestAnimationFrame(step);
-    };
-
-    const start = () => { if (!raf) { visible = true; raf = requestAnimationFrame(step); } };
-    const stop  = () => { visible = false; if (raf) { cancelAnimationFrame(raf); raf = null; } };
-
-    resize();
-    start();
-    window.addEventListener("resize", resize, { passive: true });
-    document.addEventListener("visibilitychange", () => (document.hidden ? stop() : start()));
-  }
-
-  /* ============================================================
-     POINTER PARALLAX — scene layers drift with a fine pointer
-
-     One passive listener + one rAF loop drives every pointer-reactive
-     layer. Previously three listeners each scheduled their own rAF and
-     the code-tilt read `getBoundingClientRect()` on every move, which
-     forces a synchronous layout in the middle of the frame. The rect is
-     now measured once and only re-measured on resize.
-     ============================================================ */
-  if (fine && !reduce) {
-    const layers = [
-      [$("#errArt"), 0.05],
-      [$(".error-scene__grid"), 0.02],
-      [$(".error-scene__glow"), 0.012]
-    ].filter(([el]) => el);
-    const glowAlt = $(".error-scene__glow.alt");
-    const tiltOn = codeEl && cfg.scene !== "assemble" && cfg.scene !== "signal";
-    if (tiltOn) codeEl.classList.add("is-tilted");
-
-    /* cached geometry — measured lazily, refreshed only on resize */
-    let rect = null;
-    const measureRect = () => {
-      rect = tiltOn ? codeEl.getBoundingClientRect() : null;
-    };
-
-    let px = 0, py = 0, cx = 0, cy = 0, rx = 0, ry = 0, raf = null;
-
-    const frame = () => {
-      raf = null;
-      rx = lerp(rx, px, 0.08); ry = lerp(ry, py, 0.08);
-      for (const [el, f] of layers) {
-        el.style.transform = `translate3d(${(-rx * f * 100).toFixed(2)}px, ${(-ry * f * 100).toFixed(2)}px, 0)`;
-      }
-      if (glowAlt) glowAlt.style.transform = `translate3d(${(ry * 44).toFixed(2)}px, ${(rx * 30).toFixed(2)}px, 0)`;
-      if (cursorLamp) cursorLamp.style.transform = `translate3d(${cx.toFixed(1)}px, ${cy.toFixed(1)}px, 0)`;
-      if (tiltOn) {
-        if (!rect) measureRect();          /* invalidated by resize/scroll */
-        if (rect && (px || py)) {
-          const dx = (cx - (rect.left + rect.width / 2)) / (rect.width / 2);
-          const dy = (cy - (rect.top + rect.height / 2)) / (rect.height / 2);
-          codeEl.style.transform =
-            `perspective(1000px) rotateX(${(-dy * 5).toFixed(1)}deg) rotateY(${(dx * 6).toFixed(1)}deg)`;
-        }
-      }
-    };
-
-    window.addEventListener("pointermove", e => {
-      px = (e.clientX / window.innerWidth - 0.5);
-      py = (e.clientY / window.innerHeight - 0.5);
-      cx = e.clientX; cy = e.clientY;
-      if (!raf) raf = requestAnimationFrame(frame);
-    }, { passive: true });
-
-    if (tiltOn) {
-      codeEl.addEventListener("pointerleave", () => {
-        px = 0; py = 0;
-        codeEl.style.transform = "";
-        if (!raf) raf = requestAnimationFrame(frame);
-      }, { passive: true });
-    }
-
-    window.addEventListener("resize", () => { rect = null; }, { passive: true });
-    window.addEventListener("scroll", () => { rect = null; }, { passive: true });
-    measureRect();
-    /* the entrance transition shifts the code element, so re-measure once the
-       reveal has settled rather than keeping a stale rect */
-    window.setTimeout(() => { rect = null; }, 1900);
-
-    /* start the lamp centred rather than at the top-left origin */
-    if (cursorLamp) {
-      cx = window.innerWidth / 2;
-      cy = window.innerHeight * 0.46;
-      cursorLamp.style.transform = `translate3d(${cx.toFixed(1)}px, ${cy.toFixed(1)}px, 0)`;
-    }
-  }
-
-  /* ============================================================
-     ACTIONS — retry / back behaviour
-     ============================================================ */
-  $$("[data-action='back']").forEach(b => b.addEventListener("click", () => {
-    const ref = document.referrer;
-    if (ref && new URL(ref).origin === location.origin && history.length > 1) history.back();
-    else window.location.href = b.getAttribute("href") || "/";
-  }));
-  $$("[data-action='retry']").forEach(b => b.addEventListener("click", () => window.location.reload()));
-
-  /* ============================================================
-     OFFLINE — graceful recovery + connection re-establishment
-     ============================================================ */
-  if (cfg.retryable && code !== "offline") {
-    const tryAgainWhenOnline = () => {
-      if (navigator.onLine) {
-        /* the reconnection banner is transient; allow the visitor to act or stay */
-        body.classList.add("is-online");
-      }
-    };
-    window.addEventListener("online", tryAgainWhenOnline);
-  }
-
-  /* ============================================================
-     REVEAL — staged entrance on load (uses the site's data-reveal)
-     ============================================================ */
-  const revealEls = $$("[data-reveal]");
-  revealEls.forEach((el, i) => el.style.setProperty("--d", `${(0.1 + Math.min(i * 0.09, 0.6)).toFixed(2)}s`));
-  if (reduce) {
-    revealEls.forEach(el => el.classList.add("in-view"));
-  } else {
-    requestAnimationFrame(() => requestAnimationFrame(() =>
-      revealEls.forEach(el => el.classList.add("in-view"))
-    ));
-  }
-
-  /* ============================================================
-     SERVICE WORKER — offline fallback (secure contexts only)
-     ============================================================ */
-  if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/sw.js").catch(() => {});
-    });
-  }
-})();
+      </svg>`};const artWrap=$("#errArt");if(artWrap&&art[cfg.scene]){artWrap.innerHTML=art[cfg.scene];requestAnimationFrame(()=>requestAnimationFrame(()=>{artWrap.classList.add("is-ready");}));}
+const canvas=$("#errCanvas");if(canvas&&!reduce){const ctx=canvas.getContext("2d");let W=0,H=0,pts=[],raf=null,dpr=1,visible=true;const DPRCAP=1.5;const resize=()=>{dpr=Math.min(window.devicePixelRatio||1,DPRCAP);W=canvas.clientWidth;H=canvas.clientHeight;canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);const target=Math.min(cfg.count,Math.round((W*H)/26000));pts=new Array(target).fill(0).map(()=>({x:Math.random()*W,y:Math.random()*H,r:0.6+Math.random()*1.6,a:0.12+Math.random()*0.5,vx:(Math.random()-0.5)*cfg.drift,vy:(Math.random()-0.5)*cfg.drift,tw:Math.random()*Math.PI*2}));};const step=()=>{if(!visible){raf=null;return;}
+ctx.clearRect(0,0,W,H);const col=cfg.connect>0?"110,168,255":"148,170,230";const prefix="rgba("+col+",";for(const p of pts){p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;else if(p.x>W)p.x=0;if(p.y<0)p.y=H;else if(p.y>H)p.y=0;p.tw+=0.02;const a=p.a*(0.6+0.4*Math.sin(p.tw));ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=prefix+((a*200+0.5)|0)/200+")";ctx.fill();}
+if(cfg.connect>0){for(let i=0;i<pts.length;i++){for(let j=i+1;j<pts.length;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y;const d2=dx*dx+dy*dy;if(d2<130*130){const alpha=(1-Math.sqrt(d2)/130)*0.12;ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle=prefix+((alpha*400+0.5)|0)/400+")";ctx.lineWidth=0.5;ctx.stroke();}}}}
+raf=requestAnimationFrame(step);};const start=()=>{if(!raf){visible=true;raf=requestAnimationFrame(step);}};const stop=()=>{visible=false;if(raf){cancelAnimationFrame(raf);raf=null;}};resize();start();window.addEventListener("resize",resize,{passive:true});document.addEventListener("visibilitychange",()=>(document.hidden?stop():start()));}
+if(fine&&!reduce){const layers=[[$("#errArt"),0.05],[$(".error-scene__grid"),0.02],[$(".error-scene__glow"),0.012]].filter(([el])=>el);const glowAlt=$(".error-scene__glow.alt");const tiltOn=codeEl&&cfg.scene!=="assemble"&&cfg.scene!=="signal";if(tiltOn)codeEl.classList.add("is-tilted");let rect=null;const measureRect=()=>{rect=tiltOn?codeEl.getBoundingClientRect():null;};let px=0,py=0,cx=0,cy=0,rx=0,ry=0,raf=null;const frame=()=>{raf=null;rx=lerp(rx,px,0.08);ry=lerp(ry,py,0.08);for(const[el,f]of layers){el.style.transform=`translate3d(${(-rx * f * 100).toFixed(2)}px, ${(-ry * f * 100).toFixed(2)}px, 0)`;}
+if(glowAlt)glowAlt.style.transform=`translate3d(${(ry * 44).toFixed(2)}px, ${(rx * 30).toFixed(2)}px, 0)`;if(cursorLamp)cursorLamp.style.transform=`translate3d(${cx.toFixed(1)}px, ${cy.toFixed(1)}px, 0)`;if(tiltOn){if(!rect)measureRect();if(rect&&(px||py)){const dx=(cx-(rect.left+rect.width/2))/(rect.width/2);const dy=(cy-(rect.top+rect.height/2))/(rect.height/2);codeEl.style.transform=`perspective(1000px) rotateX(${(-dy * 5).toFixed(1)}deg) rotateY(${(dx * 6).toFixed(1)}deg)`;}}};window.addEventListener("pointermove",e=>{px=(e.clientX/window.innerWidth-0.5);py=(e.clientY/window.innerHeight-0.5);cx=e.clientX;cy=e.clientY;if(!raf)raf=requestAnimationFrame(frame);},{passive:true});if(tiltOn){codeEl.addEventListener("pointerleave",()=>{px=0;py=0;codeEl.style.transform="";if(!raf)raf=requestAnimationFrame(frame);},{passive:true});}
+window.addEventListener("resize",()=>{rect=null;},{passive:true});window.addEventListener("scroll",()=>{rect=null;},{passive:true});measureRect();window.setTimeout(()=>{rect=null;},1900);if(cursorLamp){cx=window.innerWidth/2;cy=window.innerHeight*0.46;cursorLamp.style.transform=`translate3d(${cx.toFixed(1)}px, ${cy.toFixed(1)}px, 0)`;}}
+$$("[data-action='back']").forEach(b=>b.addEventListener("click",()=>{const ref=document.referrer;if(ref&&new URL(ref).origin===location.origin&&history.length>1)history.back();else window.location.href=b.getAttribute("href")||"/";}));$$("[data-action='retry']").forEach(b=>b.addEventListener("click",()=>window.location.reload()));if(cfg.retryable&&code!=="offline"){const tryAgainWhenOnline=()=>{if(navigator.onLine){body.classList.add("is-online");}};window.addEventListener("online",tryAgainWhenOnline);}
+const revealEls=$$("[data-reveal]");revealEls.forEach((el,i)=>el.style.setProperty("--d",`${(0.1 + Math.min(i * 0.09, 0.6)).toFixed(2)}s`));if(reduce){revealEls.forEach(el=>el.classList.add("in-view"));}else{requestAnimationFrame(()=>requestAnimationFrame(()=>revealEls.forEach(el=>el.classList.add("in-view"))));}
+if("serviceWorker"in navigator&&(location.protocol==="https:"||location.hostname==="localhost"||location.hostname==="127.0.0.1")){window.addEventListener("load",()=>{navigator.serviceWorker.register("/sw.js").catch(()=>{});});}})();

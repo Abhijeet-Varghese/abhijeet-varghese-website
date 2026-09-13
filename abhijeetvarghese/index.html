@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="view-transition" content="same-origin">
   <title>Abhijeet Varghese — Creative Systems Leader | Experience Design, Enterprise Innovation &amp; AI</title>
   <meta name="description" content="Abhijeet Varghese is a multidisciplinary creative systems leader with 12+ years across experience design, enterprise innovation, immersive technology and AI-enabled creative production.">
   <meta name="keywords" content="Abhijeet Varghese, creative director, experience design, enterprise innovation, UX design, design leadership, brand experience, immersive technology, AI design, creative strategy, experience centre, design consulting">
@@ -12,34 +13,87 @@
   <!-- LCP font preload (Inter Tight normal — body copy above the fold) -->
   <link rel="preload" href="assets/fonts/inter-tight-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/hero-portrait.webp" as="image" fetchpriority="high">
+<link rel="preload" href="assets/fonts/instrument-serif-italic.woff2?v=4" as="font" type="font/woff2" crossorigin>
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://abhijeetvarghese.com/">
   <meta property="og:site_name" content="Abhijeet Varghese">
   <meta property="og:title" content="Abhijeet Varghese — Creative Systems Leader | Experience Design, Enterprise Innovation &amp; AI">
   <meta property="og:description" content="Abhijeet Varghese is a multidisciplinary creative systems leader with 12+ years across experience design, enterprise innovation, immersive technology and AI-enabled creative production.">
-  <meta property="og:image" content="https://abhijeetvarghese.com/assets/hero-portrait.webp">
+  <meta property="og:image" content="https://abhijeetvarghese.com/assets/og/og-index.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Abhijeet Varghese — Creative Systems Leader | Experience Design, Enterprise Innovation & AI">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Abhijeet Varghese — Creative Systems Leader | Experience Design, Enterprise Innovation &amp; AI">
   <meta name="twitter:description" content="Abhijeet Varghese is a multidisciplinary creative systems leader with 12+ years across experience design, enterprise innovation, immersive technology and AI-enabled creative production.">
-  <meta name="twitter:image" content="https://abhijeetvarghese.com/assets/hero-portrait.webp">
-  <link rel="icon" type="image/png" href="assets/logo.png">
-  <link rel="stylesheet" href="css/styles.css?v=2.4.20-2f70fe04f51a">
-<link rel="stylesheet" href="css/tokens.css?v=3.1.0">
-  <link rel="stylesheet" href="css/elevate.css?v=3.3.2">
+  <meta name="twitter:image" content="https://abhijeetvarghese.com/assets/og/og-index.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="css/styles.css?v=4.3.0">
+  <link rel="stylesheet" href="css/elevate.css?v=4.3.0">
+  <link rel="stylesheet" href="css/hero-v6.css?v=4.3.0">
   <script>
     document.documentElement.className += " js";
     setTimeout(function () {
       document.documentElement.className += " reveal-failsafe";
-    }, 2600);
+    }, 3400);
   </script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"Person","name":"Abhijeet Varghese","url":"https://abhijeetvarghese.com/","jobTitle":["Creative Systems Leader","Creative Director"],"email":"mailto:hi@abhijeetvarghese.com","telephone":"+91-96940 80706","image":"https://abhijeetvarghese.com/assets/logo.png","sameAs":["https://www.linkedin.com/in/abhijeetvarghese/","https://www.instagram.com/abhijeetvarghese/","https://api.whatsapp.com/send?phone=919694080706","https://www.youtube.com/@AbhijeetVarghese","https://www.behance.net/abhijeetvarghese"],"@id":"https://abhijeetvarghese.com/#person"}</script>
 </head>
 <body id="top" class="home-arena">
+  <div class="av-loader" id="avLoader" aria-hidden="true">
+    <span class="av-j" style="--x:-34;--y:-20;--i:0">Graphic Design</span>
+    <span class="av-j" style="--x:6;--y:-34;--i:1">Animation</span>
+    <span class="av-j" style="--x:30;--y:-18;--i:2">Storytelling</span>
+    <span class="av-j" style="--x:40;--y:4;--i:3">Experience Design</span>
+    <span class="av-j" style="--x:26;--y:24;--i:4">Immersive Tech</span>
+    <span class="av-j" style="--x:-6;--y:34;--i:5">Creative Leadership</span>
+    <span class="av-j" style="--x:-32;--y:22;--i:6">Enterprise Innovation</span>
+    <span class="av-j" style="--x:-44;--y:-2;--i:7">AI</span>
+    <span class="av-j" style="--x:-16;--y:-34;--i:8">Future</span>
+    <span class="av-name">Abhijeet Varghese</span>
+    <span class="av-rule" aria-hidden="true"><i></i></span>
+  </div>
+  <script>
+  (function () {
+    "use strict";
+    var d = document.documentElement;
+    d.classList.add("av-loading");
+    var loader = document.getElementById("avLoader");
+    var words = loader.querySelectorAll(".av-j");
+    var reduced = false;
+    try { reduced = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
+    var done = false;
+    function complete() {
+      if (done) return;
+      done = true;
+      d.classList.add("av-done");
+      d.classList.remove("av-loading");
+      setTimeout(function () {
+        var l = document.getElementById("avLoader");
+        if (l) l.remove();
+      }, 750);
+    }
+    if (reduced) {
+      loader.classList.add("is-merge");
+      setTimeout(complete, 450);
+    } else {
+      words.forEach(function (w, i) {
+        setTimeout(function () { w.classList.add("is-in"); }, 120 + i * 60);
+      });
+      setTimeout(function () { loader.classList.add("is-merge"); }, 720);
+      setTimeout(complete, 1450);
+    }
+    setTimeout(complete, 3500); /* hard failsafe */
+  })();
+  </script>
   <a class="skip-link" href="#main">Skip to content</a>
   <div class="progress" id="progress" aria-hidden="true"></div>
   <header class="site-nav" id="siteNav">
     <nav class="site-nav__inner" aria-label="Primary">
-      <a class="brand" href="index.html" aria-label="Abhijeet Varghese — home">
+      <a class="brand" href="index.html" aria-current="page" aria-label="Abhijeet Varghese — home">
         <img class="brand__logo" src="assets/logo.png" alt="Abhijeet Varghese logo" width="36" height="36" decoding="async">
         <span class="brand__name">Abhijeet Varghese</span>
       </a>
@@ -78,31 +132,48 @@
     </div>
   </header>
   <main id="main">
-    <section class="hp-hero t-dark" id="hero" data-theme="dark" aria-label="Introduction">
+    <section class="hp-hero hp6 t-dark" id="hero" data-theme="dark" aria-label="Introduction">
       <p class="hp-hero__seo">Making ambitious ideas impossible to misunderstand.</p>
       <div class="hp-hero__glow" aria-hidden="true"></div>
-      <div class="hp-hero__stage">
-        <h1 class="hp-hero__name">
-          <span class="hp-hero__name-line">Abhijeet</span>
-          <span class="hp-hero__name-line">Varghese</span>
-        </h1>
-        <figure class="hp-hero__portrait">
-          <img src="assets/hero-portrait.webp" alt="Editorial portrait of Abhijeet Varghese" width="1024" height="1024" fetchpriority="high" decoding="async">
-          <span class="hp-hero__veil" aria-hidden="true"></span>
-        </figure>
-        <div class="hp-hero__copy">
-          <p class="hp-hero__tagline">Making ambitious ideas impossible to misunderstand.</p>
-          <p class="hp-hero__roles"><span class="hero__roles-item">Creative Systems Leader</span><span class="hero__roles-item">Experience Design</span><span class="hero__roles-item">Enterprise Innovation</span></p>
-          <div class="hp-hero__actions">
-            <a class="btn btn--accent" href="case-studies/">Explore my work <svg class="btn__arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6"/></svg></a>
-            <a class="btn btn--ghost" href="assets/Abhijeet-Varghese-Resume.pdf" download>Download résumé</a>
-          </div>
-          <p class="hp-hero__avail"><span class="hp-hero__avail-dot" aria-hidden="true"></span>Available for select projects — 2026</p>
+      <div class="hp6-field" aria-hidden="true"><span style="left:5%;top:26%;--fd:-0.0.0s">STRATEGY</span><span style="left:50%;top:12%;--fd:-1.37.3s">DESIGN</span><span style="left:66%;top:66%;--fd:-2.74.6s">TECHNOLOGY</span><span style="left:30%;top:90%;--fd:-0.11000000000000032.0s">AI</span><span style="left:93%;top:42%;--fd:-1.4800000000000004.3s">PEOPLE</span><span style="left:8%;top:72%;--fd:-2.8500000000000005.6s">STORY</span><span style="left:88%;top:86%;--fd:-0.22000000000000064.0s">SYSTEMS</span><span style="left:44%;top:74%;--fd:-1.5899999999999999.3s">SIGNAL</span></div>
+      <div class="hp6-scan" aria-hidden="true"></div>
+      <div class="hp6-stage">
+        <div class="hp6-title">
+          <h1 class="hp6-name" aria-label="Abhijeet Varghese">
+            <span class="hp6-name__line hp6-name__line--one" aria-hidden="true"><span class="hp6-l" style="--i:0;--dx:-14px;--dy:-18px;--rot:-4deg">A</span><span class="hp6-l" style="--i:1;--dx:-6px;--dy:-11px;--rot:4deg">B</span><span class="hp6-l" style="--i:2;--dx:2px;--dy:-4px;--rot:3deg">H</span><span class="hp6-l" style="--i:3;--dx:10px;--dy:3px;--rot:2deg">I</span><span class="hp6-l" style="--i:4;--dx:-11px;--dy:-13px;--rot:1deg">J</span><span class="hp6-l" style="--i:5;--dx:-3px;--dy:-6px;--rot:0deg">E</span><span class="hp6-l" style="--i:6;--dx:5px;--dy:1px;--rot:-1deg">E</span><span class="hp6-l" style="--i:7;--dx:13px;--dy:-15px;--rot:-2deg">T</span></span>
+            <span class="hp6-name__line hp6-name__line--two" aria-hidden="true"><span class="hp6-l" style="--i:8;--dx:-8px;--dy:-8px;--rot:-3deg">V</span><span class="hp6-l" style="--i:9;--dx:0px;--dy:-1px;--rot:-4deg">A</span><span class="hp6-l" style="--i:10;--dx:8px;--dy:-17px;--rot:4deg">R</span><span class="hp6-l" style="--i:11;--dx:-13px;--dy:-10px;--rot:3deg">G</span><span class="hp6-l" style="--i:12;--dx:-5px;--dy:-3px;--rot:2deg">H</span><span class="hp6-l" style="--i:13;--dx:3px;--dy:4px;--rot:1deg">E</span><span class="hp6-l" style="--i:14;--dx:11px;--dy:-12px;--rot:0deg">S</span><span class="hp6-l" style="--i:15;--dx:-10px;--dy:-5px;--rot:-1deg">E</span></span>
+          </h1>
+          <figure class="hp6-frame" data-frame>
+            <i class="hp6-frame__tick hp6-frame__tick--tl" aria-hidden="true"></i>
+            <i class="hp6-frame__tick hp6-frame__tick--tr" aria-hidden="true"></i>
+            <i class="hp6-frame__tick hp6-frame__tick--bl" aria-hidden="true"></i>
+            <i class="hp6-frame__tick hp6-frame__tick--br" aria-hidden="true"></i>
+            <div class="hp6-frame__well">
+              <img src="assets/hero-portrait.webp" alt="Editorial portrait of Abhijeet Varghese" width="1024" height="1024" fetchpriority="high" decoding="async">
+            </div>
+            <figcaption class="hp6-frame__meta" aria-hidden="true"><span>Strategy</span><span>Design</span><span>Technology</span><span>AI</span></figcaption>
+          </figure>
         </div>
-        <p class="hp-hero__lede" data-reveal>The most meaningful work doesn&#039;t happen when strategy, design, technology, AI and people work separately. It happens when they work together.</p>
-        <div class="hp-hero__cue" aria-hidden="true"><span>Scroll</span><i></i></div>
+        <div class="hp6-grid">
+          <div class="hp6-main">
+            <p class="hp-hero__tagline">Making ambitious ideas <em class="hp6-accent">impossible to misunderstand.<svg class="hp6-flourish" viewBox="0 0 340 16" preserveAspectRatio="none" aria-hidden="true"><path pathLength="100" d="M4 10 C 70 4, 200 3, 268 7 S 322 11, 336 6 M300 12 C 312 13, 326 12, 334 10"/></svg></em></p>
+            <p class="hp6-lede">The most meaningful work doesn&#039;t happen when strategy, design, technology, AI and people work separately. It happens when they work together.</p>
+            <div class="hp6-actions">
+              <a class="btn btn--accent" href="case-studies/">Explore my work <svg class="btn__arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.6"/></svg></a>
+              <a class="btn btn--ghost" href="assets/Abhijeet-Varghese-Resume.pdf" download>Download résumé</a>
+            </div>
+          </div>
+          <ul class="hp6-roles" aria-label="Disciplines">
+            <li style="--rd:1.2s"><i aria-hidden="true">01</i><span>Creative Systems Leader</span></li>
+            <li style="--rd:1.28s"><i aria-hidden="true">02</i><span>Experience Design</span></li>
+            <li style="--rd:1.36s"><i aria-hidden="true">03</i><span>Enterprise Innovation</span></li>
+            <li style="--rd:1.44s"><i aria-hidden="true">04</i><span>AI-Enabled Production</span></li>
+          </ul>
+        </div>
+        <p class="hp-hero__avail"><span class="hp-hero__avail-dot" aria-hidden="true"></span>Available for select projects — 2026</p>
       </div>
-      <div class="hp-hero__marquee" aria-hidden="true"><div class="marquee__track"><span>Experience Design</span><span class="marquee__dot"></span><span>Creative Strategy</span><span class="marquee__dot"></span><span>Brand Systems</span><span class="marquee__dot"></span><span>Experience Centres</span><span class="marquee__dot"></span><span>Immersive Technology</span><span class="marquee__dot"></span><span>AI-Enabled Production</span><span class="marquee__dot"></span><span>Enterprise Innovation</span><span class="marquee__dot"></span><span>Creative Leadership</span><span class="marquee__dot"></span><span>Experience Design</span><span class="marquee__dot"></span><span>Creative Strategy</span><span class="marquee__dot"></span><span>Brand Systems</span><span class="marquee__dot"></span><span>Experience Centres</span><span class="marquee__dot"></span><span>Immersive Technology</span><span class="marquee__dot"></span><span>AI-Enabled Production</span><span class="marquee__dot"></span><span>Enterprise Innovation</span><span class="marquee__dot"></span><span>Creative Leadership</span><span class="marquee__dot"></span></div></div>
+      <div class="hp-hero__cue" aria-hidden="true"><span>Scroll</span><i></i></div>
+      <div class="hp-hero__marquee" aria-hidden="true"><div class="marquee__track"><span>Experience Design</span><span class="marquee__dot"></span><span>Creative Strategy</span><span class="marquee__dot"></span><span>Brand Systems</span><span class="marquee__dot"></span><span>Experience Centres</span><span class="marquee__dot"></span><span>Immersive Technology</span><span class="marquee__dot"></span><span>AI-Enabled Production</span><span class="marquee__dot"></span><span>Enterprise Innovation</span><span class="marquee__dot"></span><span>Creative Leadership</span><span class="marquee__dot"></span><span>Experience Design</span><span class="marquee__dot"></span><span>Creative Strategy</span><span class="marquee__dot"></span><span>Brand Systems</span><span class="marquee__dot"></span><span>Experience Centres</span><span class="marquee__dot"></span><span>Immersive Technology</span><span class="marquee__dot"></span><span>AI-Enabled Production</span><span class="marquee__dot"></span><span>Enterprise Innovation</span><span class="marquee__dot"></span><span>Creative Leadership</span><span class="marquee__dot"></span></div>
     </section>
     <section class="chapter clients t-light" id="clients">
       <div class="container">
@@ -185,7 +256,7 @@
         </header>
         <article class="case" id="case-prj-1">
           <figure class="case__panel" data-parallax="0" data-reveal="img">
-            <picture><img src="assets/case-orange-experience-in-action.webp?v=20260909" alt="Orange Business Executive Briefing Center — Experience in Action case-study thumbnail" width="1672" height="941" loading="lazy" decoding="async"></picture>
+            <picture><source type="image/avif" srcset="assets/case-orange-experience-in-action.avif"><img src="assets/case-orange-experience-in-action.webp?v=20260909" alt="Orange Business Executive Briefing Center — Experience in Action case-study thumbnail" width="1672" height="941" loading="lazy" decoding="async"></picture>
             <figcaption class="case__card" data-tilt data-reveal>
               <div class="case__card__in">
                 <p class="case__cat">Telecom &amp; Digital Services</p>
@@ -207,7 +278,7 @@
         </article>
         <article class="case" id="case-prj-2">
           <figure class="case__panel" data-parallax="0.05" data-reveal="img">
-            <picture><img src="assets/case-bpcl.webp?v=20260905" alt="Bharat Petroleum Corporation Limited — Energy &amp; Industrial engagement" width="1672" height="941" loading="lazy" decoding="async"></picture>
+            <picture><source type="image/avif" srcset="assets/case-bpcl.avif"><img src="assets/case-bpcl.webp?v=20260905" alt="Bharat Petroleum Corporation Limited — Energy &amp; Industrial engagement" width="1672" height="941" loading="lazy" decoding="async"></picture>
             <figcaption class="case__card" data-tilt data-reveal>
               <div class="case__card__in">
                 <p class="case__cat">Energy &amp; Industrial</p>
@@ -229,7 +300,7 @@
         </article>
         <article class="case" id="case-prj-3">
           <figure class="case__panel" data-parallax="0.05" data-reveal="img">
-            <picture><img src="assets/case-army.webp?v=20260909" alt="Indian Army Immersive Training Platform — Defence &amp; Immersive case-study artwork" width="1672" height="941" loading="lazy" decoding="async"></picture>
+            <picture><source type="image/avif" srcset="assets/case-army.avif"><img src="assets/case-army.webp?v=20260909" alt="Indian Army Immersive Training Platform — Defence &amp; Immersive case-study artwork" width="1672" height="941" loading="lazy" decoding="async"></picture>
             <figcaption class="case__card" data-tilt data-reveal>
               <div class="case__card__in">
                 <p class="case__cat">Defence &amp; Government</p>
@@ -561,9 +632,9 @@
       </div>
     </div>
   </footer>
-  <script src="js/country-data.js?v=2.4.20-5c83a1d9e07" defer></script>
-  <script src="js/main.js?v=2.4.21" defer></script>
-  <script src="js/elevate.js?v=3.3.1" defer></script>
+  <script src="js/country-data.js?v=4.3.0" defer></script>
+  <script src="js/main.js?v=4.3.0" defer></script>
+  <script src="js/elevate.js?v=4.3.0" defer></script>
 <script>
 /* AV OS first-party analytics — minimal, privacy-respecting */
 (function () {

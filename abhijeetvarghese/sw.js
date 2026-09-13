@@ -15,14 +15,15 @@
    ============================================================ */
 "use strict";
 
-const CACHE = "av-offline-v1";
+const CACHE = "av-offline-v4";
 const SHELL = [
   "./offline.html",
   "./assets/logo.png",
-  "./css/tokens.css",
   "./css/styles.css",
+  "./css/elevate.css",
   "./css/errors.css",
   "./js/errors.js",
+  "./assets/icons/favicon-32.png",
   "./assets/fonts/inter-tight-normal.woff2",
   "./assets/fonts/inter-tight-italic.woff2",
   "./assets/fonts/instrument-serif-normal.woff2",

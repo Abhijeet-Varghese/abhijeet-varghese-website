@@ -23,7 +23,7 @@ ErrorDocument 504 /504.html
   ExpiresByType text/css "access plus 1 year"
   ExpiresByType text/javascript "access plus 1 year"
   ExpiresByType application/javascript "access plus 1 year"
-  ExpiresByType font/woff2 "access plus 30 days"
+  ExpiresByType font/woff2 "access plus 1 year"
   ExpiresByType image/webp "access plus 30 days"
   ExpiresByType image/avif "access plus 30 days"
   ExpiresByType image/jpeg "access plus 30 days"
@@ -37,6 +37,13 @@ ErrorDocument 504 /504.html
   Header set X-Frame-Options "SAMEORIGIN"
   Header set Referrer-Policy "strict-origin-when-cross-origin"
   Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+  # hide the PHP fingerprint (router.php does the same on the dev server)
+  Header unset X-Powered-By
+  # CSP — mirrors avos-php/router.php avFrontHeaders(), plus frame-ancestors
+  # and upgrade-insecure-requests which are only safe on the https prod host.
+  # script-src/style-src carry 'unsafe-inline' (hand-authored inline boot
+  # scripts + JSON-LD + style attrs); zero third-party origins otherwise.
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; upgrade-insecure-requests"
   Header merge Vary "Accept-Encoding"
   <FilesMatch "\.html$">
     Header set Cache-Control "no-cache, must-revalidate"
@@ -45,7 +52,7 @@ ErrorDocument 504 /504.html
     Header set Cache-Control "public, max-age=31536000, immutable"
   </FilesMatch>
   <FilesMatch "\.(?:woff2|avif|webp|jpe?g|png|svg|mp4)$">
-    Header set Cache-Control "public, max-age=2592000"
+    Header set Cache-Control "public, max-age=31536000, immutable"
   </FilesMatch>
 </IfModule>
 

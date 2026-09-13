@@ -14,6 +14,10 @@
  */
 require_once __DIR__ . '/backend/config/config.php';
 
+// Never fingerprint the PHP build (dev + prod parity; Apache prod also unsets
+// it via .htaccess). Applied globally — hiding the version helps everywhere.
+header_remove('X-Powered-By');
+
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/';
 $path = rawurldecode($path);
 $appRoot = __DIR__ . '/public_html';
@@ -128,6 +132,23 @@ if (str_starts_with(basename($real), '.')) return avNotFound($siteRoot);
 return avServeStatic($real);
 
 /* ---------- helpers ---------- */
+/**
+ * Security headers for the static frontend (dev mirror of the frontend
+ * .htaccess). Scoped here — NOT on /api, /admin, /install — so the admin
+ * app keeps its own header contract. Deliberately omits frame-ancestors
+ * and upgrade-insecure-requests: proxied previews and plain-http local
+ * dev must keep working; Apache prod sets both via .htaccess instead.
+ * script-src/style-src carry 'unsafe-inline' because the hand-authored
+ * pages boot with inline scripts + JSON-LD and inline style attrs; the
+ * zero-third-party posture still makes default-src 'self' meaningful.
+ */
+function avFrontHeaders(): void
+{
+    header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'");
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+}
+
 function avServeError(string $siteRoot, string $file, int $displayStatus, ?int $trueStatus = null): bool
 {
     $trueStatus = $trueStatus ?? $displayStatus;
@@ -136,6 +157,7 @@ function avServeError(string $siteRoot, string $file, int $displayStatus, ?int $
         // reverse proxy replace the body (gateway codes 502/504 are masked).
         header('X-AV-Error-Status: ' . $trueStatus);
     }
+    avFrontHeaders();
     http_response_code($displayStatus);
     $p = $siteRoot . '/' . $file;
     if (is_file($p)) {
@@ -152,6 +174,7 @@ function avServeError(string $siteRoot, string $file, int $displayStatus, ?int $
 
 function avNotFound(string $siteRoot): bool
 {
+    avFrontHeaders();
     http_response_code(404);
     $p = $siteRoot . '/404.html';
     header('Content-Type: text/html; charset=utf-8');
@@ -173,8 +196,8 @@ function avServeStatic(string $real): bool
     $ext = strtolower(pathinfo($real, PATHINFO_EXTENSION));
     header('Content-Type: ' . ($types[$ext] ?? 'application/octet-stream'));
     header('X-Content-Type-Options: nosniff');
-    if ($ext === 'html') header('Cache-Control: no-cache, must-revalidate');
-    elseif (in_array($ext, ['css', 'js'], true)) header('Cache-Control: public, max-age=31536000, immutable');
+    if ($ext === 'html') { avFrontHeaders(); header('Cache-Control: no-cache, must-revalidate'); }
+    elseif (in_array($ext, ['css', 'js', 'woff2', 'woff'], true)) header('Cache-Control: no-cache, must-revalidate'); // law §28: version-busted by query param; revalidate every time — immutable poisoned itself once
     else header('Cache-Control: public, max-age=2592000');
     header('Content-Length: ' . filesize($real));
     readfile($real);
