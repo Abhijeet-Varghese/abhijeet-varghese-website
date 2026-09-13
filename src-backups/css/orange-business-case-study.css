@@ -611,3 +611,5 @@
    ============================================================ */
 .ob-page > .site-nav { position: fixed; z-index: 250; }
 .ob-page > .mobile-menu { position: fixed; }
+
+.ob-page > .page-close { position: fixed; z-index: 250; }

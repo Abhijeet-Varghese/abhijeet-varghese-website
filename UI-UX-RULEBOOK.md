@@ -783,3 +783,19 @@ fixed+holding everywhere, /experience/ canonical (not .html),
 /api/analytics/track 501 = static-preview artifact (PHP backend in
 prod), homepage hp6 "hero-parked" IO pause = legal off-screen pause.
 main.js v3.9.0 · all refs ?v=4.4.0.
+
+
+## 38. Round 10 — agency audit pass (2026-09-14)
+(1) Orange close button was PRESENT but invisible — same §37.1 stacking
+bug, .page-close not exempted → exempted, verified fixed/z250/clickable
+→ /index.html. (2) Whole-site upgrades applied: 6 SEO titles shortened
+into the 20–65 window; 5 alt="" content images given truthful alts
+(each image VIEWED first per §31.1); robots.txt + sitemap.xml +
+manifest + SW confirmed present. (3) Army scroll-stuck: root cause =
+global scroll-behavior:smooth on a 32,700px page (anchor/restore glides
+take seconds and ignore wheel) → instant anchors on Army + BPCL.
+(4) Section bars REMOVED per owner: Army #iaNav (markup + JS chapter
+block + railNav), BPCL #topbar (markup; navigation.js guards if(list)).
+(5) 26-page × D/M audit: 0 overflow, 0 JS errors, titles in window,
+1 h1/page, landmarks+skip links intact. /api/analytics 501 = preview
+artifact. Site refs ?v=4.4.1.
