@@ -603,3 +603,11 @@
 .ob-media__vid.is-missing::after { content: none; }
 /* keyboard polish */
 .ob-page :is(button, a, [tabindex]):focus-visible { outline: 2px solid var(--ob-orange); outline-offset: 3px; }
+
+/* ============================================================
+   FIX: fixed page chrome is EXEMPT from the .ob-page stacking
+   rule (.ob-page > * was overriding position:fixed at equal
+   specificity, so the global nav scrolled away with the page)
+   ============================================================ */
+.ob-page > .site-nav { position: fixed; z-index: 250; }
+.ob-page > .mobile-menu { position: fixed; }

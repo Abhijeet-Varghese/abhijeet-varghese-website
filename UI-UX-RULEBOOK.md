@@ -756,3 +756,30 @@ on ALL, 0 pageerrors; gridded blocks collapse per breakpoints (branches
 4→2→1, output 4→2→1, room stacks <900, gallery stacks <900).
 Orange ?v=7.4.0. Shots: qa/v74-hero.png, v74-system.png,
 v74-curtain-full.png, v74-320.png.
+
+## 37. Round 9 — journey re-measure, hero read-purge, nav stacking law (2026-09-14)
+(1) JOURNEY "stuck": root cause = v3.8.3 froze journey geometry at load
+(offsetTop + no re-measure); any late layout shift (lazy images,
+content-visibility re-estimates) left jTop stale → scrub dead. FIX:
+docY() offsetParent walk (LAYOUT-TRUE, transform-immune — rect+scrollY
+is skewed by ancestor parallax transforms, proven by non-monotonic
+probe) + ResizeObserver on documentElement + fonts.ready re-measure.
+Verified: scaleX .248/.521/.771 at 25/50/75% AFTER a +1500px synthetic
+shift. HARNESS TRAP (repeat of §-law): html has scroll-behavior:smooth —
+scrollTo without behavior:'instant' animates ~1s and mid-flight reads
+poison results. (2) HERO lag: the hp6 "clarity field" rAF loop called
+getBoundingClientRect PER FRAGMENT PER FRAME (~30 reads/frame +
+unguarded writes) — layout thrash storm. FIX: cached document-space
+centers (bx/by), pure-math proximity test, change-guarded writes.
+Reads during 3.4s interaction: ~720 → 97 (rest = harness). evo3d loop:
+rect-per-frame + querySelector-per-frame → cached geometry + metas.
+(3) ORANGE NAV: .ob-page > * { position: relative; z-index: 1 }
+(equal specificity, later file) OVERRODE .site-nav's position:fixed →
+nav scrolled away. LAW §37.1: page-root stacking rules MUST exempt
+fixed chrome — .ob-page > .site-nav/.mobile-menu re-pinned to fixed.
+Verified vs Army page (fixed/14 after 3000px scroll).
+(4) Audit: 13 pages × desktop+mobile — 0 overflow everywhere, nav
+fixed+holding everywhere, /experience/ canonical (not .html),
+/api/analytics/track 501 = static-preview artifact (PHP backend in
+prod), homepage hp6 "hero-parked" IO pause = legal off-screen pause.
+main.js v3.9.0 · all refs ?v=4.4.0.

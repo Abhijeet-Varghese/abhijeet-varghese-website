@@ -534,6 +534,15 @@
     }, { rootMargin: "12% 0px" }).observe(heroSec);
   }
 
+  /* layout-true document Y of an element — offsetParent walk is
+     immune to ancestor transforms (rect+scrollY is NOT: parallax
+     writes skew it) */
+  const docY = (el) => {
+    let y = 0;
+    while (el) { y += el.offsetTop; el = el.offsetParent; }
+    return y;
+  };
+
   /* ONE scroll handler, ZERO layout reads per frame (v3.8.3 — §29.8):
      every geometry (doc height, parallax offsets, journey position) is
      measured on init/resize ONLY; the handler is pure arithmetic +
@@ -547,7 +556,7 @@
     vh = window.innerHeight;
     maxScroll = Math.max(document.documentElement.scrollHeight - vh, 1);
     if (journeySec) {
-      jTop = journeySec.offsetTop;
+      jTop = docY(journeySec); /* layout-true, transform-immune */
       jTotal = Math.max(journeySec.offsetHeight - vh, 0);
       jMaxShift = journeyTrack ? Math.max(journeyTrack.scrollWidth - (journeyPin ? journeyPin.clientWidth : 0) + 40, 0) : 0;
     }
@@ -607,6 +616,17 @@
   window.addEventListener("resize", () => { measureAll(); requestAnimationFrame(onScroll); }, { passive: true });
   journeyMQ.addEventListener?.("change", () => { measureAll(); requestAnimationFrame(onScroll); });
   addEventListener("load", () => { measureAll(); requestAnimationFrame(onScroll); });
+  /* any content-height change (lazy images, fonts, dynamic blocks) re-measures —
+     keeps cached geometry true WITHOUT per-frame layout reads (§29.9) */
+  if ("ResizeObserver" in window) {
+    let mraf = false;
+    new ResizeObserver(() => {
+      if (mraf) return;
+      mraf = true;
+      requestAnimationFrame(() => { mraf = false; measureAll(); requestAnimationFrame(onScroll); });
+    }).observe(document.documentElement);
+  }
+  if (document.fonts?.ready) document.fonts.ready.then(() => { measureAll(); requestAnimationFrame(onScroll); });
   measureAll();
   onScroll();
 
@@ -846,17 +866,26 @@
       const cN = (v, a, b) => Math.max(a, Math.min(b, v));
       const easeInOut = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
       const easeOut = t => 1 - Math.pow(1 - t, 3);
-      const getProgress = () => {
+      /* geometry cached — no rect reads in the animation loop (§29.9) */
+      let evoTop = 0, evoScrollable = 1;
+      const measureEvo = () => {
         const runway = evo3dScroll || evo3d;
-        const r = runway.getBoundingClientRect();
-        const scrollable = Math.max(runway.offsetHeight - window.innerHeight, 1);
-        return cN(-r.top / scrollable, 0, 1);
+        evoTop = docY(runway);
+        evoScrollable = Math.max(runway.offsetHeight - window.innerHeight, 1);
       };
+      measureEvo();
+      addEventListener("load", measureEvo, { passive: true });
+      addEventListener("resize", measureEvo, { passive: true });
+      if ("ResizeObserver" in window) new ResizeObserver(measureEvo).observe(document.documentElement);
+      const getProgress = () => cN((window.scrollY - evoTop) / evoScrollable, 0, 1);
+      const cardMetas = evo3dCards.map((card) => {
+        const m = card.querySelector(".about-evo3d__meta span:last-child");
+        return m ? m.textContent.trim() : "";
+      });
       const syncCompass = active => {
         if (!compassNum) return;
         compassNum.textContent = String(active).padStart(2, "0");
-        const meta = evo3dCards[active - 1].querySelector(".about-evo3d__meta span:last-child");
-        if (compassName) compassName.textContent = meta ? meta.textContent.trim() : String(active).padStart(2, "0");
+        if (compassName) compassName.textContent = cardMetas[active - 1] || String(active).padStart(2, "0");
       };
 
       let targetProgress = 0, currentProgress = 0;
@@ -1166,8 +1195,9 @@
     const r = el.getBoundingClientRect();
     return {
       el,
-      bx: r.left + window.scrollX, by: r.top + window.scrollY, // true grid position
-      x: 0, y: 0, tx: 0, ty: 0, clear: false,
+      bx: r.left + r.width / 2 + window.scrollX,  /* cached DOCUMENT-space center */
+      by: r.top + r.height / 2 + window.scrollY,
+      x: 0, y: 0, lx: 9e9, ly: 9e9, tx: 0, ty: 0, clear: false,
       phase: Math.random() * Math.PI * 2, speed: 0.4 + Math.random() * 0.35,
     };
   });
@@ -1199,9 +1229,9 @@
       const amb = 9;
       const ax = Math.sin(t * f.speed + f.phase) * amb;
       const ay = Math.cos(t * f.speed * 0.8 + f.phase) * amb;
-      const r = f.el.getBoundingClientRect();
-      const cx = r.left + r.width / 2 + sy * 0 + ax, cy = r.top + r.height / 2 + ay;
-      const dx = px - cx, dy = (py - sy) - cy;
+      /* pure math from cached geometry — ZERO layout reads per frame (§29.9) */
+      const cx = f.bx + f.x + ax, cy = f.by + f.y + ay;
+      const dx = px - cx, dy = py - cy;
       const near = (dx * dx + dy * dy) < 190 * 190;
       if (near !== f.clear) {
         f.clear = near;
@@ -1211,7 +1241,10 @@
       f.ty = near ? ay * -0.2 : ay;
       f.x += (f.tx - f.x) * 0.1;
       f.y += (f.ty - f.y) * 0.1;
-      f.el.style.transform = "translate3d(" + f.x.toFixed(2) + "px," + f.y.toFixed(2) + "px,0)";
+      if (Math.abs(f.x - f.lx) > 0.05 || Math.abs(f.y - f.ly) > 0.05) {
+        f.lx = f.x; f.ly = f.y;
+        f.el.style.transform = "translate3d(" + f.x.toFixed(2) + "px," + f.y.toFixed(2) + "px,0)";
+      }
     }
     /* name weight field */
     if (letters.length) {
