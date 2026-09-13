@@ -701,11 +701,16 @@
        scrolls through the identity spread --- */
     const portrait = document.querySelector('.about-frame__portrait img');
     if (portrait && !prefersReduced) {
+      /* geometry cached (§29.9) — no rect reads on the scroll path */
+      let pTop = 0, pH = 1;
+      const measurePortrait = () => { pTop = docY(portrait); pH = Math.max(portrait.offsetHeight, 1); };
+      measurePortrait();
+      addEventListener("resize", measurePortrait, { passive: true });
+      addEventListener("load", measurePortrait, { passive: true });
       const onPortrait = () => {
-        const r = portrait.getBoundingClientRect();
-        const vh = window.innerHeight;
-        if (r.bottom < 0 || r.top > vh) return;
-        const p = clamp((vh * 0.6 - r.top) / (r.height + vh * 0.6), 0, 1);
+        const vh = window.innerHeight, top = pTop - window.scrollY;
+        if (top > vh || top + pH < 0) return;
+        const p = clamp((vh * 0.6 - top) / (pH + vh * 0.6), 0, 1);
         portrait.style.transform = `scale(1.06) translate3d(0, ${(-5 + p * 10).toFixed(1)}px, 0)`;
       };
       window.addEventListener("scroll", () => requestAnimationFrame(onPortrait), { passive: true });
@@ -718,11 +723,15 @@
     const zoomFrame = document.getElementById("aboutZoomFrame");
     const zoomLabels = $$("#aboutZoomLabels li");
     if (zoomStage && zoomFrame) {
+      let zTop = 0, zH = 1;
+      const measureZoom = () => { zTop = docY(zoomStage); zH = Math.max(zoomStage.offsetHeight, 1); };
+      measureZoom();
+      addEventListener("resize", measureZoom, { passive: true });
+      addEventListener("load", measureZoom, { passive: true });
       const onZoom = () => {
         if (prefersReduced) return;
-        const r = zoomStage.getBoundingClientRect();
         const vh = window.innerHeight;
-        const p = clamp((vh * 0.62 - r.top) / (r.height * 0.9 + vh * 0.4), 0, 1);
+        const p = clamp((vh * 0.62 - (zTop - window.scrollY)) / (zH * 0.9 + vh * 0.4), 0, 1);
         zoomFrame.style.setProperty("--zp", p.toFixed(3));
         const stage = Math.min(Math.floor(p * 4) + 1, 4);
         zoomLabels.forEach((l, i) => l.classList.toggle("is-on", i + 1 <= stage));
@@ -741,15 +750,24 @@
       [".about-frame", "light"], [".about-acts", "dark"], [".about-interlude", "dark"],
       [".about-what", "light"], [".about-now", "dark"], [".about-curious", "light"], [".about-credits", "light"],
     ].map(([sel, env]) => ({ el: document.querySelector(sel), env })).filter(x => x.el);
+    /* section geometry cached (§29.9): the overlap test runs from
+       document-space tops + scrollY — zero rect reads per scroll frame */
+    const envGeo = [];
+    const measureEnv = () => {
+      envGeo.length = 0;
+      for (const { el, env } of envSections) envGeo.push({ top: docY(el), h: el.offsetHeight, env });
+    };
+    measureEnv();
+    addEventListener("resize", measureEnv, { passive: true });
+    addEventListener("load", measureEnv, { passive: true });
     const computeEnv = () => {
-      const vh = window.innerHeight, vw = window.innerWidth;
+      const vh = window.innerHeight, y = window.scrollY;
       let best = null, bestArea = 0;
-      for (const { el, env } of envSections) {
-        const r = el.getBoundingClientRect();
-        const w = Math.min(r.right, vw) - Math.max(r.left, 0);
-        const h = Math.min(r.bottom, vh) - Math.max(r.top, 0);
-        const area = Math.max(w, 0) * Math.max(h, 0);
-        if (area > bestArea) { best = env; bestArea = area; }
+      for (const g of envGeo) {
+        const top = g.top - y;
+        const h = Math.min(top + g.h, vh) - Math.max(top, 0);
+        if (h <= 0) continue;
+        if (h > bestArea) { best = g.env; bestArea = h; }
       }
       if (best) document.body.dataset.env = best;
     };
@@ -892,6 +910,10 @@
       let stackVisible = false, stackRunning = false;
       let lastFrame = performance.now();
       let mouseX = 0, mouseY = 0, cameraX = 0, cameraY = 0;
+      /* write-signatures: a card whose frame values did not change is
+         not touched at all — no style writes while scroll rests (§29.9) */
+      const sigs = evo3dCards.map(() => "");
+      let lastActiveIdx = -1;
       const finePointer = window.matchMedia("(pointer: fine)").matches;
       if (finePointer) {
         window.addEventListener("pointermove", e => {
@@ -915,56 +937,70 @@
         const inView = targetProgress > 0.001 && targetProgress < 0.999;
         const active = cN(Math.floor(cardProgress) + 1, 1, TOTAL);
         setAtmo(inView ? (evo3dCards[active - 1].dataset.world || null) : null);
-        syncCompass(active);
+        if (active !== lastActiveIdx) {
+          syncCompass(active);
+          evo3dCards.forEach((card, index) => card.classList.toggle("is-front", index === active - 1));
+          lastActiveIdx = active;
+        }
 
         evo3dCards.forEach((card, index) => {
-          card.classList.toggle("is-front", index === active - 1);
           const relative = index - cardProgress;
+          let tf, op, fl, zi, vis, imgT = "", shT = "", shO = "";
           if (relative < -1) {
-            card.style.visibility = "hidden";
-            card.style.transform = `translate3d(0, ${-EXIT_Y}vh, ${EXIT_Z}px) rotateX(-${OPEN_ANGLE}deg) rotateY(-6deg) scale(.86)`;
-            card.style.opacity = 0;
-            card.style.filter = "blur(3px)";
-            card.style.zIndex = 0;
-            return;
-          }
-          card.style.visibility = "visible";
-          if (relative >= -1 && relative <= 0) {
+            vis = "hidden";
+            tf = `translate3d(0, ${-EXIT_Y}vh, ${EXIT_Z}px) rotateX(-${OPEN_ANGLE}deg) rotateY(-6deg) scale(.86)`;
+            op = "0"; fl = "blur(3px)"; zi = "0";
+          } else if (relative >= -1 && relative <= 0) {
+            vis = "visible";
             const raw = Math.abs(relative);
             const t = easeInOut(raw);
-            card.style.transform = `translate3d(0, ${(-t * EXIT_Y).toFixed(2)}vh, ${(t * EXIT_Z).toFixed(2)}px) rotateX(${(-t * OPEN_ANGLE).toFixed(2)}deg) rotateY(${(-t * 6).toFixed(2)}deg) rotateZ(${(t * 1.5).toFixed(2)}deg) scale(${(1 - t * 0.07).toFixed(4)})`;
-            card.style.opacity = (1 - Math.max(0, t - 0.9) * 10).toFixed(3);
-            card.style.filter = `blur(${Math.max(0, t - 0.8) * 4}px)`;
-            card.style.zIndex = 1000;
-            if (evo3dImages[index]) evo3dImages[index].style.transform = `translateZ(35px) scale(${(1.12 + t * 0.2).toFixed(4)}) translateY(${(t * 7).toFixed(2)}%)`;
+            tf = `translate3d(0, ${(-t * EXIT_Y).toFixed(2)}vh, ${(t * EXIT_Z).toFixed(2)}px) rotateX(${(-t * OPEN_ANGLE).toFixed(2)}deg) rotateY(${(-t * 6).toFixed(2)}deg) rotateZ(${(t * 1.5).toFixed(2)}deg) scale(${(1 - t * 0.07).toFixed(4)})`;
+            op = (1 - Math.max(0, t - 0.9) * 10).toFixed(3);
+            fl = `blur(${(Math.max(0, t - 0.8) * 4).toFixed(2)}px)`;
+            zi = "1000";
+            if (evo3dImages[index]) imgT = `translateZ(35px) scale(${(1.12 + t * 0.2).toFixed(4)}) translateY(${(t * 7).toFixed(2)}%)`;
             if (evo3dShadows[index]) {
-              evo3dShadows[index].style.transform = `translateZ(${(-300 + t * 220).toFixed(1)}px) rotateX(72deg) scale(${(1 + t * 0.5).toFixed(4)})`;
-              evo3dShadows[index].style.opacity = (0.72 - t * 0.58).toFixed(3);
+              shT = `translateZ(${(-300 + t * 220).toFixed(1)}px) rotateX(72deg) scale(${(1 + t * 0.5).toFixed(4)})`;
+              shO = (0.72 - t * 0.58).toFixed(3);
             }
-            return;
-          }
-          if (relative > 0 && relative < 1.5) {
+          } else if (relative > 0 && relative < 1.5) {
+            vis = "visible";
             const reveal = cN(1 - (relative - 1), 0, 1);
             const t = easeOut(reveal);
-            card.style.transform = `translate3d(0, ${(STACK_Y - t * STACK_Y).toFixed(2)}px, ${(-CARD_DEPTH + t * CARD_DEPTH).toFixed(2)}px) rotateX(${(0.65 - t * 0.65).toFixed(3)}deg) rotateY(${(-0.35 + t * 0.35).toFixed(3)}deg) scale(${(0.966 + t * 0.034).toFixed(4)})`;
-            card.style.opacity = (0.9 + t * 0.1).toFixed(3);
-            card.style.filter = `blur(${((1 - t) * 1.2).toFixed(2)}px)`;
-            card.style.zIndex = 999;
-            if (evo3dImages[index]) evo3dImages[index].style.transform = `translateZ(35px) scale(${(1.14 - t * 0.02).toFixed(4)})`;
-            return;
+            tf = `translate3d(0, ${(STACK_Y - t * STACK_Y).toFixed(2)}px, ${(-CARD_DEPTH + t * CARD_DEPTH).toFixed(2)}px) rotateX(${(0.65 - t * 0.65).toFixed(3)}deg) rotateY(${(-0.35 + t * 0.35).toFixed(3)}deg) scale(${(0.966 + t * 0.034).toFixed(4)})`;
+            op = (0.9 + t * 0.1).toFixed(3);
+            fl = `blur(${((1 - t) * 1.2).toFixed(2)}px)`;
+            zi = "999";
+            if (evo3dImages[index]) imgT = `translateZ(35px) scale(${(1.14 - t * 0.02).toFixed(4)})`;
+          } else {
+            vis = "visible";
+            const depth = Math.min(relative, 6);
+            tf = `translate3d(0, ${(depth * STACK_Y).toFixed(2)}px, ${(-depth * CARD_DEPTH).toFixed(2)}px) rotateX(${(depth * 0.65).toFixed(2)}deg) rotateY(${(-depth * 0.35).toFixed(2)}deg) scale(${(1 - depth * SCALE_STEP).toFixed(4)})`;
+            op = Math.max(0, 1 - depth * 0.11).toFixed(3);
+            fl = `blur(${(Math.max(0, depth - 2) * 0.7).toFixed(2)}px)`;
+            zi = String(900 - index);
+            if (evo3dImages[index]) imgT = "translateZ(35px) scale(1.12)";
           }
-          const depth = Math.min(relative, 6);
-          card.style.transform = `translate3d(0, ${(depth * STACK_Y).toFixed(2)}px, ${(-depth * CARD_DEPTH).toFixed(2)}px) rotateX(${(depth * 0.65).toFixed(2)}deg) rotateY(${(-depth * 0.35).toFixed(2)}deg) scale(${(1 - depth * SCALE_STEP).toFixed(4)})`;
-          card.style.opacity = Math.max(0, 1 - depth * 0.11).toFixed(3);
-          card.style.filter = `blur(${Math.max(0, depth - 2) * 0.7}px)`;
-          card.style.zIndex = 900 - index;
-          if (evo3dImages[index]) evo3dImages[index].style.transform = "translateZ(35px) scale(1.12)";
+          const sig = tf + "|" + op + "|" + fl + "|" + zi + "|" + vis + "|" + imgT + "|" + shT + "|" + shO;
+          if (sig === sigs[index]) { return; }
+          sigs[index] = sig;
+          card.style.visibility = vis;
+          card.style.transform = tf;
+          card.style.opacity = op;
+          card.style.filter = fl;
+          card.style.zIndex = zi;
+          if (imgT && evo3dImages[index]) evo3dImages[index].style.transform = imgT;
+          if (shT && evo3dShadows[index]) evo3dShadows[index].style.transform = shT;
+          if (shO && evo3dShadows[index]) evo3dShadows[index].style.opacity = shO;
         });
 
         const cameraBlend = 1 - Math.exp(-3 * dt);
+        const prevCX = cameraX, prevCY = cameraY;
         cameraX += ((finePointer ? mouseX * 3 : 0) - cameraX) * cameraBlend;
         cameraY += ((finePointer ? mouseY * -2 : 0) - cameraY) * cameraBlend;
-        if (evo3dCamera) evo3dCamera.style.transform = `rotateX(${cameraY.toFixed(3)}deg) rotateY(${cameraX.toFixed(3)}deg)`;
+        if (evo3dCamera && (Math.abs(cameraX - prevCX) > 0.004 || Math.abs(cameraY - prevCY) > 0.004)) {
+          evo3dCamera.style.transform = `rotateX(${cameraY.toFixed(3)}deg) rotateY(${cameraX.toFixed(3)}deg)`;
+        }
         requestAnimationFrame(animate);
       };
 
@@ -982,10 +1018,16 @@
       }, { rootMargin: "20% 0px", threshold: 0 });
       const stackRunway = evo3dScroll || evo3d;
       stackObserver.observe(stackRunway);
+      let wakeTick = false;
       const wakeStack = () => {
-        const r = stackRunway.getBoundingClientRect();
-        stackVisible = r.bottom > -window.innerHeight * 0.2 && r.top < window.innerHeight * 1.2;
-        if (stackVisible) startStack();
+        if (wakeTick) return;
+        wakeTick = true;
+        requestAnimationFrame(() => {
+          wakeTick = false;
+          const vh = window.innerHeight, y = window.scrollY;
+          stackVisible = y - vh * 0.2 < evoTop + evoScrollable && y + vh * 1.2 > evoTop;
+          if (stackVisible) startStack();
+        });
       };
       window.addEventListener("scroll", wakeStack, { passive: true });
       window.addEventListener("resize", wakeStack, { passive: true });
@@ -1085,10 +1127,14 @@
   /* ---------- Experience page — scroll-linked timeline fill ---------- */
   const expTimeline = document.getElementById("expTimeline");
   if (expTimeline) {
+    let xTop = 0, xH = 1;
+    const measureExp = () => { xTop = docY(expTimeline); xH = Math.max(expTimeline.offsetHeight, 1); };
+    measureExp();
+    addEventListener("resize", measureExp, { passive: true });
+    addEventListener("load", measureExp, { passive: true });
     const expMark = () => {
-      const r = expTimeline.getBoundingClientRect();
       const vh = window.innerHeight || 1;
-      const p = Math.min(Math.max((vh * 0.9 - r.top) / (r.height * 0.6), 0), 1);
+      const p = Math.min(Math.max((vh * 0.9 - (xTop - window.scrollY)) / (xH * 0.6), 0), 1);
       document.body.classList.toggle("exp-scrolled", p > 0.02);
       expTimeline.style.setProperty("--exp-fill", p.toFixed(3));
     };
@@ -1174,6 +1220,16 @@
   const well = document.querySelector(".hp6-frame__well");
   const hero = document.getElementById("hero");
   if (well && hero && matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    /* cached hero geometry — pointermove reads no layout (§29.9) */
+    var heroGeo = { top: 0, w: 1, h: 1 };
+    var measureHeroGeo = function () {
+      heroGeo.top = hero.getBoundingClientRect().top + window.scrollY;
+      heroGeo.w = Math.max(hero.getBoundingClientRect().width, 1);
+      heroGeo.h = Math.max(hero.getBoundingClientRect().height, 1);
+    };
+    measureHeroGeo();
+    addEventListener("resize", measureHeroGeo, { passive: true });
+    addEventListener("load", measureHeroGeo, { passive: true });
     let wx = 0, wy = 0, hx = 0, hy = 0, praf = false;
     const wstep = () => {
       wx += (hx - wx) * 0.08; wy += (hy - wy) * 0.08;
@@ -1182,9 +1238,8 @@
       else praf = false;
     };
     hero.addEventListener("pointermove", (e) => {
-      const r = hero.getBoundingClientRect();
-      hx = ((e.clientX - r.left) / r.width - 0.5) * 12;
-      hy = ((e.clientY - r.top) / r.height - 0.5) * 9;
+      hx = (e.clientX / heroGeo.w - 0.5) * 12;
+      hy = ((e.clientY - (heroGeo.top - window.scrollY)) / heroGeo.h - 0.5) * 9;
       if (!praf) { praf = true; requestAnimationFrame(wstep); }
     }, { passive: true });
     hero.addEventListener("pointerleave", () => { hx = 0; hy = 0; if (!praf) { praf = true; requestAnimationFrame(wstep); } }, { passive: true });
@@ -1201,7 +1256,7 @@
       phase: Math.random() * Math.PI * 2, speed: 0.4 + Math.random() * 0.35,
     };
   });
-  let heroVisible = true, px = -1e4, py = -1e4, fragT = performance.now();
+  let heroVisible = true, px = -1e4, py = -1e4, fragT = performance.now(), frameParity = false;
   new IntersectionObserver((es) => { heroVisible = es[0].isIntersecting; }).observe(stage);
   addEventListener("pointermove", (e) => { px = e.clientX + window.scrollX; py = e.clientY + window.scrollY; }, { passive: true });
 
@@ -1246,8 +1301,11 @@
         f.el.style.transform = "translate3d(" + f.x.toFixed(2) + "px," + f.y.toFixed(2) + "px,0)";
       }
     }
-    /* name weight field */
-    if (letters.length) {
+    /* name weight field — updated on alternate frames at a 1.2 wght
+       epsilon: the ambient wave is a ~1s sine, so 30 Hz at 1.2/640
+       resolution is visually identical while cutting glyph re-rasters
+       of the display-size name by ~5x (§29.9) */
+    if (letters.length && (frameParity = !frameParity)) {
       for (let i = 0; i < letters.length; i++) {
         const cpt = centers[i];
         const dx2 = px - cpt.x, dy2 = (py - sy) - (cpt.y - sy);
@@ -1255,8 +1313,8 @@
         const bump = 130 * Math.exp(-d2 / (150 * 150));
         const wave = 38 * Math.sin(t * 1.05 - i * 0.55);
         const target = Math.max(560, Math.min(700, 620 + wave + bump));
-        const w = wghts[i] + (target - wghts[i]) * 0.14;
-        if (Math.abs(w - wghts[i]) > 0.5) {
+        const w = wghts[i] + (target - wghts[i]) * 0.2;
+        if (Math.abs(w - wghts[i]) > 1.2) {
           wghts[i] = w;
           letters[i].style.fontVariationSettings = "'wght' " + w.toFixed(1);
         }

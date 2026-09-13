@@ -107,213 +107,19 @@
   }
 
   /* ----------------------------------------------------------
-     03b · CASE STUDIES — a cinematic horizontal runway
-     ----------------------------------------------------------
-     Desktop: a sticky stage. Vertical scroll sets a target; the
-     track eases toward it with a little inertia, so the movement
-     reads as a camera travelling rather than a slider snapping.
-     Every scene then derives its own focus from where it sits on
-     the stage and drives four depth layers at different rates.
-
-     Small screens, short windows and reduced motion release the
-     pin entirely: the runway becomes a native snap-scrolling
-     region. With JS off it is that region from the start.      */
-  var hSec = $(".pf-runway");
-  var hPin = hSec && $("[data-pf-hpin]", hSec);
-  var hTrack = hSec && $("[data-pf-htrack]", hSec);
-  var hView = hSec && $("[data-pf-hviewport]", hSec);
-  var hBar = hSec && $("[data-pf-hbar]", hSec);
-  var hCount = hSec && $("[data-pf-hcount]", hSec);
-  var hScenes = hTrack ? $$(".pf-scene", hTrack) : [];
-  var hProjects = hTrack ? $$(".pf-card", hTrack) : [];
-  var hPinned = false;
-  var hTravel = 0;
-  var hX = 0;
-  var hRaf = 0;
-  var hCountNum = -1;
-
-  /* the figure is derived from the DOM, never hard-coded */
-  $$("[data-pf-htotal], [data-pf-htotal2]").forEach(function (el) {
-    el.textContent = String(hProjects.length).padStart(2, "0");
-  });
-
-  function hTargetFrom() {
-    var r = hSec.getBoundingClientRect();
-    var travel = hSec.offsetHeight - window.innerHeight;
-    var p = travel > 0 ? clamp(-r.top / travel, 0, 1) : 0;
-    return -p * hTravel;
-  }
-
-  function hKick() { if (!hRaf) { hRaf = requestAnimationFrame(hFrame); } }
-
-  function hFrame() {
-    hRaf = 0;
-    if (!hSec || !hTrack || !hPin) { return; }
-    if (!hPinned) { hUpdate(); return; }
-
-    var vh = window.innerHeight;
-    var r = hSec.getBoundingClientRect();
-
-    /* far away: park the track rather than chasing it, and leave
-       every scene fully present for assistive technology */
-    if (r.bottom < -vh * 0.5 || r.top > vh * 1.5) {
-      hX = hTargetFrom();
-      hTrack.style.transform = "translate3d(" + hX.toFixed(1) + "px,0,0)";
-      for (var k = 0; k < hScenes.length; k++) {
-        hScenes[k].style.setProperty("--f", "1");
-        hScenes[k].style.setProperty("--rel", "0");
-      }
-      return;
-    }
-
-    var target = hTargetFrom();
-    var diff = target - hX;
-    var settled = Math.abs(diff) < 0.35;
-    hX = settled ? target : hX + diff * 0.18;
-    hTrack.style.transform = "translate3d(" + hX.toFixed(1) + "px,0,0)";
-
-    var travel = hSec.offsetHeight - window.innerHeight;
-    if (hBar) {
-      hBar.style.transform = "scaleX(" + (travel > 0 ? clamp(-r.top / travel, 0, 1) : 0).toFixed(4) + ")";
-    }
-
-    /* each scene reads its own position and lights accordingly */
-    var stageW = hPin.clientWidth || 1;
-    var mid = stageW / 2;
-    var nearIdx = 0, nearBest = Infinity;
-    for (var i = 0; i < hScenes.length; i++) {
-      var el = hScenes[i];
-      var cx = el.offsetLeft + el.offsetWidth / 2 + hX;
-      var rel = (cx - mid) / stageW;
-      var f = 1 - clamp(Math.abs(rel) / 0.62, 0, 1);
-      el.style.setProperty("--rel", rel.toFixed(4));
-      el.style.setProperty("--f", f.toFixed(4));
-      var d = Math.abs(cx - mid);
-      if (d < nearBest) { nearBest = d; nearIdx = i; }
-    }
-    hSetCount(nearIdx);
-
-    if (!settled) { hKick(); }
-  }
-
-  function hUpdate() {
-    if (!hSec || !hTrack) { return; }
-
-    /* fallback — a native horizontal region */
-    if (!hPinned) {
-      if (!hView) { return; }
-      var maxX = hView.scrollWidth - hView.clientWidth;
-      var q = maxX > 0 ? hView.scrollLeft / maxX : 0;
-      if (hBar) { hBar.style.transform = "scaleX(" + q.toFixed(4) + ")"; }
-      var idx = 0, best = Infinity, centre = hView.scrollLeft + hView.clientWidth / 2;
-      for (var i = 0; i < hScenes.length; i++) {
-        var d = Math.abs(hScenes[i].offsetLeft + hScenes[i].offsetWidth / 2 - centre);
-        if (d < best) { best = d; idx = i; }
-      }
-      hSetCount(idx);
-      return;
-    }
-
-    hKick();
-  }
-
-  function hSetCount(sceneIndex) {
-    if (!hCount || !hProjects.length) { return; }
-    var scene = hScenes[sceneIndex];
-    if (!scene) { return; }
-    var n = hProjects.indexOf(scene);
-    var num = n < 0 ? (sceneIndex === 0 ? 1 : hProjects.length) : n + 1;
-    if (num === hCountNum) { return; }
-    hCountNum = num;
-    hCount.textContent = String(num).padStart(2, "0");
-  }
-
-  function hMeasure() {
-    if (!hSec || !hTrack || !hPin) { return; }
-    /* a pinned stage needs both width and height to breathe */
-    hPinned = wide.matches && !reduced && window.innerHeight > 700;
-
-    if (!hPinned) {
-      hSec.style.height = "";
-      hTrack.style.transform = "";
-      hTrack.style.paddingLeft = "";
-      var tl = hScenes[hScenes.length - 1];
-      if (tl && tl.classList.contains("pf-scene--tail")) { tl.style.width = ""; }
-      for (var i = 0; i < hScenes.length; i++) {
-        hScenes[i].style.removeProperty("--f");
-        hScenes[i].style.removeProperty("--rel");
-      }
-      hCountNum = -1;
-      hUpdate();
-      return;
-    }
-
-    /* Frame the runway. The opening scene sits dead centre as the
-       stage takes hold, and the final project sits dead centre as
-       it lets go — so the sequence opens and closes on a scene
-       rather than on half a scene and a slab of empty track. */
-    var stageW = hPin.clientWidth || 1;
-    var mid = stageW / 2;
-    var pad = parseFloat(getComputedStyle(hTrack).paddingRight) || 0;
-
-    var first = hScenes[0];
-    if (first) {
-      hTrack.style.paddingLeft = Math.max(pad, Math.round(mid - first.offsetWidth / 2)) + "px";
-    }
-
-    var tail = hScenes[hScenes.length - 1];
-    var lastProj = hProjects[hProjects.length - 1];
-    if (tail && tail.classList.contains("pf-scene--tail") && lastProj) {
-      var want = Math.round(mid + (lastProj.offsetLeft + lastProj.offsetWidth / 2) - tail.offsetLeft - pad);
-      tail.style.width = Math.max(0, want) + "px";
-    }
-
-    var contentW = tail.offsetLeft + tail.offsetWidth + pad;
-    hTravel = Math.max(contentW - stageW, 0);
-    hSec.style.height = (window.innerHeight + hTravel) + "px";
-    hX = hTargetFrom();
-    hTrack.style.transform = "translate3d(" + hX.toFixed(1) + "px,0,0)";
-    hKick();
-  }
-
-  if (hSec && hView) {
-    /* keyboard: tabbing to a project brings that project on stage */
-    hTrack.addEventListener("focusin", function (e) {
-      if (!hPinned || !hTravel) { return; }
-      var panel = e.target.closest ? e.target.closest(".pf-scene") : null;
-      if (!panel) { return; }
-      var r = hSec.getBoundingClientRect();
-      var travel = hSec.offsetHeight - window.innerHeight;
-      if (travel <= 0) { return; }
-      var want = (panel.offsetLeft + panel.offsetWidth / 2 - hPin.clientWidth / 2) / hTravel;
-      var to = r.top + window.scrollY + clamp(want, 0, 1) * travel;
-      if (Math.abs(to - window.scrollY) > 40) { window.scrollTo({ top: to, behavior: "auto" }); }
-    });
-
-    hView.addEventListener("scroll", function () { if (!hPinned) { hUpdate(); } }, { passive: true });
-    if (!reduced) { hView.setAttribute("tabindex", "-1"); }
-  }
-  /* ----------------------------------------------------------
-     03c · SCRUB — seam transition, film exit, chapter rail
+     03c · SCRUB — seam transition, film exit
      ---------------------------------------------------------- */
   var filmFrame = $(".pf-film__frame");
   var seam = $(".pf-seam");
-  var railItems = $$(".pf-railnav i");
-  var railSections = $$("[data-pf-chapter]");
-  var railNav = $(".pf-railnav");
-  var lightChapter = $("#clients");   /* the one paper-coloured chapter */
 
   var ticking = false;
-  var lastActive = -1;
-  var railLight = false;
 
   function measure() {
     ticking = false;
     var vh = window.innerHeight;
 
     /* film — the frame dissolves back into darkness only once it is
-       genuinely leaving through the top of the viewport, never while
-       it is the thing you are looking at */
+       genuinely leaving through the top of the viewport */
     if (filmFrame && !reduced) {
       var fr = filmFrame.getBoundingClientRect();
       var gate = vh * 0.45;
@@ -330,33 +136,6 @@
       seam.style.setProperty("--o", o.toFixed(3));
       seam.style.setProperty("--o2", clamp((p - 0.42) / 0.25, 0, 1).toFixed(3));
     }
-
-    /* chapter rail */
-    if (railItems.length && railSections.length) {
-      var mid = vh * 0.42;
-      var active = 0;
-      for (var j = 0; j < railSections.length; j++) {
-        if (railSections[j].getBoundingClientRect().top <= mid) { active = j; }
-      }
-      if (active !== lastActive) {
-        if (railItems[lastActive]) { railItems[lastActive].classList.remove("is-active"); }
-        if (railItems[active]) { railItems[active].classList.add("is-active"); }
-        lastActive = active;
-      }
-
-      /* the rail inverts for as long as it sits over the paper chapter */
-      if (railNav && lightChapter) {
-        var lr = lightChapter.getBoundingClientRect();
-        var onLight = lr.top <= vh * 0.42 && lr.bottom >= vh * 0.58;
-        if (onLight !== railLight) {
-          railLight = onLight;
-          railNav.classList.toggle("is-light", onLight);
-        }
-      }
-    }
-
-    /* horizontal case-study sequence */
-    hUpdate();
   }
 
   function onScroll() {
@@ -365,19 +144,10 @@
     requestAnimationFrame(measure);
   }
 
-  if (filmFrame || seam || railItems.length || hSec) {
+  if (filmFrame || seam) {
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", function () {
-      hMeasure();
-      onScroll();
-    }, { passive: true });
-    hMeasure();
+    window.addEventListener("resize", onScroll, { passive: true });
     measure();
-    /* panel widths settle once the case-study imagery has decoded */
-    if (hTrack && "ResizeObserver" in window) {
-      new ResizeObserver(function () { hMeasure(); }).observe(hTrack);
-    }
-    window.addEventListener("load", function () { hMeasure(); measure(); });
   }
 
   /* ----------------------------------------------------------
@@ -430,3 +200,56 @@
     }
   }
 })();
+  /* ----------------------------------------------------------
+     05 · SELECTED PROOF — the recruiter-style case-study rail
+     (same component as recruiter.html: buttons, counter,
+     native horizontal scroll, progress hairline)
+     ---------------------------------------------------------- */
+  (function () {
+    var rail = document.getElementById("pfProofRail");
+    if (!rail) { return; }
+    var panels = Array.prototype.slice.call(rail.querySelectorAll(".r-proof__panel"));
+    var cur = document.getElementById("pfProofCur");
+    var prev = document.getElementById("pfProofPrev");
+    var next = document.getElementById("pfProofNext");
+    var progress = document.getElementById("pfProofProgress");
+    var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!panels.length) { return; }
+    var active = 0;
+    var sync = function (i) {
+      active = i;
+      panels.forEach(function (p, k) { p.classList.toggle("is-active", k === i); });
+      if (cur) { cur.textContent = String(i + 1).padStart(2, "0"); }
+      if (prev) { prev.disabled = i === 0; }
+      if (next) { next.disabled = i === panels.length - 1; }
+    };
+    var update = function () {
+      /* the panel covering the midpoint of the visible area is the
+         active one — stable at both ends of the rail */
+      var mid = rail.scrollLeft + rail.clientWidth / 2;
+      var best = 0;
+      panels.forEach(function (p, i) {
+        if (mid >= p.offsetLeft) { best = i; }
+      });
+      sync(best);
+      if (progress) {
+        var max = rail.scrollWidth - rail.clientWidth;
+        var rl = rail.scrollLeft;
+        progress.style.width = (max > 0 ? (rl / max) * 100 : 0).toFixed(2) + "%";
+      }
+    };
+    var go = function (i) {
+      var el = panels[i];
+      if (!el) { return; }
+      rail.scrollTo({ left: el.offsetLeft, behavior: reduced ? "auto" : "smooth" });
+    };
+    rail.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update, { passive: true });
+    if (prev) prev.addEventListener("click", function () { go(Math.max(0, active - 1)); });
+    if (next) next.addEventListener("click", function () { go(Math.min(panels.length - 1, active + 1)); });
+    rail.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowRight") { e.preventDefault(); go(Math.min(panels.length - 1, active + 1)); }
+      else if (e.key === "ArrowLeft") { e.preventDefault(); go(Math.max(0, active - 1)); }
+    });
+    update();
+  })();

@@ -1,11 +1,5 @@
-/* ============================================================
-   PORTFOLIO — THE REEL
-   Page-specific layer for portfolio.html (loads after styles.css)
-   Namespace: .pf-*   ·   Brand system: navy / paper / azure
-   Motion grammar: REVEAL · EXPANSION · PARALLAX · SCALE · TEXT
-   ============================================================ */
 
-/* ---------- 00 · Canvas ------------------------------------ */
+
 body.portfolio-page { background: #05070D; }
 
 .pf {
@@ -31,13 +25,11 @@ body.portfolio-page { background: #05070D; }
   opacity: 0.035;
 }
 
-/* Section shell — one continuous dark field, rhythm set by padding */
 .pf-sec { position: relative; background: var(--void); }
 .pf-sec--deep { background: var(--deep); }
 
 .pf-wrap { width: min(1440px, 100% - 2 * var(--pad)); margin-inline: auto; }
 
-/* ---------- Shared atoms ---------------------------------- */
 .pf-eyebrow {
   display: flex; align-items: center; gap: 14px;
   font-size: 10px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase;
@@ -64,9 +56,6 @@ body.portfolio-page { background: #05070D; }
   text-transform: none; letter-spacing: -0.01em; color: var(--azure-hi);
 }
 
-/* Masked line reveal — used for every major heading.
-   The padding + negative margin pair lets descenders clear the
-   0.84 line-height without moving the layout by a single pixel. */
 .pf-line {
   display: block; overflow: hidden;
   padding: 0.1em 0 0.22em; margin: -0.1em 0 -0.22em;
@@ -80,9 +69,6 @@ body.portfolio-page { background: #05070D; }
 .is-open > .pf-line > i,
 .is-open .pf-line > i { transform: translate3d(0, 0, 0); }
 
-/* ============================================================
-   01 · OVERTURE — the opening frame
-   ============================================================ */
 .pf-overture {
   position: relative; min-height: 100vh; min-height: 100svh;
   display: flex; flex-direction: column; justify-content: space-between;
@@ -93,7 +79,7 @@ body.portfolio-page { background: #05070D; }
     var(--void);
   overflow: hidden;
 }
-/* slow atmospheric drift — the only continuous animation on the page */
+
 .pf-overture__aura {
   position: absolute; inset: -20% -10%; pointer-events: none;
   background: radial-gradient(38% 42% at 30% 38%, rgba(110, 168, 255, 0.13), transparent 70%);
@@ -105,8 +91,6 @@ body.portfolio-page { background: #05070D; }
   to   { transform: translate3d(4%, 3%, 0) scale(1.12); }
 }
 
-/* the title card distributes: label at the top, film-credits at the
-   bottom, the title breathing in between — at any screen height */
 .pf-overture > .pf-wrap {
   display: flex; flex-direction: column; justify-content: space-between;
   flex: 1 1 auto; min-height: 0;
@@ -161,7 +145,6 @@ body.portfolio-page { background: #05070D; }
   100% { transform: translateY(250%); }
 }
 
-/* opening sequence — pure CSS, fill both, no JS dependency */
 .pf-overture .pf-eyebrow,
 .pf-overture__idx,
 .pf-scroll,
@@ -181,9 +164,6 @@ body.portfolio-page { background: #05070D; }
 @keyframes pfUp { from { opacity: 0; transform: translate3d(0, 22px, 0); } to { opacity: 1; transform: none; } }
 @keyframes pfLineUp { from { transform: translate3d(0, 140%, 0); } to { transform: translate3d(0, 0, 0); } }
 
-/* ============================================================
-   02 · THE FILM
-   ============================================================ */
 .pf-film { padding: clamp(70px, 12vh, 150px) 0 clamp(50px, 8vh, 100px); background: var(--void); }
 .pf-film__frame { transform: scale(calc(1 - var(--exit, 0) * 0.05)); opacity: calc(1 - var(--exit, 0) * 0.78); }
 
@@ -196,7 +176,6 @@ body.portfolio-page { background: #05070D; }
   color: var(--ink-faint);
 }
 
-/* the frame itself */
 .pf-film__stage {
   position: relative; aspect-ratio: 16 / 9; overflow: hidden;
   background: #03050B;
@@ -210,13 +189,11 @@ body.portfolio-page { background: #05070D; }
 .pf-film__media > * { width: 100%; height: 100%; }
 .pf-film__media img { width: 100%; height: 100%; object-fit: cover; }
 
-/* media scales down into place as the frame opens */
 .pf-player__poster img,
 .pf-film__media iframe { transform: scale(1.14); transition: transform 2.1s var(--ease-out); }
 .pf-film__frame.is-open .pf-player__poster img,
 .pf-film__frame.is-open .pf-film__media iframe { transform: scale(1); }
 
-/* shutters — the frame opens like a projection gate */
 .pf-film__panel {
   position: absolute; left: 0; right: 0; height: 44.5%;
   background: var(--void); z-index: 2;
@@ -227,7 +204,6 @@ body.portfolio-page { background: #05070D; }
 .pf-film__frame.is-open .pf-film__panel--t { transform: translate3d(0, -100%, 0); }
 .pf-film__frame.is-open .pf-film__panel--b { transform: translate3d(0, 100%, 0); }
 
-/* edges, corner marks, vignette */
 .pf-film__edge { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
 .pf-film__edge::after {
   content: ""; position: absolute; inset: 0;
@@ -242,7 +218,6 @@ body.portfolio-page { background: #05070D; }
 .pf-film__edge i:nth-child(3) { bottom: 9px; left: 9px; border-right: 0; border-top: 0; }
 .pf-film__edge i:nth-child(4) { bottom: 9px; right: 9px; border-left: 0; border-top: 0; }
 
-/* player */
 .pf-player { position: relative; width: 100%; height: 100%; background: #03050B; }
 .pf-player__poster {
   position: absolute; inset: 0; width: 100%; height: 100%;
@@ -272,11 +247,7 @@ body.portfolio-page { background: #05070D; }
   transform: translate(-50%, -50%) scale(1.05);
 }
 .pf-player__poster:focus-visible { outline: 2px solid var(--azure); outline-offset: -4px; }
-/* An iframe is a REPLACED element. `position:absolute; inset:0` alone does NOT
-   stretch it the way it stretches a div — with width/height left on auto it
-   falls back to the 300x150 intrinsic size and the over-constrained right/
-   bottom offsets are ignored, rendering a small frame in the top-left corner.
-   The explicit width/height below is REQUIRED, not redundant. Do not remove. */
+
 .pf-player iframe,
 [data-pf-player] iframe {
   position: absolute; inset: 0;
@@ -306,9 +277,6 @@ body.portfolio-page { background: #05070D; }
 .pf-film__yt:hover u { border-color: var(--rule-hi); }
 .pf-film__yt:hover svg { transform: translate(3px, -3px); }
 
-/* ============================================================
-   03 · THE CONTEXT — film credits
-   ============================================================ */
 .pf-context { padding: clamp(60px, 10vh, 130px) 0 clamp(80px, 14vh, 170px); background: var(--void); }
 .pf-context__grid {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.92fr);
@@ -333,9 +301,6 @@ body.portfolio-page { background: #05070D; }
 .pf-credits dd { font-size: clamp(0.95rem, 0.9rem + 0.25vw, 1.12rem); color: var(--ink); line-height: 1.5; }
 .pf-credits dd.pf-credits__list { color: var(--ink-dim); }
 
-/* ============================================================
-   04 · SEAM — transition into the second act
-   ============================================================ */
 .pf-seam {
   position: relative; min-height: 88svh; display: grid; place-items: center;
   background: linear-gradient(180deg, var(--void) 0%, var(--deeper) 46%, var(--deeper) 54%, var(--void) 100%);
@@ -360,17 +325,6 @@ body.portfolio-page { background: #05070D; }
   opacity: var(--o2, 0);
 }
 
-/* ============================================================
-   05 · BEYOND THE REEL
-   ============================================================ */
-.pf-beyond { padding: clamp(80px, 14vh, 170px) 0 clamp(40px, 6vh, 70px); background: var(--void); }
-.pf-beyond__head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.7fr); gap: clamp(28px, 5vw, 80px); align-items: end; }
-.pf-beyond__title { margin-top: clamp(22px, 3.4vh, 40px); }
-.pf-beyond__head .pf-lede { padding-bottom: 10px; }
-
-/* ============================================================
-   06 · COMING SOON — the curated empty state
-   ============================================================ */
 .pf-soon { padding: clamp(30px, 5vh, 60px) 0 clamp(90px, 15vh, 180px); background: var(--void); }
 .pf-soon__panel {
   position: relative; overflow: hidden; isolation: isolate;
@@ -382,14 +336,14 @@ body.portfolio-page { background: #05070D; }
     linear-gradient(165deg, #0A1226 0%, #060A16 58%, #05070D 100%);
   display: grid; place-items: center;
 }
-/* abstract media fragments — nothing representational, nothing invented */
+
 .pf-soon__frag {
   position: absolute; z-index: 0;
   border: 1px solid rgba(148, 170, 230, 0.09);
   background: linear-gradient(150deg, rgba(110, 168, 255, 0.08), rgba(110, 168, 255, 0) 62%);
   will-change: transform; animation-play-state: paused;
 }
-/* depth comes from blur + border weight, not from drop shadows */
+
 .pf-soon__frag--1 { width: 34%; aspect-ratio: 16 / 9; left: -6%; top: 8%; z-index: 0; }
 .pf-soon__frag--2 { width: 26%; aspect-ratio: 4 / 3; right: -4%; top: -8%; filter: blur(2px); opacity: 0.55; }
 .pf-soon__frag--3 { width: 30%; aspect-ratio: 16 / 10; right: 6%; bottom: -12%; border-color: rgba(148, 170, 230, 0.14); z-index: 0; }
@@ -407,7 +361,6 @@ body.portfolio-page { background: #05070D; }
 @keyframes pfFrag4 { from { transform: translate3d(0, 0, 0) rotate(1.8deg); } to { transform: translate3d(8%, -5%, 0) rotate(-1deg); } }
 @keyframes pfFrag5 { from { transform: translate3d(-3%, 0, 0); } to { transform: translate3d(3%, -3%, 0); } }
 
-/* slow light movement across the field */
 .pf-soon__sweep {
   position: absolute; top: -30%; bottom: -30%; left: -40%; width: 42%; z-index: 1;
   background: linear-gradient(90deg, transparent, rgba(156, 194, 255, 0.09), transparent);
@@ -461,19 +414,6 @@ body.portfolio-page { background: #05070D; }
 .pf-soon__cta svg { width: 13px; height: 13px; transition: transform 0.45s var(--ease-out); }
 .pf-soon__cta:hover svg { transform: translateX(5px); }
 
-/* ============================================================
-   04 + 05 · ESTABLISHED CHAPTERS — Practice Spectrum & Clients
-   ------------------------------------------------------------
-   These two sections are preserved exactly as they exist on the
-   site: same markup, same classes, same typography, same logo
-   assets, same reveal behaviour. Nothing here restyles them.
-
-   The only rules below build the approach into and out of them,
-   so an established chapter reads as part of the cinematic
-   sequence instead of cutting into it.
-   ============================================================ */
-
-/* exposure ramp: the void gives way to paper — and back again */
 .pf-fade {
   position: relative;
   height: clamp(90px, 13vh, 170px);
@@ -488,198 +428,10 @@ body.portfolio-page { background: #05070D; }
     #F7F5EF 0%, #7E8496 20%, #22293A 44%, #0A0F1D 70%, #05070D 100%);
 }
 
-/* Accessibility, not restyling: the eyebrow colour is shared with the
-   dark chapters, where #9CC2FF is legible. On this section's paper
-   background it falls to 1.66:1. Swap in the deep azure the section
-   already uses for its serif line — 6.1:1, same role in the hierarchy. */
-.portfolio-proof header > p { color: #2E5AAC; }
-
-/* the chapter rail inverts while it is over the paper chapter */
-.pf-railnav.is-light i { background: rgba(12, 19, 48, 0.26); }
-.pf-railnav.is-light i.is-active { background: #2E5AAC; }
-
-@media (prefers-reduced-motion: reduce) {
+.portfolio-proof header > p { color: #2E5AAC; }@media (prefers-reduced-motion: reduce){
   .pf-fade { height: clamp(70px, 10vh, 130px); }
+}@media (hover: hover) and (pointer: fine){
 }
-
-/* ============================================================
-   09 · CASE STUDIES — a cinematic horizontal runway
-   ------------------------------------------------------------
-   The visitor travels through a large horizontal canvas. Each
-   project is a scene, not a card: it takes the frame, recedes,
-   and hands over to the next one while the next is already
-   entering. Depth comes from four layers moving at different
-   rates — background lags, media leads, typography leads a
-   little more, the number barely moves.
-
-   All of it is decoration. --f (focus) and --rel (distance from
-   centre) default to neutral, so with JS off, under reduced
-   motion, or on a small screen every scene is simply present.
-   ============================================================ */
-.pf-runway { background: var(--deep); }
-.pf-runway__pin {
-  position: sticky; top: 0; min-height: 100vh; min-height: 100svh;
-  display: flex; flex-direction: column; justify-content: space-between;
-  gap: clamp(14px, 2.2vh, 30px);
-  padding: clamp(64px, 8vh, 130px) 0 clamp(22px, 3.6vh, 50px);
-  overflow: hidden;
-}
-.pf-runway__head { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; }
-.pf-runway__hint {
-  display: inline-flex; align-items: center; gap: 12px;
-  font-size: 10px; font-weight: 600; letter-spacing: 0.26em; text-transform: uppercase;
-  color: var(--ink-faint);
-}
-.pf-runway__hint svg { color: var(--azure); }
-
-.pf-runway__viewport { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; overflow: hidden; }
-.pf-runway__track {
-  display: flex; align-items: stretch;
-  gap: clamp(60px, 9vw, 190px);
-  padding-inline: var(--pad);
-  counter-reset: pfcard;
-  will-change: transform;
-}
-
-/* ---- the stage: every scene is a field, not a card --------- */
-.pf-scene {
-  position: relative; flex: 0 0 auto;
-  --f: 1;    /* focus, 0 → 1, written by JS */
-  --rel: 0;  /* distance from the centre of the stage, in stage widths */
-}
-
-/* ---- scene 00 · the chapter opens -------------------------- */
-.pf-scene--intro {
-  width: min(720px, 78vw);
-  display: flex; flex-direction: column; justify-content: center;
-}
-.pf-runway__display {
-  font-size: clamp(2.5rem, 6.6vw, 6.6rem);
-  line-height: 0.92; letter-spacing: -0.05em; font-weight: 500;
-}
-.pf-runway__display .pf-line + .pf-line { margin-top: clamp(4px, 0.8vh, 12px); }
-.pf-runway__display em { font-family: var(--serif); font-style: italic; color: var(--azure-hi); }
-.pf-scene__lede { margin-top: clamp(18px, 2.6vh, 30px); max-width: 46ch; }
-.pf-scene__note {
-  margin-top: clamp(20px, 3vh, 34px);
-  font-size: 10px; font-weight: 600; letter-spacing: 0.26em; text-transform: uppercase;
-  color: var(--ink-faint);
-}
-.pf-scene__note em { font-family: var(--serif); font-style: italic; letter-spacing: 0; color: var(--azure-hi); }
-
-/* ---- the projects — ONE component, different data ---------- */
-/*  Adding a case study = one more .pf-card with the same five
-    fields in the same order. Nothing below is per-project: the
-    number is a CSS counter, the width is one shared rule, and the
-    frame is 16:9 regardless of what the source artwork is.        */
-.pf-card {
-  position: relative; flex: 0 0 auto;
-  width: clamp(300px, 44vw, 440px);        /* the only width rule */
-  display: flex;
-  counter-increment: pfcard;
-  --f: 1;    /* focus, 0 → 1, written by JS */
-  --rel: 0;  /* distance from the centre of the stage */
-  /* translate only — depth without any difference in rendered size */
-  transform: translate3d(calc(var(--rel) * 14px), 0, 0);
-  opacity: calc(0.55 + 0.45 * var(--f));
-}
-.pf-card__link {
-  position: relative; z-index: 1; flex: 1 1 auto;
-  display: flex; flex-direction: column; color: inherit;
-}
-.pf-card__num {
-  position: absolute; top: 14px; left: 16px; z-index: 2;
-  font-family: var(--serif); font-style: italic;
-  font-size: 0.95rem; letter-spacing: 0; color: var(--azure-hi);
-  opacity: calc(0.4 + 0.6 * var(--f));
-}
-.pf-card__num::after { content: counter(pfcard, decimal-leading-zero); }
-
-/* the frame — identical for every project, never content-driven */
-.pf-card__media {
-  position: relative; margin: 0; overflow: hidden;
-  aspect-ratio: 16 / 9;
-  background: #03050B;
-  border: 1px solid var(--rule);
-}
-.pf-card__media img {
-  display: block; width: 100%; height: 100%;
-  object-fit: cover;
-  transform: scale(calc(1.02 + 0.06 * var(--f)));
-}
-/* branded artwork keeps every pixel — the frame never changes */
-.pf-card__media img[data-fit="contain"] { object-fit: contain; }
-.pf-card__veil {
-  position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  background: linear-gradient(180deg, rgba(6,10,18,0) 42%, rgba(6,10,18,0.62) 100%);
-  opacity: calc(0.92 - 0.58 * var(--f));
-}
-
-/* the information block — one order, fixed positions, CTA anchored */
-.pf-card__body {
-  flex: 1 1 auto; display: flex; flex-direction: column;
-  padding-top: clamp(16px, 2.2vh, 26px);
-}
-.pf-card__category {
-  font-size: 10px; font-weight: 600; letter-spacing: 0.26em; text-transform: uppercase;
-  color: var(--azure-hi);
-}
-.pf-card__client {
-  margin-top: 10px;
-  font-size: clamp(1.04rem, 2.44vw, 1.53rem);
-  line-height: 1.14; letter-spacing: -0.022em; font-weight: 500;
-  color: var(--ink);
-}
-.pf-card__project {
-  margin-top: 12px;
-  font-size: clamp(0.94rem, 1.05vw, 1.06rem);
-  line-height: 1.45; color: var(--ink-dim);
-  min-height: calc(2 * 1.45em);   /* reserves the area so nothing below it moves */
-}
-.pf-card__work {
-  margin-top: 16px;
-  font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase;
-  color: var(--ink-faint);
-}
-.pf-card__cta {
-  margin-top: auto; padding-top: clamp(20px, 2.8vh, 30px);
-  display: inline-flex; align-items: center; gap: 12px;
-  font-size: 10px; font-weight: 600; letter-spacing: 0.26em; text-transform: uppercase;
-  color: var(--ink);
-}
-.pf-card__cta u { text-decoration: none; padding-bottom: 6px; border-bottom: 1px solid var(--rule); transition: border-color 0.5s var(--ease); }
-.pf-card__cta svg { width: 15px; height: 15px; transition: transform 0.55s var(--ease-out); }
-
-@media (hover: hover) and (pointer: fine) {
-  .pf-card__link:hover .pf-card__cta u { border-color: var(--rule-hi); }
-  .pf-card__link:hover .pf-card__cta svg { transform: translateX(7px); }
-}
-.pf-card__link:focus-visible { outline: 2px solid var(--azure); outline-offset: 10px; }
-
-.pf-scene--tail { width: min(520px, 44vw); }
-
-.pf-runway__hud { display: flex; align-items: center; gap: clamp(16px, 3vw, 40px); }
-.pf-runway__count {
-  font-size: 10px; font-weight: 600; letter-spacing: 0.24em; color: var(--ink-faint);
-}
-.pf-runway__count em { font-family: var(--serif); font-style: italic; font-size: 2.1em; letter-spacing: 0; color: var(--azure-hi); }
-.pf-runway__bar { flex: 1 1 auto; height: 1px; background: var(--rule); }
-.pf-runway__bar span {
-  display: block; height: 100%; background: var(--azure);
-  transform: scaleX(0); transform-origin: 0 50%;
-}
-/* ============================================================
-   INTERFACE DETAILS — chapter rail + cursor
-   ============================================================ */
-.pf-railnav {
-  position: fixed; right: clamp(14px, 2vw, 30px); top: 50%; transform: translateY(-50%);
-  z-index: 120; display: grid; gap: 12px; justify-items: end;
-}
-.pf-railnav i {
-  display: block; width: 18px; height: 1px; background: rgba(148, 170, 230, 0.28);
-  transition: width 0.5s var(--ease), background 0.5s var(--ease);
-}
-.pf-railnav i.is-active { width: 38px; background: var(--azure); }
 
 .pf-cursor {
   position: fixed; left: 0; top: 0; z-index: 240; pointer-events: none;
@@ -696,16 +448,8 @@ body.portfolio-page { background: #05070D; }
   font-size: 9.5px; font-weight: 600; letter-spacing: 0.24em; text-transform: uppercase;
   color: var(--ink); white-space: nowrap;
 }
-body.pf-cursor-active [data-cursor] { cursor: none; }
-
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
-@media (max-width: 1200px) {
-  .pf-railnav { display: none; }
-}
-
-@media (max-width: 900px) {
+body.pf-cursor-active [data-cursor] { cursor: none; }@media (max-width: 1200px){
+}@media (max-width: 900px){
   .pf-overture { min-height: auto; padding-top: clamp(104px, 18vh, 150px); padding-bottom: clamp(40px, 7vh, 72px); }
   .pf-overture__foot { grid-template-columns: 1fr; gap: 26px; align-items: start; }
   .pf-overture__disc { max-width: none; font-size: 0.72rem; letter-spacing: 0.2em; }
@@ -713,18 +457,14 @@ body.pf-cursor-active [data-cursor] { cursor: none; }
   .pf-scroll { display: none; }
 
   .pf-context__grid { grid-template-columns: 1fr; gap: 40px; }
-  .pf-beyond__head { grid-template-columns: 1fr; gap: 26px; align-items: start; }
-  .pf-beyond__head .pf-lede { padding-bottom: 0; }
 
   .pf-soon__panel { min-height: clamp(470px, 74vh, 660px); padding: clamp(36px, 6vh, 64px) clamp(20px, 6vw, 36px); }
 
-  /* no parallax below 900px — the crop returns to its native frame */
+  
 
   .pf-seam { min-height: 62svh; }
   .pf-film__caption { flex-direction: column; gap: 16px; align-items: flex-start; }
-}
-
-@media (max-width: 560px) {
+}@media (max-width: 560px){
   .pf-display { font-size: clamp(2.6rem, 13vw, 4.4rem); }
   .pf-overture__title .pf-suffix { margin-left: 14px; font-size: clamp(1.5rem, 7vw, 2.6rem); }
   .pf-film__edge i { width: 10px; height: 10px; }
@@ -735,38 +475,8 @@ body.pf-cursor-active [data-cursor] { cursor: none; }
   .pf-credits > div { grid-template-columns: 1fr; gap: 8px; }
   .pf-credits dt { padding-top: 0; }
   .pf-soon__kinds { gap: 6px 0; font-size: 9px; }
-}
-
-/* ============================================================
-   RESPONSIVE — the runway
-   ============================================================ */
-/* Fallback composition — small screens, short windows AND
-   reduced motion. The pin is released and the runway becomes a
-   native, snap-scrolling region: swipe, drag, arrow keys and
-   tabbing all work. Every scene is fully present. */
-@media (max-width: 900px), (max-height: 700px), (prefers-reduced-motion: reduce) {
-  .pf-runway { height: auto !important; padding: clamp(70px, 11vh, 120px) 0; }
-  .pf-runway__pin { position: static; min-height: 0; padding: 0; gap: clamp(24px, 4vh, 44px); }
-  .pf-runway__viewport {
-    overflow-x: auto; overflow-y: hidden;
-    scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; padding-bottom: 2px;
-  }
-  .pf-runway__viewport::-webkit-scrollbar { display: none; }
-  .pf-runway__track { transform: none !important; gap: clamp(20px, 6vw, 44px); }
-  .pf-runway__hint { display: none; }
-
-  .pf-scene { scroll-snap-align: center; opacity: 1 !important; transform: none !important; }
-  .pf-card__media img { transform: none !important; }
-  .pf-card__veil { opacity: 0 !important; }
-  .pf-card__num { opacity: 1 !important; }
-
-  .pf-scene--intro { width: min(560px, 82vw); }
-}
-/* ============================================================
-   REDUCED MOTION — complete hierarchy, no motion
-   ============================================================ */
-@media (prefers-reduced-motion: reduce) {
+}@media (max-width: 900px), (max-height: 700px), (prefers-reduced-motion: reduce){
+}@media (prefers-reduced-motion: reduce){
   .pf-overture__aura,
   .pf-scroll i::after,
   .pf-soon__dot,
@@ -794,8 +504,6 @@ body.pf-cursor-active [data-cursor] { cursor: none; }
   .pf-soon__frag { opacity: 0.85; }
 }
 
-/* Failsafe — mirrors the site-wide reveal guard: if the page scripts never
-   run, the overture and every masked line render in their final state. */
 html.js.reveal-failsafe:not(.js-ok) .pf-line > i { transform: none !important; }
 html.js.reveal-failsafe:not(.js-ok) .pf-overture .pf-eyebrow,
 html.js.reveal-failsafe:not(.js-ok) .pf-overture__idx,
@@ -804,10 +512,8 @@ html.js.reveal-failsafe:not(.js-ok) .pf-overture .pf-lede,
 html.js.reveal-failsafe:not(.js-ok) .pf-overture__foot,
 html.js.reveal-failsafe:not(.js-ok) .pf-scroll { opacity: 1 !important; }
 
-/* Any element the global reveal system has already shown also resolves its lines */
 .in-view .pf-line > i { transform: translate3d(0, 0, 0); }
 
-/* No-JS: nothing depends on JS to be readable */
 html:not(.js) .pf-line > i,
 html:not(.js) .pf-overture .pf-eyebrow,
 html:not(.js) .pf-overture__idx,
@@ -817,22 +523,88 @@ html:not(.js) .pf-overture__foot { transform: none; opacity: 1; }
 html:not(.js) .pf-film__panel { display: none; }
 html:not(.js) .pf-film__stage { transform: none; }
 html:not(.js) .pf-player__poster img { transform: none; }
-/* with JS off the runway is a native scroll region — nothing is lost */
-html:not(.js) .pf-runway { height: auto !important; padding: clamp(70px, 11vh, 120px) 0; }
-html:not(.js) .pf-runway__pin { position: static; min-height: 0; padding: 0; gap: 30px; }
-html:not(.js) .pf-runway__viewport { overflow-x: auto; scroll-snap-type: x mandatory; }
-html:not(.js) .pf-runway__track { transform: none !important; }
-html:not(.js) .pf-scene { opacity: 1 !important; transform: none !important; scroll-snap-align: center; }
-html:not(.js) .pf-runway__hint { display: none; }
-html:not(.js) .pf-card__media img { transform: none !important; }
-html:not(.js) .pf-card__veil { opacity: 0 !important; }
-html:not(.js) .pf-card__num { opacity: 1 !important; }
 
-/* Screen-reader / crawler-only text. Used to give the display H1 a complete
-   accessible name without altering the typographic composition. Visually
-   hidden, still exposed to assistive tech and crawlers — NOT hidden SEO copy. */
 .pf-sr {
   position: absolute; width: 1px; height: 1px;
   margin: -1px; padding: 0; overflow: hidden;
   clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* portfolio clients = homepage trust structure; the longer owner
+   title needs a step-down to hold the same two-line composition */
+#clients .chapter__title { font-size: clamp(2.3rem, 1.5rem + 3.2vw, 3.5rem); }
+
+/* ============================================================
+   SELECTED PROOF — the recruiter r-proof component, reused here
+   (palette vars scoped to the section wrapper)
+   ============================================================ */
+
+.pf-proofwrap{--r-ink:#EDF0F4;--r-mut:#9AA4BE;--r-mut-2:#C3CAE0;--r-dim:#7E89A3;--r-line:rgba(148,170,230,0.18);--r-line-soft:rgba(148,170,230,0.10);--r-acc:#6EA8FF;--r-acc-hi:#9CC2FF;--r-acc-ink:#061128;--r-focus:#6EA8FF;--r-ghost:rgba(148,170,230,0.10)}
+
+.r-cta:focus-visible,.r-cta--line:focus-visible,.r-arrow:focus-visible,.r-nav:focus-visible,.r-evolve__btn:focus-visible,.r-cap__btn:focus-visible,.r-method__btn:focus-visible,.r-proof__rail:focus-visible,.r-contact__mail a:focus-visible,.r-contact__links a:focus-visible,.r-cap__rel a:focus-visible{outline:2px solid var(--r-focus);outline-offset:3px;border-radius:2px}
+.r-h2{font-family:"Poppins",var(--font);font-weight:600;font-size:clamp(1.9rem,2.8vw,2.8rem);letter-spacing:-0.025em;line-height:1.06;color:var(--r-ink);margin:0 0 clamp(18px,2.6vh,26px);text-wrap:balance}
+.r-h2 em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--r-acc)}
+.r-sec__head .r-h2{margin-bottom:6px}
+.r-arrow{display:inline-block;color:var(--r-acc);text-decoration:none;font-size:12px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;border-bottom:1px solid rgba(110,168,255,0.4);padding-bottom:7px;transition:color 0.35s var(--ease),border-color 0.35s var(--ease);white-space:nowrap}
+.r-arrow:hover{color:var(--r-acc-hi);border-color:var(--r-acc-hi)}
+.r-proof__head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px 40px;margin-bottom:clamp(36px,6vh,64px)}
+.r-proof__head .r-h2{margin-bottom:0;max-width:22ch}
+.r-proof__meta{display:flex;flex-direction:column;align-items:flex-end;gap:16px}
+.r-proof__count{font-family:var(--serif);font-style:italic;font-size:1.25rem;color:var(--r-ink);letter-spacing:0.05em;margin:0;font-variant-numeric:tabular-nums}
+.r-proof__count span{color:var(--r-acc)}
+.r-proof__nav{display:flex;gap:10px}
+.r-nav{width:46px;height:46px;border-radius:10px;border:1px solid var(--r-line);background:transparent;color:var(--r-ink);cursor:pointer;display:grid;place-items:center;transition:border-color 0.35s var(--ease),color 0.35s var(--ease),background 0.35s var(--ease),opacity 0.35s var(--ease)}
+.r-nav svg{width:16px;height:16px}
+.r-nav:hover{border-color:var(--r-acc);color:var(--r-acc-hi);background:rgba(110,168,255,0.06)}
+.r-nav:disabled{opacity:0.3;cursor:default}
+.r-nav:disabled:hover{border-color:var(--r-line);color:var(--r-ink);background:transparent}
+.r-proof__rail{display:flex;gap:clamp(32px,5vw,80px);overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-ms-overflow-style:none;padding:2px 0 6px}
+.r-proof__rail::-webkit-scrollbar{display:none}
+.r-proof__panel{flex:0 0 min(68vw,780px);scroll-snap-align:start;position:relative}
+.r-proof__ghost{position:absolute;top:-0.16em;left:-0.04em;z-index:0;font-family:var(--serif);font-style:italic;font-weight:400;font-size:clamp(6rem,12vw,11rem);line-height:1;color:transparent;-webkit-text-stroke:1px rgba(148,170,230,0.13);pointer-events:none;user-select:none;font-variant-numeric:tabular-nums;transition:-webkit-text-stroke-color 0.5s var(--ease)}
+.r-proof__panel.is-active .r-proof__ghost{-webkit-text-stroke-color:rgba(148,170,230,0.24)}
+.r-proof__media{position:relative;z-index:1;margin:0 0 20px;border:1px solid var(--r-line);padding:10px;transition:border-color 0.5s var(--ease)}
+.r-proof__panel.is-active .r-proof__media{border-color:rgba(110,168,255,0.42)}
+.r-proof__media img{display:block;width:100%;height:auto;aspect-ratio:16 / 9;object-fit:contain;background:#05070D}
+.r-proof__media::before,.r-proof__media::after{content:"";position:absolute;width:15px;height:15px;z-index:3;pointer-events:none;opacity:0.55;transition:opacity 0.5s var(--ease)}
+.r-proof__media::before{top:-1px;left:-1px;border-top:1px solid var(--r-acc);border-left:1px solid var(--r-acc)}
+.r-proof__media::after{bottom:-1px;right:-1px;border-bottom:1px solid var(--r-acc);border-right:1px solid var(--r-acc)}
+.r-proof__panel.is-active .r-proof__media::before,.r-proof__panel.is-active .r-proof__media::after{opacity:1}
+.r-proof__sweep{position:absolute;inset:-2%;z-index:2;pointer-events:none;background:linear-gradient(115deg,transparent 30%,rgba(110,168,255,0.12) 45%,rgba(170,200,255,0.2) 50%,rgba(110,168,255,0.12) 55%,transparent 70%);transform:translateX(-130%)}
+@media (hover:hover) and (pointer:fine){.r-proof__media{transition:transform 0.5s var(--ease),border-color 0.5s var(--ease)}
+.r-proof__panel:hover .r-proof__media{transform:translateY(-4px);border-color:rgba(110,168,255,0.35)}
+.r-proof__media:hover .r-proof__sweep{transition:transform 1.1s var(--ease);transform:translateX(130%)}
+}
+.r-proof__body{position:relative;z-index:1}
+.r-proof__sector{font-size:11px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:var(--r-acc);margin:0 0 12px}
+.r-proof__sector::before{content:"— ";opacity:0.7}
+.r-proof__name{font-family:"Poppins",var(--font);font-weight:600;font-size:clamp(1.7rem,2.7vw,2.6rem);letter-spacing:-0.03em;line-height:1.02;color:var(--r-ink);margin:0 0 12px;text-wrap:balance}
+.r-proof__name em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--r-acc)}
+.r-proof__role{font-size:12px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:var(--r-mut);margin:0 0 14px}
+.r-proof__desc{font-size:clamp(1rem,1rem + 0.2vw,1.12rem);line-height:1.7;color:var(--r-mut-2);max-width:56ch;margin:0 0 18px}
+.r-proof__tags{list-style:none;display:flex;flex-wrap:wrap;gap:4px 0;margin:0 0 22px;padding:0}
+.r-proof__tags li{font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--r-dim)}
+.r-proof__tags li + li::before{content:"·";color:var(--r-acc);margin:0 12px;font-weight:400}
+.r-proof__progress{height:1px;background:rgba(148,170,230,0.16);margin-top:clamp(24px,4vh,40px)}
+.r-proof__progress i{position:relative;display:block;height:100%;width:0;background:var(--r-acc)}
+.r-proof__progress i::after{content:"";position:absolute;right:-3px;top:50%;transform:translateY(-50%);width:6px;height:6px;border-radius:50%;background:var(--r-acc)}
+.r-proof__clients{margin-top:clamp(44px,7vh,76px);padding-top:clamp(26px,4vh,40px);border-top:1px solid var(--r-line)}
+.r-proof__clients-label{font-size:11px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:var(--r-dim);margin:0 0 14px}
+.r-proof__clients-list{font-size:0.95rem;line-height:2;color:var(--r-mut);margin:0 0 16px;max-width:88ch}
+.r-proof__clients-note{font-family:var(--serif);font-style:italic;font-size:1.05rem;line-height:1.6;color:var(--r-mut-2);margin:0;max-width:62ch}
+.r-cap__intro .r-h2{margin-bottom:10px}
+@media (max-width:1080px){.r-proof__panel{flex-basis:min(74vw,620px)}
+}
+@media (max-width:720px){.r-proof__panel{flex-basis:86vw}
+.r-proof__head .r-h2{max-width:none}
+.r-proof__meta{align-items:flex-start}
+}
+@media (max-width:480px){.r-proof__panel{flex-basis:90vw}
+}
+@media (pointer:coarse){.r-cta,.r-nav{min-height:48px}
+.r-nav{min-width:48px}
+.r-cta--line,.r-arrow{display:inline-block;padding:12px 4px}
+}
+@media (prefers-reduced-motion:reduce){.r-cta,.r-cta svg,.r-cta--line,.r-arrow,.r-nav,.r-cap__btn,.r-cap__name,.r-cap__num,.r-cap__detail,.r-method__btn,.r-method__desc,.r-method__mark,.r-method__name,.r-evolve__btn,.r-evolve__desc,.r-evolve__arrow,.r-evolve__name,.r-proof__media,.r-proof__media img,.r-proof__ghost,.r-snode text,.r-snode__dot,.r-snode__halo,.r-system__spokes line,.r-ai li,.r-contact__mail a,.r-contact__links a{transition:none}
+.r-proof__sweep{display:none}
 }

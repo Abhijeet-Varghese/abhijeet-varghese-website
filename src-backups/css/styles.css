@@ -3643,3 +3643,6 @@ body.about-page .about-zoomstage__labels li {
 /* content-visibility: below-fold chapters skip layout+paint until
    approached (journey excluded — sticky scrub measures it) */
 html.js .chapter { content-visibility: auto; contain-intrinsic-size: auto 880px; }
+/* story tail chapters — same below-fold skip (§29.10); boxes stay
+   measured for computeEnv, paint+layout deferred until near viewport */
+html.js .about-what, html.js .about-now, html.js .about-curious, html.js .about-credits { content-visibility: auto; contain-intrinsic-size: auto 720px; }

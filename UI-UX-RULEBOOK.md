@@ -818,3 +818,55 @@ gaps only). LAW §39.1: any new frontend content structure MUST be
 parseable by SiteSync in the same round it ships — a section the CMS
 cannot see is a section the owner cannot customize. Sandbox creds are
 gitignored (config.local.php untouched in repo).
+
+## 40. Round 12 — portfolio parity with recruiter, section consolidation, scroll-cost purge (2026-09-14)
+Portfolio page rebuilt around proven components, then the whole site's
+scroll engine was de-duplicated at the frame level.
+**§40.1 Component adoption over adaptation.** When one page already ships
+the best version of a component, other pages adopt that implementation
+verbatim (markup + CSS + JS contract), never a lookalike rebuild. The
+portfolio runway (pinned horizontal scenes, 404'd thumbnails) was replaced
+by the recruiter r-proof rail: same classes, same counter/prev/next/
+progress contract, panels in recruiter order (orange → army → bpcl) with
+real case-*.avif/.webp art. ONE deliberate divergence, documented: the
+active-panel rule uses midpoint coverage (`scrollLeft + clientWidth/2 >=
+offsetLeft`) instead of nearest-panel-start — nearest-start flips the
+counter to 03 before the last panel reaches the left edge when the rail
+wider than its content. Field-audited identical to recruiter behavior at
+1440/768/390 and it is end-stable where the original is not.
+**§40.2 Trust sections share one skeleton.** Portfolio clients now uses
+the homepage trust structure (chapter head + logo-wall ×16 + data-reveal
+staging) with portfolio's own title kept VERBATIM. Where adopted copy is
+longer than the source page's, a section-scoped type step-down may
+preserve the composition — never rewrite owner copy to fit a layout.
+**§40.3 One section per job.** Redundant wrapper sections are merged;
+#beyond folded into #more-work (status line carries "Beyond the reel ·
+In curation"). Section markers/rail dots (pf-railnav) join the ban list —
+chrome that duplicates the scrollbar was removed from markup, JS and CSS.
+**§40.4 Write-signature scroll engines (§29.9 extension).** Any rAF scroll
+engine must compute its frame's values first and write only what changed
+(signature compare per element) — the Evolution stack wrote ~40 style
+props × 8 cards every frame even at rest; now zero idle writes. Compass/
+is-front class flips are change-gated too.
+**§40.5 Variable fonts on display text = throttled fields.** Per-frame
+fontVariationSettings writes re-rasterize display-size glyphs (the most
+expensive paint on the site). Ambient variable-weight fields update at
+half frame-rate with a perceptibility-bounded epsilon (≥1.2 wght at 640
+base) — visually identical, ~5× fewer re-rasters. Hero idle DOM records
+halved (374→186 per 1.3s).
+**§40.6 No rect reads on scroll paths (§29.9 hard law).** portrait/
+zoom/env/timeline/stack-wake/hp-well readers now run on geometry cached
+via docY + offsetHeight (resize/load-refreshed). getBoundingClientRect
+is banned inside scroll/rAF callbacks unless the measurement IS the
+feature (film exit, seam).
+**§40.7 content-visibility for story tail chapters.** about-what/now/
+curious/credits get the same below-fold skip homepage chapters have;
+boxes stay measured for env logic via contain-intrinsic-size.
+**Audit:** portfolio at 390/768/1440/1920 — 0 asset 404s, 0 page errors,
+counter 01→02→03 + prev/next/keyboard, thumbnails render (AVIF currentSrc),
+film mounts youtube-nocookie iframe, nav clickable at 1920
+(elementFromPoint), 0 horizontal overflow. Story Evolution mid-stack: front
+card + compass sync + seek verified. Backend: rebuilt (fresh sandbox
+MariaDB), sync green — projects 3 / articles 6 / seo 30 / sections
+parseable (10/7/28), doctor SYSTEM READY — proving §39.1 held for the new
+r-proof + logo-wall markup. Refs ?v=4.4.2.
