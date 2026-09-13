@@ -799,3 +799,22 @@ block + railNav), BPCL #topbar (markup; navigation.js guards if(list)).
 (5) 26-page × D/M audit: 0 overflow, 0 JS errors, titles in window,
 1 h1/page, landmarks+skip links intact. /api/analytics 501 = preview
 artifact. Site refs ?v=4.4.1.
+
+## 39. Round 11 — backend sync + full CMS audit (2026-09-14)
+Stack executed END-TO-END in sandbox: MariaDB 11.8 + PHP 8.4 provisioned,
+31 migrations applied, admin bootstrapped, sync + API + doctor all run.
+**Gap found & fixed**: SiteSync parsed case-study HEAD/CARD metadata only
+— section BODIES were invisible to the CMS (projects.sections=0 → nothing
+editable). **SiteSync upgraded** (new caseSections() parser): every
+case-study <section> now lands in the project record — label/number,
+heading+accent, paragraphs, dl facts, images, videos (exact filenames),
+and every interactive control's data-* payload (pins, stages, chain,
+branches, purpose cards, media tabs). Verified store: Orange 10 sections
+(3 pins, 7 stages, 5 videos), Army 28, BPCL 7. Videos/posters now inherit
+aria-label as alt (was empty). API proven: POST /api/auth/login →
+GET /api/content/projects serves full sections; content views edit every
+store key versioned. doctor.php → SYSTEM READY (GD/cURL were sandbox
+gaps only). LAW §39.1: any new frontend content structure MUST be
+parseable by SiteSync in the same round it ships — a section the CMS
+cannot see is a section the owner cannot customize. Sandbox creds are
+gitignored (config.local.php untouched in repo).
