@@ -10,7 +10,7 @@
 window.BPCL_ASSETS = {
   /* Only the walkthrough video is read by the app (see WALKTHROUGH_SRC below);
      every other asset path is derived from APP.path() in core.js. */
-  video: "assets/video/walkthrough.mp4"
+  video: "assets/video/Bpcl 5.webm"
 };
 
 window.BPCL = {
@@ -32,13 +32,14 @@ window.BPCL = {
 
   WALKTHROUGH_SRC:   window.BPCL_ASSETS.video,
   /* Armed. The player mounts only when WALKTHROUGH_SRC actually resolves,
-     so it is safe to leave ON before the file exists: while the MP4 is
+     so it is safe to leave ON before the file exists: while the film is
      absent the site keeps the frame sequence and renders no broken control.
-     Drop the file at assets/video/walkthrough.mp4 (or point WALKTHROUGH_SRC
-     at another path) and refresh — the player appears automatically.     */
+     The film lives on the hosting server as `Bpcl 5.webm` (uploaded via
+     hPanel — not tracked in git). The space in the name is fine: fetch()
+     and video.src percent-encode it to Bpcl%205.webm automatically.
+     Point WALKTHROUGH_SRC elsewhere or rename the file to change this.  */
   WALKTHROUGH_VIDEO: true,
-  /* Supplied facts about the film, used only when it is mounted.
-     `Bpcl 5.mp4` is NOT present in this workspace — verified.    */
+  /* Supplied facts about the film, used only when it is mounted.        */
   WALKTHROUGH_META: { duration: '4:40', seconds: 280.17, w: 1280, h: 720 },
 
   LOCATION: 'Palakkad, Kerala',
