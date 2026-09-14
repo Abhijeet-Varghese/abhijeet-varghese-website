@@ -3,7 +3,7 @@ name: Build Staging Website
 on:
   push:
     branches:
-      - main
+      - staging
   workflow_dispatch:
 
 permissions:
