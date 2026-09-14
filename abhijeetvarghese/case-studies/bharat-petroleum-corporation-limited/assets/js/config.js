@@ -40,7 +40,7 @@ window.BPCL = {
      Point WALKTHROUGH_SRC elsewhere or rename the file to change this.  */
   WALKTHROUGH_VIDEO: true,
   /* Supplied facts about the film, used only when it is mounted.        */
-  WALKTHROUGH_META: { duration: '4:40', seconds: 280.17, w: 1280, h: 720 },
+  WALKTHROUGH_META: { duration: '1:19', seconds: 79.53, w: 1280, h: 720 },
 
   LOCATION: 'Palakkad, Kerala',
 
