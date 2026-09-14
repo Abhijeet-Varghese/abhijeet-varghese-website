@@ -88,50 +88,84 @@
      The player is enabled by WALKTHROUGH_VIDEO (config.js). A quick
      existence check on WALKTHROUGH_SRC decides whether to mount the
      player or keep the placeholder frame sequence — so dropping the
-     MP4 into assets/video/ (or repointing WALKTHROUGH_SRC) is all
+     film into assets/video/ (or repointing WALKTHROUGH_SRC) is all
      that's needed to go live; nothing else has to change. If the
      file is absent — or `fetch` is unavailable — the frames remain
-     and no broken control is ever shown. */
+     and no broken control is ever shown.
+
+     The facade is the portfolio page's player UI (css/portfolio-reel.css
+     · .pf-player): poster, scrim, circular play chip; clicking swaps the
+     facade for the local <video> exactly as the portfolio swaps in its
+     YouTube iframe (is-playing). Styles for the classes live in
+     assets/css/main.css § pf-player (extracted, value-identical). */
   if (C.WALKTHROUGH_VIDEO && C.WALKTHROUGH_SRC) {
     var frame = $('#filmFrame');
+    var POSTER = 'assets/images/walkthrough/frame01-1280.jpg';
 
     var mount = function () {
-      var video = document.createElement('video');
-      video.className = 'film__video';
-      video.setAttribute('playsinline', '');
-      video.setAttribute('muted', '');
-      video.setAttribute('preload', 'none');          /* nothing loads until asked */
-      video.setAttribute('poster', 'assets/images/walkthrough/frame01-1280.jpg');
-      var meta = C.WALKTHROUGH_META || {};
-      if (meta.w) { video.width = meta.w; video.height = meta.h; }
-      video.setAttribute('aria-label', '3D architectural walkthrough of the BPCL Palakkad Top Installation');
-      video.controls = true;
-      var btn = document.createElement('button');
-      btn.className = 'film__play';
-      btn.type = 'button';
-      btn.innerHTML = '<span class="film__playico" aria-hidden="true"></span><span class="mono">PLAY WALKTHROUGH FILM</span>';
-      btn.addEventListener('click', function () {
-        /* if the asset can't actually be served, drop the player and
-           restore the frame sequence rather than leave a dead control */
+      var player = document.createElement('div');
+      player.className = 'pf-player';
+      player.setAttribute('data-pf-player', '');
+
+      var poster = document.createElement('button');
+      poster.className = 'pf-player__poster';
+      poster.type = 'button';
+      poster.setAttribute('aria-label', 'Play the walkthrough film: BPCL Palakkad Top Installation');
+
+      var img = document.createElement('img');
+      img.src = POSTER;
+      img.alt = '';
+      img.width = 1280; img.height = 720;
+      img.decoding = 'async'; img.loading = 'lazy';
+
+      var scrim = document.createElement('span');
+      scrim.className = 'pf-player__scrim';
+      scrim.setAttribute('aria-hidden', '');
+
+      var play = document.createElement('span');
+      play.className = 'pf-player__play';
+      play.setAttribute('aria-hidden', '');
+      play.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.2v13.6L19 12z"/></svg><b>Play film</b>';
+
+      poster.appendChild(img);
+      poster.appendChild(scrim);
+      poster.appendChild(play);
+      player.appendChild(poster);
+      frame.appendChild(player);
+
+      poster.addEventListener('click', function () {
+        /* swap the facade for the film — same pattern as the portfolio
+           player's iframe mount; if the asset can't actually be served,
+           restore the facade rather than leave a dead control */
+        var video = document.createElement('video');
+        video.className = 'film__video';
+        video.controls = true;
+        video.setAttribute('playsinline', '');
+        video.setAttribute('poster', POSTER);
+        video.setAttribute('preload', 'auto');
+        var meta = C.WALKTHROUGH_META || {};
+        if (meta.w) { video.width = meta.w; video.height = meta.h; }
+        video.setAttribute('aria-label', '3D architectural walkthrough of the BPCL Palakkad Top Installation');
         video.addEventListener('error', function () {
           frame.classList.remove('has-video');
-          if (btn.parentNode) btn.parentNode.removeChild(btn);
-          if (video.parentNode) video.parentNode.removeChild(video);
+          if (player.parentNode) player.parentNode.removeChild(player);
+          mount();
         });
-        video.preload = 'auto';
         video.src = C.WALKTHROUGH_SRC;
+        player.innerHTML = '';
+        player.appendChild(video);
+        player.classList.add('is-playing');
         video.play().catch(function () {});
-        btn.remove();
-        frame.classList.add('has-video');
+
+        /* pause when scrolled away */
+        if ('IntersectionObserver' in window) {
+          new IntersectionObserver(function (e) {
+            if (!e[0].isIntersecting && !video.paused) video.pause();
+          }, { threshold: 0.05 }).observe(frame);
+        }
       });
-      frame.appendChild(video);
-      frame.appendChild(btn);
-      /* pause when scrolled away */
-      if ('IntersectionObserver' in window) {
-        new IntersectionObserver(function (e) {
-          if (!e[0].isIntersecting && !video.paused) video.pause();
-        }, { threshold: 0.05 }).observe(frame);
-      }
+
+      frame.classList.add('has-video');
     };
 
     if (window.fetch) {
