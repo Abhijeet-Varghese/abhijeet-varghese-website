@@ -309,9 +309,11 @@ a{ color:inherit; text-decoration:none; }
   color:var(--on-dark); font-family:var(--mono); font-size:.48rem; letter-spacing:.18em; text-transform:uppercase;
 }
 
-/* video slot — only mounted when the film exists */
+/* video slot — only mounted when the film exists; the film itself
+   shows ONLY on frame 01 (.is-film), every other frame keeps its
+   picture. Any navigation out of 01 pauses + rewinds the film. */
 .film__video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; background:#05090F; }
-.film__frame.has-video .film__grid,.film__frame.has-video .film__stage{ display:none; }
+.film__frame.is-film .film__grid,.film__frame.is-film .film__stage{ display:none; }
 
 /* ── pf-player — the portfolio page's player UI (css/portfolio-reel.css,
    extracted value-identical; the vars .pf defines page-wide are scoped
@@ -321,6 +323,8 @@ a{ color:inherit; text-decoration:none; }
   --ease:cubic-bezier(0.22,1,0.36,1); --ease-out:cubic-bezier(0.16,1,0.3,1);
 }
 .pf-player{ position:relative; width:100%; height:100%; background:#03050B; }
+.film__frame .pf-player{ position:absolute; inset:0; z-index:4; }
+.film__frame:not(.is-film) .pf-player{ display:none; }
 .pf-player__poster{
   position:absolute; inset:0; width:100%; height:100%; display:block;
   padding:0; border:0; background:#03050B; cursor:pointer;
