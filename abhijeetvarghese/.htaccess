@@ -63,34 +63,47 @@ ErrorDocument 504 /504.html
   RewriteRule ^maintenance/?$ /maintenance.html [END]
   RewriteRule ^offline/?$ /offline.html [END]
 
-  # Root assets referenced by root-level HTML after clean-URL canonicalization.
+  # --- rescue rules for still-cached pre-canonicalization HTML -------------
+  # (old pages used relative refs; these keep them alive until caches drain)
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{DOCUMENT_ROOT}/$2/$3 -f
   RewriteRule ^([^/]+)/(assets|css|js)/(.*)$ /$2/$3 [END]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{DOCUMENT_ROOT}/$2 -f
   RewriteRule ^([^/]+)/(manifest\.webmanifest|robots\.txt|sitemap\.xml)$ /$2 [END]
-
-  # Relative navigation compatibility from clean URLs.
   RewriteRule ^([^/]+)/(story|experience|case-studies|portfolio|contact|recruiter|consulting|insights|journal|sitemap|privacy|terms)\.html$ /$2/ [R=301,L,NE]
   RewriteRule ^([^/]+)/(story|experience|case-studies|portfolio|contact|recruiter|consulting|insights|journal|sitemap|privacy|terms)(/.*)?$ /$2$3 [R=301,L,NE]
 
-  # Canonical home URL.
-  RewriteRule ^index\.html/?$ / [R=301,L]
-
-  # Canonical clean URLs for standalone .html pages.
-  RewriteRule ^(.+)\.html/?$ /$1/ [R=301,L,NE]
-
-  # Legacy case-study URLs.
+  # --- legacy destinations & aliases (no chains) ----------------------------
+  RewriteRule ^case-studies\.html/?$ /case-studies/ [R=301,L]
+  RewriteRule ^experience\.html/?$ /experience/ [R=301,L]
+  RewriteRule ^recruitment/?$ /recruiter/ [R=301,L]
+  RewriteRule ^case-study-enterprise-technology-made-understandable\.html/?$ /case-studies/orange-business/ [R=301,L]
   RewriteRule ^case-study-enterprise-technology-made-understandable/?$ /case-studies/orange-business/ [R=301,L]
   RewriteRule ^experience-design/orange-business-executive-briefing-center/?$ /case-studies/orange-business/ [R=301,L]
+  RewriteRule ^case-study-intuitive-experiences-for-industrial-environments\.html/?$ /case-studies/bharat-petroleum-corporation-limited/ [R=301,L]
   RewriteRule ^case-study-intuitive-experiences-for-industrial-environments/?$ /case-studies/bharat-petroleum-corporation-limited/ [R=301,L]
+  RewriteRule ^case-study-immersive-solutions-for-the-indian-army\.html/?$ /case-studies/indian-army/ [R=301,L]
   RewriteRule ^case-study-immersive-solutions-for-the-indian-army/?$ /case-studies/indian-army/ [R=301,L]
   RewriteRule ^experience-design/bpcl-palakkad/?$ /case-studies/bharat-petroleum-corporation-limited/ [R=301,L]
 
-  # Clean root-level URL -> authored .html file.
-  RewriteCond %{REQUEST_FILENAME} !-f
+  # --- generic clean-URL engine (mirrors avos-php/router.php) ---------------
+  # Canonical form: every page lives at exactly ONE url — /section/ for
+  # directories, /name/ for single pages. Everything else 301s here.
+  # /index.html, /index, /any/dir/index, /any/dir/index.html -> directory root
+  RewriteRule ^index(\.html)?/?$ / [R=301,L]
+  RewriteRule ^(.+/)index(\.html)?/?$ /$1 [R=301,L]
+  # /page.html or stray /page.html/ -> /page/
+  RewriteRule ^(.+)\.html/?$ /$1/ [R=301,L]
+  # /page (no slash) -> /page/  (only when page.html exists)
   RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME}\.html -f
+  RewriteRule ^(.+[^/])$ /$1/ [R=301,L]
+  # /page/ -> serve page.html
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME}/index.html !-f
   RewriteCond %{DOCUMENT_ROOT}/$1.html -f
-  RewriteRule ^([^/]+?)/?$ /$1.html [END]
+  RewriteRule ^(.+)/$ $1.html [END]
 </IfModule>

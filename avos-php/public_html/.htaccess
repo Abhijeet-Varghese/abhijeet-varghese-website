@@ -87,6 +87,40 @@ RewriteRule ^case-study-intuitive-experiences-for-industrial-environments\.html/
 RewriteRule ^case-study-immersive-solutions-for-the-indian-army\.html/?$ /case-studies/indian-army/ [R=301,L]
 RewriteRule ^experience-design/bpcl-palakkad/?$ /case-studies/bharat-petroleum-corporation-limited/ [R=301,L]
 
+  # --- legacy destinations & aliases (no chains) --------------------------
+  RewriteRule ^case-studies\.html/?$ /case-studies/ [R=301,L]
+  RewriteRule ^experience\.html/?$ /experience/ [R=301,L]
+  RewriteRule ^recruitment/?$ /recruiter/ [R=301,L]
+  RewriteRule ^for-recruiters\.html/?$ /recruiter/ [R=301,L]
+  RewriteRule ^case-study-enterprise-technology-made-understandable\.html/?$ /case-studies/orange-business/ [R=301,L]
+  RewriteRule ^experience-design/orange-business-executive-briefing-center/?$ /case-studies/orange-business/ [R=301,L]
+  RewriteRule ^case-study-intuitive-experiences-for-industrial-environments\.html/?$ /case-studies/bharat-petroleum-corporation-limited/ [R=301,L]
+  RewriteRule ^case-study-immersive-solutions-for-the-indian-army\.html/?$ /case-studies/indian-army/ [R=301,L]
+  RewriteRule ^experience-design/bpcl-palakkad/?$ /case-studies/bharat-petroleum-corporation-limited/ [R=301,L]
+
+  # (generic engine below never touches the AV OS app paths)
+  RewriteCond %{REQUEST_URI} !^/(admin|api|install|media)(/|$)
+
+  # --- generic clean-URL engine (mirrors avos-php/router.php) -------------
+  # Canonical form: every page lives at exactly ONE url — /section/ for
+  # directories, /name/ for single pages. Everything else 301s here.
+  # /index.html, /index, /any/dir/index, /any/dir/index.html -> directory root
+  RewriteRule ^index(\.html)?/?$ / [R=301,L]
+  RewriteRule ^(.+/)index(\.html)?/?$ /$1 [R=301,L]
+  # /page.html or /page/ stray .html -> /page/
+  RewriteRule ^(.+)\.html/?$ /$1/ [R=301,L]
+  # /page (no slash) -> /page/  (only when page.html exists)
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME}\.html -f
+  RewriteRule ^(.+[^/])$ /$1/ [R=301,L]
+  # /page/ -> serve page.html
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME}/index.html !-f
+  RewriteCond %{REQUEST_FILENAME}\.html -f
+  RewriteRule ^(.+)/$ $1.html [L]
+
 # Compress text at the edge; already-compressed media/fonts pass through.
 <IfModule mod_brotli.c>
   AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css text/javascript application/javascript application/json application/xml image/svg+xml

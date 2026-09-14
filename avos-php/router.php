@@ -98,18 +98,15 @@ if ($maintenanceOn && !str_starts_with($path, '/api') && !str_starts_with($path,
 /* ---------- static frontend ---------- */
 // legacy → canonical redirects (mirrors abhijeetvarghese/.htaccess)
 $redirects = [
-    'case-studies.html' => '/case-studies/',
-    'experience.html' => '/experience/',
+    // true renames only — generic *.html canonicalization lives below
+    'recruitment' => '/recruiter/',
+    'recruitment.html' => '/recruiter/',
+    'for-recruiters.html' => '/recruiter/',
     'case-study-enterprise-technology-made-understandable.html' => '/case-studies/orange-business/',
     'experience-design/orange-business-executive-briefing-center' => '/case-studies/orange-business/',
     'case-study-intuitive-experiences-for-industrial-environments.html' => '/case-studies/bharat-petroleum-corporation-limited/',
     'case-study-immersive-solutions-for-the-indian-army.html' => '/case-studies/indian-army/',
     'experience-design/bpcl-palakkad' => '/case-studies/bharat-petroleum-corporation-limited/',
-    // recruiter destination: canonical route + legacy URLs (mirrors .htaccess)
-    'recruiter.html' => '/recruiter/',
-    'recruitment' => '/recruiter/',
-    'recruitment.html' => '/recruiter/',
-    'for-recruiters.html' => '/recruiter/',
 ];
 $rel = trim($path, '/');
 if (isset($redirects[$rel])) {
@@ -117,13 +114,30 @@ if (isset($redirects[$rel])) {
     return true;
 }
 
+// --- generic clean-URL engine (mirrors the frontend .htaccess) -----------
+// Canonical form: every page lives at exactly ONE url — /section/ for
+// directories, /name/ for single pages. Everything else 301s here.
+if ($rel !== '' && preg_match('~(^|/)index(\.html)?/?$~', $path)) {
+    header('Location: ' . preg_replace('~(^|/)index(\.html)?/?$~', '/', $path), true, 301);
+    return true;
+}
+if ($rel !== '' && str_ends_with($rel, '.html')) {
+    header('Location: ' . rtrim(substr($path, 0, -5), '/') . '/', true, 301);
+    return true;
+}
+
 $file = $siteRoot . '/' . $rel;
-if ($rel === '') $file = $siteRoot . '/index.html';
-if (is_dir($file)) {
+if ($rel === '') {
+    $file = $siteRoot . '/index.html';
+} elseif (is_dir($file)) {
     if (!str_ends_with($path, '/')) { header('Location: ' . $path . '/', true, 301); return true; }
     $file = rtrim($file, '/') . '/index.html';
+} elseif (is_file($file . '.html')) {
+    if (!str_ends_with($path, '/')) { header('Location: ' . $path . '/', true, 301); return true; }
+    $file .= '.html';
+} elseif (str_ends_with($path, '/') && is_file(rtrim($file, '/'))) {
+    $file = rtrim($file, '/'); // real static file requested with a trailing slash
 }
-if (!is_file($file) && is_file($file . '.html')) $file .= '.html';
 
 $real = realpath($file);
 if ($real === false || !is_file($real) || !str_starts_with($real, realpath($siteRoot))) return avNotFound($siteRoot);
