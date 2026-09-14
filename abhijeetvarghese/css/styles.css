@@ -3,3 +3,17 @@
 [hidden]{display:none!important}
 body.about-page .about-evo3d__content{transition:none}
 body.about-page .about-evo3d__card.is-front .about-evo3d__content{box-shadow:0 24px 60px -34px rgba(0,0,0,0.85),0 0 0 1px rgba(255,255,255,0.04)}
+/* --- round-3 perf: static decorative layers, no cv hitches --- */
+.e-aurora i{animation:none!important;filter:none!important;will-change:auto}
+.progress{box-shadow:none}
+html.js .chapter{content-visibility:visible;contain-intrinsic-size:auto}
+html.js .about-what,html.js .about-now,html.js .about-curious,html.js .about-credits{content-visibility:visible;contain-intrinsic-size:auto}
+.mobile-menu{-webkit-backdrop-filter:none;backdrop-filter:none}
+.exp-job__more-arrow{display:inline-block;transition:transform 0.3s var(--ease)}
+.exp-job__more.is-open .exp-job__more-arrow{transform:rotate(45deg)}
+.about-atmo{will-change:auto}
+.about-atmo i{position:absolute;inset:0;opacity:0;transition:opacity 0.5s var(--ease)}
+.about-atmo i.is-on{opacity:1}
+/* --- tighter evolution pacing: shorter pinned runway, same choreography --- */
+.about-evo3d__scroll{height:340vh}
+@media (max-width:480px){.about-evo3d__scroll{height:300vh}}
