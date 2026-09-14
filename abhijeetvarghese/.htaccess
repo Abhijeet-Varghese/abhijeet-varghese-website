@@ -53,32 +53,32 @@ ErrorDocument 504 /504.html
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
-  # Designed AV error experiences. END prevents redirect loops.
-  RewriteRule ^403/?$ /403.html [END]
-  RewriteRule ^404/?$ /404.html [END]
-  RewriteRule ^500/?$ /500.html [END]
-  RewriteRule ^502/?$ /502.html [END]
-  RewriteRule ^503/?$ /503.html [END]
-  RewriteRule ^504/?$ /504.html [END]
-  RewriteRule ^maintenance/?$ /maintenance.html [END]
-  RewriteRule ^offline/?$ /offline.html [END]
+  # Clean error routes -> their designed HTML documents.
+  RewriteRule ^403/?$ 403.html [L]
+  RewriteRule ^404/?$ 404.html [L]
+  RewriteRule ^500/?$ 500.html [L]
+  RewriteRule ^502/?$ 502.html [L]
+  RewriteRule ^503/?$ 503.html [L]
+  RewriteRule ^504/?$ 504.html [L]
+  RewriteRule ^maintenance/?$ maintenance.html [L]
+  RewriteRule ^offline/?$ offline.html [L]
 
-  # Root assets referenced by root-level HTML after clean-URL canonicalization.
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{DOCUMENT_ROOT}/$2/$3 -f
-  RewriteRule ^([^/]+)/(assets|css|js)/(.*)$ /$2/$3 [END]
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{DOCUMENT_ROOT}/$2 -f
-  RewriteRule ^([^/]+)/(manifest\.webmanifest|robots\.txt|sitemap\.xml)$ /$2 [END]
+  # Assets referenced by root-level pages after clean-URL canonicalization.
+  RewriteRule ^([^/]+)/(assets|css|js)/(.*)$ $2/$3 [L]
+  RewriteRule ^([^/]+)/(manifest\.webmanifest|robots\.txt|sitemap\.xml)$ $2 [L]
 
-  # Relative navigation compatibility from clean URLs.
+  # Relative navigation accidentally nested under a clean URL.
   RewriteRule ^([^/]+)/(story|experience|case-studies|portfolio|contact|recruiter|consulting|insights|journal|sitemap|privacy|terms)\.html$ /$2/ [R=301,L,NE]
   RewriteRule ^([^/]+)/(story|experience|case-studies|portfolio|contact|recruiter|consulting|insights|journal|sitemap|privacy|terms)(/.*)?$ /$2$3 [R=301,L,NE]
 
-  # Canonical home URL.
+  # Canonical home URL — only redirect when the browser explicitly requested index.html.
+  RewriteCond %{THE_REQUEST} \s/+index\.html(?:[?\s]|$) [NC]
   RewriteRule ^index\.html/?$ / [R=301,L]
 
-  # Canonical clean URLs for standalone .html pages.
+  # Canonical standalone .html URLs — only redirect direct browser requests.
+  # This prevents an internal clean-URL rewrite (e.g. /story/ -> story.html)
+  # from bouncing back to /story/ or into the 404 handler.
+  RewriteCond %{THE_REQUEST} \s/+[^\s?]*\.html(?:[?\s]|$) [NC]
   RewriteRule ^(.+)\.html/?$ /$1/ [R=301,L,NE]
 
   # Legacy case-study URLs.
@@ -88,9 +88,10 @@ ErrorDocument 504 /504.html
   RewriteRule ^case-study-immersive-solutions-for-the-indian-army/?$ /case-studies/indian-army/ [R=301,L]
   RewriteRule ^experience-design/bpcl-palakkad/?$ /case-studies/bharat-petroleum-corporation-limited/ [R=301,L]
 
-  # Clean root-level URL -> authored .html file.
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
+  # Clean root pages -> their authored HTML files.
+  RewriteRule ^(story|portfolio|contact|recruiter|consulting|insights|journal|sitemap|privacy|terms)/?$ $1.html [L]
+
+  # Other root-level HTML pages: clean URL -> matching authored .html file.
   RewriteCond %{DOCUMENT_ROOT}/$1.html -f
-  RewriteRule ^([^/]+?)/?$ /$1.html [END]
+  RewriteRule ^([^/.]+)/?$ $1.html [L]
 </IfModule>
