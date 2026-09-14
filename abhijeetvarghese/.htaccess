@@ -1,7 +1,7 @@
 # abhijeetvarghese.com — static frontend (hand-authored; deployed as-is to the web root).
 # Keep in sync with avos-php/public_html/.htaccess when AV OS shares the same web root.
 Options -Indexes
-# Custom AV error experiences — served with the correct status code.
+DirectoryIndex index.html
 ErrorDocument 403 /403.html
 ErrorDocument 404 /404.html
 ErrorDocument 500 /500.html
@@ -9,7 +9,6 @@ ErrorDocument 502 /502.html
 ErrorDocument 503 /503.html
 ErrorDocument 504 /504.html
 
-# Compress text at the edge; already-compressed media/fonts pass through.
 <IfModule mod_brotli.c>
   AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css text/javascript application/javascript application/json application/xml image/svg+xml
 </IfModule>
@@ -37,12 +36,7 @@ ErrorDocument 504 /504.html
   Header set X-Frame-Options "SAMEORIGIN"
   Header set Referrer-Policy "strict-origin-when-cross-origin"
   Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
-  # hide the PHP fingerprint (router.php does the same on the dev server)
   Header unset X-Powered-By
-  # CSP — mirrors avos-php/router.php avFrontHeaders(), plus frame-ancestors
-  # and upgrade-insecure-requests which are only safe on the https prod host.
-  # script-src/style-src carry 'unsafe-inline' (hand-authored inline boot
-  # scripts + JSON-LD + style attrs); zero third-party origins otherwise.
   Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; upgrade-insecure-requests"
   Header merge Vary "Accept-Encoding"
   <FilesMatch "\.html$">
@@ -58,45 +52,45 @@ ErrorDocument 504 /504.html
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  # Custom AV error experiences (clean routes -> .html pages)
-  RewriteRule ^403/?$ /403.html [L]
-  RewriteRule ^404/?$ /404.html [L]
-  RewriteRule ^500/?$ /500.html [L]
-  RewriteRule ^502/?$ /502.html [L]
-  RewriteRule ^503/?$ /503.html [L]
-  RewriteRule ^504/?$ /504.html [L]
-  RewriteRule ^maintenance/?$ /maintenance.html [L]
-  RewriteRule ^offline/?$ /offline.html [L]
 
-  # Recruiter destination — the canonical recruiter URL + legacy redirects.
-  RewriteRule ^recruiter/?$ /recruiter.html [L]
-  RewriteRule ^recruiter\.html/?$ /recruiter/ [R=301,L]
-  RewriteRule ^recruitment/?$ /recruiter/ [R=301,L]
-  RewriteRule ^recruitment\.html/?$ /recruiter/ [R=301,L]
-  RewriteRule ^for-recruiters\.html/?$ /recruiter/ [R=301,L]
+  # Designed AV error experiences. END prevents redirect loops.
+  RewriteRule ^403/?$ /403.html [END]
+  RewriteRule ^404/?$ /404.html [END]
+  RewriteRule ^500/?$ /500.html [END]
+  RewriteRule ^502/?$ /502.html [END]
+  RewriteRule ^503/?$ /503.html [END]
+  RewriteRule ^504/?$ /504.html [END]
+  RewriteRule ^maintenance/?$ /maintenance.html [END]
+  RewriteRule ^offline/?$ /offline.html [END]
 
-  # Consulting destination — the canonical consulting URL + legacy redirects.
-  RewriteRule ^consulting/?$ /consulting.html [L]
-  RewriteRule ^consulting\.html/?$ /consulting/ [R=301,L]
+  # Root assets referenced by root-level HTML after clean-URL canonicalization.
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{DOCUMENT_ROOT}/$2/$3 -f
+  RewriteRule ^([^/]+)/(assets|css|js)/(.*)$ /$2/$3 [END]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{DOCUMENT_ROOT}/$2 -f
+  RewriteRule ^([^/]+)/(manifest\.webmanifest|robots\.txt|sitemap\.xml)$ /$2 [END]
 
-  # --- Maintenance mode (Apache, one-time set-up) -------------------------
-  # The AV router honours AV_MAINTENANCE=1 / storage/maintenance.lock, but on a
-  # pure static Apache host you can instead serve the maintenance screen for
-  # every request by uncommenting the block below. Remove it to go live again.
-  # RewriteCond %{REQUEST_URI} !^/maintenance\.html$ [NC]
-  # RewriteCond %{REQUEST_URI} !^/assets/ [NC]
-  # RewriteCond %{REQUEST_URI} !^/css/ [NC]
-  # RewriteCond %{REQUEST_URI} !^/js/ [NC]
-  # RewriteCond %{REQUEST_URI} !sw\.js [NC]
-  # RewriteRule ^.*$ /maintenance.html [L]
+  # Relative navigation compatibility from clean URLs.
+  RewriteRule ^([^/]+)/(story|experience|case-studies|portfolio|contact|recruiter|consulting|insights|journal|sitemap|privacy|terms)\.html$ /$2/ [R=301,L,NE]
+  RewriteRule ^([^/]+)/(story|experience|case-studies|portfolio|contact|recruiter|consulting|insights|journal|sitemap|privacy|terms)(/.*)?$ /$2$3 [R=301,L,NE]
 
-  # Case Studies + Experience clean URLs (legacy flat pages -> canonical directories)
-  RewriteRule ^case-studies\.html/?$ /case-studies/ [R=301,L]
-  RewriteRule ^experience\.html/?$ /experience/ [R=301,L]
-  # Legacy case-study pages -> canonical clean URLs (no chains)
-  RewriteRule ^case-study-enterprise-technology-made-understandable\.html/?$ /case-studies/orange-business/ [R=301,L]
+  # Canonical home URL.
+  RewriteRule ^index\.html/?$ / [R=301,L]
+
+  # Canonical clean URLs for standalone .html pages.
+  RewriteRule ^(.+)\.html/?$ /$1/ [R=301,L,NE]
+
+  # Legacy case-study URLs.
+  RewriteRule ^case-study-enterprise-technology-made-understandable/?$ /case-studies/orange-business/ [R=301,L]
   RewriteRule ^experience-design/orange-business-executive-briefing-center/?$ /case-studies/orange-business/ [R=301,L]
-  RewriteRule ^case-study-intuitive-experiences-for-industrial-environments\.html/?$ /case-studies/bharat-petroleum-corporation-limited/ [R=301,L]
-  RewriteRule ^case-study-immersive-solutions-for-the-indian-army\.html/?$ /case-studies/indian-army/ [R=301,L]
+  RewriteRule ^case-study-intuitive-experiences-for-industrial-environments/?$ /case-studies/bharat-petroleum-corporation-limited/ [R=301,L]
+  RewriteRule ^case-study-immersive-solutions-for-the-indian-army/?$ /case-studies/indian-army/ [R=301,L]
   RewriteRule ^experience-design/bpcl-palakkad/?$ /case-studies/bharat-petroleum-corporation-limited/ [R=301,L]
+
+  # Clean root-level URL -> authored .html file.
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{DOCUMENT_ROOT}/$1.html -f
+  RewriteRule ^([^/]+?)/?$ /$1.html [END]
 </IfModule>
