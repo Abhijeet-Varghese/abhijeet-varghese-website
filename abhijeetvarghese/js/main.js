@@ -1,7 +1,7 @@
 /* ============================================================
    ABHIJEET VARGHESE — interaction layer
    Reveals, parallax, active-nav tracking, journey scrub,
-   mobile menu, single-screen booking card.
+   mobile menu, single-screen booking card. v3.8.3: zero-layout-read scroll handler (all geometry cached on resize), ambient motion never frozen (§29.8).
    ============================================================ */
 (() => {
   "use strict";
@@ -500,7 +500,11 @@
     const speed = Number.isFinite(requested) ? requested : 0.05;
     // A value of zero preserves authored edge-to-edge artwork without zooming
     // or translating it; all other project media keeps the existing parallax.
-    if (speed === 0) {
+    // Featured-work thumbnails stay edge-to-edge (no zoom) on mobile/tablet;
+    // the pushed desktop design keeps its original subtle parallax.
+    const inWorkTrack = !!el.closest("#workTrack");
+    const noParallax = speed === 0 || (inWorkTrack && window.matchMedia("(max-width: 900px)").matches);
+    if (noParallax) {
       if (img) { img.style.willChange = "auto"; img.style.scale = "1"; img.style.transform = "none"; }
       return null;
     }
@@ -516,35 +520,119 @@
   const journeyBarNum = $("#journeyBarNum");
   const journeyMQ   = window.matchMedia("(min-width: 901px)");
 
+  /* work horizontal scrub refs — featured cases auto-glide (≤900px) */
+  const workSec    = $("#work");
+  const workPin    = $("#workPin");
+  const workTrack  = $("#workTrack");
+  const workBar    = $("#workBar");
+  const workBarNum = $("#workBarNum");
+  const workMQ     = window.matchMedia("(max-width: 900px)");
+  /* stepped-snap glide: the strip eases to each case in turn */
+  let workTargetX = 0, workCurX = 0, workRafId = 0;
+  const workSettle = () => {
+    const diff = workTargetX - workCurX;
+    if (Math.abs(diff) < 0.5) {
+      workCurX = workTargetX;
+      workRafId = 0;
+    } else {
+      workCurX += diff * 0.18;
+      workRafId = requestAnimationFrame(workSettle);
+    }
+    if (workTrack) workTrack.style.transform = `translate3d(${workCurX.toFixed(1)}px, 0, 0)`;
+  };
+
+  /* journey geometry is MEASURED on resize/load only — never per frame
+     (a per-frame scrollWidth read forces layout on the transformed track) */
+  let jTotal = 0, jMaxShift = 0;
+  const measureJourney = () => {
+    if (!(journeySec && journeyPin && journeyTrack)) return;
+    jTotal = Math.max(journeySec.offsetHeight - window.innerHeight, 0);
+    jMaxShift = Math.max(journeyTrack.scrollWidth - journeyPin.clientWidth + 40, 0);
+  };
+
+  /* hero-parked: pause every infinite hero animation once the hero
+     scrolls out — the GPU stops paying for Ken Burns/sheen/marquee */
+  const heroSec = document.querySelector(".hp-hero");
+  if (heroSec && "IntersectionObserver" in window) {
+    new IntersectionObserver(([e]) => {
+      document.documentElement.classList.toggle("hero-parked", !e.isIntersecting);
+    }, { rootMargin: "12% 0px" }).observe(heroSec);
+  }
+
+  /* layout-true document Y of an element — offsetParent walk is
+     immune to ancestor transforms (rect+scrollY is NOT: parallax
+     writes skew it) */
+  const docY = (el) => {
+    let y = 0;
+    while (el) { y += el.offsetTop; el = el.offsetParent; }
+    return y;
+  };
+
+  /* ONE scroll handler, ZERO layout reads per frame (v3.8.3 — §29.8):
+     every geometry (doc height, parallax offsets, journey position) is
+     measured on init/resize ONLY; the handler is pure arithmetic +
+     change-guarded writes. Ambient motion is NEVER frozen during scroll
+     — GPU-composited transforms cost nothing while scrolling, and
+     freezing them read as "the hero is stuck". */
+  let lastY = -1, lastNav = null, lastProg = -1, vh = window.innerHeight, maxScroll = 1, jTop = 0;
+  let wTop = 0, wTotal = 0, wMaxShift = 0, wSteps = 0, wCount = 1;
+  const pCache = parallaxEls.map((p) => ({ el: p.el, target: p.target, speed: p.speed, top: 0, h: 0, lastTy: null }));
+
+  const measureAll = () => {
+    vh = window.innerHeight;
+    maxScroll = Math.max(document.documentElement.scrollHeight - vh, 1);
+    if (journeySec) {
+      jTop = docY(journeySec); /* layout-true, transform-immune */
+      jTotal = Math.max(journeySec.offsetHeight - vh, 0);
+      jMaxShift = journeyTrack ? Math.max(journeyTrack.scrollWidth - (journeyPin ? journeyPin.clientWidth : 0) + 40, 0) : 0;
+    }
+    if (workSec && workPin && workTrack) {
+      wTop = docY(workSec); /* layout-true, transform-immune */
+      wTotal = Math.max(workSec.offsetHeight - vh, 0);
+      wMaxShift = Math.max(workTrack.scrollWidth - workPin.clientWidth, 0);
+      wCount = Math.max(workTrack.children.length, 1);
+      wSteps = wCount - 1;
+    }
+    for (const p of pCache) {
+      const prev = p.target.style.transform;
+      p.target.style.transform = "none";
+      const r = p.el.getBoundingClientRect();
+      p.top = r.top + window.scrollY;
+      p.h = r.height;
+      p.target.style.transform = prev;
+      p.lastTy = null;
+    }
+  };
+
   const onScroll = () => {
     const y = window.scrollY;
-    nav.classList.toggle("is-visible", y > 90);
+    if (Math.abs(y - lastY) < 0.5) { ticking = false; return; }
+    lastY = y;
 
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    progress.style.transform = `scaleX(${max > 0 ? Math.min(y / max, 1) : 0})`;
+    const navOn = y > 90;
+    if (navOn !== lastNav) { nav.classList.toggle("is-visible", navOn); lastNav = navOn; }
+
+    const prog = Math.min(y / maxScroll, 1);
+    const progQ = Math.round(prog * 2000) / 2000;
+    if (progQ !== lastProg) { progress.style.transform = `scaleX(${progQ})`; lastProg = progQ; }
 
     if (!prefersReduced) {
-      const vh = window.innerHeight;
-      for (const p of parallaxEls) {
-        const r = p.el.getBoundingClientRect();
-        if (r.bottom < -80 || r.top > vh + 80) continue;
-        const center = r.top + r.height / 2 - vh / 2;
-        p.target.style.transform = `translate3d(0, ${(center * p.speed).toFixed(2)}px, 0)`;
+      for (const p of pCache) {
+        const center = p.top + p.h / 2 - y - vh / 2;
+        if (center < -vh * 1.2 || center > vh * 1.2) continue;
+        const ty = +((center * p.speed).toFixed(2));
+        if (ty !== p.lastTy) { p.target.style.transform = `translate3d(0, ${ty}px, 0)`; p.lastTy = ty; }
       }
     }
 
-    /* journey — horizontal era strip, driven by vertical scroll */
     if (journeySec && journeyPin && journeyTrack) {
-      if (journeyMQ.matches && !prefersReduced) {
-        const total = journeySec.offsetHeight - window.innerHeight;
-        const r = journeySec.getBoundingClientRect();
-        const p = total > 0 ? Math.min(Math.max(-r.top / total, 0), 1) : 0;
-        const maxShift = Math.max(journeyTrack.scrollWidth - journeyPin.clientWidth + 40, 0);
-        journeyTrack.style.transform = `translate3d(${(-p * maxShift).toFixed(1)}px, 0, 0)`;
-        if (journeyBar) journeyBar.style.transform = `scaleX(${p.toFixed(3)})`;
+      if (journeyMQ.matches && !prefersReduced && jTotal > 0) {
+        const jP = Math.min(Math.max((y - jTop) / jTotal, 0), 1);
+        journeyTrack.style.transform = `translate3d(${(-jP * jMaxShift).toFixed(1)}px, 0, 0)`;
+        if (journeyBar) journeyBar.style.transform = `scaleX(${jP.toFixed(3)})`;
         if (journeyBarNum) {
           const eraCount = Math.max(journeyTrack.children.length, 1);
-          const era = String(Math.min(eraCount, Math.round(p * (eraCount - 1)) + 1)).padStart(2, "0");
+          const era = String(Math.min(eraCount, Math.round(jP * (eraCount - 1)) + 1)).padStart(2, "0");
           const eraTotal = String(eraCount).padStart(2, "0");
           if (journeyBarNum.textContent !== era + " / " + eraTotal) journeyBarNum.textContent = era + " / " + eraTotal;
         }
@@ -553,13 +641,48 @@
         if (journeyBar) journeyBar.style.transform = "";
       }
     }
+
+    /* work — featured cases strip: auto-glides to each case as you scroll */
+    if (workSec && workPin && workTrack) {
+      if (workMQ.matches && !prefersReduced && wTotal > 0) {
+        const wP = Math.min(Math.max((y - wTop) / wTotal, 0), 1);
+        const active = Math.min(Math.floor(wP * wCount), wCount - 1);
+        workTargetX = wSteps > 0 ? (-active * wMaxShift) / wSteps : 0;
+        if (!workRafId) workRafId = requestAnimationFrame(workSettle);
+        if (workBar) workBar.style.transform = `scaleX(${wP.toFixed(3)})`;
+        if (workBarNum) {
+          const idx = String(active + 1).padStart(2, "0");
+          const totalCases = String(wCount).padStart(2, "0");
+          if (workBarNum.textContent !== idx + " / " + totalCases) workBarNum.textContent = idx + " / " + totalCases;
+        }
+      } else {
+        cancelAnimationFrame(workRafId);
+        workRafId = 0; workTargetX = 0; workCurX = 0;
+        workTrack.style.transform = "";
+        if (workBar) workBar.style.transform = "";
+      }
+    }
     ticking = false;
   };
   window.addEventListener("scroll", () => {
     if (!ticking) { requestAnimationFrame(onScroll); ticking = true; }
   }, { passive: true });
-  window.addEventListener("resize", () => requestAnimationFrame(onScroll), { passive: true });
-  journeyMQ.addEventListener?.("change", onScroll);
+  window.addEventListener("resize", () => { measureAll(); requestAnimationFrame(onScroll); }, { passive: true });
+  journeyMQ.addEventListener?.("change", () => { measureAll(); requestAnimationFrame(onScroll); });
+  workMQ.addEventListener?.("change", () => { measureAll(); requestAnimationFrame(onScroll); });
+  addEventListener("load", () => { measureAll(); requestAnimationFrame(onScroll); });
+  /* any content-height change (lazy images, fonts, dynamic blocks) re-measures —
+     keeps cached geometry true WITHOUT per-frame layout reads (§29.9) */
+  if ("ResizeObserver" in window) {
+    let mraf = false;
+    new ResizeObserver(() => {
+      if (mraf) return;
+      mraf = true;
+      requestAnimationFrame(() => { mraf = false; measureAll(); requestAnimationFrame(onScroll); });
+    }).observe(document.documentElement);
+  }
+  if (document.fonts?.ready) document.fonts.ready.then(() => { measureAll(); requestAnimationFrame(onScroll); });
+  measureAll();
   onScroll();
 
   /* ============================================================
@@ -633,11 +756,16 @@
        scrolls through the identity spread --- */
     const portrait = document.querySelector('.about-frame__portrait img');
     if (portrait && !prefersReduced) {
+      /* geometry cached (§29.9) — no rect reads on the scroll path */
+      let pTop = 0, pH = 1;
+      const measurePortrait = () => { pTop = docY(portrait); pH = Math.max(portrait.offsetHeight, 1); };
+      measurePortrait();
+      addEventListener("resize", measurePortrait, { passive: true });
+      addEventListener("load", measurePortrait, { passive: true });
       const onPortrait = () => {
-        const r = portrait.getBoundingClientRect();
-        const vh = window.innerHeight;
-        if (r.bottom < 0 || r.top > vh) return;
-        const p = clamp((vh * 0.6 - r.top) / (r.height + vh * 0.6), 0, 1);
+        const vh = window.innerHeight, top = pTop - window.scrollY;
+        if (top > vh || top + pH < 0) return;
+        const p = clamp((vh * 0.6 - top) / (pH + vh * 0.6), 0, 1);
         portrait.style.transform = `scale(1.06) translate3d(0, ${(-5 + p * 10).toFixed(1)}px, 0)`;
       };
       window.addEventListener("scroll", () => requestAnimationFrame(onPortrait), { passive: true });
@@ -650,11 +778,15 @@
     const zoomFrame = document.getElementById("aboutZoomFrame");
     const zoomLabels = $$("#aboutZoomLabels li");
     if (zoomStage && zoomFrame) {
+      let zTop = 0, zH = 1;
+      const measureZoom = () => { zTop = docY(zoomStage); zH = Math.max(zoomStage.offsetHeight, 1); };
+      measureZoom();
+      addEventListener("resize", measureZoom, { passive: true });
+      addEventListener("load", measureZoom, { passive: true });
       const onZoom = () => {
         if (prefersReduced) return;
-        const r = zoomStage.getBoundingClientRect();
         const vh = window.innerHeight;
-        const p = clamp((vh * 0.62 - r.top) / (r.height * 0.9 + vh * 0.4), 0, 1);
+        const p = clamp((vh * 0.62 - (zTop - window.scrollY)) / (zH * 0.9 + vh * 0.4), 0, 1);
         zoomFrame.style.setProperty("--zp", p.toFixed(3));
         const stage = Math.min(Math.floor(p * 4) + 1, 4);
         zoomLabels.forEach((l, i) => l.classList.toggle("is-on", i + 1 <= stage));
@@ -673,15 +805,24 @@
       [".about-frame", "light"], [".about-acts", "dark"], [".about-interlude", "dark"],
       [".about-what", "light"], [".about-now", "dark"], [".about-curious", "light"], [".about-credits", "light"],
     ].map(([sel, env]) => ({ el: document.querySelector(sel), env })).filter(x => x.el);
+    /* section geometry cached (§29.9): the overlap test runs from
+       document-space tops + scrollY — zero rect reads per scroll frame */
+    const envGeo = [];
+    const measureEnv = () => {
+      envGeo.length = 0;
+      for (const { el, env } of envSections) envGeo.push({ top: docY(el), h: el.offsetHeight, env });
+    };
+    measureEnv();
+    addEventListener("resize", measureEnv, { passive: true });
+    addEventListener("load", measureEnv, { passive: true });
     const computeEnv = () => {
-      const vh = window.innerHeight, vw = window.innerWidth;
+      const vh = window.innerHeight, y = window.scrollY;
       let best = null, bestArea = 0;
-      for (const { el, env } of envSections) {
-        const r = el.getBoundingClientRect();
-        const w = Math.min(r.right, vw) - Math.max(r.left, 0);
-        const h = Math.min(r.bottom, vh) - Math.max(r.top, 0);
-        const area = Math.max(w, 0) * Math.max(h, 0);
-        if (area > bestArea) { best = env; bestArea = area; }
+      for (const g of envGeo) {
+        const top = g.top - y;
+        const h = Math.min(top + g.h, vh) - Math.max(top, 0);
+        if (h <= 0) continue;
+        if (h > bestArea) { best = g.env; bestArea = h; }
       }
       if (best) document.body.dataset.env = best;
     };
@@ -798,23 +939,36 @@
       const cN = (v, a, b) => Math.max(a, Math.min(b, v));
       const easeInOut = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
       const easeOut = t => 1 - Math.pow(1 - t, 3);
-      const getProgress = () => {
+      /* geometry cached — no rect reads in the animation loop (§29.9) */
+      let evoTop = 0, evoScrollable = 1;
+      const measureEvo = () => {
         const runway = evo3dScroll || evo3d;
-        const r = runway.getBoundingClientRect();
-        const scrollable = Math.max(runway.offsetHeight - window.innerHeight, 1);
-        return cN(-r.top / scrollable, 0, 1);
+        evoTop = docY(runway);
+        evoScrollable = Math.max(runway.offsetHeight - window.innerHeight, 1);
       };
+      measureEvo();
+      addEventListener("load", measureEvo, { passive: true });
+      addEventListener("resize", measureEvo, { passive: true });
+      if ("ResizeObserver" in window) new ResizeObserver(measureEvo).observe(document.documentElement);
+      const getProgress = () => cN((window.scrollY - evoTop) / evoScrollable, 0, 1);
+      const cardMetas = evo3dCards.map((card) => {
+        const m = card.querySelector(".about-evo3d__meta span:last-child");
+        return m ? m.textContent.trim() : "";
+      });
       const syncCompass = active => {
         if (!compassNum) return;
         compassNum.textContent = String(active).padStart(2, "0");
-        const meta = evo3dCards[active - 1].querySelector(".about-evo3d__meta span:last-child");
-        if (compassName) compassName.textContent = meta ? meta.textContent.trim() : String(active).padStart(2, "0");
+        if (compassName) compassName.textContent = cardMetas[active - 1] || String(active).padStart(2, "0");
       };
 
       let targetProgress = 0, currentProgress = 0;
       let stackVisible = false, stackRunning = false;
       let lastFrame = performance.now();
       let mouseX = 0, mouseY = 0, cameraX = 0, cameraY = 0;
+      /* write-signatures: a card whose frame values did not change is
+         not touched at all — no style writes while scroll rests (§29.9) */
+      const sigs = evo3dCards.map(() => "");
+      let lastActiveIdx = -1;
       const finePointer = window.matchMedia("(pointer: fine)").matches;
       if (finePointer) {
         window.addEventListener("pointermove", e => {
@@ -838,56 +992,70 @@
         const inView = targetProgress > 0.001 && targetProgress < 0.999;
         const active = cN(Math.floor(cardProgress) + 1, 1, TOTAL);
         setAtmo(inView ? (evo3dCards[active - 1].dataset.world || null) : null);
-        syncCompass(active);
+        if (active !== lastActiveIdx) {
+          syncCompass(active);
+          evo3dCards.forEach((card, index) => card.classList.toggle("is-front", index === active - 1));
+          lastActiveIdx = active;
+        }
 
         evo3dCards.forEach((card, index) => {
-          card.classList.toggle("is-front", index === active - 1);
           const relative = index - cardProgress;
+          let tf, op, fl, zi, vis, imgT = "", shT = "", shO = "";
           if (relative < -1) {
-            card.style.visibility = "hidden";
-            card.style.transform = `translate3d(0, ${-EXIT_Y}vh, ${EXIT_Z}px) rotateX(-${OPEN_ANGLE}deg) rotateY(-6deg) scale(.86)`;
-            card.style.opacity = 0;
-            card.style.filter = "blur(3px)";
-            card.style.zIndex = 0;
-            return;
-          }
-          card.style.visibility = "visible";
-          if (relative >= -1 && relative <= 0) {
+            vis = "hidden";
+            tf = `translate3d(0, ${-EXIT_Y}vh, ${EXIT_Z}px) rotateX(-${OPEN_ANGLE}deg) rotateY(-6deg) scale(.86)`;
+            op = "0"; fl = "blur(3px)"; zi = "0";
+          } else if (relative >= -1 && relative <= 0) {
+            vis = "visible";
             const raw = Math.abs(relative);
             const t = easeInOut(raw);
-            card.style.transform = `translate3d(0, ${(-t * EXIT_Y).toFixed(2)}vh, ${(t * EXIT_Z).toFixed(2)}px) rotateX(${(-t * OPEN_ANGLE).toFixed(2)}deg) rotateY(${(-t * 6).toFixed(2)}deg) rotateZ(${(t * 1.5).toFixed(2)}deg) scale(${(1 - t * 0.07).toFixed(4)})`;
-            card.style.opacity = (1 - Math.max(0, t - 0.9) * 10).toFixed(3);
-            card.style.filter = `blur(${Math.max(0, t - 0.8) * 4}px)`;
-            card.style.zIndex = 1000;
-            if (evo3dImages[index]) evo3dImages[index].style.transform = `translateZ(35px) scale(${(1.12 + t * 0.2).toFixed(4)}) translateY(${(t * 7).toFixed(2)}%)`;
+            tf = `translate3d(0, ${(-t * EXIT_Y).toFixed(2)}vh, ${(t * EXIT_Z).toFixed(2)}px) rotateX(${(-t * OPEN_ANGLE).toFixed(2)}deg) rotateY(${(-t * 6).toFixed(2)}deg) rotateZ(${(t * 1.5).toFixed(2)}deg) scale(${(1 - t * 0.07).toFixed(4)})`;
+            op = (1 - Math.max(0, t - 0.9) * 10).toFixed(3);
+            fl = `blur(${(Math.max(0, t - 0.8) * 4).toFixed(2)}px)`;
+            zi = "1000";
+            if (evo3dImages[index]) imgT = `translateZ(35px) scale(${(1.12 + t * 0.2).toFixed(4)}) translateY(${(t * 7).toFixed(2)}%)`;
             if (evo3dShadows[index]) {
-              evo3dShadows[index].style.transform = `translateZ(${(-300 + t * 220).toFixed(1)}px) rotateX(72deg) scale(${(1 + t * 0.5).toFixed(4)})`;
-              evo3dShadows[index].style.opacity = (0.72 - t * 0.58).toFixed(3);
+              shT = `translateZ(${(-300 + t * 220).toFixed(1)}px) rotateX(72deg) scale(${(1 + t * 0.5).toFixed(4)})`;
+              shO = (0.72 - t * 0.58).toFixed(3);
             }
-            return;
-          }
-          if (relative > 0 && relative < 1.5) {
+          } else if (relative > 0 && relative < 1.5) {
+            vis = "visible";
             const reveal = cN(1 - (relative - 1), 0, 1);
             const t = easeOut(reveal);
-            card.style.transform = `translate3d(0, ${(STACK_Y - t * STACK_Y).toFixed(2)}px, ${(-CARD_DEPTH + t * CARD_DEPTH).toFixed(2)}px) rotateX(${(0.65 - t * 0.65).toFixed(3)}deg) rotateY(${(-0.35 + t * 0.35).toFixed(3)}deg) scale(${(0.966 + t * 0.034).toFixed(4)})`;
-            card.style.opacity = (0.9 + t * 0.1).toFixed(3);
-            card.style.filter = `blur(${((1 - t) * 1.2).toFixed(2)}px)`;
-            card.style.zIndex = 999;
-            if (evo3dImages[index]) evo3dImages[index].style.transform = `translateZ(35px) scale(${(1.14 - t * 0.02).toFixed(4)})`;
-            return;
+            tf = `translate3d(0, ${(STACK_Y - t * STACK_Y).toFixed(2)}px, ${(-CARD_DEPTH + t * CARD_DEPTH).toFixed(2)}px) rotateX(${(0.65 - t * 0.65).toFixed(3)}deg) rotateY(${(-0.35 + t * 0.35).toFixed(3)}deg) scale(${(0.966 + t * 0.034).toFixed(4)})`;
+            op = (0.9 + t * 0.1).toFixed(3);
+            fl = `blur(${((1 - t) * 1.2).toFixed(2)}px)`;
+            zi = "999";
+            if (evo3dImages[index]) imgT = `translateZ(35px) scale(${(1.14 - t * 0.02).toFixed(4)})`;
+          } else {
+            vis = "visible";
+            const depth = Math.min(relative, 6);
+            tf = `translate3d(0, ${(depth * STACK_Y).toFixed(2)}px, ${(-depth * CARD_DEPTH).toFixed(2)}px) rotateX(${(depth * 0.65).toFixed(2)}deg) rotateY(${(-depth * 0.35).toFixed(2)}deg) scale(${(1 - depth * SCALE_STEP).toFixed(4)})`;
+            op = Math.max(0, 1 - depth * 0.11).toFixed(3);
+            fl = `blur(${(Math.max(0, depth - 2) * 0.7).toFixed(2)}px)`;
+            zi = String(900 - index);
+            if (evo3dImages[index]) imgT = "translateZ(35px) scale(1.12)";
           }
-          const depth = Math.min(relative, 6);
-          card.style.transform = `translate3d(0, ${(depth * STACK_Y).toFixed(2)}px, ${(-depth * CARD_DEPTH).toFixed(2)}px) rotateX(${(depth * 0.65).toFixed(2)}deg) rotateY(${(-depth * 0.35).toFixed(2)}deg) scale(${(1 - depth * SCALE_STEP).toFixed(4)})`;
-          card.style.opacity = Math.max(0, 1 - depth * 0.11).toFixed(3);
-          card.style.filter = `blur(${Math.max(0, depth - 2) * 0.7}px)`;
-          card.style.zIndex = 900 - index;
-          if (evo3dImages[index]) evo3dImages[index].style.transform = "translateZ(35px) scale(1.12)";
+          const sig = tf + "|" + op + "|" + fl + "|" + zi + "|" + vis + "|" + imgT + "|" + shT + "|" + shO;
+          if (sig === sigs[index]) { return; }
+          sigs[index] = sig;
+          card.style.visibility = vis;
+          card.style.transform = tf;
+          card.style.opacity = op;
+          card.style.filter = fl;
+          card.style.zIndex = zi;
+          if (imgT && evo3dImages[index]) evo3dImages[index].style.transform = imgT;
+          if (shT && evo3dShadows[index]) evo3dShadows[index].style.transform = shT;
+          if (shO && evo3dShadows[index]) evo3dShadows[index].style.opacity = shO;
         });
 
         const cameraBlend = 1 - Math.exp(-3 * dt);
+        const prevCX = cameraX, prevCY = cameraY;
         cameraX += ((finePointer ? mouseX * 3 : 0) - cameraX) * cameraBlend;
         cameraY += ((finePointer ? mouseY * -2 : 0) - cameraY) * cameraBlend;
-        if (evo3dCamera) evo3dCamera.style.transform = `rotateX(${cameraY.toFixed(3)}deg) rotateY(${cameraX.toFixed(3)}deg)`;
+        if (evo3dCamera && (Math.abs(cameraX - prevCX) > 0.004 || Math.abs(cameraY - prevCY) > 0.004)) {
+          evo3dCamera.style.transform = `rotateX(${cameraY.toFixed(3)}deg) rotateY(${cameraX.toFixed(3)}deg)`;
+        }
         requestAnimationFrame(animate);
       };
 
@@ -905,10 +1073,16 @@
       }, { rootMargin: "20% 0px", threshold: 0 });
       const stackRunway = evo3dScroll || evo3d;
       stackObserver.observe(stackRunway);
+      let wakeTick = false;
       const wakeStack = () => {
-        const r = stackRunway.getBoundingClientRect();
-        stackVisible = r.bottom > -window.innerHeight * 0.2 && r.top < window.innerHeight * 1.2;
-        if (stackVisible) startStack();
+        if (wakeTick) return;
+        wakeTick = true;
+        requestAnimationFrame(() => {
+          wakeTick = false;
+          const vh = window.innerHeight, y = window.scrollY;
+          stackVisible = y - vh * 0.2 < evoTop + evoScrollable && y + vh * 1.2 > evoTop;
+          if (stackVisible) startStack();
+        });
       };
       window.addEventListener("scroll", wakeStack, { passive: true });
       window.addEventListener("resize", wakeStack, { passive: true });
@@ -1008,10 +1182,14 @@
   /* ---------- Experience page — scroll-linked timeline fill ---------- */
   const expTimeline = document.getElementById("expTimeline");
   if (expTimeline) {
+    let xTop = 0, xH = 1;
+    const measureExp = () => { xTop = docY(expTimeline); xH = Math.max(expTimeline.offsetHeight, 1); };
+    measureExp();
+    addEventListener("resize", measureExp, { passive: true });
+    addEventListener("load", measureExp, { passive: true });
     const expMark = () => {
-      const r = expTimeline.getBoundingClientRect();
       const vh = window.innerHeight || 1;
-      const p = Math.min(Math.max((vh * 0.9 - r.top) / (r.height * 0.6), 0), 1);
+      const p = Math.min(Math.max((vh * 0.9 - (xTop - window.scrollY)) / (xH * 0.6), 0), 1);
       document.body.classList.toggle("exp-scrolled", p > 0.02);
       expTimeline.style.setProperty("--exp-fill", p.toFixed(3));
     };
@@ -1045,4 +1223,176 @@
 
   }
 
+})();
+
+/* ============================================================
+   PWA — offline fallback worker registration (v3.4.0)
+   Chrome requires a user gesture before an offscreen SW may start
+   (M127+); firing on the first pointer/key interaction is the
+   standard compliant pattern. Same-origin https/localhost only,
+   silent no-op elsewhere. Registration is idempotent.
+   ============================================================ */
+(() => {
+  "use strict";
+  if (!("serviceWorker" in navigator)) return;
+  if (!(location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")) return;
+  let armed = false;
+  const arm = () => {
+    if (armed) return;
+    armed = true;
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+    ["pointerdown", "keydown", "touchstart"].forEach((ev) => window.removeEventListener(ev, arm));
+  };
+  ["pointerdown", "keydown", "touchstart"].forEach((ev) => window.addEventListener(ev, arm, { passive: true }));
+})();
+
+/* ============================================================
+   HP HERO v6 — "RESOLUTION" engine (v3.7.0)
+   The hero performs clarity-from-complexity. CSS owns the letter
+   autofocus + portrait resolve (one .is-in flip). This module adds:
+   1. Live IST slate clock (Intl Asia/Kolkata, 20s tick).
+   2. THE CLARITY FIELD: the five inputs drift as scattered
+      fragments; within the pointer radius they resolve — snap to
+      their true grid position, turn azure ("clarity follows you").
+      Per-fragment spring lerp, rAF-coalesced, paused off-screen,
+      disabled under prefers-reduced-motion.
+   3. Variable-weight field on the name (Inter Tight wght axis —
+      ambient wave + pointer bump; zero extra bytes).
+   4. Focus-reticle cursor (hover+fine only) — lerps after the
+      pointer, becomes a registration frame over interactive
+      targets (a / button / [data-frame]).
+   ============================================================ */
+(() => {
+  "use strict";
+  const stage = document.querySelector(".hp6-stage");
+  if (!stage) return;
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (reduced) return;
+
+  /* portrait parallax — the print leans toward the pointer (well-level;
+     the img transform belongs to the Ken Burns drift) */
+  const well = document.querySelector(".hp6-frame__well");
+  const hero = document.getElementById("hero");
+  if (well && hero && matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    /* cached hero geometry — pointermove reads no layout (§29.9) */
+    var heroGeo = { top: 0, w: 1, h: 1 };
+    var measureHeroGeo = function () {
+      heroGeo.top = hero.getBoundingClientRect().top + window.scrollY;
+      heroGeo.w = Math.max(hero.getBoundingClientRect().width, 1);
+      heroGeo.h = Math.max(hero.getBoundingClientRect().height, 1);
+    };
+    measureHeroGeo();
+    addEventListener("resize", measureHeroGeo, { passive: true });
+    addEventListener("load", measureHeroGeo, { passive: true });
+    let wx = 0, wy = 0, hx = 0, hy = 0, praf = false;
+    const wstep = () => {
+      wx += (hx - wx) * 0.08; wy += (hy - wy) * 0.08;
+      well.style.transform = "translate3d(" + wx.toFixed(2) + "px," + wy.toFixed(2) + "px,0)";
+      if (Math.abs(hx - wx) > 0.05 || Math.abs(hy - wy) > 0.05) requestAnimationFrame(wstep);
+      else praf = false;
+    };
+    hero.addEventListener("pointermove", (e) => {
+      hx = (e.clientX / heroGeo.w - 0.5) * 12;
+      hy = ((e.clientY - (heroGeo.top - window.scrollY)) / heroGeo.h - 0.5) * 9;
+      if (!praf) { praf = true; requestAnimationFrame(wstep); }
+    }, { passive: true });
+    hero.addEventListener("pointerleave", () => { hx = 0; hy = 0; if (!praf) { praf = true; requestAnimationFrame(wstep); } }, { passive: true });
+  }
+
+  /* 2 — the clarity field */
+  const frags = [...document.querySelectorAll(".hp6-field span")].map((el) => {
+    const r = el.getBoundingClientRect();
+    return {
+      el,
+      bx: r.left + r.width / 2 + window.scrollX,  /* cached DOCUMENT-space center */
+      by: r.top + r.height / 2 + window.scrollY,
+      x: 0, y: 0, lx: 9e9, ly: 9e9, tx: 0, ty: 0, clear: false,
+      phase: Math.random() * Math.PI * 2, speed: 0.4 + Math.random() * 0.35,
+    };
+  });
+  let heroVisible = true, px = -1e4, py = -1e4, fragT = performance.now(), frameParity = false;
+  new IntersectionObserver((es) => { heroVisible = es[0].isIntersecting; }).observe(stage);
+  addEventListener("pointermove", (e) => { px = e.clientX + window.scrollX; py = e.clientY + window.scrollY; }, { passive: true });
+
+  /* 3 — variable-weight field on the name */
+  const letters = [...document.querySelectorAll(".hp6-name .hp6-l")];
+  let centers = [], wghts = null;
+  const measure = () => {
+    const base = window.scrollY;
+    centers = letters.map((el) => {
+      const r = el.getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2 + base };
+    });
+    if (!wghts) wghts = letters.map(() => 640);
+  };
+  if (letters.length) { measure(); addEventListener("resize", measure, { passive: true }); addEventListener("load", measure, { passive: true }); }
+
+  const loop = (now) => {
+    requestAnimationFrame(loop);
+    if (!heroVisible) return;
+    const sy = window.scrollY;
+    if (sy > window.innerHeight * 1.3) return;
+    const t = now / 1000;
+    /* fragments: ambient drift + pointer resolution */
+    for (const f of frags) {
+      const amb = 9;
+      const ax = Math.sin(t * f.speed + f.phase) * amb;
+      const ay = Math.cos(t * f.speed * 0.8 + f.phase) * amb;
+      /* pure math from cached geometry — ZERO layout reads per frame (§29.9) */
+      const cx = f.bx + f.x + ax, cy = f.by + f.y + ay;
+      const dx = px - cx, dy = py - cy;
+      const near = (dx * dx + dy * dy) < 190 * 190;
+      if (near !== f.clear) {
+        f.clear = near;
+        f.el.classList.toggle("is-clear", near);
+      }
+      f.tx = near ? ax * -0.2 : ax;   /* resolved: drift collapses */
+      f.ty = near ? ay * -0.2 : ay;
+      f.x += (f.tx - f.x) * 0.1;
+      f.y += (f.ty - f.y) * 0.1;
+      if (Math.abs(f.x - f.lx) > 0.05 || Math.abs(f.y - f.ly) > 0.05) {
+        f.lx = f.x; f.ly = f.y;
+        f.el.style.transform = "translate3d(" + f.x.toFixed(2) + "px," + f.y.toFixed(2) + "px,0)";
+      }
+    }
+    /* name weight field — updated on alternate frames at a 1.2 wght
+       epsilon: the ambient wave is a ~1s sine, so 30 Hz at 1.2/640
+       resolution is visually identical while cutting glyph re-rasters
+       of the display-size name by ~5x (§29.9) */
+    if (letters.length && (frameParity = !frameParity)) {
+      for (let i = 0; i < letters.length; i++) {
+        const cpt = centers[i];
+        const dx2 = px - cpt.x, dy2 = (py - sy) - (cpt.y - sy);
+        const d2 = dx2 * dx2 + dy2 * dy2;
+        const bump = 130 * Math.exp(-d2 / (150 * 150));
+        const wave = 38 * Math.sin(t * 1.05 - i * 0.55);
+        const target = Math.max(560, Math.min(700, 620 + wave + bump));
+        const w = wghts[i] + (target - wghts[i]) * 0.2;
+        if (Math.abs(w - wghts[i]) > 1.2) {
+          wghts[i] = w;
+          letters[i].style.fontVariationSettings = "'wght' " + w.toFixed(1);
+        }
+      }
+    }
+  };
+  requestAnimationFrame(loop);
+
+  /* 4 — focus-reticle cursor — REMOVED v3.8.0 (owner directive: perf) */
+})();
+
+/* ============================================================
+   THEME CHROME — enforce the mobile/tablet status-bar colour.
+   The homepage's <meta name="theme-color"> is #080F22 (the site's
+   navy). This pins it at runtime on the homepage only, so even a
+   stale cached HTML carrying an older light value gets corrected
+   the moment fresh JS lands. ≤900px only — desktop browsers
+   ignore theme-color and are untouched either way.
+   ============================================================ */
+(() => {
+  "use strict";
+  if (!window.matchMedia("(max-width: 900px)").matches) return;
+  if (!document.body.classList.contains("home-arena")) return;
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", "#080F22");
 })();

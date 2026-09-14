@@ -575,6 +575,8 @@ final class SiteSync
                 'seo' => ['title' => $head['title'], 'desc' => $head['desc'], 'keywords' => $head['keywords'], 'ogImage' => self::mediaRef($head['ogImage']), 'canonical' => $head['canonical']],
                 'source' => 'static-frontend',
             ]);
+            // case-study BODY sections → editable per-project records (R11)
+            $p['sections'] = $abs ? self::caseSections($abs) : ($p['sections'] ?? []);
             unset($p['caseStudyTemplate']);
             if (!isset($p['views'])) $p['views'] = '0';
             $out[] = self::stamp($p, $o);
@@ -688,6 +690,87 @@ final class SiteSync
                 'source' => 'static-frontend',
             ]);
             $out[] = self::stamp($row, $o);
+        }
+        return $out;
+    }
+
+    /**
+     * Case-study body → per-section editable records (R11).
+     * Generic: headings, labels, facts, paragraphs, images, videos and the
+     * data-* payloads of interactive controls (pins, stages, tabs, chips).
+     */
+    private static function caseSections(string $abs): array
+    {
+        $x = self::xp($abs);
+        $out = [];
+        $order = 0;
+        foreach (self::query($x, "//main//section") as $sec) {
+            if (!$sec instanceof DOMElement) continue;
+            $order++;
+            $id = (string)$sec->getAttribute('id');
+            $cls = (string)$sec->getAttribute('class');
+            $num = '';
+            $label = '';
+            $headDiv = self::query($x, ".//*[contains(@class,'section-head')]", $sec);
+            if (isset($headDiv[0])) {
+                $num = self::txt($x, ".//span[1]", $headDiv[0]);
+                $label = self::txt($x, ".//p[1]", $headDiv[0]);
+            }
+            $heading = self::txt($x, "(.//h1|.//h2)[1]", $sec);
+            $accent = self::txt($x, "(.//h1|.//h2)[1]//em", $sec);
+            $paras = [];
+            foreach (self::query($x, ".//p", $sec) as $pe) {
+                $t = self::clean($pe->textContent);
+                if ($t === '' || mb_strlen($t) < 3 || in_array($t, $paras, true)) continue;
+                $paras[] = $t;
+                if (count($paras) >= 12) break;
+            }
+            $facts = [];
+            foreach (self::query($x, ".//dl//div", $sec) as $d) {
+                $dt = self::txt($x, ".//dt", $d);
+                $dd = self::txt($x, ".//dd", $d);
+                if ($dt !== '' && $dd !== '' && count($facts) < 16) $facts[] = ['dt' => $dt, 'dd' => $dd];
+            }
+            $images = [];
+            foreach (self::query($x, ".//img[@src]", $sec) as $im) {
+                $src = (string)$im->getAttribute('src');
+                if ($src === '' || str_contains($src, 'logo')) continue;
+                $images[] = ['src' => self::mediaRef($src), 'alt' => trim((string)$im->getAttribute('alt'))];
+                if (count($images) >= 8) break;
+            }
+            $videos = [];
+            foreach (self::query($x, ".//video", $sec) as $v) {
+                $vsrc = self::attr($x, ".//source", 'src', $v);
+                if ($vsrc === '') $vsrc = (string)$v->getAttribute('src');
+                if ($vsrc === '') continue;
+                $videos[] = ['src' => self::mediaRef($vsrc), 'label' => trim((string)$v->getAttribute('aria-label'))];
+                if (count($videos) >= 8) break;
+            }
+            $interactive = [];
+            foreach (self::query($x, ".//button[@data-title or @data-copy or @data-desc or @data-n or @data-target or @data-experience or @data-what]", $sec) as $b) {
+                if (!$b instanceof DOMElement) continue;
+                $data = [];
+                foreach ($b->attributes as $at) {
+                    if (str_starts_with($at->name, 'data-')) $data[$at->name] = mb_substr((string)$at->value, 0, 300);
+                }
+                $interactive[] = ['label' => mb_substr(self::clean($b->textContent), 0, 80), 'data' => $data];
+                if (count($interactive) >= 24) break;
+            }
+            $rec = [
+                'id' => $id !== '' ? $id : ('s' . $order),
+                'order' => $order,
+                'kind' => trim(explode(' ', $cls)[0] ?? ''),
+                'label' => $label,
+                'num' => $num,
+                'heading' => $heading,
+                'headingAccent' => $accent,
+                'paragraphs' => $paras,
+                'facts' => $facts,
+                'images' => $images,
+                'videos' => $videos,
+                'interactive' => $interactive,
+            ];
+            $out[] = array_filter($rec, fn($v) => $v !== [] && $v !== '');
         }
         return $out;
     }
@@ -1021,6 +1104,20 @@ final class SiteSync
                 $src = self::siteRel($abs, (string)$img->getAttribute('src'));
                 $alt = trim((string)$img->getAttribute('alt'));
                 if ($src !== '' && $alt !== '' && !isset(self::$altMap[$src])) self::$altMap[$src] = $alt;
+            }
+            // <video aria-label> + <source src> + poster → alt text for media records
+            foreach (self::query($x, "//video[@aria-label]") as $v) {
+                $vlabel = trim((string)$v->getAttribute('aria-label'));
+                if ($vlabel === '') continue;
+                $vsrc = self::attr($x, ".//source", 'src', $v);
+                if ($vsrc === '') $vsrc = (string)$v->getAttribute('src');
+                $vsrc = self::siteRel($abs, $vsrc);
+                if ($vsrc !== '' && !isset(self::$altMap[$vsrc])) self::$altMap[$vsrc] = $vlabel;
+                $poster = (string)$v->getAttribute('poster');
+                if ($poster !== '') {
+                    $pp = self::siteRel($abs, $poster);
+                    if ($pp !== '' && !isset(self::$altMap[$pp])) self::$altMap[$pp] = $vlabel;
+                }
             }
         }
     }

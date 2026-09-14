@@ -196,7 +196,7 @@ body.av-error {
   color: var(--chrome-text); white-space: nowrap;
 }
 .error-brand__status {
-  font-size: 10.5px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase;
+  font-size:11px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase;
   color: var(--chrome-muted); padding-left: 12px;
   border-left: 1px solid rgba(148, 170, 230, 0.22);
 }
@@ -319,7 +319,7 @@ body.av-error {
 .error-status {
   margin-top: clamp(24px, 3.6vh, 38px);
   display: inline-flex; align-items: center; gap: 10px;
-  font-size: 10.5px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase;
+  font-size:11px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase;
   color: var(--chrome-muted);
   white-space: nowrap;
 }
@@ -425,7 +425,7 @@ body.av-reduce [data-reveal] { opacity: 1 !important; transform: none !important
   .error-brand__status { display: none; }
   .error-brand__name { font-size: 13.5px; }
   .error-scene__art svg { width: 88vw; }
-  .error-status { font-size: 9.5px; letter-spacing: 0.16em; }
+  .error-status { font-size:11px; letter-spacing: 0.16em; }
   /* simplify the atmosphere on small screens: drop the cursor lamp + horizon */
   .error-scene__cursor { display: none; }
   .error-scene__horizon { display: none; }
@@ -550,3 +550,10 @@ body.av-reduce [data-reveal] { opacity: 1 !important; transform: none !important
 body.av-reduce .error-scene__art [class^="art-"],
 body.av-reduce .error-scene__art [class*=" art-"] { animation: none !important; }
 
+
+
+/* Desktop lock (>=901px): restore values as committed to git so desktop/laptop/bigger screens render exactly like the pushed version. Mobile/tablet (<=900px) keeps the accessibility/typography updates above. */
+@media (min-width: 901px) {
+  .error-brand__status { font-size: 10.5px; }
+  .error-status { font-size: 10.5px; }
+}

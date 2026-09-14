@@ -47,7 +47,7 @@
   --t-h3: clamp(1.6rem, 3vw, 2.9rem);
   --t-lede: clamp(1.12rem, 1.02rem + 0.5vw, 1.4rem);
   --t-body: clamp(1rem, 0.96rem + 0.2vw, 1.1rem);
-  --t-mono: 0.66rem;
+  --t-mono: 0.6875rem;
 
   /* layout — align the content column with the global container */
   --edge: clamp(20px, 4.5vw, 72px);
@@ -196,4 +196,10 @@
   }
   /* lightbox keeps its own scroll; never chains into the page */
   .lb { overscroll-behavior: contain; }
+}
+
+
+/* Desktop lock (>=901px): restore values as committed to git so desktop/laptop/bigger screens render exactly like the pushed version. Mobile/tablet (<=900px) keeps the accessibility/typography updates above. */
+@media (min-width: 901px) {
+  :root { --t-mono: 0.66rem; }
 }

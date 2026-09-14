@@ -17,6 +17,9 @@
   var dupes = C.DUPLICATE_FRAMES || [];
   var frames = C.FRAMES.filter(function (f) { return dupes.indexOf(f.n) < 0; });
   var n = frames.length, i = -1, slides = [];
+  /* Set by the film block below: called with the new index on every
+     real frame change (ticks, arrows, keys, swipe — all via show()). */
+  var onFrameChange = null;
 
   /* Captions are keyed to the real frame number, never to the array
      position — held-out duplicates must not renumber the sequence. */
@@ -66,6 +69,7 @@
     });
     countEl.textContent = A.pad(k + 1) + ' / ' + A.pad(n);
     capEl.textContent = '3D ARCHITECTURAL WALKTHROUGH — ' + stageName(frames[k]);
+    if (onFrameChange) onFrameChange(k);
   }
   if (prev) prev.addEventListener('click', function () { show(i - 1); });
   if (next) next.addEventListener('click', function () { show(i + 1); });
@@ -84,54 +88,144 @@
   });
   show(0);
 
-  /* ── video, armed in config; mounts only when the file resolves ──
-     The player is enabled by WALKTHROUGH_VIDEO (config.js). A quick
-     existence check on WALKTHROUGH_SRC decides whether to mount the
-     player or keep the placeholder frame sequence — so dropping the
-     MP4 into assets/video/ (or repointing WALKTHROUGH_SRC) is all
-     that's needed to go live; nothing else has to change. If the
-     file is absent — or `fetch` is unavailable — the frames remain
-     and no broken control is ever shown. */
+  /* ── video — frame 01 only, armed in config ────────────────────
+     The film mounts only when the file resolves (HEAD check). It
+     plays ONLY on frame 01: there the pf-player facade (portfolio
+     player UI) covers the stage; every other frame shows its own
+     picture. Leaving frame 01 — ticks, arrows, keyboard and swipe
+     all funnel through show() — pauses and rewinds the film
+     automatically; returning to 01 restores the poster facade.
+     Styles: assets/css/main.css § pf-player.                       */
   if (C.WALKTHROUGH_VIDEO && C.WALKTHROUGH_SRC) {
     var frame = $('#filmFrame');
+    var POSTER = 'assets/images/walkthrough/frame01-1280.jpg';
 
     var mount = function () {
-      var video = document.createElement('video');
-      video.className = 'film__video';
-      video.setAttribute('playsinline', '');
-      video.setAttribute('muted', '');
-      video.setAttribute('preload', 'none');          /* nothing loads until asked */
-      video.setAttribute('poster', 'assets/images/walkthrough/frame01-1280.jpg');
-      var meta = C.WALKTHROUGH_META || {};
-      if (meta.w) { video.width = meta.w; video.height = meta.h; }
-      video.setAttribute('aria-label', '3D architectural walkthrough of the BPCL Palakkad Top Installation');
-      video.controls = true;
-      var btn = document.createElement('button');
-      btn.className = 'film__play';
-      btn.type = 'button';
-      btn.innerHTML = '<span class="film__playico" aria-hidden="true"></span><span class="mono">PLAY WALKTHROUGH FILM</span>';
-      btn.addEventListener('click', function () {
-        /* if the asset can't actually be served, drop the player and
-           restore the frame sequence rather than leave a dead control */
+      var player = document.createElement('div');
+      player.className = 'pf-player';
+      player.setAttribute('data-pf-player', '');
+      frame.appendChild(player);
+
+      var video = null, ioBound = false;
+
+      var stopFilm = function () {
+        if (!video) return;
+        if (!video.paused) video.pause();
+        try { video.currentTime = 0; } catch (err) {}
+      };
+
+      var ensureVideo = function () {
+        if (video) return video;
+        video = document.createElement('video');
+        video.className = 'film__video';
+        video.controls = true;
+        video.setAttribute('playsinline', '');
+        video.setAttribute('poster', POSTER);
+        video.setAttribute('preload', 'auto');
+        var meta = C.WALKTHROUGH_META || {};
+        if (meta.w) { video.width = meta.w; video.height = meta.h; }
+        video.setAttribute('aria-label', '3D architectural walkthrough of the BPCL Palakkad Top Installation');
+        /* pause when scrolled away */
+        if (!ioBound && 'IntersectionObserver' in window) {
+          ioBound = true;
+          new IntersectionObserver(function (e) {
+            if (!e[0].isIntersecting && video && !video.paused) video.pause();
+          }, { threshold: 0.05 }).observe(frame);
+        }
+        return video;
+      };
+
+      var toVideo = function () {
+        player.innerHTML = '';
+        player.appendChild(ensureVideo());
+        player.classList.add('is-playing');
+        /* if the asset can't actually be served, drop the film and
+           stay on the pictures rather than leave a dead control */
         video.addEventListener('error', function () {
-          frame.classList.remove('has-video');
-          if (btn.parentNode) btn.parentNode.removeChild(btn);
-          if (video.parentNode) video.parentNode.removeChild(video);
-        });
-        video.preload = 'auto';
+          frame.classList.remove('is-film');
+          if (player.parentNode) player.parentNode.removeChild(player);
+          onFrameChange = null;
+        }, { once: true });
         video.src = C.WALKTHROUGH_SRC;
         video.play().catch(function () {});
-        btn.remove();
-        frame.classList.add('has-video');
-      });
-      frame.appendChild(video);
-      frame.appendChild(btn);
-      /* pause when scrolled away */
-      if ('IntersectionObserver' in window) {
-        new IntersectionObserver(function (e) {
-          if (!e[0].isIntersecting && !video.paused) video.pause();
-        }, { threshold: 0.05 }).observe(frame);
+      };
+
+      var toFacade = function () {
+        stopFilm();
+        player.innerHTML = '';
+        player.classList.remove('is-playing');
+        player.appendChild(buildFacade());
+      };
+
+      function buildFacade() {
+        var poster = document.createElement('button');
+        poster.className = 'pf-player__poster';
+        poster.type = 'button';
+        poster.setAttribute('aria-label', 'Play the walkthrough film: BPCL Palakkad Top Installation');
+
+        var img = document.createElement('img');
+        img.src = POSTER;
+        img.alt = '';
+        img.width = 1280; img.height = 720;
+        img.decoding = 'async'; img.loading = 'lazy';
+
+        var scrim = document.createElement('span');
+        scrim.className = 'pf-player__scrim';
+        scrim.setAttribute('aria-hidden', '');
+
+        var play = document.createElement('span');
+        play.className = 'pf-player__play';
+        play.setAttribute('aria-hidden', '');
+        play.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.2v13.6L19 12z"/></svg><b>Play film</b>';
+
+        poster.appendChild(img);
+        poster.appendChild(scrim);
+        poster.appendChild(play);
+        poster.addEventListener('click', toVideo);
+        return poster;
       }
+
+      /* frame 01 = film · every other frame = its picture */
+      onFrameChange = function (k) {
+        if (k === 0) {
+          frame.classList.add('is-film');
+          toFacade();                    /* always a fresh poster — leaving rewinds */
+        } else {
+          frame.classList.remove('is-film');
+          stopFilm();                                    /* auto-stop + rewind */
+        }
+      };
+
+      toFacade();                                        /* initial state: poster + play chip */
+
+      /* swipe navigates from the film too (the stage's own swipe
+         handler is hidden while .is-film). Drags starting on the
+         video's bottom control strip are left to the player. */
+      var sx = null;
+      player.addEventListener('pointerdown', function (e) {
+        if (e.target.closest && e.target.closest('video')) {
+          var r = player.getBoundingClientRect();
+          sx = (e.clientY - r.top > r.height - 48) ? null : e.clientX;
+        } else {
+          sx = e.clientX;
+        }
+      });
+      player.addEventListener('pointerup', function (e) {
+        if (sx === null) return;
+        var dx = e.clientX - sx; sx = null;
+        if (Math.abs(dx) > 45) {
+          /* no click after the swipe — Chrome would toggle-play the film */
+          var swallow = function (ev) {
+            ev.stopPropagation(); ev.preventDefault();
+            player.removeEventListener('click', swallow, true);
+          };
+          player.addEventListener('click', swallow, true);
+          e.preventDefault();
+          show(i + (dx < 0 ? 1 : -1));
+        }
+      });
+
+      onFrameChange(i);                                  /* i is 0 unless the visitor navigated during the HEAD check */
     };
 
     if (window.fetch) {

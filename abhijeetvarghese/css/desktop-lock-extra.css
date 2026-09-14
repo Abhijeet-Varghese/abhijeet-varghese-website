@@ -1,0 +1,23 @@
+/* ==========================================================================
+   DESKTOP LOCK (extras) — loaded only ≥901px, after the pushed stylesheets.
+   The modified mobile/tablet stylesheet is NOT loaded on desktop, so this file
+   only has to make the new featured-work wrapper behave like the original
+   container. Everything else renders from the pushed files exactly as committed.
+   (The pre-v6 hero-shim rules were removed: the v6 hero is a single
+   homepage hero served by hero-v6.css at every width — no mobile-only
+   elements remain to hide on desktop.)
+   ========================================================================== */
+@media (min-width: 901px) {
+
+  /* ---------- FEATURED WORK: pin wrapper mirrors the original .container ---------- */
+  .work__pin {
+    width: min(1280px, 100% - 2 * var(--pad-x));
+    margin-inline: auto;
+  }
+  /* the header carries a `container` class for mobile; on desktop it must
+     span the full pin width (as it did inside the original .container) */
+  .work .chapter__head.container { width: 100%; }
+
+  /* hide the mobile-only progress bar / counter */
+  .work__barwrap { display: none !important; }
+}

@@ -1,7 +1,7 @@
 /* ============================================================
    AV ELEVATE v3.0 — interaction layer
    Reveals · magnetic buttons · tilt · counters · nav intelligence
-   cursor glow · back-to-top · scroll spy. All rAF-throttled,
+   back-to-top · scroll spy (cursor glow removed 3.4.4). All rAF-throttled,
    transform/opacity only, reduced-motion aware. No dependencies.
    ============================================================ */
 (() => {
@@ -26,7 +26,18 @@
     const seq = [".hp-hero__name-line", ".hp-hero__portrait", ".hp-hero__copy > *", ".hp-hero__lede"]
       .flatMap((s) => $$(s, hero));
     seq.forEach((el, i) => el.style.setProperty("--e-d", Math.min(0.08 + i * 0.09, 1.2) + "s"));
-    requestAnimationFrame(() => requestAnimationFrame(() => hero.classList.add("is-in")));
+    const flip = () => requestAnimationFrame(() => requestAnimationFrame(() => {
+      hero.classList.add("is-in");
+      if (!reduced) {
+        setTimeout(() => document.documentElement.classList.add("hero-settled"), 1600);
+      }
+    }));
+    const d = document.documentElement;
+    if (d.classList.contains("av-loading")) {
+      let iv = setInterval(() => {
+        if (!d.classList.contains("av-loading")) { clearInterval(iv); flip(); }
+      }, 60);
+    } else flip();
   }
 
   /* ---------- 2. reveals: [data-elevate] + auto-enhance ---------- */
@@ -110,34 +121,13 @@
   addEventListener("scroll", rAF(() => top.classList.toggle("show", scrollY > innerHeight * 0.9)), { passive: true });
   top.addEventListener("click", () => scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" }));
 
-  /* ---------- 8. cursor glow ---------- */
-  if (finePointer && !reduced) {
-    const g = document.createElement("div");
-    g.className = "e-glow"; g.setAttribute("aria-hidden", "true");
-    document.body.appendChild(g);
-    let x = innerWidth / 2, y = innerHeight / 3, tx = x, ty = y, shown = false;
-    addEventListener("pointermove", (e) => {
-      tx = e.clientX; ty = e.clientY;
-      if (!shown) { shown = true; g.classList.add("on"); }
-    }, { passive: true });
-    (function follow() {
-      x += (tx - x) * 0.08; y += (ty - y) * 0.08;
-      g.style.transform = `translate3d(${x - 260}px, ${y - 260}px, 0)`;
-      requestAnimationFrame(follow);
-    })();
-  }
+  /* 8. cursor glow — REMOVED v3.4.4 (owner directive: perf; was a never-idle rAF loop) */
 
-  /* ---------- 9. hero parallax (portrait drifts subtly) ---------- */
-  const portrait = $(".hp-hero__portrait");
-  if (hero && portrait && !reduced) {
-    const onScroll = () => {
-      const r = hero.getBoundingClientRect();
-      if (r.bottom > 0 && r.top < innerHeight) {
-        portrait.style.translate = `0 ${(scrollY * -0.06).toFixed(1)}px`;
-      }
-    };
-    addEventListener("scroll", rAF(onScroll), { passive: true });
-  }
+  /* 9. hero scroll-parallax — REMOVED v3.4.6 (perf §29.7): the last
+     per-frame hero write; unpromoted on mobile it repainted the
+     shadowed frame every scrolled frame. The hero is now 100%
+     mutation-free during scroll — it lives at rest, not in scroll. */
+
   /* ---------- 10. current-page indication: REVOKED (v3.1.3) with the nav
      revoke; hardcoded aria-current in markup (pre-existing) is untouched. --- */
 
@@ -280,4 +270,82 @@
     window.addEventListener("scroll", rAF(onScroll), { passive: true });
     onScroll(); // clean initial state: visible at top on every page load
   }
+})();
+
+(() => {
+  "use strict";
+  const $ = (s, c = document) => c.querySelector(s);
+  const $$ = (s, c = document) => [...c.querySelectorAll(s)];
+  /* avWait — hold a callback until the AV loader (index only) lifts, so the
+     hero choreography plays in full view instead of behind the boot screen.
+     If the loader never existed / already lifted, runs immediately. */
+  const avWait = (fn) => {
+    const d = document.documentElement;
+    if (!d.classList.contains("av-loading")) return fn();
+    let iv = setInterval(() => {
+      if (!d.classList.contains("av-loading")) { clearInterval(iv); fn(); }
+    }, 60);
+  };
+
+  /* ---------- 14. signature hero kinetic + cross-doc view transitions (v3.4.0) ----------
+     Two independent, progressively-enhanced layers:
+     a) [data-kinetic] — one IO flips .is-inview; CSS does the entire choreography
+        (line wipe → accent word wipes → azure underline draw). If IO/JS is absent
+        the ::after wipes simply never clear… so the failsafe html.reveal-failsafe
+        (set 2.6s after boot) also forces them gone via the rules below.
+     b) Cross-document view transitions: the pages carry
+        <meta name="view-transition" content="same-origin">; here we only opt the
+        site nav OUT of the root cross-fade (named capture) so the chrome persists
+        across page swaps. Unsupported browsers: both layers no-op. */
+  const kinetic = $("#hero [data-kinetic]") || $("[data-kinetic]");
+  if (kinetic && "IntersectionObserver" in window) {
+    // (body replaced below by gated version)
+    const kIO = new IntersectionObserver((es) => {
+      es.forEach((e) => {
+        if (!e.isIntersecting) return;
+        e.target.classList.add("is-inview");
+        kIO.disconnect();
+      });
+    }, { threshold: 0.4 });
+    avWait(() => kIO.observe(kinetic));
+    // words of the accent phrase get per-word wipe delays
+    const acc = kinetic.querySelector("[data-kinetic-accent]");
+    if (acc && !acc.dataset.kBound) {
+      acc.dataset.kBound = "1";
+      const words = acc.textContent.trim().split(/\s+/);
+      acc.setAttribute("aria-label", acc.textContent.trim());
+      acc.textContent = ""; // clear the original node — .k-w spans become the only visual content
+      words.forEach((w, i) => {
+        const s = document.createElement("span");
+        s.className = "k-w"; s.textContent = w; s.setAttribute("aria-hidden", "true");
+        s.style.setProperty("--k-d", (1.15 + i * 0.12).toFixed(2) + "s");
+        acc.appendChild(s);
+        if (i < words.length - 1) acc.appendChild(document.createTextNode(" "));
+      });
+    }
+  }
+  // failsafe: if reveal-failsafe fired before .is-inview (IO never ran),
+  // kill the wipes so the tagline can never stay covered.
+  if (document.documentElement.classList.contains("reveal-failsafe")) {
+    document.querySelectorAll("[data-kinetic]").forEach((el) => el.classList.add("is-inview"));
+  }
+  document.addEventListener("readystatechange", () => {
+    if (document.documentElement.classList.contains("reveal-failsafe")) {
+      document.querySelectorAll("[data-kinetic]:not(.is-inview)").forEach((el) => el.classList.add("is-inview"));
+    }
+  });
+
+  try {
+    if (document.startViewTransition && window.navigation) {
+      addEventListener("pageswap", (e) => {
+        if (!e.viewTransition) return;
+        const nav = document.querySelector("header.site-nav");
+        try { e.viewTransition.types.add("nav"); } catch (_) { /* types API unavailable */ }
+      });
+      addEventListener("pagereveal", (e) => {
+        if (!e.viewTransition) return;
+        try { e.viewTransition.types.add("nav"); } catch (_) {}
+      });
+    }
+  } catch (_) { /* view transitions unsupported — silent */ }
 })();
