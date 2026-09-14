@@ -91,6 +91,10 @@ ErrorDocument 504 /504.html
   # Canonical form: every page lives at exactly ONE url — /section/ for
   # directories, /name/ for single pages. Everything else 301s here.
   # /index.html, /index, /any/dir/index, /any/dir/index.html -> directory root
+  # (THE_REQUEST = the raw client request line — beats LiteSpeed/Apache
+  #  directory canonicalization on real directories)
+  RewriteCond %{THE_REQUEST}\s/([^?\ ]*?)index(\.html)?/?[?\ ]
+  RewriteRule ^ /%1/ [R=301,L,NE]
   RewriteRule ^index(\.html)?/?$ / [R=301,L]
   RewriteRule ^(.+/)index(\.html)?/?$ /$1 [R=301,L]
   # /page.html or stray /page.html/ -> /page/
