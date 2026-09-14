@@ -17,3 +17,5 @@ html.js .about-what,html.js .about-now,html.js .about-curious,html.js .about-cre
 /* --- tighter evolution pacing: shorter pinned runway, same choreography --- */
 .about-evo3d__scroll{height:340vh}
 @media (max-width:480px){.about-evo3d__scroll{height:300vh}}
+/* --- evolution shadows: baked-soft gradient instead of filter:blur(35px) --- */
+.about-evo3d__shadow{filter:none!important;background:radial-gradient(ellipse,rgba(0,0,0,0.82) 0%,rgba(0,0,0,0.38) 42%,transparent 74%)!important}
