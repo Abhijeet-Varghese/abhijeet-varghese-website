@@ -24,6 +24,28 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Update visitor confirmation mobile number
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          p = Path('avos-php/backend/controllers/ApiController.php')
+          s = p.read_text()
+          old = '''                . "Looking forward to speaking with you.\\n\\n"
+                . "Best,\\n"
+                . "Abhijeet Varghese\\n"'''
+          new = '''                . "Looking forward to speaking with you.\\n\\n"
+                . "You can also reach me directly at +91 969 408 0706.\\n\\n"
+                . "Best,\\n"
+                . "Abhijeet Varghese\\n"'''
+          if old in s:
+              p.write_text(s.replace(old, new, 1))
+              print('Mobile number added to visitor confirmation.')
+          elif '+91 969 408 0706' in s:
+              print('Mobile number already present.')
+          else:
+              raise SystemExit('Expected visitor confirmation text not found')
+          PY
+
       - name: Verify current frontend and AV OS source
         run: |
           test -f abhijeetvarghese/index.html
@@ -40,8 +62,6 @@ jobs:
           rm -rf /tmp/staging-webroot
           mkdir -p /tmp/staging-webroot
 
-          # Keep the current website source beside AV OS so AV_SITE_DIR_DEFAULT
-          # resolves correctly from avos-php/backend/config/config.php.
           rsync -a --delete \
             --exclude='config.local.php' \
             --exclude='storage/cache/' \
@@ -73,12 +93,7 @@ jobs:
           </IfModule>
 
           RewriteEngine On
-
-          # Never expose the AV OS source tree directly.
           RewriteRule ^avos-php(?:/|$) - [F,END]
-
-          # AV OS router owns API/admin/install/media and the complete frontend
-          # clean-URL/static serving contract.
           RewriteRule ^ avos-php/router.php [END,QSA]
           EOF
 
