@@ -27,6 +27,16 @@ jobs:
       - name: Patch contact email code to use templates
         run: python3 .github/patch-contact-email-templates.py
 
+      - name: Persist contact email code in staging
+        run: |
+          if ! git diff --quiet -- avos-php/backend/controllers/ApiController.php; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add avos-php/backend/controllers/ApiController.php
+            git commit -m "Use contact email templates"
+            git push origin HEAD:staging
+          fi
+
       - name: Verify current frontend and AV OS source
         run: |
           test -f abhijeetvarghese/index.html
