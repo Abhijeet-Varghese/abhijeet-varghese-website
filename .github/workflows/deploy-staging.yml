@@ -24,19 +24,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Apply contact email customization
-        run: |
-          if grep -q 'v2: email engine — confirmation to visitor + admin alert' avos-php/backend/controllers/ApiController.php; then
-            python3 .github/scripts/patch_lead_email.py
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add avos-php/backend/controllers/ApiController.php
-            git commit -m "Apply contact email customization"
-            git push origin HEAD:staging
-          else
-            echo 'Contact email customization already applied.'
-          fi
-
       - name: Verify current frontend and AV OS source
         run: |
           test -f abhijeetvarghese/index.html
