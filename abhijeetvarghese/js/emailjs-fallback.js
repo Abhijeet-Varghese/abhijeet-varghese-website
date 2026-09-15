@@ -36,6 +36,23 @@ const fmtFallbackMessage=(body)=>{
 
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 
+// Bounded retry: up to 3 attempts per email, EmailJS rate-limit gap before
+// every retry. Each template's outcome is tracked independently so a failed
+// visitor send never resends the owner email (and vice versa).
+const SEND_ATTEMPTS=3;
+const sendWithRetry=async(template,params)=>{
+  let lastError=null;
+  for(let attempt=1;attempt<=SEND_ATTEMPTS;attempt++){
+    try{
+      const result=await emailjs.send(SERVICE_ID,template,params);
+      if(result&&result.status===200)return true;
+      lastError=new Error("EmailJS send failed ("+((result&&result.status)||"no status")+")");
+    }catch(error){lastError=error;}
+    if(attempt<SEND_ATTEMPTS)await sleep(EMAILJS_SEND_GAP_MS);
+  }
+  throw lastError||new Error("EmailJS send failed");
+};
+
 const sendFallback=async payload=>{
   const emailjs=await loadSdk();
   const booking=fmtFallbackMessage(payload.message);
@@ -53,12 +70,16 @@ const sendFallback=async payload=>{
     admin_url:"https://abhijeetvarghese.com/admin/"
   };
   if(!params.email)throw new Error("Visitor email is required for EmailJS fallback");
-  const ownerResult=await emailjs.send(SERVICE_ID,OWNER_TEMPLATE_ID,params);
-  if(!ownerResult||ownerResult.status!==200)throw new Error("EmailJS owner notification failed");
+  // Owner first — it is the delivery that matters most. If the owner
+  // notification cannot be delivered at all, report total fallback failure
+  // (the visitor is shown the hi@ email address rather than a success state).
+  let ownerOk=false;
+  try{ownerOk=await sendWithRetry(OWNER_TEMPLATE_ID,params);}catch{}
+  if(!ownerOk)return{owner:false,visitor:false};
   await sleep(EMAILJS_SEND_GAP_MS);
-  const visitorResult=await emailjs.send(SERVICE_ID,VISITOR_TEMPLATE_ID,params);
-  if(!visitorResult||visitorResult.status!==200)throw new Error("EmailJS visitor confirmation failed");
-  return true;
+  let visitorOk=false;
+  try{visitorOk=await sendWithRetry(VISITOR_TEMPLATE_ID,params);}catch{}
+  return{owner:true,visitor:visitorOk};
 };
 
 const originalFetch=window.fetch.bind(window);
@@ -79,8 +100,10 @@ window.fetch=async(input,init)=>{
   }catch{}
   clearTimeout(timer);
   try{
-    await sendFallback(payload);
-    return new Response(JSON.stringify({ok:true,fallback:"emailjs"}),{status:201,headers:{"Content-Type":"application/json"}});
+    const result=await sendFallback(payload);
+    if(result.owner&&result.visitor)return new Response(JSON.stringify({ok:true,fallback:"emailjs"}),{status:201,headers:{"Content-Type":"application/json"}});
+    if(result.owner)return new Response(JSON.stringify({ok:true,fallback:"emailjs",degraded:"visitor"}),{status:201,headers:{"Content-Type":"application/json"}});
+    return new Response(JSON.stringify({ok:false,fallback:"emailjs",error:"Fallback email delivery failed"}),{status:503,headers:{"Content-Type":"application/json"}});
   }catch(error){
     return new Response(JSON.stringify({ok:false,fallback:"emailjs",error:"Fallback email delivery failed"}),{status:503,headers:{"Content-Type":"application/json"}});
   }
