@@ -1,0 +1,48 @@
+name: Wire EmailJS Contact Fallback
+
+on:
+  push:
+    branches:
+      - staging
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  wire:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout staging
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Wire fallback before main contact handler
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('abhijeetvarghese/contact.html')
+          s = p.read_text(encoding='utf-8')
+          marker = '<script src="js/main.js?v=4.6.0" defer></script>'
+          fallback = '<script src="/js/emailjs-fallback.js" defer></script>\n  ' + marker
+          if '/js/emailjs-fallback.js' not in s:
+              if marker not in s:
+                  raise SystemExit('contact main.js script marker not found')
+              s = s.replace(marker, fallback, 1)
+              p.write_text(s, encoding='utf-8')
+          else:
+              print('EmailJS fallback already wired; no change needed.')
+          PY
+
+      - name: Commit wiring
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add abhijeetvarghese/contact.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "Wire EmailJS contact fallback"
+          git push origin staging
