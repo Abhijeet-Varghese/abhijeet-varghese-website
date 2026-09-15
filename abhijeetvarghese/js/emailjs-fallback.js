@@ -40,7 +40,7 @@ const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 // every retry. Each template's outcome is tracked independently so a failed
 // visitor send never resends the owner email (and vice versa).
 const SEND_ATTEMPTS=3;
-const sendWithRetry=async(template,params)=>{
+const sendWithRetry=async(emailjs,template,params)=>{
   let lastError=null;
   for(let attempt=1;attempt<=SEND_ATTEMPTS;attempt++){
     try{
@@ -74,11 +74,11 @@ const sendFallback=async payload=>{
   // notification cannot be delivered at all, report total fallback failure
   // (the visitor is shown the hi@ email address rather than a success state).
   let ownerOk=false;
-  try{ownerOk=await sendWithRetry(OWNER_TEMPLATE_ID,params);}catch{}
+  try{ownerOk=await sendWithRetry(emailjs,OWNER_TEMPLATE_ID,params);}catch{}
   if(!ownerOk)return{owner:false,visitor:false};
   await sleep(EMAILJS_SEND_GAP_MS);
   let visitorOk=false;
-  try{visitorOk=await sendWithRetry(VISITOR_TEMPLATE_ID,params);}catch{}
+  try{visitorOk=await sendWithRetry(emailjs,VISITOR_TEMPLATE_ID,params);}catch{}
   return{owner:true,visitor:visitorOk};
 };
 
