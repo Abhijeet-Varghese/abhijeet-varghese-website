@@ -95,5 +95,7 @@ jobs:
           git add -A
           git commit -qm "Deploy current frontend and AV OS to staging"
           git branch -M deploy-tmp
-          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git push origin deploy-tmp:hostinger --force
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
