@@ -22,14 +22,15 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
           p = Path('abhijeetvarghese/contact.html')
           s = p.read_text(encoding='utf-8')
-          marker = '<script src="js/main.js?v=4.6.0" defer></script>'
-          fallback = '<script src="/js/emailjs-fallback.js" defer></script>\n  ' + marker
           if '/js/emailjs-fallback.js' not in s:
-              if marker not in s:
+              match = re.search(r'<script[^>]+src=["\'][^"\']*main\.js[^"\']*["\'][^>]*></script>', s)
+              if not match:
                   raise SystemExit('contact main.js script marker not found')
-              s = s.replace(marker, fallback, 1)
+              fallback = '<script src="/js/emailjs-fallback.js" defer></script>\n  ' + match.group(0)
+              s = s[:match.start()] + fallback + s[match.end():]
               p.write_text(s, encoding='utf-8')
           else:
               print('EmailJS fallback already wired; no change needed.')
