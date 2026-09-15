@@ -30,20 +30,16 @@ jobs:
           from pathlib import Path
           p = Path('avos-php/backend/controllers/ApiController.php')
           s = p.read_text()
-          old = '''                . "Looking forward to speaking with you.\\n\\n"
-                . "Best,\\n"
-                . "Abhijeet Varghese\\n"'''
-          new = '''                . "Looking forward to speaking with you.\\n\\n"
-                . "You can also reach me directly at +91 969 408 0706.\\n\\n"
-                . "Best,\\n"
-                . "Abhijeet Varghese\\n"'''
-          if old in s:
-              p.write_text(s.replace(old, new, 1))
+          marker = '                . "Looking forward to speaking with you.'
+          if '+91 969 408 0706' not in s:
+              i = s.index(marker)
+              line_end = s.index('\n', i)
+              addition = '                . "You can also reach me directly at +91 969 408 0706.\\n\\n"\n'
+              s = s[:line_end + 1] + addition + s[line_end + 1:]
+              p.write_text(s)
               print('Mobile number added to visitor confirmation.')
-          elif '+91 969 408 0706' in s:
-              print('Mobile number already present.')
           else:
-              raise SystemExit('Expected visitor confirmation text not found')
+              print('Mobile number already present.')
           PY
 
       - name: Verify current frontend and AV OS source
