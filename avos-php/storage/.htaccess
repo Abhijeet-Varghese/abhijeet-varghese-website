@@ -1,0 +1,3 @@
+# AV OS storage — never publicly served
+Require all denied
+Options -Indexes
