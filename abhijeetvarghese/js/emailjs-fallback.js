@@ -1,4 +1,5 @@
 (()=>{"use strict";
+// AV OS is primary; EmailJS is used only when the lead API fails or times out.
 const SERVICE_ID="service_sa2s1c9";
 const OWNER_TEMPLATE_ID="template_bf12i18";
 const VISITOR_TEMPLATE_ID="template_n2ql8q9";
@@ -66,8 +67,7 @@ window.fetch=async(input,init)=>{
   try{payload=JSON.parse(String(init&&init.body||"{}"));}catch{}
   const controller=new AbortController();
   const opts=Object.assign({},init||{},{signal:controller.signal});
-  let timedOut=false;
-  const timer=setTimeout(()=>{timedOut=true;controller.abort();},BACKEND_TIMEOUT_MS);
+  const timer=setTimeout(()=>controller.abort(),BACKEND_TIMEOUT_MS);
   try{
     const response=await originalFetch(input,opts);
     clearTimeout(timer);
