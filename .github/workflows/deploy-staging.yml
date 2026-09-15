@@ -28,6 +28,7 @@ jobs:
         run: |
           python3 <<'PY'
           from pathlib import Path
+          import base64
           p = Path('avos-php/backend/controllers/ApiController.php')
           s = p.read_text()
           if "EmailTemplateModel::getBySlug($template)" not in s:
@@ -35,86 +36,7 @@ jobs:
               end_marker = "    Response::json(['ok' => true, 'id' => $id, 'status' => 'new', 'score' => $leadData['score']], 201);"
               start = s.index(start_marker)
               end = s.index(end_marker, start)
-              new_block = r'''    // Transactional contact emails — render CMS templates and deliver from the verified sender.
-    try {
-        $rawMessage = (string)$leadData['message'];
-        $bookingDate = '';
-        $bookingTime = '';
-        $formMessage = $rawMessage;
-        if (preg_match('/(?:^|\\n\\n)Requested intro call:\\s*(.*?)\\s+at\\s+([^\\r\\n]+)\\s+IST\\s*$/s', $rawMessage, $m)) {
-            $bookingDate = trim($m[1]);
-            $bookingTime = trim($m[2]);
-            $formMessage = trim(preg_replace('/(?:^|\\n\\n)Requested intro call:.*$/s', '', $rawMessage));
-        }
-
-        $ownerRecipients = [
-            'hi@abhijeetvarghese.com',
-            'abhijeetvarghese33@gmail.com',
-            'write4abhijeet@gmail.com',
-        ];
-        $sender = 'hi@abhijeetvarghese.com';
-        $siteUrl = AV_SITE_URL ?: 'https://abhijeetvarghese.com';
-        $emailVars = [
-            'name' => $name,
-            'email' => $email,
-            'phone' => $leadData['phone'] !== '' ? $leadData['phone'] : '—',
-            'company' => $leadData['company'] !== '' ? $leadData['company'] : '—',
-            'project_type' => $leadData['lead_type'],
-            'source' => $leadData['source'],
-            'message' => $formMessage !== '' ? $formMessage : '—',
-            'booking_date' => $bookingDate !== '' ? $bookingDate : '—',
-            'booking_time' => $bookingTime !== '' ? $bookingTime . ' IST' : '—',
-            'owner_mobile' => '+91 969 408 0706',
-            'site_name' => 'Abhijeet Varghese',
-            'site_url' => $siteUrl,
-            'admin_url' => $siteUrl . '/admin/',
-        ];
-
-        $sendTemplate = static function (string $template, string $to, string $replyTo, array $vars) use ($sender): void {
-            $tpl = EmailTemplateModel::getBySlug($template);
-            if (!$tpl) {
-                throw new RuntimeException("Email template not found: {$template}");
-            }
-            $subject = EmailModel::render($tpl['subject'], $vars);
-            $body = EmailModel::render($tpl['body'], $vars);
-            $smtp = SiteConfig::get('smtp');
-            $ok = false;
-            $error = '';
-            try {
-                if (!empty($smtp['host'])) {
-                    $smtpCfg = array_merge($smtp, ['from' => $sender, 'reply_to' => $replyTo !== '' ? $replyTo : $sender]);
-                    $result = SmtpClient::fromConfig($smtpCfg)->send($to, $subject, $body);
-                    $ok = (bool)($result['ok'] ?? false);
-                    $error = (string)($result['error'] ?? '');
-                } else {
-                    $headers = "From: " . $sender . "\\r\\n"
-                        . "Reply-To: " . ($replyTo !== '' ? $replyTo : $sender) . "\\r\\n"
-                        . "Content-Type: text/plain; charset=UTF-8\\r\\n";
-                    $ok = @mail($to, $subject, $body, $headers);
-                }
-            } catch (Throwable $e) {
-                $error = $e->getMessage();
-            }
-            try {
-                Database::q(
-                    "INSERT INTO email_log (template, recipient, subject, status, sent_at, error) VALUES (?,?,?,?,NOW(),?)",
-                    [$template, $to, $subject, $ok ? 'sent' : 'failed', mb_substr($error, 0, 480)]
-                );
-            } catch (Throwable $e) {
-                // Email logging must never affect lead submission.
-            }
-        };
-
-        foreach ($ownerRecipients as $recipient) {
-            $sendTemplate('new_lead', $recipient, $email, $emailVars);
-        }
-        if ($email !== '') {
-            $sendTemplate('lead_confirmation', $email, $sender, $emailVars);
-        }
-    } catch (Throwable $e) {
-        ErrorModel::log('lead_email_send', $e->getMessage(), 'POST');
-    }
-'''
+              new_block = base64.b64decode('ICAgIC8vIFRyYW5zYWN0aW9uYWwgY29udGFjdCBlbWFpbHMg4oCUIHJlbmRlciBDTVMgdGVtcGxhdGVzIGFuZCBkZWxpdmVyIGZyb20gdGhlIHZlcmlmaWVkIHNlbmRlci4KICAgIHRyeSB7CiAgICAgICAgJHJhd01lc3NhZ2UgPSAoc3RyaW5nKSRsZWFkRGF0YVsnbWVzc2FnZSddOwogICAgICAgICRib29raW5nRGF0ZSA9ICcnOwogICAgICAgICRib29raW5nVGltZSA9ICcnOwogICAgICAgICRmb3JtTWVzc2FnZSA9ICRyYXdNZXNzYWdlOwogICAgICAgIGlmIChwcmVnX21hdGNoKCcvKD86XnxbXG5cbl0pUmVxdWVzdGVkIGludHJvIGNhbGw6XHMqKC4qPylccythdFxzKyhcW1eXHJcbl0rKVxzK0lTVFxzKiQvcycsICRyYXdNZXNzYWdlLCAkbSkpIHsKICAgICAgICAgICAgJGJvb2tpbmdEYXRlID0gdHJpbSgkbVsxXSk7CiAgICAgICAgICAgICRib29raW5nVGltZSA9IHRyaW0oJG1bMl0pOwogICAgICAgICAgICAkZm9ybU1lc3NhZ2UgPSB0cmltKHByZWdfcmVwbGFjZSgnLyg/Oj5cblxuKVJlcXVlc3RlZCBpbnRybyBjYWxsOi4qJC9zJywgJycsICRyYXdNZXNzYWdlKSk7CiAgICAgICAgfQoKICAgICAgICAkb3duZXJSZWNpcGllbnRzID0gWwogICAgICAgICAgICAnamlAYWJoaWplZXR2YXJnaGVzZS5jb20nLAogICAgICAgICAgICAnYWJoaWplZXR2YXJnaGVzZTMzQGdtYWlsLmNvbScsCiAgICAgICAgICAgICd3cml0ZTRhYmhpamVldEBnbWFpbC5jb20nLAogICAgICAgIF07CiAgICAgICAgJHNlbmRlciA9ICdoaUBhYmhpamVldHZhcmdoZXNlLmNvbSc7CiAgICAgICAgJHNpdGVVcmwgPSBBVl9TSVRFX1VSTCA/ICdodHRwczovL2FiaGlqZWV0dmFyZ2hlc2UuY29tJyA6ICdodHRwczovL2FiaGlqZWV0dmFyZ2hlc2UuY29tJzsKICAgICAgICAkZW1haWxWYXJzID0gWwogICAgICAgICAgICAnbmFtZScgPT4gJG5hbWUsCiAgICAgICAgICAgICdlbWFpbCcgPT4gJGVtYWlsLAogICAgICAgICAgICAncGhvbmUnID0+ICRsZWFkRGF0YVsncGhvbmUnXSAhPT0gJycgPyAkbGVhZERhdGFbJ3Bob25lJ10gOiAn4oCUIiwKICAgICAgICAgICAgJ2NvbXBhbnknID0+ICRsZWFkRGF0YVsnY29tcGFueSddICE9PSAnJyA/ICRsZWFkRGF0YVsnY29tcGFueSddIDogJ+KAkCcsCiAgICAgICAgICAgICdwcm9qZWN0X3R5cGUnID0+ICRsZWFkRGF0YVsnbGVhZF90eXBlJ10sCiAgICAgICAgICAgICdzb3VyY2UnID0+ICRsZWFkRGF0YVsnc291cmNlJ10sCiAgICAgICAgICAgICdtZXNzYWdlJyA9PiAkZm9ybU1lc3NhZ2UgIT09ICcnID8gJGZvcm1NZXNzYWdlIDogJ+KAkCcsCiAgICAgICAgICAgICdib29raW5nX2RhdGUnID0+ICRib29raW5nRGF0ZSAhPT0gJycgPyAkYm9va2luZ0RhdGUgOiAn4oCUIiwKICAgICAgICAgICAgJ2Jvb2tpbmdfdGltZScgPT4gJGJvb2tpbmdUaW1lICE9PSAnJyA/ICRib29raW5nVGltZS4gJ0lTVCcgOiAn4oCUIiwKICAgICAgICAgICAgJ293bmVyX21vYmlsZScgPT4gJys5MSA5NjkgNDA4IDA3MDYnLAogICAgICAgICAgICAnc2l0ZV9uYW1lJyA9PiAnQWJoaWplZXQgVmFya2hlc2UnLAogICAgICAgICAgICAnc2l0ZV91cmwnID0+ICRzaXRlVXJsLAogICAgICAgICAgICAnYWRtaW5fdXJsJyA9PiAkc2l0ZVVybCAuICcvYWRtaW4vJywKICAgICAgICBdOwoKCiAgICAgICAgJHNlbmRUZW1wbGF0ZSA9IHN0YXRpYyBmdW5jdGlvbiAoc3RyaW5nICR0ZW1wbGF0ZSwgc3RyaW5nICR0bywgc3RyaW5nICRyZXBseVRvLCBhcnJheSAkdmFycykgdXNlICgkc2VuZGVyKTogdm9pZCB7CiAgICAgICAgICAgICR0cGwgPSBFbWFpbFRlbXBsYXRlTW9kZWw6OmdldEJ5U2x1ZygkdGVtcGxhdGUpOwogICAgICAgICAgICBpZiAoIWF0dHlwZSAkdHBsKSB7CiAgICAgICAgICAgICAgICB0aHJvdyBuZXcgUnVudGltZUV4Y2VwdGlvbigiRW1haWwgdGVtcGxhdGUgbm90IGZvdW5kOiB7JHRlbXBsYXRlfSIpOwogICAgICAgICAgICB9CiAgICAgICAgICAgICRzdWJqZWN0ID0gRW1haWxNb2RlbDo6cmVuZGVyKCR0cGxbJ3N1YmplY3QnXSwgJHZhcnMpOwogICAgICAgICAgICAkYm9keSA9IEVtYWlsTW9kZWw6OnJlbmRlcigkdHBsWydib2R5J10sICR2YXJzKTsKICAgICAgICAgICAgJHNtdHAgPSBTaXRlQ29uZmlnOjpnZXQoJ3NtdHAnKTsKICAgICAgICAgICAgJG9rID0gZmFsc2U7CiAgICAgICAgICAgICRlcnJvciA9ICcnOwogICAgICAgICAgICB0cnkgewogICAgICAgICAgICAgICAgaWYgKCFlbXB0eSgkc210cFsnIGhvc3QnXSkpIHsKICAgICAgICAgICAgICAgICAgICAkc210cENmZyA9IGFycmF5X21lcmdlKCRzbXRwLCBbJ2Zyb20nID0+ICRzZW5kZXIsICdyZXBseV90bycgPT4gJHJlcGx5VG8gIT09ICcgJyA/ICRyZXBseVRvIDogJHNlbmRlcl0pOwogICAgICAgICAgICAgICAgICAgICRyZXN1bHQgPSBTbXRwQ2xpZW50Ojpmcm9tQ29uZmlnKCRzbXRwQ2ZnKS0+c2VuZCgkdG8sICRzdWJqZWN0LCAkYm9keSk7CiAgICAgICAgICAgICAgICAgICAgJG9rID0gKGJvb2wpKCRyZXN1bHRbJ29rJ10gPz8gZmFsc2UpOwogICAgICAgICAgICAgICAgICAgICRlcnJvciA9IChzdHJpbmcpKCRyZXN1bHRbJ2Vycm9yJ10gPz8gJycpOwogICAgICAgICAgICAgICAgfSBlbHNlIHsKICAgICAgICAgICAgICAgICAgICAkaGVhZGVycyA9ICJGcm9tOiAiIC4gJHNlbmRlciAuICJcclxuIiAuICJSZXBseS1UbzogIiAuICgkcmVwbHlUbyAhPT0gJycgPyAkcmVwbHlUbyA6ICRzZW5kZXIpIC4gIlxyXG4iCiAgICAgICAgICAgICAgICAgICAgICAgIC4gIkNvbnRlbnQtVHlwZTogdGV4dC9wbGFpbjsgY2hhcnNldD1VVEYtOFxyXG4iOwogICAgICAgICAgICAgICAgICAgICRvayA9IEBtYWlsKCR0bywgJHN1YmplY3QsICRib2R5LCAkaGVhZGVycyk7CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgIH0gY2F0Y2ggKFRocm93YWJsZSAkZSkgewogICAgICAgICAgICAgICAgJGVycm9yID0gJGUtPmdldE1lc3NhZ2UoKTsKICAgICAgICAgICAgfQogICAgICAgICAgICB0cnkgewogICAgICAgICAgICAgICAgRGF0YWJhc2U6OnEoCiAgICAgICAgICAgICAgICAgICAgIklOU0VSVCBJTlRPIGVtYWlsX2xvZyAodGVtcGxhdGUsIHJlY2lwaWVudCwgc3ViamVjdCwgc3RhdHVzLCBzZW50X2F0LCBlcnJvcikgVkFMVUVTICg/LD8sPyw/LFJPRU5DQVBJVEFMKSIsCiAgICAgICAgICAgICAgICAgICAgWyR0ZW1wbGF0ZSwgJHRvLCAkc3ViamVjdCwgJG9rID8gJ3NlbnQnIDogJ2ZhaWxlZCcsIG1iX3N1YnN0cigkZXJyb3IsIDAsIDQ4MCldCiAgICAgICAgICAgICAgICApOwogICAgICAgICAgICB9IGNhdGNoIChUaHJvd2FibGUgJGUpIHsKICAgICAgICAgICAgICAgIC8vIEVtYWlsIGxvZ2dpbmcgbXVzdCBuZXZlciBhZmZlY3QgbGVhZCBzdWJtaXNzaW9uLgogICAgICAgICAgICB9CiAgICAgICAgfTsKCiAgICAgICAgZm9yZWFjaCAoJG93bmVyUmVjaXBpZW50cyBhcyAkcmVjaXBpZW50KSB7CiAgICAgICAgICAgICRzZW5kVGVtcGxhdGUoJ25ld19sZWFkJywgJHJlY2lwaWVudCwgJGVtYWlsLCAkZW1haWxWYXJzKTsKICAgICAgICB9CiAgICAgICAgaWYgKCRlbWFpbCAhPT0gJycpIHsKICAgICAgICAgICAgJHNlbmRUZW1wbGF0ZSgnbGVhZF9jb25maXJtYXRpb24nLCAkZW1haWwsICRzZW5kZXIsICRlbWFpbFZhcnMpOwogICAgICAgIH0KICAgIH0gY2F0Y2ggKFRocm93YWJsZSAkZSkgewogICAgICAgIEVycm9yTW9kZWw6OmxvZygnbGVhZF9lbWFpbF9zZW5kJywgJGUtPmdldE1lc3NhZ2UoKSwgJ1BPU1QnKTsKICAgIH0K').decode()
               p.write_text(s[:start] + new_block + s[end:])
               print('Contact lead email flow patched to use email_templates.')
           else:
