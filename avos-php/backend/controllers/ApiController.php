@@ -491,6 +491,7 @@ final class ApiController
                 . "Preferred time: " . ($bookingTime !== '' ? $bookingTime . ' IST' : '—') . "\n\n"
                 . "I'll review your request and get back to you at {$email} to confirm the conversation.\n\n"
                 . "Looking forward to speaking with you.\n\n"
+                . "You can also reach me directly at +91 969 408 0706.\n\n"
                 . "Best,\n"
                 . "Abhijeet Varghese\n"
                 . "Creative Director · Experience Designer\n"
