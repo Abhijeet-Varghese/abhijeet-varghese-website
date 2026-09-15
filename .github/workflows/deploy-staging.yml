@@ -24,21 +24,76 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify website source
+      - name: Verify current frontend and AV OS source
         run: |
           test -f abhijeetvarghese/index.html
           test -f abhijeetvarghese/.htaccess
           test -d abhijeetvarghese/assets
+          test -f avos-php/router.php
+          test -f avos-php/backend/config/config.php
+          test -f avos-php/public_html/api/index.php
+          test -d avos-php/database
+          test -d avos-php/includes
 
-      - name: Create deployment branch
+      - name: Assemble complete staging web root
         run: |
+          rm -rf /tmp/staging-webroot
+          mkdir -p /tmp/staging-webroot
+
+          # Keep the current website source beside AV OS so AV_SITE_DIR_DEFAULT
+          # resolves correctly from avos-php/backend/config/config.php.
+          rsync -a --delete \
+            --exclude='config.local.php' \
+            --exclude='storage/cache/' \
+            --exclude='storage/logs/' \
+            --exclude='storage/backups/' \
+            --exclude='storage/uploads/' \
+            --exclude='storage/locks/' \
+            abhijeetvarghese/ /tmp/staging-webroot/abhijeetvarghese/
+
+          rsync -a --delete \
+            --exclude='config.local.php' \
+            --exclude='storage/cache/' \
+            --exclude='storage/logs/' \
+            --exclude='storage/backups/' \
+            --exclude='storage/uploads/' \
+            --exclude='storage/locks/' \
+            --exclude='public_html/install/.installed' \
+            avos-php/ /tmp/staging-webroot/avos-php/
+
+          cat > /tmp/staging-webroot/.htaccess <<'EOF'
+          Options -Indexes
+          DirectoryIndex disabled
+
+          <IfModule mod_headers.c>
+            Header always set X-Content-Type-Options "nosniff"
+            Header always set X-Frame-Options "SAMEORIGIN"
+            Header always set Referrer-Policy "strict-origin-when-cross-origin"
+            Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+          </IfModule>
+
+          RewriteEngine On
+
+          # Never expose the AV OS source tree directly.
+          RewriteRule ^avos-php(?:/|$) - [F,END]
+
+          # AV OS router owns API/admin/install/media and the complete frontend
+          # clean-URL/static serving contract.
+          RewriteRule ^ avos-php/router.php [END,QSA]
+          EOF
+
+          test -f /tmp/staging-webroot/.htaccess
+          test -f /tmp/staging-webroot/abhijeetvarghese/index.html
+          test -f /tmp/staging-webroot/avos-php/router.php
+
+      - name: Publish Hostinger deployment branch
+        run: |
+          cd /tmp/staging-webroot
+          git init -q
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git branch -D deploy-tmp 2>/dev/null || true
-
-          git subtree split \
-            --prefix=abhijeetvarghese \
-            --branch=deploy-tmp
-
+          git add -A
+          git commit -qm "Deploy current frontend and AV OS to staging"
+          git branch -M deploy-tmp
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
           git push origin deploy-tmp:hostinger --force
