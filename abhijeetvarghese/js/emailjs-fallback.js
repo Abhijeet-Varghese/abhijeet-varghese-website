@@ -7,6 +7,7 @@ const PUBLIC_KEY="IdNuDWb_8YJTbre82";
 const SDK_URL="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js";
 const API_PATH="/api/public/lead";
 const BACKEND_TIMEOUT_MS=8000;
+const EMAILJS_SEND_GAP_MS=1200;
 
 let sdkPromise=null;
 const loadSdk=()=>{
@@ -33,6 +34,8 @@ const fmtFallbackMessage=(body)=>{
   };
 };
 
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+
 const sendFallback=async payload=>{
   const emailjs=await loadSdk();
   const booking=fmtFallbackMessage(payload.message);
@@ -52,6 +55,7 @@ const sendFallback=async payload=>{
   if(!params.email)throw new Error("Visitor email is required for EmailJS fallback");
   const ownerResult=await emailjs.send(SERVICE_ID,OWNER_TEMPLATE_ID,params);
   if(!ownerResult||ownerResult.status!==200)throw new Error("EmailJS owner notification failed");
+  await sleep(EMAILJS_SEND_GAP_MS);
   const visitorResult=await emailjs.send(SERVICE_ID,VISITOR_TEMPLATE_ID,params);
   if(!visitorResult||visitorResult.status!==200)throw new Error("EmailJS visitor confirmation failed");
   return true;
