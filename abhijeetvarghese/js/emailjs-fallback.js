@@ -79,6 +79,13 @@ const sendVisitorOnly=async payload=>{
   try{return await sendWithRetry(emailjs,VISITOR_TEMPLATE_ID,buildParams(payload));}catch(error){return false;}
 };
 
+// Owner-only notification for the rare case where AV OS saved the lead and
+// confirmed the visitor email but could not deliver the owner notification.
+const sendOwnerOnly=async payload=>{
+  const emailjs=await loadSdk();
+  try{return await sendWithRetry(emailjs,OWNER_TEMPLATE_ID,buildParams(payload));}catch(error){return false;}
+};
+
 const sendFallback=async payload=>{
   const emailjs=await loadSdk();
   const params=buildParams(payload);
@@ -96,7 +103,7 @@ const sendFallback=async payload=>{
 };
 
 const originalFetch=window.fetch.bind(window);
-window.AVEmailJSFallback={sendVisitorOnly};
+window.AVEmailJSFallback={sendVisitorOnly,sendOwnerOnly};
 window.fetch=async(input,init)=>{
   const url=typeof input==="string"?input:(input&&input.url)||"";
   if(!url||!url.endsWith(API_PATH)||String(init&&init.method||"GET").toUpperCase()!=="POST"){

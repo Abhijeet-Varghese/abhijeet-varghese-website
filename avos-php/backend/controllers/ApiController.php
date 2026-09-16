@@ -507,7 +507,7 @@ final class ApiController
             }
             try {
                 Database::q(
-                    "INSERT INTO email_log (template, recipient, subject, status, sent_at, error) VALUES (?,?,?,?,NOW(),?)",
+                    "INSERT INTO email_log (template, recipient, subject, status, sent_at, error, channel) VALUES (?,?,?,?,NOW(),?,'backend')",
                     [$template, $to, $subject, $ok ? 'sent' : 'failed', mb_substr($error, 0, 480)]
                 );
             } catch (Throwable $e) {
