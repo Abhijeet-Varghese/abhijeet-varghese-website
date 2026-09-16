@@ -53,10 +53,9 @@ const sendWithRetry=async(emailjs,template,params)=>{
   throw lastError||new Error("EmailJS send failed");
 };
 
-const sendFallback=async payload=>{
-  const emailjs=await loadSdk();
+const buildParams=payload=>{
   const booking=fmtFallbackMessage(payload.message);
-  const params={
+  return {
     name:String(payload.name||""),
     email:String(payload.email||""),
     company:String(payload.organization||"—"),
@@ -69,6 +68,20 @@ const sendFallback=async payload=>{
     site_url:"https://abhijeetvarghese.com",
     admin_url:"https://abhijeetvarghese.com/admin/"
   };
+};
+
+// Visitor-only confirmation for the rare case where AV OS saved the lead and
+// delivered the owner notification but could not deliver the visitor email.
+// Same bounded retry (3 attempts, 1.2s gap). Never touches the owner template.
+const sendVisitorOnly=async payload=>{
+  if(!String((payload&&payload.email)||""))throw new Error("Visitor email is required for EmailJS fallback");
+  const emailjs=await loadSdk();
+  try{return await sendWithRetry(emailjs,VISITOR_TEMPLATE_ID,buildParams(payload));}catch(error){return false;}
+};
+
+const sendFallback=async payload=>{
+  const emailjs=await loadSdk();
+  const params=buildParams(payload);
   if(!params.email)throw new Error("Visitor email is required for EmailJS fallback");
   // Owner first — it is the delivery that matters most. If the owner
   // notification cannot be delivered at all, report total fallback failure
@@ -83,6 +96,7 @@ const sendFallback=async payload=>{
 };
 
 const originalFetch=window.fetch.bind(window);
+window.AVEmailJSFallback={sendVisitorOnly};
 window.fetch=async(input,init)=>{
   const url=typeof input==="string"?input:(input&&input.url)||"";
   if(!url||!url.endsWith(API_PATH)||String(init&&init.method||"GET").toUpperCase()!=="POST"){

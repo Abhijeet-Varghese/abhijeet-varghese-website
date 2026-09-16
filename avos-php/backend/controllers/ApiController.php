@@ -419,7 +419,12 @@ final class ApiController
             $existing = LeadModel::findRecentByEmail($email, 24);
             if ($existing) {
                 CrmModel::addActivity('lead', (int)$existing['id'], 'resubmitted', 'Contact form resubmission — returned existing lead');
-                Response::json(['ok' => true, 'id' => (int)$existing['id'], 'status' => $existing['status'], 'score' => (int)$existing['score'], 'duplicate' => true], 200);
+                $visitorRecent = (bool)(Database::one(
+                    "SELECT COUNT(*) c FROM email_log WHERE template='lead_confirmation' AND recipient=? AND status='sent' AND sent_at > NOW() - INTERVAL 24 HOUR",
+                    [$email]
+                )['c'] ?? 0);
+                Response::json(['ok' => true, 'id' => (int)$existing['id'], 'status' => $existing['status'], 'score' => (int)$existing['score'], 'duplicate' => true,
+                    'lead_saved' => true, 'owner_email_sent' => true, 'visitor_email_sent' => $visitorRecent, 'fallback_required' => !$visitorRecent], 200);
             }
         }
         $id = LeadModel::create($leadData);
@@ -475,7 +480,7 @@ final class ApiController
             'admin_url' => $siteUrl . '/admin/',
         ];
 
-        $sendTemplate = static function (string $template, string $to, string $replyTo, array $vars) use ($sender): void {
+        $sendTemplate = static function (string $template, string $to, string $replyTo, array $vars) use ($sender): bool {
             $tpl = EmailTemplateModel::getBySlug($template);
             if (!$tpl) {
                 throw new RuntimeException("Email template not found: {$template}");
@@ -508,18 +513,18 @@ final class ApiController
             } catch (Throwable $e) {
                 // Email logging must never affect lead submission.
             }
+            return $ok;
         };
 
+        $ownerEmailSent = false;
         foreach ($ownerRecipients as $recipient) {
-            $sendTemplate('new_lead', $recipient, $email, $emailVars);
+            if ($sendTemplate('new_lead', $recipient, $email, $emailVars)) $ownerEmailSent = true;
         }
-        if ($email !== '') {
-            $sendTemplate('lead_confirmation', $email, $sender, $emailVars);
-        }
+        $visitorEmailSent = ($email !== '') && (bool)$sendTemplate('lead_confirmation', $email, $sender, $emailVars);
     } catch (Throwable $e) {
         ErrorModel::log('lead_email_send', $e->getMessage(), 'POST');
     }
-    Response::json(['ok' => true, 'id' => $id, 'status' => 'new', 'score' => $leadData['score']], 201);
+    Response::json(['ok' => true, 'id' => $id, 'status' => 'new', 'score' => $leadData['score'], 'lead_saved' => true, 'owner_email_sent' => $ownerEmailSent, 'visitor_email_sent' => $visitorEmailSent, 'fallback_required' => !$visitorEmailSent], 201);
     }
 
     /**
