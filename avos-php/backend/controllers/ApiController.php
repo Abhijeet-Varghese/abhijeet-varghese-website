@@ -419,12 +419,10 @@ final class ApiController
             $existing = LeadModel::findRecentByEmail($email, 24);
             if ($existing) {
                 CrmModel::addActivity('lead', (int)$existing['id'], 'resubmitted', 'Contact form resubmission — returned existing lead');
-                $visitorRecent = (bool)(Database::one(
-                    "SELECT COUNT(*) c FROM email_log WHERE template='lead_confirmation' AND recipient=? AND status='sent' AND sent_at > NOW() - INTERVAL 24 HOUR",
-                    [$email]
-                )['c'] ?? 0);
+                // Email delivery is owned by the frontend (EmailJS). The original
+                // submission handled its notifications — resubmits NEVER re-email.
                 Response::json(['ok' => true, 'id' => (int)$existing['id'], 'status' => $existing['status'], 'score' => (int)$existing['score'], 'duplicate' => true,
-                    'lead_saved' => true, 'owner_email_sent' => true, 'visitor_email_sent' => $visitorRecent, 'fallback_required' => !$visitorRecent], 200);
+                    'lead_saved' => true, 'owner_email_sent' => true, 'visitor_email_sent' => true, 'fallback_required' => false], 200);
             }
         }
         $id = LeadModel::create($leadData);
@@ -445,8 +443,14 @@ final class ApiController
         if (!empty($leadData['page'])) {
             AnalyticsModel::recordConversion($leadData['page'], 'page');
         }
-        // Transactional contact emails — render CMS templates and deliver from the verified sender.
-    try {
+        // Transactional contact emails.
+    // DELIVERY POLICY: EmailJS (frontend) is the primary email path — the
+    // backend intentionally does not send. Flip $backendEmailsEnabled to
+    // true to restore backend delivery (SMTP is configured in Admin → Settings).
+    $ownerEmailSent = false;
+    $visitorEmailSent = false;
+    $backendEmailsEnabled = false;
+    if ($backendEmailsEnabled) try {
         $rawMessage = (string)$leadData['message'];
         $bookingDate = '';
         $bookingTime = '';
