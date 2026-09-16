@@ -56,6 +56,12 @@ final class SmtpClient
                     strip_tags(preg_replace(['/<br\s*\/?>/i', '/<\/(p|div|tr|h[1-6]|li|blockquote)>/i'], ["\n", "\n"], $htmlBody)),
                     ENT_QUOTES, 'UTF-8')));
             }
+            // SMTP DATA requires CRLF lines <=998 chars: base64-encode both parts
+            // (76-char lines) so arbitrary HTML/text can never violate the protocol.
+            $enc = static function (string $t): string {
+                $t = str_replace(["\r\n", "\r", "\n"], "\r\n", $t);
+                return chunk_split(base64_encode($t), 76, "\r\n");
+            };
             $boundary = 'av-' . bin2hex(random_bytes(12));
             $headers = "From: " . $this->from . "\r\n"
                      . "To: " . $to . "\r\n"
@@ -67,12 +73,12 @@ final class SmtpClient
                      . "Message-ID: <" . bin2hex(random_bytes(8)) . "@avos.local>\r\n\r\n";
             $mime = "--" . $boundary . "\r\n"
                   . "Content-Type: text/plain; charset=UTF-8\r\n"
-                  . "Content-Transfer-Encoding: 8bit\r\n\r\n"
-                  . $textBody . "\r\n\r\n"
+                  . "Content-Transfer-Encoding: base64\r\n\r\n"
+                  . $enc($textBody) . "\r\n"
                   . "--" . $boundary . "\r\n"
                   . "Content-Type: text/html; charset=UTF-8\r\n"
-                  . "Content-Transfer-Encoding: 8bit\r\n\r\n"
-                  . $htmlBody . "\r\n\r\n"
+                  . "Content-Transfer-Encoding: base64\r\n\r\n"
+                  . $enc($htmlBody) . "\r\n"
                   . "--" . $boundary . "--\r\n";
             $this->write($headers . str_replace("\r\n.", "\r\n..", $mime));
             $this->cmd('.');
