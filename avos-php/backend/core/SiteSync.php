@@ -617,8 +617,11 @@ final class SiteSync
             $head = self::head($abs);
             $ld = self::jsonLd($abs);
             $x = self::xp($abs);
-            $title = self::txt($x, "(//*[contains(@class,'article-hero__title')])[1]");
-            if ($title === '') $title = self::txt($x, "(//*[contains(@class,'ee4-hero')]//h1)[1]");
+            // Each Insights expression has its own hero class. The article H1 is
+            // the source of truth: it keeps CMS records aligned with the visible,
+            // semantic headline rather than relying on a fallback <title> string.
+            $title = self::txt($x, "(//main[contains(@class,'memory-essay') or contains(@class,'me2') or contains(@class,'ai2') or contains(@class,'ht1') or contains(@class,'ee4')]//h1)[1]");
+            if ($title === '') $title = self::txt($x, "(//*[contains(@class,'article-hero__title')])[1]");
             if ($title === '') $title = ($it['title'] ?? self::titleFromHead($head['title'], ''));
             $o = $bySlug[$slug] ?? $byTitle[mb_strtolower($title)] ?? [];
             if ($o) $used[$o['id']] = true;
@@ -636,9 +639,13 @@ final class SiteSync
                 $t = self::clean($p->textContent);
                 if ($t !== '') $paras[] = $t;
             }
-            $img = self::attr($x, "(//*[contains(@class,'article-hero__img')])[1]", 'src');
+            // Prefer the largest self-hosted WebP candidate from the responsive
+            // hero <picture>; JPEG remains a standards-compatible fallback.
+            $img = self::srcsetPrimary(self::attr($x, "(//main[contains(@class,'memory-essay') or contains(@class,'me2') or contains(@class,'ai2') or contains(@class,'ht1') or contains(@class,'ee4')]//picture/source[contains(@type,'webp')])[1]", 'srcset'));
+            if ($img === '') $img = self::attr($x, "(//*[contains(@class,'article-hero__img')])[1]", 'src');
             if ($img === '') $img = self::attr($x, "(//*[contains(@class,'article-hero')]//img)[1]", 'src');
             if ($img === '') $img = self::attr($x, "(//*[contains(@class,'ee4-hero')]//img)[1]", 'src');
+            $excerpt = self::txt($x, "(//*[contains(@class,'article-hero__lede') or contains(@class,'ht1-hero__dek') or contains(@class,'ai2-hero__dek') or contains(@class,'me2-hero__dek') or contains(@class,'ee4-hero__dek')])[1]");
             $date = substr((string)($ld['datePublished'] ?? ''), 0, 10);
             if ($date === '' && preg_match('/(\d{4}-\d{2}-\d{2})/', self::txt($x, "//*[contains(@class,'article-foot')]//p"), $dm)) $date = $dm[1];
             $a = array_merge($o, [
@@ -650,7 +657,7 @@ final class SiteSync
                 'readTime' => $readTime ?: ($o['readTime'] ?? ''),
                 'date' => $date ?: ($o['date'] ?? ''),
                 'image' => $img !== '' ? self::mediaRef($img) : ($head['ogImage'] !== '' ? self::mediaRef($head['ogImage']) : ($o['image'] ?? '')),
-                'excerpt' => self::txt($x, "(//*[contains(@class,'article-hero__lede')])[1]") ?: ($head['desc'] !== '' ? $head['desc'] : ($o['excerpt'] ?? '')),
+                'excerpt' => $excerpt !== '' ? $excerpt : ($head['desc'] !== '' ? $head['desc'] : ($o['excerpt'] ?? '')),
                 'body' => $paras ? implode("\n\n", $paras) : ($o['body'] ?? ''),
                 'slug' => $slug,
                 'url' => '/' . $url,
@@ -1203,6 +1210,23 @@ final class SiteSync
         if (str_starts_with($r, 'assets/')) return 'media/' . substr($r, 7);
         if (str_starts_with($r, 'media/')) return $r;
         return $r;   // case-study local assets keep their site path
+    }
+
+    /** Choose the widest concrete image URL from an HTML srcset attribute. */
+    private static function srcsetPrimary(string $srcset): string
+    {
+        $winner = ''; $bestWidth = -1;
+        foreach (explode(',', $srcset) as $candidate) {
+            $parts = preg_split('/\s+/', trim($candidate));
+            $url = trim((string)($parts[0] ?? ''));
+            if ($url === '') continue;
+            $width = 0;
+            foreach (array_slice($parts, 1) as $descriptor) {
+                if (preg_match('/^(\d+)w$/', $descriptor, $m)) { $width = (int)$m[1]; break; }
+            }
+            if ($width >= $bestWidth) { $winner = $url; $bestWidth = $width; }
+        }
+        return $winner;
     }
 
     private static function normUrl(string $u): string

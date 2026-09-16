@@ -102,6 +102,11 @@ $redirects = [
     'recruitment' => '/recruiter/',
     'recruitment.html' => '/recruiter/',
     'for-recruiters.html' => '/recruiter/',
+    // Canonical Insights hub aliases — mirror public_html/.htaccess so PHP
+    // development and Apache/LiteSpeed production resolve identically.
+    'insights.html' => '/insights/',
+    'insights/index' => '/insights/',
+    'insights/index.html' => '/insights/',
     'essay-designing-experiences-people-remember' => '/insights/designing-experiences-people-remember/',
     'essay-designing-experiences-people-remember.html' => '/insights/designing-experiences-people-remember/',
     'essay-ai-isnt-replacing-creativity' => '/insights/ai-isnt-replacing-creativity/',

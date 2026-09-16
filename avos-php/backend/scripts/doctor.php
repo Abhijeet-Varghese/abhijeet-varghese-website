@@ -36,6 +36,20 @@ $add('Uploads', is_writable(AV_UPLOADS), AV_UPLOADS);
 $add('Backups', is_writable(AV_BACKUPS), AV_BACKUPS);
 $add('Locks', is_writable(AV_STORAGE . '/locks') || (is_dir(AV_STORAGE . '/locks') || @mkdir(AV_STORAGE . '/locks', 0775, true)), AV_STORAGE . '/locks');
 $add('Static website', is_file(AV_SITE_DIR . '/index.html') && is_file(AV_SITE_DIR . '/css/styles.css'), AV_SITE_DIR);
+// The Insights system is static-first but operationally coupled to AV OS:
+// verify every canonical endpoint and its shared responsive assets before a deploy.
+$insightPages = [
+    'insights/index.html',
+    'insights/technology-should-feel-human/index.html',
+    'insights/ai-isnt-replacing-creativity/index.html',
+    'insights/designing-experiences-people-remember/index.html',
+    'insights/why-enterprise-experiences-fail/index.html',
+];
+$missingInsights = array_values(array_filter($insightPages, fn(string $path): bool => !is_file(AV_SITE_DIR . '/' . $path)));
+$add('Insights canonical routes', count($missingInsights) === 0, $missingInsights ? 'missing: ' . implode(', ', $missingInsights) : 'listing + 4 canonical insights');
+$insightAssets = ['css/insights-hub.css', 'css/insight-series.css', 'css/insight-responsive-system.css', 'js/insights-hub.js', 'js/insight-responsive-system.js'];
+$missingInsightAssets = array_values(array_filter($insightAssets, fn(string $path): bool => !is_file(AV_SITE_DIR . '/' . $path)));
+$add('Insights responsive assets', count($missingInsightAssets) === 0, $missingInsightAssets ? 'missing: ' . implode(', ', $missingInsightAssets) : 'shared CSS/JS ready');
 $add('Website 404 page', is_file(AV_SITE_DIR . '/404.html'), AV_SITE_DIR . '/404.html');
 $add('Web root .htaccess', is_file(AV_PUBLIC . '/.htaccess'), AV_PUBLIC . '/.htaccess');
 $add('Installer locked', is_file(AV_PUBLIC . '/install/.installed'), '');

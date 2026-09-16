@@ -81,6 +81,9 @@ RewriteRule ^offline/?$ /offline.html [L]
 # ---- static frontend: legacy flat pages → canonical clean URLs (no chains) ----
 RewriteRule ^case-studies\.html/?$ /case-studies/ [R=301,L]
 RewriteRule ^experience\.html/?$ /experience/ [R=301,L]
+# Canonical Insights hub aliases — explicit for Apache/LiteSpeed parity with router.php.
+RewriteRule ^insights\.html/?$ /insights/ [R=301,L]
+RewriteRule ^insights/index(?:\.html)?/?$ /insights/ [R=301,L]
 RewriteRule ^essay-designing-experiences-people-remember(?:\.html)?/?$ /insights/designing-experiences-people-remember/ [R=301,L]
 RewriteRule ^essay-ai-isnt-replacing-creativity(?:\.html)?/?$ /insights/ai-isnt-replacing-creativity/ [R=301,L]
 RewriteRule ^essay-technology-should-feel-human(?:\.html)?/?$ /insights/technology-should-feel-human/ [R=301,L]
