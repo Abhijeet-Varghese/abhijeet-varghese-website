@@ -31,7 +31,7 @@ final class SmtpClient
         );
     }
 
-    public function send(string $to, string $subject, string $body): array
+    public function send(string $to, string $subject, string $htmlBody, string $textBody = ''): array
     {
         if ($this->host === '' || $this->from === '') return ['ok' => false, 'error' => 'SMTP not configured'];
         try {
@@ -51,15 +51,30 @@ final class SmtpClient
             $this->cmd('MAIL FROM:<' . $this->from . '>');
             $this->cmd('RCPT TO:<' . $to . '>');
             $this->cmd('DATA');
+            if ($textBody === '') {
+                $textBody = trim(preg_replace("/\n{3,}/", "\n\n", html_entity_decode(
+                    strip_tags(preg_replace(['/<br\s*\/?>/i', '/<\/(p|div|tr|h[1-6]|li|blockquote)>/i'], ["\n", "\n"], $htmlBody)),
+                    ENT_QUOTES, 'UTF-8')));
+            }
+            $boundary = 'av-' . bin2hex(random_bytes(12));
             $headers = "From: " . $this->from . "\r\n"
                      . "To: " . $to . "\r\n"
                      . "Subject: " . mb_encode_mimeheader($subject, 'UTF-8', 'B') . "\r\n"
                      . "Date: " . date('r') . "\r\n"
                      . "MIME-Version: 1.0\r\n"
-                     . "Content-Type: text/plain; charset=UTF-8\r\n"
+                     . "Content-Type: multipart/alternative; boundary=\"" . $boundary . "\"\r\n"
                      . ($this->replyTo !== '' ? "Reply-To: " . $this->replyTo . "\r\n" : '')
                      . "Message-ID: <" . bin2hex(random_bytes(8)) . "@avos.local>\r\n\r\n";
-            $this->write($headers . str_replace("\r\n.", "\r\n..", $body));
+            $mime = "--" . $boundary . "\r\n"
+                  . "Content-Type: text/plain; charset=UTF-8\r\n"
+                  . "Content-Transfer-Encoding: 8bit\r\n\r\n"
+                  . $textBody . "\r\n\r\n"
+                  . "--" . $boundary . "\r\n"
+                  . "Content-Type: text/html; charset=UTF-8\r\n"
+                  . "Content-Transfer-Encoding: 8bit\r\n\r\n"
+                  . $htmlBody . "\r\n\r\n"
+                  . "--" . $boundary . "--\r\n";
+            $this->write($headers . str_replace("\r\n.", "\r\n..", $mime));
             $this->cmd('.');
             $this->cmd('QUIT');
             fclose($this->sock);

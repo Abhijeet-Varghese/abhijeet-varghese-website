@@ -486,7 +486,8 @@ final class ApiController
                 throw new RuntimeException("Email template not found: {$template}");
             }
             $subject = EmailModel::render($tpl['subject'], $vars);
-            $body = EmailModel::render($tpl['body'], $vars);
+            $varsHtml = array_map(static fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'), $vars);
+            $body = EmailModel::render($tpl['body'], $varsHtml);
             $smtp = SiteConfig::get('smtp');
             $ok = false;
             $error = '';
@@ -497,10 +498,19 @@ final class ApiController
                     $ok = (bool)($result['ok'] ?? false);
                     $error = (string)($result['error'] ?? '');
                 } else {
+                    $mtext = trim(preg_replace("/\n{3,}/", "\n\n", html_entity_decode(
+                        strip_tags(preg_replace(['/<br\s*\/?>/i', '/<\/(p|div|tr|h[1-6]|li|blockquote)>/i'], ["\n", "\n"], $body)),
+                        ENT_QUOTES, 'UTF-8')));
+                    $mb = 'av-' . bin2hex(random_bytes(12));
+                    $mbody = "--" . $mb . "\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\n"
+                        . $mtext . "\r\n\r\n"
+                        . "--" . $mb . "\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n"
+                        . $body . "\r\n\r\n--" . $mb . "--\r\n";
                     $headers = "From: " . $sender . "\r\n"
                         . "Reply-To: " . ($replyTo !== '' ? $replyTo : $sender) . "\r\n"
-                        . "Content-Type: text/plain; charset=UTF-8\r\n";
-                    $ok = @mail($to, $subject, $body, $headers);
+                        . "MIME-Version: 1.0\r\n"
+                        . "Content-Type: multipart/alternative; boundary=\"" . $mb . "\"\r\n";
+                    $ok = @mail($to, $subject, $mbody, $headers);
                 }
             } catch (Throwable $e) {
                 $error = $e->getMessage();
