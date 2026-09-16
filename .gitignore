@@ -24,3 +24,8 @@ Thumbs.db
 !.env.example
 # Local AI-assistant skill packs (not part of the product)
 .claude/
+
+# Local dependency installs and generated verification captures
+node_modules/
+qa-*/
+qa-ai-hero.png

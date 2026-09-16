@@ -419,10 +419,12 @@ final class ApiController
             $existing = LeadModel::findRecentByEmail($email, 24);
             if ($existing) {
                 CrmModel::addActivity('lead', (int)$existing['id'], 'resubmitted', 'Contact form resubmission — returned existing lead');
-                // Email delivery is owned by the frontend (EmailJS). The original
-                // submission handled its notifications — resubmits NEVER re-email.
+                $visitorRecent = (bool)(Database::one(
+                    "SELECT COUNT(*) c FROM email_log WHERE template='lead_confirmation' AND recipient=? AND status='sent' AND sent_at > NOW() - INTERVAL 24 HOUR",
+                    [$email]
+                )['c'] ?? 0);
                 Response::json(['ok' => true, 'id' => (int)$existing['id'], 'status' => $existing['status'], 'score' => (int)$existing['score'], 'duplicate' => true,
-                    'lead_saved' => true, 'owner_email_sent' => true, 'visitor_email_sent' => true, 'fallback_required' => false], 200);
+                    'lead_saved' => true, 'owner_email_sent' => true, 'visitor_email_sent' => $visitorRecent, 'fallback_required' => !$visitorRecent], 200);
             }
         }
         $id = LeadModel::create($leadData);
@@ -443,14 +445,8 @@ final class ApiController
         if (!empty($leadData['page'])) {
             AnalyticsModel::recordConversion($leadData['page'], 'page');
         }
-        // Transactional contact emails.
-    // DELIVERY POLICY: EmailJS (frontend) is the primary email path — the
-    // backend intentionally does not send. Flip $backendEmailsEnabled to
-    // true to restore backend delivery (SMTP is configured in Admin → Settings).
-    $ownerEmailSent = false;
-    $visitorEmailSent = false;
-    $backendEmailsEnabled = false;
-    if ($backendEmailsEnabled) try {
+        // Transactional contact emails — render CMS templates and deliver from the verified sender.
+    try {
         $rawMessage = (string)$leadData['message'];
         $bookingDate = '';
         $bookingTime = '';
@@ -490,8 +486,7 @@ final class ApiController
                 throw new RuntimeException("Email template not found: {$template}");
             }
             $subject = EmailModel::render($tpl['subject'], $vars);
-            $varsHtml = array_map(static fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'), $vars);
-            $body = EmailModel::render($tpl['body'], $varsHtml);
+            $body = EmailModel::render($tpl['body'], $vars);
             $smtp = SiteConfig::get('smtp');
             $ok = false;
             $error = '';
@@ -502,19 +497,10 @@ final class ApiController
                     $ok = (bool)($result['ok'] ?? false);
                     $error = (string)($result['error'] ?? '');
                 } else {
-                    $mtext = trim(preg_replace("/\n{3,}/", "\n\n", html_entity_decode(
-                        strip_tags(preg_replace(['/<br\s*\/?>/i', '/<\/(p|div|tr|h[1-6]|li|blockquote)>/i'], ["\n", "\n"], $body)),
-                        ENT_QUOTES, 'UTF-8')));
-                    $mb = 'av-' . bin2hex(random_bytes(12));
-                    $mbody = "--" . $mb . "\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\n"
-                        . $mtext . "\r\n\r\n"
-                        . "--" . $mb . "\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n"
-                        . $body . "\r\n\r\n--" . $mb . "--\r\n";
                     $headers = "From: " . $sender . "\r\n"
                         . "Reply-To: " . ($replyTo !== '' ? $replyTo : $sender) . "\r\n"
-                        . "MIME-Version: 1.0\r\n"
-                        . "Content-Type: multipart/alternative; boundary=\"" . $mb . "\"\r\n";
-                    $ok = @mail($to, $subject, $mbody, $headers);
+                        . "Content-Type: text/plain; charset=UTF-8\r\n";
+                    $ok = @mail($to, $subject, $body, $headers);
                 }
             } catch (Throwable $e) {
                 $error = $e->getMessage();

@@ -87,6 +87,12 @@ ErrorDocument 504 /504.html
   RewriteRule ^case-study-immersive-solutions-for-the-indian-army/?$ /case-studies/indian-army/ [R=301,L]
   RewriteRule ^experience-design/bpcl-palakkad/?$ /case-studies/bharat-petroleum-corporation-limited/ [R=301,L]
 
+  # Insight 03 moved to its canonical insights URL.
+  RewriteRule ^essay-designing-experiences-people-remember(?:\.html)?/?$ /insights/designing-experiences-people-remember/ [R=301,L]
+RewriteRule ^essay-ai-isnt-replacing-creativity(?:\.html)?/?$ /insights/ai-isnt-replacing-creativity/ [R=301,L]
+RewriteRule ^essay-technology-should-feel-human(?:\.html)?/?$ /insights/technology-should-feel-human/ [R=301,L]
+RewriteRule ^essay-why-enterprise-experiences-fail(?:\.html)?/?$ /insights/why-enterprise-experiences-fail/ [R=301,L]
+
   # --- generic clean-URL engine (mirrors avos-php/router.php) ---------------
   # Canonical form: every page lives at exactly ONE url — /section/ for
   # directories, /name/ for single pages. Everything else 301s here.

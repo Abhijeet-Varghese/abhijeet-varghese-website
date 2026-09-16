@@ -402,7 +402,7 @@ final class SiteSync
                 'slug' => $slug,
                 'status' => 'published',
                 'template' => $o['template'] ?? ($type === 'Page' ? 'Page' : $type),
-                'url' => '/' . $url,
+                'url' => str_starts_with($url, 'insights/') ? '/' . preg_replace('#index\.html$#', '', $url) : '/' . $url,
                 'sourceFile' => self::rel($abs),
                 'h1' => $h1,
                 'seo' => ['title' => $head['title'], 'desc' => $head['desc'], 'keywords' => $head['keywords'] !== '' ? $head['keywords'] : (string)($it['tags'] ?? ($o['seo']['keywords'] ?? '')), 'ogImage' => self::mediaRef($head['ogImage']), 'canonical' => $head['canonical']],
@@ -600,26 +600,45 @@ final class SiteSync
         $used = [];
         $n = 0;
         foreach ($files as $url => $abs) {
-            if (!preg_match('#^(essay|journal)-([a-z0-9-]+)\.html$#', $url, $m)) continue;
+            // Insights may be shipped either as legacy essay-*.html files or as
+            // directory-based /insights/<slug>/ pages. When both exist, the
+            // legacy file is a redirect and must not produce a duplicate record.
+            if (preg_match('#^essay-([a-z0-9-]+)\.html$#', $url, $legacy)
+                && isset($files['insights/' . $legacy[1] . '/'])) continue;
+            if (preg_match('#^(essay|journal)-([a-z0-9-]+)\.html$#', $url, $m)) {
+                $type = $m[1];
+                $slug = $m[2];
+            } elseif (preg_match('#^insights/([a-z0-9-]+)/$#', $url, $m)) {
+                $type = 'essay';
+                $slug = $m[1];
+            } else continue;
             $n++;
-            $type = $m[1];
-            $slug = $m[2];
             $it = $index['byUrl'][self::normUrl($url)] ?? [];
             $head = self::head($abs);
             $ld = self::jsonLd($abs);
             $x = self::xp($abs);
-            $title = self::txt($x, "(//*[contains(@class,'article-hero__title')])[1]") ?: ($it['title'] ?? self::titleFromHead($head['title'], ''));
+            $title = self::txt($x, "(//*[contains(@class,'article-hero__title')])[1]");
+            if ($title === '') $title = self::txt($x, "(//*[contains(@class,'ee4-hero')]//h1)[1]");
+            if ($title === '') $title = ($it['title'] ?? self::titleFromHead($head['title'], ''));
             $o = $bySlug[$slug] ?? $byTitle[mb_strtolower($title)] ?? [];
             if ($o) $used[$o['id']] = true;
             $tag = self::txt($x, "(//*[contains(@class,'article-hero')]//*[contains(@class,'chapter__tag')])[1]");
+            if ($tag === '') $tag = self::txt($x, "(//*[contains(@class,'me-hero')]//*[contains(@class,'chapter__tag')])[1]");
+            if ($tag === '') $tag = self::txt($x, "(//*[contains(@class,'me2-hero')]//*[contains(@class,'chapter__tag')])[1]");
+            if ($tag === '') $tag = self::txt($x, "(//*[contains(@class,'ai2-hero')]//*[contains(@class,'chapter__tag')])[1]");
+            if ($tag === '') $tag = self::txt($x, "(//*[contains(@class,'ht1-hero')]//*[contains(@class,'chapter__tag')])[1]");
+            if ($tag === '') $tag = self::txt($x, "(//*[contains(@class,'ee4-hero')]//*[contains(@class,'chapter__tag')])[1]");
             [$category, $readTime] = self::splitTag($tag, $type);
             $paras = [];
-            foreach (self::query($x, "//section[contains(@class,'article-body')]//*[contains(@class,'prose')]//p") as $p) {
+            // Legacy articles use article-body/prose. The insight system uses
+            // me-copy prose columns; both remain editable CMS article content.
+            foreach (self::query($x, "//section[contains(@class,'article-body')]//*[contains(@class,'prose')]//p | //main[contains(@class,'memory-essay') or contains(@class,'ai2') or contains(@class,'ht1') or contains(@class,'ee4')]//*[contains(@class,'me-copy') or contains(@class,'me2-prose') or contains(@class,'ai2-prose') or contains(@class,'ht1-prose') or contains(@class,'ee4-prose')]//p") as $p) {
                 $t = self::clean($p->textContent);
                 if ($t !== '') $paras[] = $t;
             }
             $img = self::attr($x, "(//*[contains(@class,'article-hero__img')])[1]", 'src');
             if ($img === '') $img = self::attr($x, "(//*[contains(@class,'article-hero')]//img)[1]", 'src');
+            if ($img === '') $img = self::attr($x, "(//*[contains(@class,'ee4-hero')]//img)[1]", 'src');
             $date = substr((string)($ld['datePublished'] ?? ''), 0, 10);
             if ($date === '' && preg_match('/(\d{4}-\d{2}-\d{2})/', self::txt($x, "//*[contains(@class,'article-foot')]//p"), $dm)) $date = $dm[1];
             $a = array_merge($o, [
@@ -838,8 +857,9 @@ final class SiteSync
                     break;
                 case 'thinking':
                     $slugs = [];
-                    foreach (self::links($x, ".//a[contains(@href,'essay-') or contains(@href,'journal-')]", $sec) as $l) {
+                    foreach (self::links($x, ".//a[contains(@href,'essay-') or contains(@href,'journal-') or contains(@href,'/insights/')]", $sec) as $l) {
                         if (preg_match('#(?:essay|journal)-([a-z0-9-]+)\.html#', $l['href'], $m)) $slugs[] = $m[1];
+                        elseif (preg_match('#/insights/([a-z0-9-]+)/?#', $l['href'], $m)) $slugs[] = $m[1];
                     }
                     $ids = [];
                     foreach ($derived['articles'] ?? [] as $a) if (in_array($a['slug'] ?? '', $slugs, true)) $ids[$a['slug']] = $a['id'];

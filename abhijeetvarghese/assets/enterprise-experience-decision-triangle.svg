@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">The Enterprise Decision Triangle</title><desc id="desc">Business, Human and Technology form three connected points with Experience at their centre.</desc>
+  <defs>
+    <style>
+      .bg{fill:#F4F0E8}.line{stroke:#C9C4BA;stroke-width:1.4;fill:none}.line2{stroke:#A8442F;stroke-width:2.2;fill:none}.dash{stroke:#C9C4BA;stroke-width:1.4;fill:none;stroke-dasharray:5 7}.panel{fill:#FCFAF5;stroke:#C9C4BA;stroke-width:1.3}.panel2{fill:#F1DDD6;stroke:#A8442F;stroke-width:1.3}.dark{fill:#0B1428}.accent{fill:#A8442F}.warm{fill:#C98B42}.text{fill:#0C1830;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:600;letter-spacing:1.3px}.label{fill:#5E6571;font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:700;letter-spacing:2px}.small{fill:#5E6571;font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:500}.white{fill:#F8F3EB;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:600;letter-spacing:1.3px}.num{fill:#A8442F;font-family:Georgia,serif;font-size:31px;font-style:italic}
+    </style>
+    <linearGradient id="soft" x1="0" x2="1"><stop stop-color="#A8442F" stop-opacity=".16"/><stop offset="1" stop-color="#A8442F" stop-opacity="0"/></linearGradient>
+  </defs>
+  <rect class="bg" width="1200" height="720"/>
+
+<text x="72" y="72" class="label">THE ENTERPRISE DECISION TRIANGLE</text><text x="72" y="102" class="small">A coherent experience is where three forms of value meet.</text>
+<path d="M600 164L956 565H244Z" fill="#FCFAF5" stroke="#C9C4BA" stroke-width="1.4"/>
+<path d="M600 164L600 399M244 565L600 399 956 565" fill="none" stroke="#A8442F" stroke-width="1.4" stroke-dasharray="5 8"/>
+<circle class="dark" cx="600" cy="164" r="82"/><text x="554" y="158" class="white">BUSINESS</text><text x="557" y="184" fill="#C7D0E0" font-family="Arial" font-size="13">value · risk</text>
+<circle class="dark" cx="244" cy="565" r="82"/><text x="201" y="560" class="white">HUMAN</text><text x="184" y="586" fill="#C7D0E0" font-family="Arial" font-size="13">need · behaviour</text>
+<circle class="dark" cx="956" cy="565" r="82"/><text x="898" y="560" class="white">TECHNOLOGY</text><text x="904" y="586" fill="#C7D0E0" font-family="Arial" font-size="13">capability · data</text>
+<circle class="accent" cx="600" cy="399" r="112"/><text x="531" y="406" class="white">EXPERIENCE</text><text x="531" y="438" fill="#F8E9E5" font-family="Georgia,serif" font-size="25" font-style="italic">coherence</text>
+<text x="72" y="670" class="small">If one force dominates, the experience becomes transactional, demonstrative or disconnected.</text>
+</svg>

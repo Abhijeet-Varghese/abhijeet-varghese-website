@@ -76,14 +76,14 @@ const buildParams=payload=>{
 const sendVisitorOnly=async payload=>{
   if(!String((payload&&payload.email)||""))throw new Error("Visitor email is required for EmailJS fallback");
   const emailjs=await loadSdk();
-  try{return await sendWithRetry(emailjs,VISITOR_TEMPLATE_ID,buildParams(payload));}catch(error){console.warn("EmailJS visitor confirmation failed:",(error&&error.message)||error);return false;}
+  try{return await sendWithRetry(emailjs,VISITOR_TEMPLATE_ID,buildParams(payload));}catch(error){return false;}
 };
 
 // Owner-only notification for the rare case where AV OS saved the lead and
 // confirmed the visitor email but could not deliver the owner notification.
 const sendOwnerOnly=async payload=>{
   const emailjs=await loadSdk();
-  try{return await sendWithRetry(emailjs,OWNER_TEMPLATE_ID,buildParams(payload));}catch(error){console.warn("EmailJS owner notification failed:",(error&&error.message)||error);return false;}
+  try{return await sendWithRetry(emailjs,OWNER_TEMPLATE_ID,buildParams(payload));}catch(error){return false;}
 };
 
 const sendFallback=async payload=>{
