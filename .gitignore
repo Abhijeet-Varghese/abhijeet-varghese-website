@@ -29,3 +29,7 @@ Thumbs.db
 node_modules/
 qa-*/
 qa-ai-hero.png
+# React/Vite frontend
+dist/
+.env.local
+*.local

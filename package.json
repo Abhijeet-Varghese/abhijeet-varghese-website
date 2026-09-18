@@ -1,0 +1,22 @@
+{
+  "name": "abhijeet-varghese-frontend",
+  "private": true,
+  "version": "5.0.0",
+  "type": "module",
+  "description": "abhijeetvarghese.com — React + Vite frontend (CMS-driven via AV OS PHP API)",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && node scripts/inject-seo.mjs && node scripts/prerender-home.mjs",
+    "preview": "vite preview",
+    "snapshot": "node scripts/fetch-snapshot.mjs"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.4.8"
+  }
+}
