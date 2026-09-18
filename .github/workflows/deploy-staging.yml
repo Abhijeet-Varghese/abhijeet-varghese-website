@@ -24,20 +24,27 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify frontend, React app and AV OS source
+      - name: Verify React frontend, media library, infra docs and AV OS source
         run: |
-          # React frontend source (new canonical frontend)
+          # React frontend (canonical frontend)
           test -f package.json
           test -f vite.config.js
           test -f index.html
           test -f src/main.jsx
           test -f src/data/snapshot.json
-          # Legacy static site (still the source for inner pages + assets during
-          # the incremental React takeover)
-          test -f abhijeetvarghese/index.html
-          test -f abhijeetvarghese/.htaccess
-          test -d abhijeetvarghese/assets
-          # PHP backend (untouched source of truth)
+          test -f src/data/pageMeta.json
+          # Media library (served at /assets/*, never bundled)
+          test -d assets/logos
+          test -d assets/bpcl/images
+          test -f assets/logo.png
+          # Static infra documents (error/offline/maintenance/sw/robots/sitemap)
+          test -f static/sw.js
+          test -f static/robots.txt
+          test -f static/sitemap.xml
+          test -f static/404.html
+          test -f static/offline.html
+          test -f static/css/errors-standalone.css
+          # PHP backend + CMS (source of truth, unchanged)
           test -f avos-php/router.php
           test -f avos-php/backend/config/config.php
           test -f avos-php/public_html/api/index.php
@@ -50,29 +57,36 @@ jobs:
           node-version: 20
           cache: npm
 
-      - name: Build React frontend (vite build + SSR prerender of /)
+      - name: Build React frontend (vite build + per-route SSG prerender)
         run: |
           npm ci
           npm run build
           test -f dist/index.html
           grep -q 'hp6-name' dist/index.html   # prerendered home content present
-          ls dist/assets | head -5
+          test -f dist/story/index.html
+          test -f dist/case-studies/bharat-petroleum-corporation-limited/index.html
 
       - name: Assemble complete staging web root
         run: |
           rm -rf /tmp/staging-webroot
           mkdir -p /tmp/staging-webroot
 
-          # 1) Built React frontend (home page + migrated routes)
+          # 1) Built React frontend (all migrated routes, prerendered)
           rsync -a --delete dist/ /tmp/staging-webroot/dist/
 
-          # 2) Legacy static site: inner pages, assets, sw, robots/sitemap —
-          #    served until each route is migrated to React
-          rsync -a --delete \
-            --exclude='config.local.php' \
-            abhijeetvarghese/ /tmp/staging-webroot/abhijeetvarghese/
+          # 2) Media library at /assets/* (logos, case art, fonts, bpcl media)
+          rsync -a --delete assets/ /tmp/staging-webroot/assets/
 
-          # 3) PHP backend + CMS (unchanged; secrets stay server-local)
+          # 3) Static infra documents at the web-root paths they are linked by
+          rsync -a --delete static/ /tmp/staging-webroot/static/
+          cp static/sw.js static/robots.txt static/sitemap.xml static/manifest.webmanifest /tmp/staging-webroot/
+          cp static/offline.html static/maintenance.html /tmp/staging-webroot/
+          cp static/403.html static/404.html static/500.html static/502.html static/503.html static/504.html /tmp/staging-webroot/
+          mkdir -p /tmp/staging-webroot/css /tmp/staging-webroot/js
+          cp static/css/errors-standalone.css /tmp/staging-webroot/css/
+          cp static/js/errors.js /tmp/staging-webroot/js/
+
+          # 4) PHP backend + CMS (secrets stay server-local)
           rsync -a --delete \
             --exclude='config.local.php' \
             --exclude='storage/cache/' \
@@ -83,11 +97,13 @@ jobs:
             --exclude='public_html/install/.installed' \
             avos-php/ /tmp/staging-webroot/avos-php/
 
-          # Root .htaccess — incremental route takeover:
-          #   /assets/* that exist in dist  → built React bundles (hashed js/css)
-          #   / and /index.html             → prerendered React home page
-          #   everything else               → AV OS router (PHP API, admin,
-          #     legacy inner pages, legacy assets, clean URLs, 301s, 404)
+          # Root .htaccess — full React topology:
+          #   real files (media library, static infra)  → served as-is
+          #   /assets/* hashed bundles present in dist  → built frontend
+          #   / + every migrated route                  → prerendered React
+          #   legacy .html / alias URLs                 → 301 to canonical
+          #   everything else                           → AV OS router
+          #     (/api, /admin, /media, /install, error pages, 404)
           cat > /tmp/staging-webroot/.htaccess <<'EOF'
           Options -Indexes
           DirectoryIndex disabled
@@ -99,6 +115,13 @@ jobs:
             Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
           </IfModule>
 
+          ErrorDocument 403 /403.html
+          ErrorDocument 404 /404.html
+          ErrorDocument 500 /500.html
+          ErrorDocument 502 /502.html
+          ErrorDocument 503 /503.html
+          ErrorDocument 504 /504.html
+
           RewriteEngine On
 
           # never expose backend internals
@@ -109,31 +132,34 @@ jobs:
           RewriteCond %{DOCUMENT_ROOT}/dist%{REQUEST_URI} -f
           RewriteRule ^ dist%{REQUEST_URI} [END]
 
-          # React home page (prerendered; hydration takes over)
+          # real files in the web root (media library, infra docs) stream as-is
+          RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -f
+          RewriteRule ^ - [END]
+
+          # React home page + migrated inner routes (prerendered per route)
           RewriteRule ^$ dist/index.html [END]
           RewriteRule ^index\.html$ dist/index.html [END]
+          RewriteRule ^(story|experience|case-studies|case-studies/orange-business|case-studies/indian-army|case-studies/bharat-petroleum-corporation-limited|portfolio|consulting|contact|insights|insights/technology-should-feel-human|insights/ai-isnt-replacing-creativity|insights/designing-experiences-people-remember|insights/why-enterprise-experiences-fail|journal|journal-what-a-year-of-ai-enabled-production-taught-me|journal-the-experience-centre-as-a-strategic-instrument|recruiter|privacy-policy|terms|search|sitemap)/?$ dist/$1/index.html [END]
 
-          # rescue relative asset refs from legacy clean URLs (parity with
-          # the static site's own rescue rules)
-          RewriteCond %{REQUEST_FILENAME} !-f
-          RewriteCond %{DOCUMENT_ROOT}/$2/$3 -f
-          RewriteRule ^([^/]+)/(assets|css|js)/(.*)$ /$2/$3 [END]
-          RewriteCond %{REQUEST_FILENAME} !-f
-          RewriteCond %{DOCUMENT_ROOT}/$2 -f
-          RewriteRule ^([^/]+)/(manifest\.webmanifest|robots\.txt|sitemap\.xml)$ /$2 [END]
+          # legacy .html forms and aliases → canonical clean URLs (301)
+          RewriteRule ^(story|portfolio|contact|privacy-policy|terms|sitemap|search|experience|insights|journal|recruiter)\.html/?$ /$1/ [R=301,L,NE]
+          RewriteRule ^case-studies\.html/?$ /case-studies/ [R=301,L]
+          RewriteRule ^recruitment/?$ /recruiter/ [R=301,L]
+          RewriteRule ^journal-what-a-year-of-ai-enabled-production-taught-me\.html/?$ /journal-what-a-year-of-ai-enabled-production-taught-me/ [R=301,L]
+          RewriteRule ^journal-the-experience-centre-as-a-strategic-instrument\.html/?$ /journal-the-experience-centre-as-a-strategic-instrument/ [R=301,L]
 
-          # Migrated inner routes (each prerendered to dist/<route>/index.html)
-          RewriteRule ^(story|experience|case-studies|case-studies/orange-business|case-studies/indian-army|portfolio|consulting|contact|insights|insights/technology-should-feel-human|insights/ai-isnt-replacing-creativity|insights/designing-experiences-people-remember|insights/why-enterprise-experiences-fail|journal|journal-what-a-year-of-ai-enabled-production-taught-me|journal-the-experience-centre-as-a-strategic-instrument|recruiter|privacy-policy|terms)/?$ dist/$1/index.html [END]
+          # static infra documents served from their legacy root paths
+          RewriteRule ^(sw\.js|robots\.txt|sitemap\.xml|manifest\.webmanifest|offline\.html|maintenance\.html|40[34]\.html|50[0-4]\.html)$ static/$1 [END]
+          RewriteRule ^(css|js)/(.*)$ static/$1/$2 [END]
 
-          # everything else → AV OS router: /api, /admin, /media, legacy inner
-          # pages (/story/, /case-studies/, /insights/, /experience/, ...),
-          # legacy assets, legacy clean-URL 301s and the 404 page.
+          # everything else → AV OS router (API, admin, media, install, 404)
           RewriteRule ^ avos-php/router.php [END,QSA]
           EOF
 
           test -f /tmp/staging-webroot/.htaccess
           test -f /tmp/staging-webroot/dist/index.html
-          test -f /tmp/staging-webroot/abhijeetvarghese/index.html
+          test -f /tmp/staging-webroot/assets/logo.png
+          test -f /tmp/staging-webroot/static/sw.js
           test -f /tmp/staging-webroot/avos-php/router.php
 
       - name: Publish Hostinger deployment branch
@@ -143,7 +169,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -qm "Deploy React frontend + legacy inner pages + AV OS to staging"
+          git commit -qm "Deploy React frontend + media library + infra docs + AV OS to staging"
           git branch -M deploy-tmp
           git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git push origin deploy-tmp:hostinger --force

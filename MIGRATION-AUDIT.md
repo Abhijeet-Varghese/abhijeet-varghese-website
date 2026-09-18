@@ -228,3 +228,70 @@ HTML→JSX conversion with HTML-error-recovery, byte-identical page CSS under
   chrome/footer/refresh), interaction spot checks (pano pins, proof rail,
   overture), 12/12 inner viewport cells (390/768/1440), home regression
   (9 sections, booking slots, 0 errors).
+
+## 12. Final pass — legacy islands retired (this commit series)
+
+**Migrated to React**
+- `search.html` → `/search/` (`src/pages/inner/Search.jsx` + `src/hooks/useSearch.js`).
+  Search logic ported verbatim; the runtime `fetch("search-index.json")` became a
+  build-time import of `src/data/search-index.json` (same 21-item index, one less
+  request, works offline). Query "army" → Indian Army results (QA verified).
+- `sitemap.html` → `/sitemap/` (`SitemapPage.jsx`).
+- BPCL micro-app → `/case-studies/bharat-petroleum-corporation-limited/`
+  (`CaseBPCL.jsx` + `src/bpcl/*.js`, 9 engine modules). Engines kept verbatim;
+  wrapped as ES modules and initialized in the exact legacy `<script>` order
+  (config → core → navigation → imageViewer → dayNightSlider → blueprintViewer →
+  walkthrough → content → scrollAnimations) by `src/hooks/useBPCL.js` with
+  per-module isolation. QA: all globals boot, zero console errors/404s, bridge
+  builds, day/night drag **and** keyboard both work, walkthrough facade mounts
+  and `toVideo` fires with the correct `/assets/bpcl/video/…` source (playback
+  itself untestable in sandbox — its Chromium lacks H.264; serving verified via
+  206 range streaming).
+- **Analytics**: legacy is first-party (identical inline module on all 24 pages,
+  md5-verified; no GA4/GTM). Ported once to `src/analytics/avos-analytics.js`
+  (verbatim, `window.AVAnalytics` bridge added) + `boot.js`. Exactly one pageview
+  per document; navigation uses plain anchors (legacy parity) so no duplicate
+  SPA pageviews — QA counted 1 on load, 2 after one navigation.
+
+**Kept static by design (server infrastructure, must render with no JS/network)**
+- `static/`: sw.js, robots.txt, sitemap.xml (regenerated: 23 clean canonical
+  URLs, no `.html`), manifest.webmanifest, offline/maintenance/403/404/5xx docs,
+  `css/errors-standalone.css` (approved tokens+fonts+base+errors.css composed so
+  infra screens no longer need the product cascade), `js/errors.js`.
+- sw.js SHELL rebased to the standalone sheet.
+
+**Media library**: `abhijeetvarghese/assets/` → repo-root `assets/` (120 MB,
+served at `/assets/*`, never bundled); BPCL case media → `assets/bpcl/`.
+Dev: vite middleware serves `/assets` from repo root (legacy 8092 server retired).
+
+**Deleted (zero-reference proven first)**
+- `abhijeetvarghese/` (entire legacy frontend) and `src-backups/`.
+  Proof: grep across `src/`, `scripts/`, `.github/`, `index.html`,
+  `vite.config.js`, `static/` shows no runtime references (remaining hits are
+  external social URLs and docs). Recoverable via tag `pre-react-baseline`.
+- Dead one-shot generators `scripts/build_enterprise_assets.py`,
+  `scripts/wire_insight_responsive_system.py` (referenced only the deleted tree).
+- `index.html` (vite entry) dropped the four legacy `/css/*.css` links;
+  `pageMeta.json` normalized every canonical/og/twitter/JSON-LD URL to clean
+  directory form and repaired 4 double-escaped JSON-LD payloads (all 23 routes
+  now parse; QA sweep 23/23).
+
+**Backend guards for the post-legacy world**
+- `router.php`: error documents resolve via `avInfraPath()` → falls back to
+  webroot `static/` when the legacy dir is absent.
+- `SiteSync::runIfChanged()` no-ops when `AV_SITE_DIR` is missing.
+
+**Deployment v3** (`.github/workflows/deploy-staging.yml`): webroot =
+`dist/` + `assets/` + `static/` (infra files copied to their linked root paths)
++ `avos-php/`; root `.htaccess` rewritten: real files pass through, `/assets/*`
+checks dist first, 22 clean routes → prerendered HTML, legacy `.html`/alias 301s
+kept, infra docs mapped from `static/`, everything else → AV OS router.
+
+**Parity fix found by SSR warnings**: 8 inner pages carried dashed keys inside
+`style={{}}` (React silently dropped those properties). Camel-cased; build now
+emits zero "Unsupported style property" warnings.
+
+**QA (built app, mirror v3 = deployed topology)**: SEO+JSON-LD 23/23 ·
+BPCL engine boot + interactions ✓ · search ✓ · analytics dedupe ✓ · 404 styled ✓
+· 301s ✓ · infra paths ✓ · api ✓ · matrix 36/36 (6 viewports × 6 pages, zero
+console errors/4xx).
