@@ -14,17 +14,17 @@ export default function Journal() {
         <p className="page-hero__lede" data-reveal={true} style={{"--d": ".15s"}}>Unpolished, honest, dated. The thinking that happens between projects.</p>
       </div>
     </section>
-<section className="page-section t-light"><div className="container"><div className="entry" data-reveal={true} style={{"border-top": "1px solid var(--cl)"}}></div><article className="entry" data-reveal={true}>
+<section className="page-section t-light"><div className="container"><div className="entry" data-reveal={true} style={{"borderTop": "1px solid var(--cl)"}}></div><article className="entry" data-reveal={true}>
           <p className="entry__meta"><em>01</em><span>Journal · 4 min</span></p>
           <h2><a href="/journal-what-a-year-of-ai-enabled-production-taught-me/">What a year of AI-enabled production taught me</a></h2>
           <p>Compression is the real gift.</p>
-          <p style={{"margin-top": "12px"}}><a className="link-arrow" href="/journal-what-a-year-of-ai-enabled-production-taught-me/">Read the entry <svg className="btn__arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" strokeWidth="1.6" /></svg></a></p>
+          <p style={{"marginTop": "12px"}}><a className="link-arrow" href="/journal-what-a-year-of-ai-enabled-production-taught-me/">Read the entry <svg className="btn__arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" strokeWidth="1.6" /></svg></a></p>
         </article>
 <article className="entry" data-reveal={true}>
           <p className="entry__meta"><em>02</em><span>Journal · 3 min</span></p>
           <h2><a href="/journal-the-experience-centre-as-a-strategic-instrument/">The experience centre as a strategic instrument</a></h2>
           <p>The best centres are decision rooms, not showrooms.</p>
-          <p style={{"margin-top": "12px"}}><a className="link-arrow" href="/journal-the-experience-centre-as-a-strategic-instrument/">Read the entry <svg className="btn__arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" strokeWidth="1.6" /></svg></a></p>
+          <p style={{"marginTop": "12px"}}><a className="link-arrow" href="/journal-the-experience-centre-as-a-strategic-instrument/">Read the entry <svg className="btn__arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" strokeWidth="1.6" /></svg></a></p>
         </article></div></section>
   </main>
     </>

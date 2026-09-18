@@ -208,7 +208,7 @@ export default function CaseOrange() {
       
       <section className="ob-closing tracked" data-index="11" data-title="Closing">
         <div className="ob-closing__inner container">
-          <p className="ob-kicker" style={{"justify-content": "center"}}><b>ORANGE BUSINESS</b> MUMBAI</p>
+          <p className="ob-kicker" style={{"justifyContent": "center"}}><b>ORANGE BUSINESS</b> MUMBAI</p>
           <h2>THE TECHNOLOGY WAS NEVER<br />THE DESTINATION. <em>THE EXPERIENCE WAS.</em></h2>
           <p>New Executive Briefing Center — Experience Strategy &amp; Creative Technology Lead.<br />Designed as one system. Delivered as one experience.</p>
           <a className="ob-closing__cta" href="/case-studies/"><i></i>BACK TO ALL CASE STUDIES</a>

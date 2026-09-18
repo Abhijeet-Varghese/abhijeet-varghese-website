@@ -46,14 +46,14 @@ export default function CaseArmy() {
           <div><dt>Qualification</dt><dd>Testing conducted inside the immersive environment</dd></div>
           <div><dt>Stakeholders</dt><dd>Daily with the Major · weekly with the Colonel · Brigadier-level approval</dd></div>
         </dl>
-        <div className="ia-cols" style={{"margin-top": "clamp(48px,6vw,88px)"}}>
+        <div className="ia-cols" style={{"marginTop": "clamp(48px,6vw,88px)"}}>
           <div className="ia-cols__side">
             <span className="ia-label ia-r"><b>02</b> Opening</span>
             <h2 className="ia-h2 ia-r" id="h-opening" style={{"--d": ".08s"}}>From digital training to <em>physical readiness.</em></h2>
           </div>
           <div>
             <p className="ia-lede ia-r">This was an end-to-end immersive training environment created for Indian Army personnel, combining VR-based training, centralised instructor visibility and qualification testing within a dedicated training facility.</p>
-            <p className="ia-p ia-r" style={{"--d": ".08s", "margin-top": "1.4em"}}>The experience created a digital preparation and qualification stage before personnel progressed toward physical training. Trainees learned and practised on the <strong>T-70</strong> and <strong>T-90</strong> inside VR, the trainer followed their sessions from a central display, and qualification was tested in the same immersive environment.</p>
+            <p className="ia-p ia-r" style={{"--d": ".08s", "marginTop": "1.4em"}}>The experience created a digital preparation and qualification stage before personnel progressed toward physical training. Trainees learned and practised on the <strong>T-70</strong> and <strong>T-90</strong> inside VR, the trainer followed their sessions from a central display, and qualification was tested in the same immersive environment.</p>
             <p className="ia-p ia-r" style={{"--d": ".14s"}}>I drove the experience from strategy through execution — working directly with the Army's stakeholders throughout, and leading the team that brought the training environment to life.</p>
           </div>
         </div>
@@ -76,10 +76,10 @@ export default function CaseArmy() {
           </div>
           <div>
             <p className="ia-lede ia-r" style={{"--d": ".1s"}}>This placed me directly between the Army stakeholders, the experience strategy and the team responsible for bringing the training environment to life.</p>
-            <p className="ia-p ia-r" style={{"--d": ".16s", "margin-top": "1.4em"}}>I was not handed a brief and asked to produce visuals. The work was to translate what the Army needed into an immersive training experience, take that experience back to the stakeholders for review, and coordinate the people and work required to deliver it.</p>
+            <p className="ia-p ia-r" style={{"--d": ".16s", "marginTop": "1.4em"}}>I was not handed a brief and asked to produce visuals. The work was to translate what the Army needed into an immersive training experience, take that experience back to the stakeholders for review, and coordinate the people and work required to deliver it.</p>
           </div>
         </div>
-        <ol className="ia-bridge ia-r" style={{"--d": ".2s", "margin-top": "clamp(40px,5vw,64px)"}} aria-label="How the work flowed">
+        <ol className="ia-bridge ia-r" style={{"--d": ".2s", "marginTop": "clamp(40px,5vw,64px)"}} aria-label="How the work flowed">
           <li><span>01</span><b>Army requirements</b></li>
           <li className="is-me"><span>02</span><b>Experience strategy</b></li>
           <li className="is-me"><span>03</span><b>Creative · content · immersive development</b></li>
@@ -88,7 +88,7 @@ export default function CaseArmy() {
           <li><span>06</span><b>Approval</b></li>
           <li><span>07</span><b>Implemented training experience</b></li>
         </ol>
-        <p className="ia-note ia-r" style={{"margin-top": "18px"}}>Highlighted stages are where I led directly. Stakeholder relationships describe project collaboration, review and approval — not military command.</p>
+        <p className="ia-note ia-r" style={{"marginTop": "18px"}}>Highlighted stages are where I led directly. Stakeholder relationships describe project collaboration, review and approval — not military command.</p>
       </div>
     </section>
 
@@ -123,7 +123,7 @@ export default function CaseArmy() {
         <div className="ia-bleed__overlay ia-bleed__overlay--below">
           <div className="ia-wrap">
             <span className="ia-label ia-r"><b>05</b> The training room</span>
-            <h2 className="ia-h-big ia-r" id="h-facility" style={{"--d": ".08s", "margin-top": "14px", "max-width": "16ch"}}>15 stations. <em>One connected training environment.</em></h2>
+            <h2 className="ia-h-big ia-r" id="h-facility" style={{"--d": ".08s", "marginTop": "14px", "maxWidth": "16ch"}}>15 stations. <em>One connected training environment.</em></h2>
           </div>
         </div>
         <figcaption><b>The 15-station training facility</b>Dedicated training room · individual VR sessions · central instructor display</figcaption>
@@ -136,7 +136,7 @@ export default function CaseArmy() {
           <div>
             <p className="ia-p ia-r">Each trainee could participate in an individual immersive session while a <strong>high-end central display</strong> gave the trainer a consolidated view of what trainees were doing inside their VR environments.</p>
             <p className="ia-p ia-r" style={{"--d": ".08s"}}>The result was not simply a room full of individual VR experiences. It was a connected training environment where individual immersion and centralised instruction existed together.</p>
-            <ul className="ia-keys ia-r" style={{"--d": ".14s", "margin-top": "28px"}}>
+            <ul className="ia-keys ia-r" style={{"--d": ".14s", "marginTop": "28px"}}>
               <li><span>A</span><p><b>15 high-end computer stations</b> — one trainee, one individual VR session per station.</p></li>
               <li><span>B</span><p><b>Dedicated training room</b> — set up for Army personnel as a purpose-built training space.</p></li>
               <li><span>C</span><p><b>High-end central display</b> — the trainer's consolidated view of trainee activity.</p></li>
@@ -176,7 +176,7 @@ export default function CaseArmy() {
     
     <section className="ia-section ia-section--graphite" id="instructor-monitoring" aria-labelledby="h-monitor">
       <div className="ia-wrap">
-        <div className="ia-cols ia-cols--rev" style={{"align-items": "center"}}>
+        <div className="ia-cols ia-cols--rev" style={{"alignItems": "center"}}>
           <div className="ia-cols__side">
             <span className="ia-label ia-r"><b>07</b> Monitoring &amp; assessment</span>
             <h2 className="ia-h2 ia-r" id="h-monitor" style={{"--d": ".08s"}}>Observation stayed <em>inside the loop.</em></h2>
@@ -197,7 +197,7 @@ export default function CaseArmy() {
     
     <section className="ia-section" id="immersive" data-chapter="Platforms" aria-labelledby="h-t90">
       <div className="ia-wrap">
-        <div className="ia-cols ia-cols--eq" style={{"align-items": "center"}}>
+        <div className="ia-cols ia-cols--eq" style={{"alignItems": "center"}}>
           <div className="ia-cols__side">
             <span className="ia-label ia-r"><b>08</b> Platform</span>
             <h2 className="ia-display ia-r" id="h-t90" style={{"--d": ".08s"}}>T-90</h2>
@@ -219,7 +219,7 @@ export default function CaseArmy() {
     
     <section className="ia-section ia-section--navy" id="t70" aria-labelledby="h-t70">
       <div className="ia-wrap">
-        <div className="ia-cols ia-cols--eq ia-cols--rev" style={{"align-items": "center"}}>
+        <div className="ia-cols ia-cols--eq ia-cols--rev" style={{"alignItems": "center"}}>
           <div className="ia-cols__side">
             <span className="ia-label ia-r"><b>09</b> Platform</span>
             <h2 className="ia-display ia-r" id="h-t70" style={{"--d": ".08s"}}>T-70</h2>
@@ -247,16 +247,16 @@ export default function CaseArmy() {
         <div className="ia-bleed__overlay ia-bleed__overlay--below">
           <div className="ia-wrap">
             <span className="ia-label ia-r"><b>10</b> One framework</span>
-            <h2 className="ia-h-big ia-r" id="h-framework" style={{"--d": ".08s", "margin-top": "14px", "max-width": "16ch"}}>Two platforms. <em>One training logic.</em></h2>
+            <h2 className="ia-h-big ia-r" id="h-framework" style={{"--d": ".08s", "marginTop": "14px", "maxWidth": "16ch"}}>Two platforms. <em>One training logic.</em></h2>
           </div>
         </div>
         <figcaption><b>T-70 + T-90 unified framework</b></figcaption>
       </figure>
       <div className="ia-wrap" style={{"padding": "clamp(48px,6vw,80px) 0 var(--ia-section)"}}>
-        <div className="ia-cols ia-cols--eq" style={{"align-items": "start"}}>
+        <div className="ia-cols ia-cols--eq" style={{"alignItems": "start"}}>
           <div>
             <p className="ia-lede ia-r">The strength of the experience was not only in recreating individual platforms digitally.</p>
-            <p className="ia-p ia-r" style={{"--d": ".08s", "margin-top": "1.4em"}}>It was in creating a broader training logic that could move personnel through learning, practice and qualification within the immersive environment — the same logic, whichever platform a trainee was working on.</p>
+            <p className="ia-p ia-r" style={{"--d": ".08s", "marginTop": "1.4em"}}>It was in creating a broader training logic that could move personnel through learning, practice and qualification within the immersive environment — the same logic, whichever platform a trainee was working on.</p>
           </div>
           <ol className="ia-chain ia-chain--compact ia-r" style={{"--d": ".1s"}} aria-label="Training logic">
             <li><span>—</span><b>T-70 + T-90</b></li>
@@ -281,7 +281,7 @@ export default function CaseArmy() {
           <figcaption><b>Inside the experience · trainee point of view</b></figcaption>
         </figure>
       </div>
-      <div className="ia-wrap" style={{"margin-top": "clamp(36px,5vw,64px)"}}>
+      <div className="ia-wrap" style={{"marginTop": "clamp(36px,5vw,64px)"}}>
         <div className="ia-cols">
           <div className="ia-cols__side">
             <span className="ia-label ia-r"><b>11</b> The trainee experience</span>
@@ -289,7 +289,7 @@ export default function CaseArmy() {
           </div>
           <div>
             <p className="ia-lede ia-r">For the trainee, the experience was direct and immersive.</p>
-            <p className="ia-p ia-r" style={{"--d": ".08s", "margin-top": "1.4em"}}>VR placed the training environment around the individual, creating a space where learning and practice could happen through active participation rather than observation alone.</p>
+            <p className="ia-p ia-r" style={{"--d": ".08s", "marginTop": "1.4em"}}>VR placed the training environment around the individual, creating a space where learning and practice could happen through active participation rather than observation alone.</p>
           </div>
         </div>
       </div>
@@ -331,7 +331,7 @@ export default function CaseArmy() {
           </div>
           <figcaption><b>Qualification test · inside the immersive environment</b></figcaption>
         </figure>
-        <div className="ia-cols" style={{"margin-top": "clamp(36px,5vw,64px)"}}>
+        <div className="ia-cols" style={{"marginTop": "clamp(36px,5vw,64px)"}}>
           <p className="ia-lede ia-r">Trainees were not simply experiencing the environment. They were expected to demonstrate their understanding and performance within it.</p>
           <div>
             <p className="ia-p ia-r">This introduced an important transition — from an environment in which you learn to one in which you are expected to show what you have learned.</p>
@@ -375,7 +375,7 @@ export default function CaseArmy() {
         <div className="ia-bleed__overlay">
           <div className="ia-wrap">
             <span className="ia-label ia-r"><b>15</b> Qualification before progression</span>
-            <h2 className="ia-display ia-r ia-qualified__word" id="h-qualified" style={{"--d": ".08s", "margin-top": "14px"}}><i aria-hidden="true"></i>Qualified.</h2>
+            <h2 className="ia-display ia-r ia-qualified__word" id="h-qualified" style={{"--d": ".08s", "marginTop": "14px"}}><i aria-hidden="true"></i>Qualified.</h2>
             <p className="ia-qualified__sub ia-r" style={{"--d": ".16s"}}>A defined stage between digital learning and physical training.</p>
           </div>
         </div>
@@ -397,7 +397,7 @@ export default function CaseArmy() {
         <header className="ia-head">
           <span className="ia-label ia-r"><b>16</b> From digital to physical</span>
           <h2 className="ia-h2 ia-r" id="h-gate" style={{"--d": ".06s"}}>VR didn't replace the battlefield.</h2>
-          <p className="ia-h-big ia-r" style={{"--d": ".12s", "max-width": "18ch"}}>It prepared the trainee <em>for the next stage.</em></p>
+          <p className="ia-h-big ia-r" style={{"--d": ".12s", "maxWidth": "18ch"}}>It prepared the trainee <em>for the next stage.</em></p>
         </header>
       </div>
       <figure className="ia-fig ia-bleed ia-gate ia-r ia-r--img">
@@ -409,10 +409,10 @@ export default function CaseArmy() {
         <figcaption><b>Digital → physical</b>Immersive training · qualification · physical training</figcaption>
       </figure>
       <div className="ia-wrap" style={{"padding": "clamp(48px,6vw,80px) 0 var(--ia-section)"}}>
-        <div className="ia-cols ia-cols--eq" style={{"align-items": "start"}}>
+        <div className="ia-cols ia-cols--eq" style={{"alignItems": "start"}}>
           <div>
             <p className="ia-lede ia-r">The purpose of immersive training was not to replace physical training.</p>
-            <p className="ia-p ia-r" style={{"--d": ".08s", "margin-top": "1.4em"}}>It created a digital preparation and qualification stage before personnel progressed toward physical, battlefield-based training.</p>
+            <p className="ia-p ia-r" style={{"--d": ".08s", "marginTop": "1.4em"}}>It created a digital preparation and qualification stage before personnel progressed toward physical, battlefield-based training.</p>
             <p className="ia-p ia-r" style={{"--d": ".14s"}}>Once trainees excelled in the digital training environment, they could progress to the next stage of physical training.</p>
           </div>
           <ol className="ia-chain ia-r" style={{"--d": ".1s"}} aria-label="Digital to physical progression">
@@ -433,7 +433,7 @@ export default function CaseArmy() {
         <div className="ia-bleed__overlay ia-bleed__overlay--below">
           <div className="ia-wrap">
             <span className="ia-label ia-r"><b>17</b> Physical training</span>
-            <h2 className="ia-h-big ia-r" id="h-battlefield" style={{"--d": ".08s", "margin-top": "14px", "max-width": "16ch"}}>From immersion <em>to physical training.</em></h2>
+            <h2 className="ia-h-big ia-r" id="h-battlefield" style={{"--d": ".08s", "marginTop": "14px", "maxWidth": "16ch"}}>From immersion <em>to physical training.</em></h2>
           </div>
         </div>
         <figcaption><b>Physical / battlefield training</b></figcaption>
@@ -453,7 +453,7 @@ export default function CaseArmy() {
       <div className="ia-wrap">
         <header className="ia-head">
           <span className="ia-label ia-r"><b>18</b> The complete journey</span>
-          <h2 className="ia-h-big ia-r" id="h-journey" style={{"--d": ".08s", "max-width": "22ch"}}>Learn. Practice. Monitor. Assess. Qualify. <em>Progress.</em></h2>
+          <h2 className="ia-h-big ia-r" id="h-journey" style={{"--d": ".08s", "maxWidth": "22ch"}}>Learn. Practice. Monitor. Assess. Qualify. <em>Progress.</em></h2>
         </header>
         <ol className="ia-stages" aria-label="Six-stage training journey">
           <li><span>01</span><b>Learn</b><p>Understand the training environment.</p></li>
@@ -463,7 +463,7 @@ export default function CaseArmy() {
           <li><span>05</span><b>Qualify</b><p>Trainees demonstrate competency.</p></li>
           <li><span>06</span><b>Progress</b><p>Successful trainees can move toward physical training.</p></li>
         </ol>
-        <figure className="ia-fig ia-r ia-r--img" style={{"margin-top": "clamp(40px,5vw,72px)"}}>
+        <figure className="ia-fig ia-r ia-r--img" style={{"marginTop": "clamp(40px,5vw,72px)"}}>
           <div className="ia-fig__frame">
             <i className="ia-fig__tick"></i><i className="ia-fig__tick"></i><i className="ia-fig__tick"></i><i className="ia-fig__tick"></i>
             <img src="/assets/media/indian-army/ia-09.webp" srcSet="/assets/media/indian-army/ia-09-960.webp 960w, /assets/media/indian-army/ia-09.webp 1672w" sizes="(min-width: 1400px) 1320px, 100vw" width="1672" height="941" alt="Overview of the complete training journey — Learn, Practice, Monitor, Assess, Qualify, Progress — above a trainee at a VR station" loading="lazy" decoding="async" />
@@ -481,7 +481,7 @@ export default function CaseArmy() {
           <h2 className="ia-h2 ia-r" id="h-arch">A training ecosystem, <em>not a single screen.</em></h2>
           <p className="ia-lede ia-r" style={{"--d": ".1s"}}>At the system level, every part of the facility had a place in one chain — from the fifteen stations to the point at which a trainee progressed to physical training.</p>
         </header>
-        <div className="ia-cols ia-cols--eq" style={{"align-items": "start"}}>
+        <div className="ia-cols ia-cols--eq" style={{"alignItems": "start"}}>
           <ol className="ia-chain ia-r" aria-label="System architecture">
             <li><span>01</span><b>15 trainee stations</b></li>
             <li><span>02</span><b>VR training environments<small>T-70 and T-90</small></b></li>
@@ -535,11 +535,11 @@ export default function CaseArmy() {
           <li className="ia-r" style={{"--d": ".08s"}}><span>Weekly</span><h3>Colonel<em>Review</em></h3><p>Progress reviews, direction, feedback, alignment and presentation of the evolving work.</p><div className="ia-cadence__tags"><span>Direction</span><span>Alignment</span><span>Feedback</span></div></li>
           <li className="ia-r" style={{"--d": ".16s"}}><span>Senior review</span><h3>Brigadier<em>Approval</em></h3><p>Taking the work through senior-level review for Brigadier-level approval.</p><div className="ia-cadence__tags"><span>Senior-level review</span><span>Approval</span></div></li>
         </ol>
-        <div className="ia-cols" style={{"margin-top": "clamp(36px,5vw,56px)"}}>
+        <div className="ia-cols" style={{"marginTop": "clamp(36px,5vw,56px)"}}>
           <p className="ia-lede ia-r">Direct collaboration → review → alignment → senior approval.</p>
           <div>
             <p className="ia-p ia-r">Working directly with Army stakeholders throughout the project meant continuously translating requirements into experience decisions, taking feedback back to the team, iterating the work and presenting the evolving solution for review.</p>
-            <p className="ia-note ia-r" style={{"--d": ".06s", "margin-top": "16px"}}>These were project relationships — collaboration, review and approval of the work. They do not describe a military position or command authority.</p>
+            <p className="ia-note ia-r" style={{"--d": ".06s", "marginTop": "16px"}}>These were project relationships — collaboration, review and approval of the work. They do not describe a military position or command authority.</p>
           </div>
         </div>
       </div>
@@ -569,7 +569,7 @@ export default function CaseArmy() {
     
     <section className="ia-section" id="human" aria-labelledby="h-human">
       <div className="ia-wrap">
-        <div className="ia-cols ia-cols--eq" style={{"align-items": "center"}}>
+        <div className="ia-cols ia-cols--eq" style={{"alignItems": "center"}}>
           <figure className="ia-fig ia-r ia-r--img">
             <div className="ia-fig__frame">
               <i className="ia-fig__tick"></i><i className="ia-fig__tick"></i><i className="ia-fig__tick"></i><i className="ia-fig__tick"></i>
@@ -596,7 +596,7 @@ export default function CaseArmy() {
         <div className="ia-bleed__overlay ia-bleed__overlay--below">
           <div className="ia-wrap">
             <span className="ia-label ia-r"><b>24</b> From immersion to impact</span>
-            <h2 className="ia-h-big ia-r" id="h-imm" style={{"--d": ".08s", "margin-top": "14px", "max-width": "16ch"}}>Trained here. <em>Ready for the next stage.</em></h2>
+            <h2 className="ia-h-big ia-r" id="h-imm" style={{"--d": ".08s", "marginTop": "14px", "maxWidth": "16ch"}}>Trained here. <em>Ready for the next stage.</em></h2>
           </div>
         </div>
         <figcaption><b>From immersion to impact</b></figcaption>
@@ -626,7 +626,7 @@ export default function CaseArmy() {
     <section className="ia-section ia-grid-bg ia-bigidea" id="design-philosophy" aria-labelledby="h-dp">
       <div className="ia-wrap">
         <span className="ia-label ia-r"><b>26</b> The role of immersion</span>
-        <div className="ia-bigidea__grid" style={{"margin-top": "22px"}}>
+        <div className="ia-bigidea__grid" style={{"marginTop": "22px"}}>
           <h2 className="ia-display ia-r" id="h-dp" style={{"--d": ".08s"}}>Train before the battlefield.</h2>
           <p className="ia-lede ia-r" style={{"--d": ".16s"}}>The project created a digital training and qualification layer between learning and physical training — allowing personnel to learn, practise and demonstrate competency within an immersive environment before progressing further.</p>
         </div>
@@ -663,11 +663,11 @@ export default function CaseArmy() {
         <div className="ia-cols">
           <div className="ia-cols__side">
             <span className="ia-label ia-r"><b>28</b> Closing</span>
-            <h2 className="ia-h-big ia-r" id="h-closing" style={{"--d": ".08s", "max-width": "14ch"}}>Learn. Practice. Qualify. <em>Prepare.</em></h2>
+            <h2 className="ia-h-big ia-r" id="h-closing" style={{"--d": ".08s", "maxWidth": "14ch"}}>Learn. Practice. Qualify. <em>Prepare.</em></h2>
           </div>
           <div>
             <p className="ia-lede ia-r">The Indian Army project demonstrated how immersive technology can become part of a larger training ecosystem — connecting individual learning, instructor visibility, qualification and progression toward physical training.</p>
-            <p className="ia-p ia-r" style={{"--d": ".08s", "margin-top": "1.4em"}}>The result was not simply a VR experience. It was a structured bridge between digital immersion and the next stage of training.</p>
+            <p className="ia-p ia-r" style={{"--d": ".08s", "marginTop": "1.4em"}}>The result was not simply a VR experience. It was a structured bridge between digital immersion and the next stage of training.</p>
           </div>
         </div>
       </div>
@@ -679,7 +679,7 @@ export default function CaseArmy() {
           <div className="ia-wrap ia-closing__panel">
             <div>
               <span className="ia-label ia-r">Final statement</span>
-              <p className="ia-display ia-r" style={{"--d": ".08s", "margin-top": "14px", "max-width": "12ch"}}>Train before the battlefield.</p>
+              <p className="ia-display ia-r" style={{"--d": ".08s", "marginTop": "14px", "maxWidth": "12ch"}}>Train before the battlefield.</p>
               <div className="ia-closing__tag ia-r" style={{"--d": ".16s"}}><span>Learn</span><span>Practice</span><span>Qualify</span><span>Prepare</span></div>
             </div>
             <div className="ia-closing__cta ia-r" style={{"--d": ".2s"}}>

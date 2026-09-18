@@ -23,8 +23,8 @@ export default function JournalAI() {
           <p>Twelve months into running AI-enabled production pipelines, the headline lesson is not about the technology at all. It&#039;s about where the human hours went: not into making, but into deciding.</p>
         </div>
         <div className="article-foot" data-reveal={true}>
-          <p style={{"color": "var(--cm)", "font-size": "0.95rem"}}>By <strong style={{"color": "var(--ct)"}}>Abhijeet Varghese</strong> · 2026-08-04</p>
-          <div style={{"display": "flex", "gap": "14px", "flex-wrap": "wrap"}}>
+          <p style={{"color": "var(--cm)", "fontSize": "0.95rem"}}>By <strong style={{"color": "var(--ct)"}}>Abhijeet Varghese</strong> · 2026-08-04</p>
+          <div style={{"display": "flex", "gap": "14px", "flexWrap": "wrap"}}>
             <a className="link-arrow" href="/journal/">← All journal entries</a>
             <a className="link-arrow" href="/contact/">Start a conversation <svg className="btn__arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" strokeWidth="1.6" /></svg></a>
           </div>
@@ -34,8 +34,8 @@ export default function JournalAI() {
     <section className="page-section t-light" aria-label="Related">
       <div className="container">
         <div className="chapter__meta" data-reveal={true}><span className="chapter__index">+</span><span className="chapter__tag">Keep reading</span></div>
-        <h2 className="chapter__title" data-reveal={true} style={{"font-size": "1.6rem"}}>Related <em>content.</em></h2>
-        <ul style={{"list-style": "none", "margin": "18px 0 0", "padding": "0"}}><li data-reveal={true} style={{"padding": "10px 0", "border-bottom": "1px solid var(--cl)"}}><a className="link-arrow" href="/journal-the-experience-centre-as-a-strategic-instrument/">The experience centre as a strategic instrument<span style={{"font-size": "11px", "color": "var(--ink-3)", "margin-left": "8px"}}>Journal</span> <svg className="btn__arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" strokeWidth="1.6" /></svg></a></li></ul>
+        <h2 className="chapter__title" data-reveal={true} style={{"fontSize": "1.6rem"}}>Related <em>content.</em></h2>
+        <ul style={{"listStyle": "none", "margin": "18px 0 0", "padding": "0"}}><li data-reveal={true} style={{"padding": "10px 0", "borderBottom": "1px solid var(--cl)"}}><a className="link-arrow" href="/journal-the-experience-centre-as-a-strategic-instrument/">The experience centre as a strategic instrument<span style={{"fontSize": "11px", "color": "var(--ink-3)", "marginLeft": "8px"}}>Journal</span> <svg className="btn__arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" strokeWidth="1.6" /></svg></a></li></ul>
       </div>
     </section>
   </main>
