@@ -24,31 +24,55 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify current frontend and AV OS source
+      - name: Verify frontend, React app and AV OS source
         run: |
+          # React frontend source (new canonical frontend)
+          test -f package.json
+          test -f vite.config.js
+          test -f index.html
+          test -f src/main.jsx
+          test -f src/data/snapshot.json
+          # Legacy static site (still the source for inner pages + assets during
+          # the incremental React takeover)
           test -f abhijeetvarghese/index.html
           test -f abhijeetvarghese/.htaccess
           test -d abhijeetvarghese/assets
+          # PHP backend (untouched source of truth)
           test -f avos-php/router.php
           test -f avos-php/backend/config/config.php
           test -f avos-php/public_html/api/index.php
           test -d avos-php/database
           test -d avos-php/includes
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Build React frontend (vite build + SSR prerender of /)
+        run: |
+          npm ci
+          npm run build
+          test -f dist/index.html
+          grep -q 'hp6-name' dist/index.html   # prerendered home content present
+          ls dist/assets | head -5
+
       - name: Assemble complete staging web root
         run: |
           rm -rf /tmp/staging-webroot
           mkdir -p /tmp/staging-webroot
 
+          # 1) Built React frontend (home page + migrated routes)
+          rsync -a --delete dist/ /tmp/staging-webroot/dist/
+
+          # 2) Legacy static site: inner pages, assets, sw, robots/sitemap —
+          #    served until each route is migrated to React
           rsync -a --delete \
             --exclude='config.local.php' \
-            --exclude='storage/cache/' \
-            --exclude='storage/logs/' \
-            --exclude='storage/backups/' \
-            --exclude='storage/uploads/' \
-            --exclude='storage/locks/' \
             abhijeetvarghese/ /tmp/staging-webroot/abhijeetvarghese/
 
+          # 3) PHP backend + CMS (unchanged; secrets stay server-local)
           rsync -a --delete \
             --exclude='config.local.php' \
             --exclude='storage/cache/' \
@@ -59,6 +83,11 @@ jobs:
             --exclude='public_html/install/.installed' \
             avos-php/ /tmp/staging-webroot/avos-php/
 
+          # Root .htaccess — incremental route takeover:
+          #   /assets/* that exist in dist  → built React bundles (hashed js/css)
+          #   / and /index.html             → prerendered React home page
+          #   everything else               → AV OS router (PHP API, admin,
+          #     legacy inner pages, legacy assets, clean URLs, 301s, 404)
           cat > /tmp/staging-webroot/.htaccess <<'EOF'
           Options -Indexes
           DirectoryIndex disabled
@@ -71,11 +100,27 @@ jobs:
           </IfModule>
 
           RewriteEngine On
+
+          # never expose backend internals
           RewriteRule ^avos-php(?:/|$) - [F,END]
+
+          # built React assets (hashed bundles under /assets/ that exist in dist)
+          RewriteCond %{REQUEST_URI} ^/assets/
+          RewriteCond %{DOCUMENT_ROOT}/dist%{REQUEST_URI} -f
+          RewriteRule ^ dist%{REQUEST_URI} [END]
+
+          # React home page (prerendered; hydration takes over)
+          RewriteRule ^$ dist/index.html [END]
+          RewriteRule ^index\.html$ dist/index.html [END]
+
+          # everything else → AV OS router: /api, /admin, /media, legacy inner
+          # pages (/story/, /case-studies/, /insights/, /experience/, ...),
+          # legacy assets, legacy clean-URL 301s and the 404 page.
           RewriteRule ^ avos-php/router.php [END,QSA]
           EOF
 
           test -f /tmp/staging-webroot/.htaccess
+          test -f /tmp/staging-webroot/dist/index.html
           test -f /tmp/staging-webroot/abhijeetvarghese/index.html
           test -f /tmp/staging-webroot/avos-php/router.php
 
@@ -86,7 +131,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -qm "Deploy current frontend and AV OS to staging"
+          git commit -qm "Deploy React frontend + legacy inner pages + AV OS to staging"
           git branch -M deploy-tmp
           git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git push origin deploy-tmp:hostinger --force
