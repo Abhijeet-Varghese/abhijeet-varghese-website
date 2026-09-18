@@ -28,6 +28,8 @@ export default defineConfig(({ isSsrBuild }) => ({
   server: {
     host: '0.0.0.0',
     port: 5173,
+    // allow the sandbox preview proxy host (dev only)
+    allowedHosts: ['.e2b.app'],
     proxy: {
       '/api': { target: process.env.VITE_DEV_API_PROXY || 'http://127.0.0.1:8093', changeOrigin: true },
       '/admin': { target: process.env.VITE_DEV_API_PROXY || 'http://127.0.0.1:8093', changeOrigin: true },

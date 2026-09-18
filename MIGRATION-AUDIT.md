@@ -186,7 +186,7 @@ rAF-throttled scroll (no layout-thrash loops); single vendor chunk + single
 CSS sheet (approved cascade); images lazy + async decode; fonts
 `font-display:swap`; prerender removes the blank-first-paint cost.
 
-## 10. Open items (tracked, not blocking staging)
+## 10. Open items (CLOSED by passes 2–3, see §11–§13)
 
 - Inner pages (`/story/`, `/case-studies/*`, `/insights/*`, `/contact/`,
   legal) still legacy — migrate route-by-route; `.htaccess` step 4 already
@@ -295,3 +295,139 @@ emits zero "Unsupported style property" warnings.
 BPCL engine boot + interactions ✓ · search ✓ · analytics dedupe ✓ · 404 styled ✓
 · 301s ✓ · infra paths ✓ · api ✓ · matrix 36/36 (6 viewports × 6 pages, zero
 console errors/4xx).
+
+
+## 13. Definition of Done — 25-point checklist (final state)
+
+| # | Criterion | Verdict | Evidence |
+|---|-----------|---------|----------|
+| 1 | Remote keeps only `main` + `staging` (+ documented deploy branch `hostinger`) | ✅ | `git ls-remote --heads` → exactly 3 heads |
+| 2 | No force-push / history rewrite on source branches | ✅ | All pushes fast-forward (`9db523d..1cc9066`); `hostinger` force-update is the deploy branch by design |
+| 3 | Temp branches deleted after merge | ✅ | None exist; §1 |
+| 4 | Pre-migration tag | ✅ | `pre-react-baseline` (fetched, present on remote) |
+| 5 | Full audit before changes | ✅ | This document §1–§12 |
+| 6 | Unused proven before deleting | ✅ | §12 zero-reference grep; deletions recorded as git renames/deletes in `4a5f290` |
+| 7 | Backend (avos-php + MariaDB) stays source of truth; no creds in React | ✅ | §3–§4; `src/` contains no DB access; only `/api/public/*` consumed |
+| 8 | API extended cleanly, additively | ✅ | §3 (one additive endpoint; core untouched) |
+| 9 | CMS-editable content from backend; snapshot only as labeled fallback | ✅ | §4–§5; `src/data/snapshot.json` header comment labels it fallback |
+| 10 | Component architecture HomePage→sections; clean `src/` layout | ✅ | §9; `src/{app,pages,sections,components,hooks,api,data,styles,analytics,bpcl}` |
+| 11 | All existing URLs work (pages, case studies, insights, contact, SEO URLs, redirects, deep links) | ✅ | 23-route prerender + mirror QA 23/23; legacy `.html`/alias 301s in `.htaccess` v3 and router |
+| 12 | Clean URLs, no `.html` | ✅ | Canonicals directory-form; zero `.html` refs left in pageMeta/dist heads |
+| 13 | Inner-route direct open + refresh work on Hostinger | ✅ | Per-route `dist/<route>/index.html` served by `.htaccess` v3; verified on `hostinger` branch tree |
+| 14 | Centralized `src/api` client (loading/error/empty/timeout/malformed/unavailable) | ✅ | `src/api/client.js` (+ EmailJS fallback for contact, §13 item 24) |
+| 15 | Visual parity, not redesign | ✅ | Verbatim ports; QA matrix 36/36 zero console errors; premium-pass rejections never resurrected |
+| 16 | Responsive rule unchanged (≤700 dedicated mobile, 701+ original) | ✅ | `home-mobile.css`/`home-mobile` behavior ported; matrix tested 700/701/768/820/834/900 + desktop |
+| 17 | Mobile Featured Work artwork fully visible | ✅ | Pass-1 QA (no right-edge crop), re-verified at 390/700 in matrix |
+| 18 | Legacy frontend removed only after zero-reference proof | ✅ | §12; `abhijeetvarghese/` + `src-backups/` deleted in `4a5f290`, recoverable via tag |
+| 19 | No PHP/endpoints/assets/SEO files deleted without verification | ✅ | avos-php intact (2 guarded additions); media relocated not deleted; SEO infra kept static, sitemap regenerated with clean URLs |
+| 20 | CSS architecture separated; no UI framework; `!important` avoided | ✅ | Layered sheets in `src/styles/`; zero dependencies added; remaining `!important`s are verbatim legacy carry-overs (parity mandate) |
+| 21 | Performance: code splitting, lazy media/fonts, not slower | ✅ | react vendor chunk + per-page chunks; legacy lazy-load attrs preserved; 57 MB walkthrough video stays click-to-load behind facade; fonts preloaded as before |
+| 22 | SEO preserved (title/meta/canonical/OG/Twitter/JSON-LD/sitemap/robots) | ✅ | QA sweep 23/23 incl. JSON-LD parse-validity; 4 double-escaped payloads repaired; `static/sitemap.xml` regenerated (23 URLs) |
+| 23 | Per-route SSG | ✅ | `scripts/prerender-home.mjs` renders all 22 routes at build; CI asserts `dist/story/index.html` etc. |
+| 24 | Contact/booking fully preserved (React UI, secure submission, EmailJS fallback) | ✅ | Booking DOM contract + EmailJS keys ported into `src/api/client.js` and `ContactPage.jsx`; QA pass-1 submission tests |
+| 25 | Analytics preserved, no duplicate pageviews, route changes tracked | ✅ | First-party module ported verbatim (`src/analytics/`); QA: 1 pageview on load, 2 after one navigation; 19 event types intact incl. `site_search`, `case_study_view` |
+
+Additional standing mandates: staging-first then main (✅ both flows), logical commits incl.
+`chore: remove legacy` + `chore: update deployment` (✅ `4a5f290`, `1cc9066`), QA on the real
+built app (✅ mirror v3 = deployed topology), CMS editability proof (✅ §5), recoverable state
+at every stage (✅ tag + renames + branch discipline), production = static files + PHP, no Node
+(✅ webroot v3).
+
+**Environment note**: sandbox Chromium lacks H.264 (`canPlayType('video/mp4') === ''`), so
+walkthrough *playback* can't be exercised here; the facade, `toVideo` wiring, correct
+`/assets/bpcl/video/…` source and HTTP 206 range serving were all verified. Real browsers
+play H.264 natively.
+
+**Repo rename note (2026-09-18)**: the GitHub repository was renamed to
+`Abhijeet-Varghese/abhijeet-varghese-website`; remote URLs updated accordingly. Old clones
+need `git remote set-url origin https://github.com/Abhijeet-Varghese/abhijeet-varghese-website.git`.
+
+## 13. Definition of Done — 25-point checklist (final state)
+
+| # | Criterion | Verdict | Evidence |
+|---|-----------|---------|----------|
+| 1 | Remote keeps only `main` + `staging` (+ documented deploy branch `hostinger`) | ✅ | `git ls-remote --heads` → exactly 3 heads |
+| 2 | No force-push / history rewrite on source branches | ✅ | All pushes fast-forward (`9db523d..1cc9066`); `hostinger` force-update is the deploy branch by design |
+| 3 | Temp branches deleted after merge | ✅ | None exist; §1 |
+| 4 | Pre-migration tag | ✅ | `pre-react-baseline` (present on remote) |
+| 5 | Full audit before changes | ✅ | This document §1–§12 |
+| 6 | Unused proven before deleting | ✅ | §12 zero-reference grep; deletions recorded as git renames/deletes in `4a5f290` |
+| 7 | Backend (avos-php + MariaDB) stays source of truth; no creds in React | ✅ | §3–§4; `src/` contains no DB access; only `/api/public/*` consumed |
+| 8 | API extended cleanly, additively | ✅ | §3 (one additive endpoint; core untouched) |
+| 9 | CMS-editable content from backend; snapshot only as labeled fallback | ✅ | §4–§5; `src/data/snapshot.json` header comment labels it fallback |
+| 10 | Component architecture HomePage→sections; clean `src/` layout | ✅ | §9; `src/{app,pages,sections,components,hooks,api,data,styles,analytics,bpcl}` |
+| 11 | All existing URLs work (pages, case studies, insights, contact, SEO URLs, redirects, deep links) | ✅ | 23-route prerender + mirror QA 23/23; legacy `.html`/alias 301s in `.htaccess` v3 and router |
+| 12 | Clean URLs, no `.html` | ✅ | Canonicals directory-form; zero `.html` refs left in pageMeta/dist heads |
+| 13 | Inner-route direct open + refresh work on Hostinger | ✅ | Per-route `dist/<route>/index.html` served by `.htaccess` v3; verified on `hostinger` branch tree |
+| 14 | Centralized `src/api` client (loading/error/empty/timeout/malformed/unavailable) | ✅ | `src/api/client.js` |
+| 15 | Visual parity, not redesign | ✅ | Verbatim ports; QA matrix 36/36 zero console errors; premium-pass rejections never resurrected |
+| 16 | Responsive rule unchanged (≤700 dedicated mobile, 701+ original) | ✅ | `home-mobile` behavior ported; matrix tested 700/701/768/820/834/900 + desktop |
+| 17 | Mobile Featured Work artwork fully visible | ✅ | Pass-1 QA (no right-edge crop), re-verified at 390/700 in matrix |
+| 18 | Legacy frontend removed only after zero-reference proof | ✅ | §12; `abhijeetvarghese/` + `src-backups/` deleted in `4a5f290`, recoverable via tag |
+| 19 | No PHP/endpoints/assets/SEO files deleted without verification | ✅ | avos-php intact (2 guarded additions); media relocated not deleted; SEO infra kept static, sitemap regenerated with clean URLs |
+| 20 | CSS architecture separated; no UI framework; `!important` avoided | ✅ | Layered sheets in `src/styles/`; zero dependencies added; remaining `!important`s are verbatim legacy carry-overs (parity mandate) |
+| 21 | Performance: code splitting, lazy media/fonts, not slower | ✅ | react vendor chunk + per-page chunks; legacy lazy-load attrs preserved; 57 MB walkthrough video stays click-to-load behind facade; fonts preloaded as before |
+| 22 | SEO preserved (title/meta/canonical/OG/Twitter/JSON-LD/sitemap/robots) | ✅ | QA sweep 23/23 incl. JSON-LD parse-validity; 4 double-escaped payloads repaired; `static/sitemap.xml` regenerated (23 URLs) |
+| 23 | Per-route SSG | ✅ | `scripts/prerender-home.mjs` renders all 22 routes at build; CI asserts `dist/story/index.html` etc. |
+| 24 | Contact/booking fully preserved (React UI, secure submission, EmailJS fallback) | ✅ | Booking DOM contract + EmailJS keys ported into `src/api/client.js` and `ContactPage.jsx`; QA pass-1 submission tests |
+| 25 | Analytics preserved, no duplicate pageviews, route changes tracked | ✅ | First-party module ported verbatim (`src/analytics/`); QA: 1 pageview on load, 2 after one navigation; 19 event types intact incl. `site_search`, `case_study_view` |
+
+Additional standing mandates: staging-first then main (✅ both flows), logical commits incl.
+`chore: remove legacy` + `chore: update deployment` (✅ `4a5f290`, `1cc9066`), QA on the real
+built app (✅ mirror v3 = deployed topology), CMS editability proof (✅ §5), recoverable state
+at every stage (✅ tag + renames + branch discipline), production = static files + PHP, no Node
+(✅ webroot v3).
+
+**Environment note**: sandbox Chromium lacks H.264 (`canPlayType('video/mp4') === ''`), so
+walkthrough *playback* can't be exercised here; the facade, `toVideo` wiring, correct
+`/assets/bpcl/video/…` source and HTTP 206 range serving were all verified. Real browsers
+play H.264 natively.
+
+**Repo rename note (2026-09-18)**: the GitHub repository was renamed to
+`Abhijeet-Varghese/abhijeet-varghese-website`; remote URLs updated accordingly. Old clones
+need `git remote set-url origin https://github.com/Abhijeet-Varghese/abhijeet-varghese-website.git`.
+
+## 13. Definition of Done — 25-point checklist (final state)
+
+| # | Criterion | Verdict | Evidence |
+|---|-----------|---------|----------|
+| 1 | Remote keeps only `main` + `staging` (+ documented deploy branch `hostinger`) | ✅ | `git ls-remote --heads` → exactly 3 heads |
+| 2 | No force-push / history rewrite on source branches | ✅ | All pushes fast-forward (`9db523d..1cc9066`); `hostinger` force-update is the deploy branch by design |
+| 3 | Temp branches deleted after merge | ✅ | None exist; §1 |
+| 4 | Pre-migration tag | ✅ | `pre-react-baseline` (present on remote) |
+| 5 | Full audit before changes | ✅ | This document §1–§12 |
+| 6 | Unused proven before deleting | ✅ | §12 zero-reference grep; deletions recorded as git renames/deletes in `4a5f290` |
+| 7 | Backend (avos-php + MariaDB) stays source of truth; no creds in React | ✅ | §3–§4; `src/` contains no DB access; only `/api/public/*` consumed |
+| 8 | API extended cleanly, additively | ✅ | §3 (one additive endpoint; core untouched) |
+| 9 | CMS-editable content from backend; snapshot only as labeled fallback | ✅ | §4–§5; `src/data/snapshot.json` header comment labels it fallback |
+| 10 | Component architecture HomePage→sections; clean `src/` layout | ✅ | §9; `src/{app,pages,sections,components,hooks,api,data,styles,analytics,bpcl}` |
+| 11 | All existing URLs work (pages, case studies, insights, contact, SEO URLs, redirects, deep links) | ✅ | 23-route prerender + mirror QA 23/23; legacy `.html`/alias 301s in `.htaccess` v3 and router |
+| 12 | Clean URLs, no `.html` | ✅ | Canonicals directory-form; zero `.html` refs left in pageMeta/dist heads |
+| 13 | Inner-route direct open + refresh work on Hostinger | ✅ | Per-route `dist/<route>/index.html` served by `.htaccess` v3; verified on `hostinger` branch tree |
+| 14 | Centralized `src/api` client (loading/error/empty/timeout/malformed/unavailable) | ✅ | `src/api/client.js` |
+| 15 | Visual parity, not redesign | ✅ | Verbatim ports; QA matrix 36/36 zero console errors; premium-pass rejections never resurrected |
+| 16 | Responsive rule unchanged (≤700 dedicated mobile, 701+ original) | ✅ | `home-mobile` behavior ported; matrix tested 700/701/768/820/834/900 + desktop |
+| 17 | Mobile Featured Work artwork fully visible | ✅ | Pass-1 QA (no right-edge crop), re-verified at 390/700 in matrix |
+| 18 | Legacy frontend removed only after zero-reference proof | ✅ | §12; `abhijeetvarghese/` + `src-backups/` deleted in `4a5f290`, recoverable via tag |
+| 19 | No PHP/endpoints/assets/SEO files deleted without verification | ✅ | avos-php intact (2 guarded additions); media relocated not deleted; SEO infra kept static, sitemap regenerated with clean URLs |
+| 20 | CSS architecture separated; no UI framework; `!important` avoided | ✅ | Layered sheets in `src/styles/`; zero dependencies added; remaining `!important`s are verbatim legacy carry-overs (parity mandate) |
+| 21 | Performance: code splitting, lazy media/fonts, not slower | ✅ | react vendor chunk + per-page chunks; legacy lazy-load attrs preserved; 57 MB walkthrough video stays click-to-load behind facade; fonts preloaded as before |
+| 22 | SEO preserved (title/meta/canonical/OG/Twitter/JSON-LD/sitemap/robots) | ✅ | QA sweep 23/23 incl. JSON-LD parse-validity; 4 double-escaped payloads repaired; `static/sitemap.xml` regenerated (23 URLs) |
+| 23 | Per-route SSG | ✅ | `scripts/prerender-home.mjs` renders all 22 routes at build; CI asserts `dist/story/index.html` etc. |
+| 24 | Contact/booking fully preserved (React UI, secure submission, EmailJS fallback) | ✅ | Booking DOM contract + EmailJS keys ported into `src/api/client.js` and `ContactPage.jsx`; QA pass-1 submission tests |
+| 25 | Analytics preserved, no duplicate pageviews, route changes tracked | ✅ | First-party module ported verbatim (`src/analytics/`); QA: 1 pageview on load, 2 after one navigation; 19 event types intact incl. `site_search`, `case_study_view` |
+
+Additional standing mandates: staging-first then main (✅ both flows), logical commits incl.
+`chore: remove legacy` + `chore: update deployment` (✅ `4a5f290`, `1cc9066`), QA on the real
+built app (✅ mirror v3 = deployed topology), CMS editability proof (✅ §5), recoverable state
+at every stage (✅ tag + renames + branch discipline), production = static files + PHP, no Node
+(✅ webroot v3).
+
+**Environment note**: sandbox Chromium lacks H.264 (`canPlayType('video/mp4') === ''`), so
+walkthrough *playback* can't be exercised here; the facade, `toVideo` wiring, correct
+`/assets/bpcl/video/…` source and HTTP 206 range serving were all verified. Real browsers
+play H.264 natively.
+
+**Repo rename note (2026-09-18)**: the GitHub repository was renamed to
+`Abhijeet-Varghese/abhijeet-varghese-website`; remote URLs updated accordingly. Old clones
+need `git remote set-url origin https://github.com/Abhijeet-Varghese/abhijeet-varghese-website.git`.
