@@ -113,6 +113,18 @@ jobs:
           RewriteRule ^$ dist/index.html [END]
           RewriteRule ^index\.html$ dist/index.html [END]
 
+          # rescue relative asset refs from legacy clean URLs (parity with
+          # the static site's own rescue rules)
+          RewriteCond %{REQUEST_FILENAME} !-f
+          RewriteCond %{DOCUMENT_ROOT}/$2/$3 -f
+          RewriteRule ^([^/]+)/(assets|css|js)/(.*)$ /$2/$3 [END]
+          RewriteCond %{REQUEST_FILENAME} !-f
+          RewriteCond %{DOCUMENT_ROOT}/$2 -f
+          RewriteRule ^([^/]+)/(manifest\.webmanifest|robots\.txt|sitemap\.xml)$ /$2 [END]
+
+          # Migrated inner routes (each prerendered to dist/<route>/index.html)
+          RewriteRule ^(story|experience|case-studies|case-studies/orange-business|case-studies/indian-army|portfolio|consulting|contact|insights|insights/technology-should-feel-human|insights/ai-isnt-replacing-creativity|insights/designing-experiences-people-remember|insights/why-enterprise-experiences-fail|journal|journal-what-a-year-of-ai-enabled-production-taught-me|journal-the-experience-centre-as-a-strategic-instrument|recruiter|privacy-policy|terms)/?$ dist/$1/index.html [END]
+
           # everything else → AV OS router: /api, /admin, /media, legacy inner
           # pages (/story/, /case-studies/, /insights/, /experience/, ...),
           # legacy assets, legacy clean-URL 301s and the 404 page.

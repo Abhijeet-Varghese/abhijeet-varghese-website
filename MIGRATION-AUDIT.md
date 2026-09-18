@@ -194,3 +194,37 @@ CSS sheet (approved cascade); images lazy + async decode; fonts
 - `hostinger` branch remains as documented deployment infrastructure.
 - After full migration: disable/retire SiteSync cron (see §3 ops note) and
   re-audit legacy file deletion (brief §12 gate).
+
+## 11. Inner-page migration (pass 2, 2026-09-18)
+
+19 further routes migrated to React with the same parity method (mechanical
+HTML→JSX conversion with HTML-error-recovery, byte-identical page CSS under
+`src/styles/pages/`, behavior hooks ported 1:1):
+
+- `/story/`, `/experience/`, `/case-studies/`, `/portfolio/`, `/consulting/`,
+  `/contact/`, `/insights/` + 4 essay routes, `/journal/` + 2 journal routes,
+  `/recruiter/`, `/privacy-policy/`, `/terms/`
+- Behavior ports: `useElevate` (data-elevate/stagger/parallax/tilt/counters/
+  e-top/nav valley-peak/form-a11y/kinetic), `usePortfolioReel` (pf-open/live,
+  YouTube lazy-mount, seam/exit vars, cursor, proof rail), `useCaseOrange`
+  (pano pin tour, stage tabs, room response, media tabs, dialogs, role/
+  purpose/architecture switchers), `useCaseArmy` (ia reveal/parallax/gate/
+  failsafe).
+- **Per-route SSG**: every migrated route is prerendered at build time to
+  `dist/<route>/index.html` with its own head (title/description/canonical/
+  OG/Twitter/JSON-LD extracted from the approved legacy heads; canonicals
+  normalized to the directory form the legacy `.htaccess` 301s to).
+- Root `.htaccess` additions: legacy **rescue rules** (parity: `/story/assets/...`
+  → `/assets/...`, manifest/robots/sitemap) + one alternation rule mapping the
+  migrated routes to their prerendered files. Unknown paths → router 404
+  (status parity verified).
+- **Legacy island (documented, not migrated)**:
+  `/case-studies/bharat-petroleum-corporation-limited/` — self-contained
+  micro-app (config registry + core engine + walkthrough video + its own
+  analytics config). Keeps serving from legacy static files; URLs unaffected.
+  Legacy deletion (brief §12) remains gated on migrating this island plus
+  `search.html`/`sitemap.html` utilities and the error/maintenance documents.
+- QA: 14/14 migrated routes browser-green (console/404/overflow/body-class/
+  chrome/footer/refresh), interaction spot checks (pano pins, proof rail,
+  overture), 12/12 inner viewport cells (390/768/1440), home regression
+  (9 sections, booking slots, 0 errors).
