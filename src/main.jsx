@@ -10,6 +10,8 @@ import './styles/hero-v6.css';
 import './styles/home-mobile.css';
 import './styles/pages.js';
 
+import './analytics/boot.js';
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>

@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import HomePage from '../pages/HomePage.jsx';
 import NotFound from '../pages/NotFound.jsx';
 import InnerPage from '../pages/inner/InnerPage.jsx';
@@ -24,13 +25,26 @@ import Terms from '../pages/inner/Terms.jsx';
 import usePortfolioReel from '../hooks/usePortfolioReel.js';
 import { useCaseOrange, useCaseArmy } from '../hooks/useCasePages.js';
 import useBooking from '../hooks/useBooking.js';
+import useBPCL from '../hooks/useBPCL.js';
+import useSearch from '../hooks/useSearch.js';
+import Search from '../pages/inner/Search.jsx';
+import SitemapPage from '../pages/inner/SitemapPage.jsx';
+import CaseBPCL from '../pages/inner/CaseBPCL.jsx';
 
 // Migrated routes render from React (each is also prerendered to its own
 // dist/<route>/index.html at build time). Everything else still resolves to
 // the legacy static files via the AV OS router — incremental takeover.
-// Legacy island (documented): /case-studies/bharat-petroleum-corporation-limited/
+// Final islands, migrated: search, sitemap and the BPCL micro-app case study
 // (self-contained micro-app: config registry + core engine + walkthrough video).
 export default function App() {
+  const location = useLocation();
+  const firstLocation = useRef(true);
+  useEffect(() => {
+    // initial pageview is fired once by the analytics module on boot;
+    // here we only track subsequent SPA route changes
+    if (firstLocation.current) { firstLocation.current = false; return; }
+    if (window.AVAnalytics) window.AVAnalytics.pageview(location.pathname);
+  }, [location.pathname]);
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
@@ -53,6 +67,9 @@ export default function App() {
       <Route path="/recruiter" element={<InnerPage name="Recruiter"><Recruiter /></InnerPage>} />
       <Route path="/privacy-policy" element={<InnerPage name="Privacy"><Privacy /></InnerPage>} />
       <Route path="/terms" element={<InnerPage name="Terms"><Terms /></InnerPage>} />
+      <Route path="/search" element={<InnerPage name="Search" hook={useSearch}><Search /></InnerPage>} />
+      <Route path="/sitemap" element={<InnerPage name="SitemapPage"><SitemapPage /></InnerPage>} />
+      <Route path="/case-studies/bharat-petroleum-corporation-limited" element={<InnerPage name="CaseBPCL" hook={useBPCL}><CaseBPCL /></InnerPage>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

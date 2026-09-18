@@ -15,3 +15,5 @@ import './pages/ai-creativity.css';
 import './pages/experience-memory-v2.css';
 import './pages/enterprise-experience.css';
 import './pages/recruitment.css';
+import './pages/bpcl-main.css';
+import './pages/bpcl-site-theme.css';

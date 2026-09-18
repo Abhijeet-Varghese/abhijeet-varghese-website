@@ -22,6 +22,7 @@ $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/';
 $path = rawurldecode($path);
 $appRoot = __DIR__ . '/public_html';
 $siteRoot = AV_SITE_DIR;
+$infraRoot = dirname(AV_ROOT) . '/static';   // error/offline documents after legacy retirement
 
 /* ---------- application routes ---------- */
 if (str_starts_with($path, '/api/') || $path === '/api') {
@@ -186,7 +187,7 @@ function avServeError(string $siteRoot, string $file, int $displayStatus, ?int $
     }
     avFrontHeaders();
     http_response_code($displayStatus);
-    $p = $siteRoot . '/' . $file;
+    $p = avInfraPath($siteRoot, $file);
     if (is_file($p)) {
         header('Content-Type: text/html; charset=utf-8');
         header('Cache-Control: no-cache, must-revalidate');
@@ -199,11 +200,17 @@ function avServeError(string $siteRoot, string $file, int $displayStatus, ?int $
     return true;
 }
 
+function avInfraPath(string $siteRoot, string $rel): string
+{
+    global $infraRoot;
+    return is_file($siteRoot . '/' . $rel) ? $siteRoot . '/' . $rel : $infraRoot . '/' . $rel;
+}
+
 function avNotFound(string $siteRoot): bool
 {
     avFrontHeaders();
     http_response_code(404);
-    $p = $siteRoot . '/404.html';
+    $p = avInfraPath($siteRoot, '404.html');
     header('Content-Type: text/html; charset=utf-8');
     echo is_file($p) ? file_get_contents($p) : 'Not found';
     return true;

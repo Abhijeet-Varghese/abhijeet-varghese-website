@@ -97,6 +97,7 @@ final class SiteSync
     /** Cron entry point: sync only when the site changed. Returns null when nothing to do. */
     public static function runIfChanged(string $reason = 'cron'): ?array
     {
+        if (!is_dir(AV_SITE_DIR)) return;   // legacy frontend retired — nothing to mirror
         return self::needsSync() ? self::run(null, false, $reason) : null;
     }
 
