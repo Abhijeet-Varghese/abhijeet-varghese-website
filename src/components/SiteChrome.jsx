@@ -7,7 +7,7 @@ const NAV_FALLBACK = [
 
 export default function SiteChrome({ content }) {
   const navItems = (content && content.nav && Array.isArray(content.nav.primary) && content.nav.primary.length)
-    ? content.nav.primary.map((n) => ({ label: n.label, href: n.href }))
+    ? content.nav.primary.filter((n) => n.href !== "/contact/").map((n) => ({ label: n.label, href: n.href }))
     : NAV_FALLBACK;
   const settings = (content && content.settings) || {};
   return (
