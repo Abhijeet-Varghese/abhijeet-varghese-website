@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Hidden Complexity and Visible Simplicity</title><desc id="desc">A three-layer model shows enterprise technology and operations beneath an experience layer, producing a simple, relevant, clear and meaningful experience.</desc>
+  <defs>
+    <style>
+      .bg{fill:#F4F0E8}.line{stroke:#C9C4BA;stroke-width:1.4;fill:none}.line2{stroke:#A8442F;stroke-width:2.2;fill:none}.dash{stroke:#C9C4BA;stroke-width:1.4;fill:none;stroke-dasharray:5 7}.panel{fill:#FCFAF5;stroke:#C9C4BA;stroke-width:1.3}.panel2{fill:#F1DDD6;stroke:#A8442F;stroke-width:1.3}.dark{fill:#0B1428}.accent{fill:#A8442F}.warm{fill:#C98B42}.text{fill:#0C1830;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:600;letter-spacing:1.3px}.label{fill:#5E6571;font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:700;letter-spacing:2px}.small{fill:#5E6571;font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:500}.white{fill:#F8F3EB;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:600;letter-spacing:1.3px}.num{fill:#A8442F;font-family:Georgia,serif;font-size:31px;font-style:italic}
+    </style>
+    <linearGradient id="soft" x1="0" x2="1"><stop stop-color="#A8442F" stop-opacity=".16"/><stop offset="1" stop-color="#A8442F" stop-opacity="0"/></linearGradient>
+  </defs>
+  <rect class="bg" width="1200" height="720"/>
+
+<text x="72" y="72" class="label">THE COMPLEXITY SHOULD STAY BEHIND THE EXPERIENCE</text>
+<g><rect class="dark" x="72" y="136" width="1056" height="260" rx="4"/><text x="108" y="178" fill="#D8B4A9" font-family="Arial" font-size="11" font-weight="700" letter-spacing="2">BEHIND THE EXPERIENCE</text>
+<g fill="none" stroke="#76839C" stroke-width="1.2"><path d="M148 263H1052M148 324H1052M248 210v133M438 210v133M638 210v133M838 210v133"/></g>
+<text x="125" y="252" class="white">DATA</text><text x="276" y="311" class="white">SYSTEMS</text><text x="463" y="252" class="white">VENDORS</text><text x="663" y="311" class="white">INFRASTRUCTURE</text><text x="890" y="252" class="white">OPERATIONS</text></g>
+<path d="M600 396v44" stroke="#A8442F" stroke-width="2.2"/><path d="M588 428l12 12 12-12" fill="none" stroke="#A8442F" stroke-width="2.2"/>
+<rect class="panel2" x="254" y="452" width="692" height="88" rx="3"/><text x="471" y="506" class="text">EXPERIENCE LAYER</text><text x="703" y="506" class="small">story · hierarchy · interaction</text>
+<path d="M600 540v40" stroke="#A8442F" stroke-width="2.2"/><path d="M588 568l12 12 12-12" fill="none" stroke="#A8442F" stroke-width="2.2"/>
+<rect class="panel" x="72" y="592" width="1056" height="72" rx="36"/><text x="167" y="637" class="text">SIMPLE</text><text x="404" y="637" class="text">RELEVANT</text><text x="661" y="637" class="text">CLEAR</text><text x="880" y="637" class="text">MEANINGFUL</text>
+</svg>

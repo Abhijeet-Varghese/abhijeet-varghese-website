@@ -1,0 +1,10 @@
+# AV OS installer — once .installed exists, deny all access to this folder
+Options -Indexes
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{DOCUMENT_ROOT}/install/.installed -f
+  RewriteRule ^ - [F,L]
+</IfModule>
+<FilesMatch "^\.installed$">
+  Require all denied
+</FilesMatch>

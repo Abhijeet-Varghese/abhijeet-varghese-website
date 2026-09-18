@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">The Enterprise Experience Blueprint</title><desc id="desc">A connected blueprint shows business intent becoming human outcome, audience, journey, principles, story and content, interaction and design, technology, operations and measurement.</desc>
+  <defs>
+    <style>
+      .bg{fill:#F4F0E8}.line{stroke:#C9C4BA;stroke-width:1.4;fill:none}.line2{stroke:#A8442F;stroke-width:2.2;fill:none}.dash{stroke:#C9C4BA;stroke-width:1.4;fill:none;stroke-dasharray:5 7}.panel{fill:#FCFAF5;stroke:#C9C4BA;stroke-width:1.3}.panel2{fill:#F1DDD6;stroke:#A8442F;stroke-width:1.3}.dark{fill:#0B1428}.accent{fill:#A8442F}.warm{fill:#C98B42}.text{fill:#0C1830;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:600;letter-spacing:1.3px}.label{fill:#5E6571;font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:700;letter-spacing:2px}.small{fill:#5E6571;font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:500}.white{fill:#F8F3EB;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:600;letter-spacing:1.3px}.num{fill:#A8442F;font-family:Georgia,serif;font-size:31px;font-style:italic}
+    </style>
+    <linearGradient id="soft" x1="0" x2="1"><stop stop-color="#A8442F" stop-opacity=".16"/><stop offset="1" stop-color="#A8442F" stop-opacity="0"/></linearGradient>
+  </defs>
+  <rect class="bg" width="1200" height="720"/>
+
+<text x="72" y="65" class="label">THE ENTERPRISE EXPERIENCE BLUEPRINT</text><text x="72" y="94" class="small">From enterprise ambition to an experience people can understand, use and sustain.</text>
+<g><path d="M315 147h570" class="line"/><path d="M315 203h570" class="line"/><path d="M315 259h570" class="line"/><path d="M315 315h570" class="line"/><path d="M315 371h570" class="line"/><path d="M315 427h570" class="line"/><path d="M315 483h570" class="line"/><path d="M315 539h570" class="line"/></g>
+<g>
+<rect class="panel" x="315" y="113" width="570" height="68" rx="2"/><text x="349" y="155" class="text">01 · BUSINESS INTENT</text>
+<rect class="panel2" x="315" y="181" width="570" height="68" rx="2"/><text x="349" y="223" class="text">02 · HUMAN OUTCOME</text>
+<rect class="panel2" x="315" y="249" width="570" height="68" rx="2"/><text x="349" y="291" class="text">03 · AUDIENCE + JOURNEY</text>
+<rect class="dark" x="315" y="317" width="570" height="68" rx="2"/><text x="349" y="359" class="white">04 · EXPERIENCE PRINCIPLES</text>
+<rect class="panel" x="315" y="385" width="570" height="68" rx="2"/><text x="349" y="427" class="text">05 · STORY + CONTENT</text>
+<rect class="panel" x="315" y="453" width="570" height="68" rx="2"/><text x="349" y="495" class="text">06 · INTERACTION + DESIGN</text>
+<rect class="panel" x="315" y="521" width="570" height="68" rx="2"/><text x="349" y="563" class="text">07 · TECHNOLOGY + OPERATIONS</text>
+<rect class="accent" x="315" y="589" width="570" height="68" rx="2"/><text x="349" y="631" class="white">08 · MEASUREMENT + LEARNING</text>
+</g>
+<text x="72" y="166" class="num">INTENT</text><text x="72" y="222" class="num">↓</text><text x="72" y="302" class="num">EXPERIENCE</text><text x="72" y="358" class="num">↓</text><text x="72" y="437" class="num">SYSTEM</text><text x="72" y="493" class="num">↓</text><text x="72" y="630" class="num">OUTCOME</text>
+<text x="932" y="180" class="small">why</text><text x="932" y="318" class="small">for whom</text><text x="932" y="455" class="small">how</text><text x="932" y="592" class="small">sustain</text>
+</svg>

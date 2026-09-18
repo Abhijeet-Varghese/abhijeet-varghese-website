@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 440" role="img" aria-labelledby="title desc">
+<title id="title">The Memory Test</title><desc id="desc">Five questions to focus a memorable experience. One image, One feeling, One idea, One action, One story.</desc>
+<rect width="1600" height="440" rx="20" fill="#F7F8FB"/>
+<path d="M0 88H1600M0 352H1600" stroke="#E2E7F0"/>
+<text x="95" y="90" fill="#2E5AAC" font-family="Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="3">FRAMEWORK</text>
+<text x="95" y="132" fill="#0C1330" font-family="Arial, sans-serif" font-size="34" font-weight="700">The Memory Test</text>
+<g><rect x="95" y="166" width="266" height="108" rx="12" fill="#FFFFFF" stroke="#D7DDEA" stroke-width="2"/>
+        <circle cx="119" cy="190" r="5" fill="#5C8FEF"/><text x="228" y="228" text-anchor="middle" fill="#0C1330" font-family="Arial, sans-serif" font-size="26" font-weight="600">ONE IMAGE</text></g><path d="M 366 220 H 374" stroke="#92A0BE" stroke-width="2"/><path d="M 369 214 l 7 6 -7 6" fill="none" stroke="#92A0BE" stroke-width="2"/><g><rect x="381" y="166" width="266" height="108" rx="12" fill="#FFFFFF" stroke="#D7DDEA" stroke-width="2"/>
+        <circle cx="405" cy="190" r="5" fill="#5C8FEF"/><text x="514" y="228" text-anchor="middle" fill="#0C1330" font-family="Arial, sans-serif" font-size="26" font-weight="600">ONE FEELING</text></g><path d="M 652 220 H 660" stroke="#92A0BE" stroke-width="2"/><path d="M 655 214 l 7 6 -7 6" fill="none" stroke="#92A0BE" stroke-width="2"/><g><rect x="667" y="166" width="266" height="108" rx="12" fill="#FFFFFF" stroke="#D7DDEA" stroke-width="2"/>
+        <circle cx="691" cy="190" r="5" fill="#5C8FEF"/><text x="800" y="228" text-anchor="middle" fill="#0C1330" font-family="Arial, sans-serif" font-size="26" font-weight="600">ONE IDEA</text></g><path d="M 938 220 H 946" stroke="#92A0BE" stroke-width="2"/><path d="M 941 214 l 7 6 -7 6" fill="none" stroke="#92A0BE" stroke-width="2"/><g><rect x="953" y="166" width="266" height="108" rx="12" fill="#FFFFFF" stroke="#D7DDEA" stroke-width="2"/>
+        <circle cx="977" cy="190" r="5" fill="#5C8FEF"/><text x="1086" y="228" text-anchor="middle" fill="#0C1330" font-family="Arial, sans-serif" font-size="26" font-weight="600">ONE ACTION</text></g><path d="M 1224 220 H 1232" stroke="#92A0BE" stroke-width="2"/><path d="M 1227 214 l 7 6 -7 6" fill="none" stroke="#92A0BE" stroke-width="2"/><g><rect x="1239" y="166" width="266" height="108" rx="12" fill="#EAF1FF" stroke="#2E5AAC" stroke-width="2"/>
+        <circle cx="1263" cy="190" r="5" fill="#5C8FEF"/><text x="1372" y="228" text-anchor="middle" fill="#0C1330" font-family="Arial, sans-serif" font-size="26" font-weight="600">ONE STORY</text></g>
+<text x="95" y="385" fill="#59617A" font-family="Arial, sans-serif" font-size="18">Five questions to focus a memorable experience.</text>
+</svg>

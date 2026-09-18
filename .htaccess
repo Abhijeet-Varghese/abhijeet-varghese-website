@@ -1,0 +1,49 @@
+Options -Indexes
+DirectoryIndex disabled
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
+
+ErrorDocument 403 /403.html
+ErrorDocument 404 /404.html
+ErrorDocument 500 /500.html
+ErrorDocument 502 /502.html
+ErrorDocument 503 /503.html
+ErrorDocument 504 /504.html
+
+RewriteEngine On
+
+# never expose backend internals
+RewriteRule ^avos-php(?:/|$) - [F,END]
+
+# built React assets (hashed bundles under /assets/ that exist in dist)
+RewriteCond %{REQUEST_URI} ^/assets/
+RewriteCond %{DOCUMENT_ROOT}/dist%{REQUEST_URI} -f
+RewriteRule ^ dist%{REQUEST_URI} [END]
+
+# real files in the web root (media library, infra docs) stream as-is
+RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -f
+RewriteRule ^ - [END]
+
+# React home page + migrated inner routes (prerendered per route)
+RewriteRule ^$ dist/index.html [END]
+RewriteRule ^index\.html$ dist/index.html [END]
+RewriteRule ^(story|experience|case-studies|case-studies/orange-business|case-studies/indian-army|case-studies/bharat-petroleum-corporation-limited|portfolio|consulting|contact|insights|insights/technology-should-feel-human|insights/ai-isnt-replacing-creativity|insights/designing-experiences-people-remember|insights/why-enterprise-experiences-fail|journal|journal-what-a-year-of-ai-enabled-production-taught-me|journal-the-experience-centre-as-a-strategic-instrument|recruiter|privacy-policy|terms|search|sitemap)/?$ dist/$1/index.html [END]
+
+# legacy .html forms and aliases → canonical clean URLs (301)
+RewriteRule ^(story|portfolio|contact|privacy-policy|terms|sitemap|search|experience|insights|journal|recruiter)\.html/?$ /$1/ [R=301,L,NE]
+RewriteRule ^case-studies\.html/?$ /case-studies/ [R=301,L]
+RewriteRule ^recruitment/?$ /recruiter/ [R=301,L]
+RewriteRule ^journal-what-a-year-of-ai-enabled-production-taught-me\.html/?$ /journal-what-a-year-of-ai-enabled-production-taught-me/ [R=301,L]
+RewriteRule ^journal-the-experience-centre-as-a-strategic-instrument\.html/?$ /journal-the-experience-centre-as-a-strategic-instrument/ [R=301,L]
+
+# static infra documents served from their legacy root paths
+RewriteRule ^(sw\.js|robots\.txt|sitemap\.xml|manifest\.webmanifest|offline\.html|maintenance\.html|40[34]\.html|50[0-4]\.html)$ static/$1 [END]
+RewriteRule ^(css|js)/(.*)$ static/$1/$2 [END]
+
+# everything else → AV OS router (API, admin, media, install, 404)
+RewriteRule ^ avos-php/router.php [END,QSA]
