@@ -24,8 +24,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify current frontend and AV OS source
+      - name: Set up Node.js for the production frontend build
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.19.0'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Verify current React frontend and AV OS source
         run: |
+          set -euo pipefail
+          test -f index.html
+          test -f src/main.tsx
+          test -f src/App.tsx
+          test -f vite.config.ts
           test -f abhijeetvarghese/index.html
           test -f abhijeetvarghese/.htaccess
           test -d abhijeetvarghese/assets
@@ -35,19 +47,35 @@ jobs:
           test -d avos-php/database
           test -d avos-php/includes
 
+      - name: Build the React/Vite production homepage
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run build
+
+          # Vite emits the React document and hashed _react bundles, while
+          # publicDir preserves the legacy assets and static inner pages.
+          test -f dist/index.html
+          test -d dist/_react
+          test -d dist/assets
+          test -d dist/css
+          test -d dist/js
+          test -f dist/css/mobile-menu-panel.css
+          grep -q 'home-react' dist/index.html
+          grep -q '/_react/' dist/index.html
+          ! grep -q '/src/main.tsx' dist/index.html
+
       - name: Assemble complete staging web root
         run: |
+          set -euo pipefail
           rm -rf /tmp/staging-webroot
           mkdir -p /tmp/staging-webroot
 
+          # AV OS continues to resolve its static site directory as
+          # ../abhijeetvarghese. Publish the compiled Vite tree there rather
+          # than the uncompiled legacy source tree.
           rsync -a --delete \
-            --exclude='config.local.php' \
-            --exclude='storage/cache/' \
-            --exclude='storage/logs/' \
-            --exclude='storage/backups/' \
-            --exclude='storage/uploads/' \
-            --exclude='storage/locks/' \
-            abhijeetvarghese/ /tmp/staging-webroot/abhijeetvarghese/
+            dist/ /tmp/staging-webroot/abhijeetvarghese/
 
           rsync -a --delete \
             --exclude='config.local.php' \
@@ -75,8 +103,17 @@ jobs:
           RewriteRule ^ avos-php/router.php [END,QSA]
           EOF
 
+          # Fail before publishing if the deployment tree is not the compiled
+          # React homepage plus the existing AV OS backend.
           test -f /tmp/staging-webroot/.htaccess
           test -f /tmp/staging-webroot/abhijeetvarghese/index.html
+          test -d /tmp/staging-webroot/abhijeetvarghese/_react
+          test -d /tmp/staging-webroot/abhijeetvarghese/assets
+          test -d /tmp/staging-webroot/abhijeetvarghese/css
+          test -d /tmp/staging-webroot/abhijeetvarghese/js
+          grep -q 'home-react' /tmp/staging-webroot/abhijeetvarghese/index.html
+          grep -q '/_react/' /tmp/staging-webroot/abhijeetvarghese/index.html
+          ! grep -q '/src/main.tsx' /tmp/staging-webroot/abhijeetvarghese/index.html
           test -f /tmp/staging-webroot/avos-php/router.php
 
       - name: Publish Hostinger deployment branch
