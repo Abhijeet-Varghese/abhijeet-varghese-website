@@ -8,6 +8,7 @@ import './styles/styles.css';
 import './styles/elevate.css';
 import './styles/hero-v6.css';
 import './styles/home-mobile.css';
+import './styles/mobile-menu-panel.css';
 import './styles/pages.js';
 
 import './analytics/boot.js';
