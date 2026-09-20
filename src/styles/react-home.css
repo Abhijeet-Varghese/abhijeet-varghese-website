@@ -1,0 +1,89 @@
+/*
+ * React homepage-only deltas.
+ * Legacy styles remain the approved visual source; every responsive addition
+ * below is deliberately bounded so the 901px-and-up experience is untouched.
+ */
+
+/* The React homepage never renders the former footer cue at any allowed touch
+   width. Hiding the originating pseudo-element also prevents its child rule,
+   animation and accessible generated text from existing. */
+@media (max-width: 900px) {
+  body.home-react .footer--arena .footer__inner::before {
+    content: none;
+    display: none;
+  }
+}
+
+/* On phones the legacy cue had reserved spacing before the closing line. The
+   footer's remaining sequence keeps its established start point after removal. */
+@media (max-width: 700px) {
+  body.home-react .footer--arena .footer__line {
+    margin-top: 0;
+  }
+}
+
+/* Featured Work remains motion-locked: the reel moves plates, never artwork. */
+body.home-react .case__panel picture {
+  transform: none !important;
+  will-change: auto;
+}
+
+/* All three source images are 1672×941. Tablet and larger case frames resolve
+   to that same ratio (within encoder rounding), so cover fills without a
+   visible seam or meaningful crop. */
+@media (min-width: 701px) {
+  body.home-react #case-prj-1 .case__panel img,
+  body.home-react #case-prj-2 .case__panel img,
+  body.home-react #case-prj-3 .case__panel img {
+    object-fit: cover;
+    object-position: center;
+    background: transparent;
+  }
+}
+
+/* Phone plates used an internal dark matte despite having aspect-matched
+   artwork. Removing only that inset lets the image meet the intended frame;
+   the 1672:941 picture geometry means cover preserves the complete artwork. */
+@media (max-width: 700px) {
+  body.home-react .case__panel {
+    /* This remains the plaque surface below the image; the artwork itself
+       has no inset and therefore never exposes it at the frame edges. */
+    background: #05070d;
+  }
+
+  body.home-react .case__panel picture {
+    width: 100%;
+    margin: 0;
+    align-self: stretch;
+    overflow: hidden;
+    border-radius: inherit;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  body.home-react #case-prj-1 .case__panel img,
+  body.home-react #case-prj-2 .case__panel img,
+  body.home-react #case-prj-3 .case__panel img {
+    object-fit: cover;
+    object-position: center;
+    background: transparent;
+  }
+}
+
+/* Capability cards formerly reserved a desktop column for a removed numeral. */
+@media (min-width: 1081px) {
+  body.home-react .cap {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  }
+}
+
+/* No section-marker content remains visually or in the React DOM. These are
+   defensive rules for any CSS pseudo/late-rendered legacy state only. */
+body.home-react .chapter__num,
+body.home-react .cap__num,
+body.home-react .essay__num,
+body.home-react .era__index,
+body.home-react .journey__counter,
+body.home-react .focus__num {
+  display: none !important;
+}

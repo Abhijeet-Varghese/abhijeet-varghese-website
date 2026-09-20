@@ -1,0 +1,372 @@
+/* ========================================================================
+   AV — SHARED MOBILE CHROME
+   ------------------------------------------------------------------------
+   This deliberately reuses the established homepage mobile menu and footer
+   design without changing its layout. The same treatment is applied to each
+   inner content page through the `mobile-chrome` body class.
+   ======================================================================== */
+
+@media (max-width: 700px) {
+
+  /* ---------------------------------------------------------------- chrome
+     No navbar. One typographic instrument, top-right: a tracked word in a
+     masked window over two staggered hairlines. The word swaps Menu↔Close
+     through the mask; the hairlines cross-stagger. Nothing else floats.   */
+  body.mobile-chrome .site-nav {
+    inset: calc(12px + env(safe-area-inset-top, 0px)) calc(14px + env(safe-area-inset-right, 0px)) auto auto;
+    z-index: 230;   /* below the menu film: the open dialog owns the instrument */
+    --nav-ink: #EFF0EA;
+  }
+  /* the instrument floats over light AND dark chapters — the shared script
+     reads the chapter tier under it and flips the ink; no chip, no glass */
+  body.mobile-chrome .site-nav[data-tier="light"] { --nav-ink: #0C1330; }
+  body.mobile-chrome .site-nav.nav-hidden { pointer-events: auto; }   /* MENU stays live while the bar "hides" */
+  body.mobile-chrome .site-nav__inner {
+    width: auto; margin: 0; padding: 0;
+    display: flex; justify-content: flex-end;
+    background: none; border: 0; box-shadow: none; border-radius: 0;
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
+  /* elevate.css re-skins the inner pill on scroll / hide — out-specify it */
+  body.mobile-chrome .site-nav.is-scrolled .site-nav__inner,
+  body.mobile-chrome .site-nav.nav-hidden .site-nav__inner {
+    background: none; border: 0; box-shadow: none; border-radius: 0;
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+    transform: none;   /* MENU never hides on touch */
+  }
+  body.mobile-chrome .site-nav__inner > .brand,
+  body.mobile-chrome .site-nav__inner > .btn--small,
+  body.mobile-chrome .site-nav__inner > .nav-links { display: none; }
+
+  body.mobile-chrome .nav-toggle {
+    position: relative;
+    display: flex; flex-direction: column; align-items: flex-end; justify-content: center;
+    width: 64px; height: 56px; padding: 6px 2px;
+    border: 0; border-radius: 0; background: none; box-shadow: none;
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+    overflow: hidden;                                   /* the mask window */
+    transition: transform 0.35s var(--ease);
+  }
+  body.mobile-chrome .nav-toggle:active { transform: translate3d(0, 1px, 0); }
+  body.mobile-chrome .nav-toggle:focus-visible { outline: 1px solid var(--azure); outline-offset: 4px; }
+  /* adaptive ink: the instrument floats over light AND dark chapters —
+     difference-blend keeps it legible on both without a chip behind it */
+
+  /* the word — tracked caps crossing through the mask */
+  body.mobile-chrome .nav-toggle::before,
+  body.mobile-chrome .nav-toggle::after {
+    position: absolute; right: 2px; top: 11px; margin: 0;
+    font-family: var(--font); font-style: normal; font-weight: 600;
+    font-size: 10px; line-height: 1; letter-spacing: 0.26em; text-transform: uppercase;
+    color: var(--nav-ink, #EFF0EA); pointer-events: none;
+    transition: transform 0.44s var(--ease), opacity 0.26s var(--ease), color 0.4s var(--ease);
+  }
+  body.mobile-chrome .nav-toggle::before { content: "Menu"; }
+  body.mobile-chrome .nav-toggle::after { content: "Close"; opacity: 0; transform: translate3d(0, 15px, 0); }
+  body.mobile-chrome .nav-toggle[aria-expanded="true"]::before { opacity: 0; transform: translate3d(0, -15px, 0); }
+  body.mobile-chrome .nav-toggle[aria-expanded="true"]::after { opacity: 1; transform: none; }
+  /* the mark — two staggered hairlines that cross-stagger on state */
+  body.mobile-chrome .nav-toggle__line {
+    position: absolute; right: 2px; height: 1px; margin: 0; background: var(--nav-ink, #EFF0EA);
+    transform-origin: 100% 50%;
+    transition: width 0.44s var(--ease), transform 0.3s var(--ease), background-color 0.3s var(--ease);
+  }
+  body.mobile-chrome .nav-toggle__line:nth-child(1) { top: 33px; width: 26px; }
+  body.mobile-chrome .nav-toggle__line:nth-child(2) { top: 39px; width: 15px; }
+  body.mobile-chrome .nav-toggle__line:nth-child(3) { display: none; }
+  body.mobile-chrome .nav-toggle:active .nav-toggle__line { transform: scaleX(0.62); }
+  body.mobile-chrome .nav-toggle[aria-expanded="true"] .nav-toggle__line:nth-child(1) { width: 15px; }
+  body.mobile-chrome .nav-toggle[aria-expanded="true"] .nav-toggle__line:nth-child(2) { width: 26px; }
+
+  /* ------------------------------------------------------- the menu film
+     Full-screen dialog: staggered editorial rows, actions anchored low.
+     Focus trap / Esc / return-focus stay in main.js. The dialog's own close
+     sits exactly over the nav instrument, so Menu→Close reads as one
+     control morphing across layers.                                       */
+  body.mobile-chrome .mobile-menu {
+    position: fixed; inset: 0; z-index: 240;
+    display: flex; flex-direction: column; justify-content: flex-start;
+    padding: calc(12px + env(safe-area-inset-top, 0px)) var(--pad-x) calc(34px + env(safe-area-inset-bottom, 0px));
+    background:
+      radial-gradient(120% 60% at 88% -6%, rgba(110, 168, 255, 0.14), transparent 60%),
+      radial-gradient(90% 50% at 8% 108%, rgba(110, 168, 255, 0.07), transparent 62%),
+      rgba(4, 7, 16, 0.996);
+    -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px);
+    opacity: 0; pointer-events: none; transition: opacity 0.45s var(--ease);
+    overscroll-behavior: contain;
+  }
+  body.mobile-chrome .mobile-menu.is-open { opacity: 1; pointer-events: auto; }
+  body.mobile-chrome .mobile-menu[hidden] { display: none; }
+  /* the close half of the instrument — same geometry, same mask */
+  body.mobile-chrome .mobile-menu__bar {
+    display: flex; justify-content: flex-end; align-items: flex-start;
+    min-height: 56px; padding: 0; margin: 0 calc(var(--pad-x) * -1 + 14px) 0 0;
+  }
+  body.mobile-chrome .mobile-menu__close {
+    position: relative;
+    display: flex; flex-direction: column; align-items: flex-end; justify-content: center;
+    width: 64px; height: 56px; padding: 6px 2px;
+    border: 0; border-radius: 0; background: none; box-shadow: none;
+    overflow: hidden; color: var(--chrome-text);
+    transition: transform 0.35s var(--ease);
+  }
+  body.mobile-chrome .mobile-menu__close:active { transform: translate3d(0, 1px, 0); }
+  body.mobile-chrome .mobile-menu__close:hover { transform: none; }   /* base spins the old round button 90° */
+  body.mobile-chrome .mobile-menu__close:focus-visible { outline: 1px solid var(--azure); outline-offset: 4px; }
+  body.mobile-chrome .mobile-menu__close svg,
+  body.mobile-chrome .mobile-menu__close > span:not(.nav-toggle__line) { display: none; }
+  body.mobile-chrome .mobile-menu__close::before {
+    content: "Close";
+    position: absolute; right: 2px; top: 11px; margin: 0;
+    font-family: var(--font); font-style: normal; font-weight: 600;
+    font-size: 10px; line-height: 1; letter-spacing: 0.26em; text-transform: uppercase;
+    color: var(--chrome-text);
+    opacity: 0; transform: translate3d(0, 15px, 0);
+    transition: transform 0.5s var(--ease) 0.14s, opacity 0.3s var(--ease) 0.14s;
+  }
+  body.mobile-chrome .mobile-menu.is-open .mobile-menu__close::before { opacity: 1; transform: none; }
+  body.mobile-chrome .mobile-menu__close::after {
+    content: ""; position: absolute; right: 2px; top: 33px; width: 26px; height: 1px;
+    background: var(--azure); transform: scaleX(0); transform-origin: 100% 50%;
+    transition: transform 0.5s var(--ease) 0.2s;
+  }
+  body.mobile-chrome .mobile-menu.is-open .mobile-menu__close::after { transform: scaleX(1); }
+  /* the bar caption stays for screen readers, yields the stage visually */
+  body.mobile-chrome .mobile-menu__title {
+    position: absolute; width: 1px; height: 1px; margin: 0; overflow: hidden;
+    clip-path: inset(50%); white-space: nowrap;
+    font-size: 10.5px; letter-spacing: 0.32em;
+  }
+  body.mobile-chrome .mobile-menu nav { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; }
+  body.mobile-chrome .mobile-menu__list { border-top: 1px solid rgba(148, 170, 230, 0.14); }
+  body.mobile-chrome .mobile-menu__list li { overflow: hidden; }
+  body.mobile-chrome .mobile-menu__list li a {
+    display: flex; align-items: baseline; gap: clamp(14px, 4vw, 22px);
+    padding: clamp(13px, 2.5vh, 20px) 2px;
+    font-size: clamp(1.85rem, 7.6vw, 3.05rem); font-weight: 600; letter-spacing: -0.025em; line-height: 1.05;
+    border-bottom: 1px solid rgba(148, 170, 230, 0.14);
+    opacity: 0; transform: translate3d(0, 30px, 0);
+    transition: color 0.3s var(--ease), opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out);
+    transition-delay: 0s, calc(0.12s + var(--mi, 0) * 0.07s), calc(0.12s + var(--mi, 0) * 0.07s);
+  }
+  body.mobile-chrome .mobile-menu.is-open .mobile-menu__list li a { opacity: 1; transform: none; }
+  body.mobile-chrome .mobile-menu__list li a:active { color: var(--azure-hi); }
+  body.mobile-chrome .mobile-menu__actions {
+    margin-top: clamp(22px, 4vh, 40px); display: grid; gap: 14px; justify-items: stretch;
+    opacity: 0; transform: translate3d(0, 18px, 0);
+    transition: opacity 0.6s var(--ease-out) 0.44s, transform 0.6s var(--ease-out) 0.44s;
+  }
+  body.mobile-chrome .mobile-menu.is-open .mobile-menu__actions { opacity: 1; transform: none; }
+  body.mobile-chrome .mobile-menu__mail { justify-content: center; font-size: 13px; letter-spacing: 0.1em; }
+  /* ---------------------------------------------------------------- FOOTER
+     The final chapter, not a stacked footer. One asymmetric editorial
+     column: a quiet chapter cue, the site's own tagline set as a massive
+     masked statement, START A CONVERSATION as the closing primary action,
+     then the signature ledger, then a ruled navigation index (menu ·
+     resources · legal · social), then the colophon split across a hairline.
+     home-mobile.js ignites each scene (.is-in) as it enters.               */
+  body.mobile-chrome .footer { padding: clamp(84px, 14vh, 150px) 0 calc(24px + env(safe-area-inset-bottom, 0px)); }
+  body.mobile-chrome .footer--arena .footer__inner {
+    display: grid; grid-template-columns: 1fr auto; gap: 0;
+    justify-items: stretch; text-align: left; align-items: start;
+  }
+  body.mobile-chrome .footer--arena .footer__inner > * { grid-column: 1 / -1; }
+  body.mobile-chrome .footer--arena .footer__brand { display: contents; }
+  body.mobile-chrome .footer--arena .footer__bottom { display: contents; }
+  /* the menu column dissolves: its CTA link becomes the closing action,
+     its remaining links join the index ledger */
+  body.mobile-chrome .footer__col:nth-child(2) { display: contents; }
+  body.mobile-chrome .footer__col:nth-child(2) .footer__links { display: contents; }
+  body.mobile-chrome .footer__col:nth-child(2) .footer__links li { display: contents; }
+  body.mobile-chrome .footer__col:nth-child(2) .footer__label { order: 6; }
+  /* scene 0 — the chapter cue */
+  body.mobile-chrome .footer--arena .footer__inner::before {
+    content: "Final chapter";
+    order: 0; grid-column: 1 / -1;
+    display: flex; align-items: center; gap: 14px;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--chrome-muted);
+    opacity: 0; transform: translate3d(0, 12px, 0);
+    transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);
+  }
+  body.mobile-chrome .footer--arena .footer__inner::before::after {
+    content: ""; width: clamp(26px, 7vw, 52px); height: 1px; background: var(--chrome-muted);
+    transform: scaleX(0); transform-origin: 0 50%; transition: transform 0.8s var(--ease) 0.15s;
+  }
+  body.mobile-chrome .footer--arena .footer__inner.is-in::before { opacity: 1; transform: none; }
+  body.mobile-chrome .footer--arena .footer__inner.is-in::before::after { transform: scaleX(1); }
+  /* scene 1 — the massive closing statement (the site's own tagline) */
+  body.mobile-chrome .footer--arena .footer__line {
+    order: 1; grid-column: 1 / -1;
+    margin: clamp(30px, 5.4vh, 52px) 0 0; max-width: none;
+    font-family: var(--serif); font-style: italic; font-weight: 400;
+    font-size: clamp(2.5rem, 11.2vw, 5.4rem); line-height: 1.04; letter-spacing: -0.02em;
+    color: var(--chrome-text); text-wrap: balance;
+    clip-path: inset(0 0 102% 0);
+    transition: clip-path 1.05s var(--ease-out) 0.08s;
+  }
+  /* ignited by the footer container (a clip-path'd element reports a zero
+     intersection rect, so it can never trigger its own observer) */
+  body.mobile-chrome .footer--arena .footer__inner.is-in .footer__line,
+  body.mobile-chrome .footer--arena .footer__line.is-in { clip-path: inset(-12% -8% -18% -8%); }
+  /* scene 2 — the closing primary action */
+  body.mobile-chrome .footer__links a[href="/contact/"] {
+    order: 2; grid-column: 1 / -1;
+    display: inline-flex; align-items: center; gap: clamp(12px, 3vw, 20px);
+    width: fit-content; max-width: 100%;
+    margin-top: clamp(34px, 6vh, 60px); min-height: 56px;
+    font-family: var(--font); font-style: normal; font-weight: 650;
+    font-size: clamp(0.98rem, 3.9vw, 1.42rem); letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--chrome-text);
+    background: linear-gradient(currentColor, currentColor) no-repeat 0 100% / 0% 1px;
+    opacity: 0; transform: translate3d(0, 16px, 0);
+    transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out),
+                background-size 0.5s var(--ease), color 0.3s var(--ease);
+  }
+  body.mobile-chrome .footer__links a[href="/contact/"].is-in { opacity: 1; transform: none; background-size: 100% 1px; }
+  body.mobile-chrome .footer__links a[href="/contact/"]::after {
+    content: "→"; position: static; inset: auto; width: auto; height: auto; background: none;
+    border-radius: 0; transform: none; font-family: var(--font); font-style: normal; font-weight: 400;
+    font-size: 1.25em; line-height: 1; color: var(--azure);
+    transition: transform 0.4s var(--ease);
+  }
+  body.mobile-chrome .footer__links a[href="/contact/"]:active { color: var(--azure-hi); }
+  body.mobile-chrome .footer__links a[href="/contact/"]:active::after { transform: translate3d(10px, 0, 0); }
+  /* scene 3 — the signature ledger */
+  body.mobile-chrome .footer--arena .footer__brandtop {
+    order: 3; grid-column: 1 / -1;
+    display: flex; align-items: center; justify-content: flex-start; gap: 14px;
+    margin-top: clamp(56px, 10vh, 104px); padding-top: clamp(30px, 5.4vh, 52px);
+    border-top: 1px solid rgba(148, 170, 230, 0.16);
+    opacity: 0; transform: translate3d(0, 14px, 0);
+    transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);
+  }
+  body.mobile-chrome .footer--arena .footer__brandtop.is-in { opacity: 1; transform: none; }
+  body.mobile-chrome .footer--arena .brand__logo--foot { width: 34px; height: 34px; }
+  body.mobile-chrome .footer--arena .footer__name {
+    display: block; font-size: clamp(1.05rem, 4.4vw, 1.6rem); font-weight: 650;
+    letter-spacing: 0.22em; text-transform: uppercase; line-height: 1.2;
+    color: var(--chrome-text);
+  }
+  body.mobile-chrome .footer--arena .footer__contact {
+    order: 4; grid-column: 1 / -1;
+    margin: clamp(18px, 3vh, 28px) 0 0;
+    display: flex; flex-direction: column; align-items: stretch; gap: 0;
+    width: 100%; max-width: 520px;
+  }
+  body.mobile-chrome .footer--arena .footer__contact a {
+    display: flex; align-items: center; min-height: 52px;
+    font-size: clamp(1rem, 4.1vw, 1.3rem); color: var(--chrome-text);
+    border-top: 1px solid rgba(148, 170, 230, 0.12);
+    transition: color 0.3s var(--ease), padding-left 0.3s var(--ease);
+  }
+  body.mobile-chrome .footer--arena .footer__contact a:last-child { border-bottom: 1px solid rgba(148, 170, 230, 0.12); }
+  body.mobile-chrome .footer--arena .footer__contact a:active { color: var(--azure-hi); padding-left: 8px; }
+  body.mobile-chrome .footer--arena .footer__avail {
+    order: 5; grid-column: 1 / -1;
+    margin-top: clamp(16px, 2.6vh, 24px);
+    font-size: 12px; letter-spacing: 0.08em; color: var(--chrome-muted);
+  }
+  /* scene 4 — the navigation index: ruled ledger, group by group */
+  body.mobile-chrome .footer--arena .footer__col { align-items: stretch; }
+  body.mobile-chrome .footer--arena .footer__label {
+    grid-column: 1 / -1;
+    margin: clamp(40px, 7.2vh, 72px) 0 0; padding-top: 14px;
+    border-top: 1px solid rgba(148, 170, 230, 0.16);
+    font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--chrome-muted); text-align: left;
+  }
+  body.mobile-chrome .footer--arena .footer__links { gap: 0; }
+  body.mobile-chrome .footer__col:nth-child(2) .footer__links a:not([href="/contact/"]) {
+    order: 7; grid-column: 1 / -1;
+    display: flex; align-items: center; min-height: 50px;
+    font-size: clamp(0.98rem, 4vw, 1.18rem); color: var(--chrome-muted);
+    border-bottom: 1px solid rgba(148, 170, 230, 0.1);
+    transition: color 0.3s var(--ease), padding-left 0.3s var(--ease);
+  }
+  body.mobile-chrome .footer__col:nth-child(2) .footer__links a:not([href="/contact/"]):active { color: var(--azure-hi); padding-left: 8px; }
+  body.mobile-chrome .footer__col:nth-child(3) { order: 8; grid-column: 1 / -1; }
+  body.mobile-chrome .footer__col:nth-child(4) { order: 9; grid-column: 1 / -1; }
+  body.mobile-chrome .footer__col:nth-child(3) .footer__links,
+  body.mobile-chrome .footer__col:nth-child(4) .footer__links { display: block; width: 100%; }
+  body.mobile-chrome .footer__col:nth-child(3) .footer__links a,
+  body.mobile-chrome .footer__col:nth-child(4) .footer__links a {
+    display: flex; align-items: center; min-height: 50px;
+    font-size: clamp(0.98rem, 4vw, 1.18rem); color: var(--chrome-muted);
+    border-bottom: 1px solid rgba(148, 170, 230, 0.1);
+    transition: color 0.3s var(--ease), padding-left 0.3s var(--ease);
+  }
+  body.mobile-chrome .footer__col:nth-child(3) .footer__links a:active,
+  body.mobile-chrome .footer__col:nth-child(4) .footer__links a:active { color: var(--azure-hi); padding-left: 8px; }
+  /* social — the index's last register, chips in a row */
+  body.mobile-chrome .footer__col:nth-child(5) { order: 10; grid-column: 1 / -1; }
+  body.mobile-chrome .footer--arena .footer__social { display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+  body.mobile-chrome .footer--arena .footer__social li { width: auto; }
+  body.mobile-chrome .footer--arena .footer__social a {
+    display: inline-flex; align-items: center; gap: 9px; min-height: 44px;
+    padding: 10px 16px 10px 13px; border-radius: 999px;
+    border: 1px solid rgba(148, 170, 230, 0.2); font-size: 13px; color: var(--chrome-muted);
+    transition: border-color 0.3s var(--ease), color 0.3s var(--ease), transform 0.3s var(--ease);
+  }
+  body.mobile-chrome .footer--arena .footer__social a:active { border-color: var(--azure); color: var(--azure-hi); transform: translate3d(0, -1px, 0); }
+  body.mobile-chrome .footer--arena .footer__social svg { width: 15px; height: 15px; color: var(--azure); }
+  /* scene 5 — the colophon, split across the last hairline */
+  body.mobile-chrome .footer--arena .footer__copy {
+    order: 11; grid-column: 1 / 2;
+    margin: clamp(44px, 8vh, 78px) 0 0; padding-top: 18px;
+    border-top: 1px solid rgba(148, 170, 230, 0.14);
+    font-size: 11.5px; line-height: 1.7; color: var(--chrome-muted);
+    max-width: 46ch;
+  }
+  body.mobile-chrome .footer--arena .footer__note {
+    order: 11; grid-column: 2 / 3; align-self: end;
+    margin: 0; padding-top: 18px;
+    font-size: 11px; line-height: 1.7; color: var(--chrome-muted);
+    text-align: right; max-width: 30ch;
+    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px) + 58px);
+  }
+}
+
+/* The homepage's original small-phone and reduced-motion chrome refinements. */
+@media (max-width: 700px) {
+  body.mobile-chrome .footer--arena .footer__social a {
+    padding: 9px 14px 9px 12px;
+    font-size: 12.5px;
+  }
+
+  body.mobile-chrome .footer--arena .footer__note {
+    grid-column: 1 / -1;
+    text-align: left;
+    max-width: 46ch;
+  }
+}
+
+@media (max-width: 360px) {
+  body.mobile-chrome .mobile-menu__list li a {
+    font-size: clamp(1.55rem, 8.4vw, 2.1rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.mobile-chrome .mobile-menu__list li a,
+  body.mobile-chrome .mobile-menu__actions {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  body.mobile-chrome .footer--arena .footer__inner::before,
+  body.mobile-chrome .footer--arena .footer__line,
+  body.mobile-chrome .footer__links a[href="/contact/"],
+  body.mobile-chrome .footer--arena .footer__brandtop {
+    clip-path: none;
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  body.mobile-chrome .footer--arena .footer__inner::before::after {
+    transform: scaleX(1);
+    transition: none;
+  }
+}

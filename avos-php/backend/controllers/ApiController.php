@@ -52,7 +52,6 @@ final class ApiController
                 $action === 'auth' && $a === '2fa' && $b === 'status' && $method === 'GET' => self::requireAuth('settings.read', fn() => self::auth2faStatus()),
                 $action === 'session' && $method === 'GET' => self::session(),
                 $action === 'public' && $a === 'lead' && $method === 'POST' => self::publicLead(),
-                $action === 'public' && $a === 'content' && $method === 'GET' => self::publicContent(),
 
                 // ---------- ADMIN ----------
                 $action === 'content' && $a === 'bulk' && $method === 'POST' => self::requireAuth('content.write', fn() => self::contentBulk()),
@@ -361,24 +360,6 @@ final class ApiController
     }
 
     /* ---------- public lead (CRM) + spam protection ---------- */
-    /**
-     * PUBLIC read-only content contract for the React frontend.
-     * GET /api/public/content  ->  { ok, data: { content: <merged content_store>, generated, version } }
-     * Mirrors exactly what the CMS holds (SiteSync-derived + admin edits).
-     * Short shared-cache TTL so CMS edits reach the frontend quickly.
-     */
-    private static function publicContent(): void
-    {
-        header('Cache-Control: public, max-age=30');
-        $content = ContentStore::all();
-        $version = Database::one("SELECT MAX(updated_at) AS v FROM content_store")['v'] ?? null;
-        Response::json([
-            'content'   => $content,
-            'generated' => date('c'),
-            'version'   => $version,
-        ]);
-    }
-
     private static function publicLead(): void
     {
         self::rateLimit(Auth::ip(), 'lead');

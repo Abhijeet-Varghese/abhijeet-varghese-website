@@ -29,7 +29,6 @@ Thumbs.db
 node_modules/
 qa-*/
 qa-ai-hero.png
-# React/Vite frontend
+
+# Vite production output (rebuild from the committed manifest/lockfile).
 dist/
-.env.local
-*.local
