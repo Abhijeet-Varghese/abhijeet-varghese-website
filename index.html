@@ -37,14 +37,25 @@
     <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <script>
-      // Source-equivalent no-JS / stalled-runtime reveal failsafe. The loader
-      // itself starts immediately after its static markup in the body, just as
-      // it does in the golden-master document.
-      document.documentElement.classList.add('js');
-      window.setTimeout(function () {
-        document.documentElement.classList.add('reveal-failsafe');
-      }, 3400);
+      // Keep the shared loader to one appearance per browser session. The
+      // session flag survives reloads and same-tab page changes, but resets
+      // naturally when the browser session ends.
+      (function () {
+        var root = document.documentElement;
+        root.classList.add('js');
+        try {
+          if (window.sessionStorage.getItem('av-loader-seen-v1') === '1') {
+            root.classList.add('av-loader-seen');
+          } else {
+            window.sessionStorage.setItem('av-loader-seen-v1', '1');
+          }
+        } catch (error) {}
+        window.setTimeout(function () {
+          root.classList.add('reveal-failsafe');
+        }, 3400);
+      })();
     </script>
+    <style>html.av-loader-seen .av-loader{display:none!important}</style>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -86,8 +97,14 @@
       (function () {
         'use strict';
         var d = document.documentElement;
-        d.classList.add('av-loading');
         var loader = document.getElementById('avLoader');
+        if (!loader) return;
+        if (d.classList.contains('av-loader-seen')) {
+          d.classList.add('av-done');
+          loader.remove();
+          return;
+        }
+        d.classList.add('av-loading');
         var words = loader.querySelectorAll('.av-j');
         var reduced = false;
         try {

@@ -656,6 +656,22 @@
     text-align: right; max-width: 30ch;
     padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px) + 58px);
   }
+
+  /* The mobile footer finishes with contact details and the navigation ledger;
+     keep its desktop-only statement and duplicate contact CTA out of this tier. */
+  body.home-arena .footer--arena .footer__line,
+  body.home-arena .footer--arena .footer__links a[href="/contact/"] {
+    display: none !important;
+  }
+
+  /* The former statement and action reserved a large opening gap. Preserve a
+     considered transition into the remaining signature ledger instead. */
+  body.home-arena .footer--arena .footer__brandtop {
+    order: 1;
+    margin-top: clamp(30px, 5.4vh, 52px);
+    padding-top: 0;
+    border-top: 0;
+  }
 }
 
 /* ==========================================================================
@@ -722,8 +738,6 @@
   body.home-arena .journey__track::after { transform: scaleY(1); }
   body.home-arena .era::before { transition: none; }
   body.home-arena .footer--arena .footer__inner::before,
-  body.home-arena .footer--arena .footer__line,
-  body.home-arena .footer__links a[href="/contact/"],
   body.home-arena .footer--arena .footer__brandtop { opacity: 1; transform: none; clip-path: none; transition: none; }
   body.home-arena .footer--arena .footer__inner::before::after { transform: scaleX(1); transition: none; }
 }

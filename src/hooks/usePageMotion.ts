@@ -27,7 +27,7 @@ function documentY(element: HTMLElement): number {
 export function usePageMotion(): void {
   useEffect(() => {
     const nav = document.getElementById('siteNav');
-    const progress = document.getElementById('progress');
+    const progress = document.getElementById('progress') ?? document.getElementById('readingProgress');
     const journey = document.getElementById('journey');
     const journeyPin = document.getElementById('journeyPin');
     const journeyTrack = document.getElementById('journeyTrack');

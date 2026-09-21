@@ -136,7 +136,7 @@
         fio.unobserve(e.target);
       });
     }, { rootMargin: "0px 0px -12% 0px", threshold: 0.15 });
-    $$(".footer--arena .footer__inner, .footer--arena .footer__line, .footer--arena .footer__links a[href=\"/contact/\"], .footer--arena .footer__brandtop")
+    $$(".footer--arena .footer__inner, .footer--arena .footer__brandtop")
       .forEach(el => fio.observe(el));
   }
 

@@ -59,12 +59,12 @@
     }
   };
 
-  /* Recreate the homepage footer's on-enter scene trigger. With reduced
+  /* Recreate the remaining mobile footer scene triggers. With reduced
      motion or no IntersectionObserver support, show all scenes immediately. */
   const revealFooterScenes = () => {
     if (!touchMQ.matches) return;
     const targets = $$(
-      ".footer--arena .footer__inner, .footer--arena .footer__line, .footer--arena .footer__links a[href='/contact/'], .footer--arena .footer__brandtop"
+      ".footer--arena .footer__inner, .footer--arena .footer__brandtop"
     );
     if (!targets.length) return;
 

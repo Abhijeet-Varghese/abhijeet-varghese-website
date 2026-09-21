@@ -13,12 +13,14 @@ function walk(directory) {
 }
 
 const sourceFiles = walk(resolve(root, 'src')).filter((file) => /\.(ts|tsx|css)$/.test(file));
-const componentSource = sourceFiles
-  .filter((file) => file.endsWith('.tsx'))
+// Story is a separate MPA entry with its own approved legacy classes. Keep
+// homepage-only content and asset assertions scoped to the locked homepage components.
+const homepageComponentSource = sourceFiles
+  .filter((file) => file.endsWith('.tsx') && !file.startsWith('src/sections/story/') && file !== 'src/StoryApp.tsx' && file !== 'src/story-main.tsx')
   .map((file) => read(file))
   .join('\n');
 const completeSource = `${sourceFiles.map((file) => read(file)).join('\n')}\n${read('index.html')}`;
-const markupSource = `${componentSource}\n${read('index.html')}`;
+const markupSource = `${homepageComponentSource}\n${read('index.html')}`;
 const requiredAssets = new Set();
 for (const match of markupSource.matchAll(/(?:src|srcSet|href)=["'](\/assets\/[^"'#?]+)(?:\?[^"']*)?["']/g)) {
   requiredAssets.add(match[1]);
@@ -52,11 +54,11 @@ const removedMarkers = [
   'focus__num',
 ];
 for (const marker of removedMarkers) {
-  if (componentSource.includes(marker)) {
-    failures.push(`Removed section-number marker still appears in React component source: ${marker}`);
+  if (homepageComponentSource.includes(marker)) {
+    failures.push(`Removed section-number marker still appears in homepage React component source: ${marker}`);
   }
 }
-if (/Final chapter/i.test(componentSource)) failures.push('Final chapter label remains in React component source.');
+if (/Final chapter/i.test(homepageComponentSource)) failures.push('Final chapter label remains in homepage React component source.');
 if (completeSource.includes("setProperty('--work-px'")) failures.push('Featured Work thumbnail movement was reintroduced.');
 if (!completeSource.includes('transform: none !important')) failures.push('Featured Work thumbnail lock CSS is missing.');
 const reactHomeStyles = read('src/styles/react-home.css');
@@ -100,6 +102,10 @@ for (const loaderContract of [
   "matchMedia('(prefers-reduced-motion: reduce)')",
   "setTimeout(function () { loader.classList.add('is-merge'); }, 720)",
   'setTimeout(complete, 1450)',
+  'av-loader-seen-v1',
+  "sessionStorage.getItem('av-loader-seen-v1')",
+  "d.classList.contains('av-loader-seen')",
+  "d.classList.add('av-done')",
 ]) {
   if (!indexSource.includes(loaderContract)) failures.push(`Shared loader contract is missing: ${loaderContract}`);
 }
@@ -127,6 +133,7 @@ if (!existsSync(distIndex)) {
     failures.push('Built React homepage still loads legacy homepage runtime.');
   }
   if (!built.includes('emailjs-fallback.js')) failures.push('Built homepage lost the conditional EmailJS fallback.');
+  if (!built.includes('av-loader-seen-v1')) failures.push('Built homepage lost the loader-once session gate.');
   const positions = approvedStylesheets.map((stylesheet) => built.indexOf(stylesheet));
   if (positions.some((position) => position < 0)) failures.push('Built homepage lost part of the approved visual CSS cascade.');
   if (positions.some((position, index) => index > 0 && position < positions[index - 1])) {

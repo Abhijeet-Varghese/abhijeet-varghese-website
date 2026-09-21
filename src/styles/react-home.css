@@ -14,13 +14,6 @@
   }
 }
 
-/* On phones the legacy cue had reserved spacing before the closing line. The
-   footer's remaining sequence keeps its established start point after removal. */
-@media (max-width: 700px) {
-  body.home-react .footer--arena .footer__line {
-    margin-top: 0;
-  }
-}
 
 /* Featured Work remains motion-locked: the reel moves plates, never artwork. */
 body.home-react .case__panel picture {

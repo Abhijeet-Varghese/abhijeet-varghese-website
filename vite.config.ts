@@ -8,14 +8,15 @@ import react from '@vitejs/plugin-react';
 const projectRoot = dirname(fileURLToPath(import.meta.url));
 const legacyRoot = resolve(projectRoot, 'abhijeetvarghese');
 const apiTarget = process.env.VITE_DEV_API_PROXY ?? 'http://127.0.0.1:8093';
+const storyEntry = resolve(projectRoot, 'story/index.html');
 
 const mimeTypes: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
 };
 
 /**
- * Vite owns only `/` (the React homepage). Existing clean URLs for the
- * untouched static inner pages remain usable in development; production keeps
+ * Vite owns `/` (the React homepage) and `/story/` (the React Story page).
+ * Existing clean URLs for untouched static inner pages remain usable in development; production keeps
  * their existing Apache rewrite rules via the copied .htaccess/public files.
  */
 type Next = (error?: unknown) => void;
@@ -36,6 +37,19 @@ function attachLegacyRoutes(server: LegacyServer): void {
 
     const rawUrl = request.url ?? '/';
     const pathname = decodeURIComponent(rawUrl.split('?')[0] ?? '/');
+    // Story is now a Vite multi-page entry. Keep its canonical trailing-slash
+    // URL out of the legacy `.html` fallback so development and preview use
+    // the React document exactly as production's real /story/ directory does.
+    if (pathname === '/story' || pathname === '/story.html' || pathname === '/story/index.html') {
+      response.statusCode = 301;
+      response.setHeader('Location', '/story/');
+      response.end();
+      return;
+    }
+    if (pathname === '/story/') {
+      next();
+      return;
+    }
     if (
       pathname === '/' ||
       pathname.startsWith('/api/') ||
@@ -122,6 +136,10 @@ export default defineConfig({
     assetsDir: '_react',
     cssCodeSplit: false,
     rollupOptions: {
+      input: {
+        main: resolve(projectRoot, 'index.html'),
+        story: storyEntry,
+      },
       output: {
         manualChunks: {
           react: ['react', 'react-dom'],

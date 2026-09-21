@@ -1,0 +1,12 @@
+/*
+ * React Story-only mobile footer delta.
+ * The shared legacy mobile chrome adds a generated “Final chapter” cue before
+ * the footer. Story ends with its own Credits chapter, so retain the approved
+ * footer content without adding a second chapter marker on phone layouts.
+ */
+@media (max-width: 700px) {
+  body.about-page.mobile-chrome .footer--arena .footer__inner::before {
+    content: none;
+    display: none;
+  }
+}

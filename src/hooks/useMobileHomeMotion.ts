@@ -140,13 +140,12 @@ export function useMobileHomeMotion(): void {
       : null;
     journeyEras.forEach((era) => eraObserver?.observe(era));
 
-    // The touch footer stages its closing line, contact action and signature
-    // independently. Those remaining scene triggers retain the approved
-    // mobile choreography without introducing an extra footer cue.
+    // The mobile footer now begins with its signature ledger. Its container
+    // and brand retain the remaining on-enter choreography.
     const footerScenes = footer
       ? [
           footerInner,
-          ...Array.from(footer.querySelectorAll<HTMLElement>('.footer__line, .footer__links a[href="/contact/"], .footer__brandtop')),
+          ...Array.from(footer.querySelectorAll<HTMLElement>('.footer__brandtop')),
         ].filter((element): element is HTMLElement => element instanceof HTMLElement)
       : [];
     const footerObserver = 'IntersectionObserver' in window && footerScenes.length
