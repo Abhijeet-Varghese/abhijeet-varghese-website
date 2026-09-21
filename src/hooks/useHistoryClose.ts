@@ -52,9 +52,9 @@ export function useHistoryClose(): void {
             const same = normCurrent === normOrigin || `${normCurrent}/` === normOrigin || normCurrent === `${normOrigin}/`;
             if (!same) {
               pendingOrigin = origin;
-              const hash = origin.fromHash || (origin.fromSection ? `#${origin.fromSection}` : '');
               const search = origin.fromSearch || '';
-              const raw = `${origin.fromPath}${search}${hash}`;
+              // Clean URL: pathname + search only — section/hash stays internal in pendingOrigin for scroll restore, never exposed in URL
+              const raw = `${origin.fromPath}${search}`;
               targetUrl = sanitizeTargetUrl(raw) ?? sanitizedFallback;
             } else {
               targetUrl = sanitizedFallback;

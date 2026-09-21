@@ -137,14 +137,8 @@ export function useScrollRestore(): void {
         if (!cancelled) clearPending();
       }, 600);
 
-      // Ensure hash in URL reflects section if provided and not already
-      if (pending.fromHash && pending.fromHash !== location.hash) {
-        try {
-          history.replaceState({ ...history.state, avRestore: pending }, '', pending.fromHash);
-        } catch {
-          // ignore
-        }
-      }
+      // Do NOT expose restoration hash in URL — keep visible URL clean (pathname+search only).
+      // Section/scroll state is restored from pendingOrigin internally via scrollTo.
     }
 
     // Run after a tick to allow React hydration

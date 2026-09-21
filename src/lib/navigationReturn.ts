@@ -5,9 +5,10 @@
  * Origin is captured on any internal link click (same-origin, left-click, no
  * modifier) and stored in sessionStorage. Inner pages' close button reads that
  * origin, validates it (same-origin, not external), stores it as pending
- * restore, and navigates via location.replace to the origin path+hash.
- * The origin page, on load, reads pending restore and scrolls to exact Y
- * after layout is stable (fonts, images, loader).
+ * restore, and navigates via location.replace to the clean origin path
+ * (pathname+search only — hash/section stays internal). The origin page,
+ * on load, reads pending restore and scrolls to exact Y after layout is
+ * stable (fonts, images, loader). No visible hash pollution.
  *
  * No SMTP/EmailJS changes, no redesign, no legacy deletion.
  */
@@ -320,14 +321,7 @@ export async function performRestore(pending: NavOrigin): Promise<boolean> {
     }
   }
 
-  // If hash exists, ensure hash in URL without jumping again
-  if (pending.fromHash && pending.fromHash !== location.hash) {
-    try {
-      history.replaceState({ ...history.state, avRestore: pending }, '', pending.fromHash);
-    } catch {
-      // ignore
-    }
-  }
+  // Keep URL clean — do NOT expose restoration hash. Scroll is restored programmatically from pending state.
 
   return true;
 }
