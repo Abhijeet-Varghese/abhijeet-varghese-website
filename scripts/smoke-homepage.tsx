@@ -20,7 +20,7 @@ Object.assign(globalThis, {
   Element: window.Element,
   Node: window.Node,
   HTMLElement: window.HTMLElement,
-  HTMLButtonElement: window.HTMLButtonElement,
+  HTMLButtonElement: window.HTMLButtonElement || HTMLElement,
   HTMLFormElement: window.HTMLFormElement,
   HTMLInputElement: window.HTMLInputElement,
   HTMLTextAreaElement: window.HTMLTextAreaElement,
@@ -31,10 +31,10 @@ Object.assign(globalThis, {
   KeyboardEvent: window.KeyboardEvent,
   location: window.location,
   localStorage: window.localStorage,
-  navigator: window.navigator,
   IntersectionObserver: Observer,
   ResizeObserver: Observer,
 });
+Object.defineProperty(globalThis, 'navigator', { value: window.navigator, writable: true, configurable: true });
 
 Object.assign(window, {
   IntersectionObserver: Observer,

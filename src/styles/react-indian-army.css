@@ -1,0 +1,179 @@
+/* Indian Army — React mobile + tablet intentional (≤900) — desktop 901px+ preserved */
+
+.indian-army-case {
+  overflow-x: clip;
+}
+
+@media (max-width: 900px) {
+  .indian-army-case .container,
+  .indian-army-case .ia-container {
+    width: min(100% - 32px, 680px);
+    margin-inline: auto;
+  }
+
+  .ia-hero {
+    min-height: auto;
+    padding: 6.5rem 0 2.2rem;
+  }
+
+  .ia-hero h1,
+  .ia-title {
+    font-size: clamp(2rem, 9vw, 3.2rem);
+    line-height: 0.96;
+  }
+
+  .ia-hero p,
+  .ia-deck {
+    max-width: none;
+    font-size: 0.98rem;
+    line-height: 1.65;
+  }
+
+  /* Stack all blocks */
+  .ia-stats,
+  .ia-stages,
+  .ia-media,
+  .ia-purpose,
+  .ia-delivery,
+  .ia-outcome,
+  .ia-closing {
+    grid-template-columns: 1fr !important;
+  }
+
+  .ia-stages__list,
+  .ia-tabs,
+  .ia-media__tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .ia-stages__list button,
+  .ia-tabs button,
+  .ia-media__tabs button {
+    min-height: 44px;
+    padding: 0.7rem 0.9rem;
+    touch-action: manipulation;
+  }
+
+  .ia-stages__panel,
+  .ia-tab-panel,
+  .ia-media__frame {
+    flex-direction: column;
+  }
+
+  .ia-gallery {
+    grid-template-columns: 1fr !important;
+    gap: 1rem;
+  }
+
+  .ia-gallery img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .ia-facts,
+  .ia-role-chain,
+  .ia-timeline {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .ia-section {
+    padding: 3rem 0;
+  }
+
+  .ia-section h2 {
+    font-size: clamp(1.5rem, 6vw, 2.2rem);
+    line-height: 1.05;
+  }
+
+  .ia-cards,
+  .ia-outcome-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ia-15 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .indian-army-case .container,
+  .indian-army-case .ia-container {
+    width: min(100% - 24px, 540px);
+  }
+
+  .ia-hero {
+    padding-top: 5.8rem;
+  }
+
+  .ia-hero h1,
+  .ia-title {
+    font-size: clamp(1.8rem, 8vw, 2.6rem);
+  }
+
+  .ia-stages__list,
+  .ia-tabs,
+  .ia-media__tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .ia-15 {
+    grid-template-columns: 1fr;
+  }
+
+  .ia-facts {
+    padding: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .indian-army-case .container,
+  .indian-army-case .ia-container {
+    width: min(100% - 20px, 100%);
+  }
+
+  .ia-hero {
+    padding-top: 5.2rem;
+  }
+
+  .ia-section h2 br {
+    display: none;
+  }
+
+  .ia-gallery {
+    gap: 0.8rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .indian-army-case {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (min-width: 701px) and (max-width: 900px) {
+  .indian-army-case .container,
+  .indian-army-case .ia-container {
+    width: min(100% - 40px, 760px);
+  }
+
+  .ia-gallery {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ia-stages__list {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ia-media__tabs {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .ia-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+}

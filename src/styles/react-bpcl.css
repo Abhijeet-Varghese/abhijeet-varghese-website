@@ -1,0 +1,172 @@
+/* BPCL Palakkad — React mobile + tablet intentional (≤900) — desktop 901px+ preserved */
+
+.bp-page {
+  overflow-x: clip;
+}
+
+@media (max-width: 900px) {
+  .bp-page .container,
+  .bp-page .bp-container {
+    width: min(100% - 32px, 680px);
+    margin-inline: auto;
+  }
+
+  /* Hero */
+  .bp-hero {
+    padding: 6.5rem 0 2rem;
+  }
+
+  .bp-hero h1 {
+    font-size: clamp(2rem, 9vw, 3rem);
+    line-height: 1;
+  }
+
+  .bp-hero p {
+    max-width: none;
+    font-size: 0.98rem;
+    line-height: 1.65;
+  }
+
+  /* Miniature night/day */
+  .bp-day-night,
+  .bp-blueprint,
+  .bp-walk,
+  .bp-content-grid,
+  .bp-facts {
+    grid-template-columns: 1fr !important;
+  }
+
+  .bp-day-night__handle {
+    touch-action: pan-x;
+  }
+
+  .bp-miniature__grid,
+  .bp-blueprint__grid,
+  .bp-walk__grid {
+    grid-template-columns: 1fr;
+    gap: 1.2rem;
+  }
+
+  .bp-miniature img,
+  .bp-blueprint img,
+  .bp-walk img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .bp-blueprint__tabs,
+  .bp-walk__tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .bp-blueprint__tabs button,
+  .bp-walk__tabs button {
+    min-height: 44px;
+    padding: 0.7rem 0.9rem;
+    touch-action: manipulation;
+  }
+
+  .bp-walk__frame {
+    flex-direction: column;
+  }
+
+  .bp-facts {
+    display: grid;
+    gap: 1rem;
+    padding: 1.2rem;
+  }
+
+  /* Sections */
+  .bp-section {
+    padding: 3rem 0;
+  }
+
+  .bp-section h2 {
+    font-size: clamp(1.5rem, 6vw, 2.2rem);
+    line-height: 1.05;
+  }
+
+  .bp-cards,
+  .bp-outcome-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bp-timeline {
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+}
+
+@media (max-width: 700px) {
+  .bp-page .container,
+  .bp-page .bp-container {
+    width: min(100% - 24px, 540px);
+  }
+
+  .bp-hero {
+    padding-top: 5.8rem;
+  }
+
+  .bp-hero h1 {
+    font-size: clamp(1.8rem, 8vw, 2.4rem);
+  }
+
+  .bp-blueprint__tabs,
+  .bp-walk__tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .bp-day-night {
+    min-height: 280px;
+  }
+}
+
+@media (max-width: 480px) {
+  .bp-page .container,
+  .bp-page .bp-container {
+    width: min(100% - 20px, 100%);
+  }
+
+  .bp-hero {
+    padding-top: 5.2rem;
+  }
+
+  .bp-section h2 br {
+    display: none;
+  }
+
+  .bp-miniature__hint,
+  .bp-blueprint__hint {
+    font-size: 0.68rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .bp-page {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (min-width: 701px) and (max-width: 900px) {
+  .bp-page .container,
+  .bp-page .bp-container {
+    width: min(100% - 40px, 760px);
+  }
+
+  .bp-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .bp-blueprint__tabs,
+  .bp-walk__tabs {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .bp-miniature__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

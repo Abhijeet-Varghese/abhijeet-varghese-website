@@ -1,0 +1,261 @@
+/* Orange Business — React mobile + tablet intentional redesign (≤900) — desktop 901px+ preserved exactly */
+
+/* Prevent horizontal overflow on small screens */
+.ob-page {
+  overflow-x: clip;
+}
+
+/* Intentional tablet/mobile layout adaptations — only ≤900 */
+@media (max-width: 900px) {
+  .ob-page .container {
+    width: min(100% - 32px, 680px);
+  }
+
+  .ob-hero {
+    min-height: auto;
+    padding: 6.5rem 0 2.2rem;
+  }
+
+  .ob-hero__eyebrow {
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    font-size: 0.64rem;
+  }
+
+  .ob-hero__title {
+    font-size: clamp(2.2rem, 10vw, 3.4rem);
+    line-height: 0.98;
+  }
+
+  .ob-hero__deck {
+    max-width: none;
+    font-size: 0.98rem;
+    line-height: 1.6;
+    margin-bottom: 1.8rem;
+  }
+
+  .ob-pano__frame {
+    border-radius: 10px;
+  }
+
+  .ob-pano__track {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .ob-pano__img {
+    width: 100%;
+    height: auto;
+  }
+
+  .ob-pano__details {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+    text-align: left;
+    padding: 1rem;
+  }
+
+  .ob-pano__hint {
+    text-align: left;
+  }
+
+  .ob-pano__num {
+    min-width: auto;
+  }
+
+  .ob-facts .container {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem 1.2rem;
+    padding: 1.2rem 0;
+  }
+
+  .ob-facts button {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .ob-sec {
+    padding: 3.2rem 0;
+  }
+
+  .ob-sec__cols,
+  .ob-stages,
+  .room-response,
+  .purpose-output,
+  .authorship-strip,
+  .outcome-grid,
+  .global-note {
+    grid-template-columns: 1fr;
+  }
+
+  .ob-stages__list {
+    border-top: none;
+  }
+
+  .ob-stages__list button {
+    padding: 0.9rem 0.8rem;
+    grid-template-columns: 2.2rem 1fr auto;
+  }
+
+  .room-response {
+    display: block;
+    margin-top: 2rem;
+  }
+
+  .room-response-media {
+    min-height: 220px;
+  }
+
+  .room-response-control {
+    border-left: 0;
+    border-top: 1px solid var(--ob-line);
+    padding: 1.6rem;
+  }
+
+  .ob-media__tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .ob-media__tabs button {
+    min-height: 44px;
+    padding: 0.6rem 0.8rem;
+    touch-action: manipulation;
+  }
+
+  .ob-media__stage {
+    margin-top: 1rem;
+  }
+
+  .ob-media__frame {
+    flex-direction: column;
+  }
+
+  .purpose-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .why-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .outcome-grid article,
+  .authorship-strip > div,
+  .global-note > div {
+    padding: 1.2rem;
+  }
+}
+
+@media (max-width: 700px) {
+  .ob-page .container {
+    width: min(100% - 24px, 540px);
+  }
+
+  .ob-hero {
+    padding-top: 5.8rem;
+  }
+
+  .ob-hero__title {
+    font-size: clamp(2rem, 9vw, 2.8rem);
+  }
+
+  .ob-hero__meta {
+    gap: 0.4rem 1rem;
+    font-size: 0.6rem;
+  }
+
+  .ob-facts .container {
+    grid-template-columns: 1fr;
+  }
+
+  .ob-kicker {
+    font-size: 0.62rem;
+  }
+
+  .ob-h2 {
+    font-size: clamp(1.4rem, 7vw, 2rem);
+  }
+
+  .ob-media__tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .ob-pano__details {
+    padding: 0.9rem;
+  }
+
+  .role-chain {
+    gap: 0.6rem;
+  }
+
+  .delivery-timeline {
+    gap: 0.6rem;
+    font-size: 0.66rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .ob-page .container {
+    width: min(100% - 20px, 100%);
+  }
+
+  .ob-hero {
+    padding-top: 5.2rem;
+  }
+
+  .ob-pano__frame::before,
+  .ob-pano__frame::after {
+    display: none;
+  }
+
+  .ob-pin {
+    width: 28px;
+    height: 28px;
+  }
+
+  .ob-pin i {
+    width: 8px;
+    height: 8px;
+    margin: -4px;
+  }
+
+  .ob-closing__inner h2 {
+    font-size: clamp(1.6rem, 8vw, 2rem);
+    line-height: 1.05;
+  }
+
+  .summary-dialog {
+    padding: 1.4rem;
+    max-width: calc(100vw - 16px);
+  }
+}
+
+/* Ensure no clipped text / overflow on very small */
+@media (max-width: 360px) {
+  .ob-page {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* Tablet specific 701-900 intentional */
+@media (min-width: 701px) and (max-width: 900px) {
+  .ob-page .container {
+    width: min(100% - 40px, 760px);
+  }
+
+  .ob-stages__list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+
+  .ob-media__tabs {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .why-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+}
