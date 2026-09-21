@@ -50,7 +50,15 @@ const reactFooter = read('src/components/SiteFooter.tsx');
 assert(reactFooter.includes(footerStatement), 'React footer statement unexpectedly changed outside the mobile presentation layer.');
 assert(reactFooter.includes(`>${footerAction}</a>`), 'React footer action unexpectedly changed outside the mobile presentation layer.');
 assert(read('index.html').includes('/css/home-mobile.css?v=4.0.0'), 'React homepage does not load the shared home mobile stylesheet.');
-assert(read('story/index.html').includes('/css/mobile-chrome.css?v=2.0.0'), 'React Story does not load the shared mobile chrome stylesheet.');
+for (const [path, label] of [
+  ['story/index.html', 'Story'],
+  ['experience/index.html', 'Experience'],
+  ['case-studies/index.html', 'Case Studies'],
+]) {
+  const document = read(path);
+  assert(document.includes('/css/mobile-chrome.css?v=2.0.0'), `React ${label} does not load the shared mobile chrome stylesheet.`);
+  assert.match(document, /<body[^>]*class="[^"]*\bmobile-chrome\b/, `React ${label} does not expose the shared mobile footer scope.`);
+}
 
 const retiredSceneSelectors = [
   'src/hooks/useMobileChrome.ts',
@@ -69,4 +77,4 @@ for (const path of ['dist/css/home-mobile.css', 'dist/css/mobile-chrome.css']) {
 assertMobileFooterRule('dist/css/home-mobile.css', 'body.home-arena');
 assertMobileFooterRule('dist/css/mobile-chrome.css', 'body.mobile-chrome');
 
-console.log(`Mobile footer regression passed: ${legacyFooterDocuments.length} legacy footer documents plus React Home and Story hide the statement and footer contact CTA at phone widths.`);
+console.log(`Mobile footer regression passed: ${legacyFooterDocuments.length} legacy footer documents plus React Home, Story, Experience, and Case Studies hide the statement and footer contact CTA at phone widths.`);

@@ -1,0 +1,6 @@
+/* Experience-only reflow after the two embedded role photographs are removed. */
+@media (min-width: 1081px) {
+  body.experience-page #main .exp-job {
+    grid-template-columns: minmax(150px, 1.1fr) minmax(0, 1fr);
+  }
+}

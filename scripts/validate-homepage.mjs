@@ -13,10 +13,19 @@ function walk(directory) {
 }
 
 const sourceFiles = walk(resolve(root, 'src')).filter((file) => /\.(ts|tsx|css)$/.test(file));
-// Story is a separate MPA entry with its own approved legacy classes. Keep
-// homepage-only content and asset assertions scoped to the locked homepage components.
+// Story, Experience, and Case Studies are separate MPA entries with approved
+// legacy classes of their own. Keep homepage-only content and asset assertions
+// scoped away from those independently migrated route components.
+const nonHomepageEntries = new Set([
+  'src/StoryApp.tsx',
+  'src/story-main.tsx',
+  'src/ExperienceApp.tsx',
+  'src/experience-main.tsx',
+  'src/CaseStudiesApp.tsx',
+  'src/case-studies-main.tsx',
+]);
 const homepageComponentSource = sourceFiles
-  .filter((file) => file.endsWith('.tsx') && !file.startsWith('src/sections/story/') && file !== 'src/StoryApp.tsx' && file !== 'src/story-main.tsx')
+  .filter((file) => file.endsWith('.tsx') && !file.startsWith('src/sections/story/') && !file.startsWith('src/sections/experience/') && !file.startsWith('src/sections/case-studies/') && !nonHomepageEntries.has(file))
   .map((file) => read(file))
   .join('\n');
 const completeSource = `${sourceFiles.map((file) => read(file)).join('\n')}\n${read('index.html')}`;

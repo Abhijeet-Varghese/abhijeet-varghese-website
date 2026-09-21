@@ -58,6 +58,25 @@ export function useAnalytics(): void {
       })
       .catch(() => undefined);
 
+    // Preserve the legacy content-view classification for the migrated routes
+    // (and retain its existing coverage for untouched static paths).
+    const contentPath = location.pathname || '';
+    let contentMatch: RegExpMatchArray | null = null;
+    if ((contentMatch = contentPath.match(/\/essay-[^/]+\.html/))) {
+      track({ event_type: 'essay_view', path: contentPath, content: contentMatch[0] });
+    } else if ((contentMatch = contentPath.match(/\/journal-[^/]+\.html/))) {
+      track({ event_type: 'journal_view', path: contentPath, content: contentMatch[0] });
+    } else if (
+      (contentMatch = contentPath.match(/\/case-studies\/[^/]+\/?/))
+      || (contentMatch = contentPath.match(/\/case-studies\//))
+      || (contentMatch = contentPath.match(/\/case-study-[^/]+\.html/))
+      || (contentMatch = contentPath.match(/\/experience-design\/[^/]+\/?/))
+    ) {
+      track({ event_type: 'case_study_view', path: contentPath, content: contentMatch[0] });
+    } else if (contentPath.includes('experience')) {
+      track({ event_type: 'project_view', path: contentPath });
+    }
+
     const mediaListeners = new Map<HTMLVideoElement, EventListener>();
     const onClick = (event: MouseEvent) => {
       const target = event.target instanceof Element ? event.target : null;
@@ -113,7 +132,7 @@ export function useAnalytics(): void {
       }, 400);
     };
 
-    const form = document.getElementById('contactForm');
+    const form = document.getElementById('contactForm') ?? document.getElementById('bookForm');
     let contactStarted = false;
     const onContactFocus = () => {
       if (contactStarted) return;

@@ -1,0 +1,21 @@
+/*
+ * The listing's AVIF/WebP thumbnails are all 1672 × 941. Give the frame the
+ * same source ratio at every viewport, including the phone tier, so it cannot
+ * either crop a 16:9 artwork or expose the frame background beneath it.
+ */
+#main .cx .cx-par {
+  aspect-ratio: 1672 / 941;
+}
+
+#main .cx .cx-par picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+#main .cx .cx-par img {
+  width: 100%;
+  height: 100%;
+  /* Lock the artwork to its frame; page/card scroll provides all movement. */
+  scale: 1 !important;
+}

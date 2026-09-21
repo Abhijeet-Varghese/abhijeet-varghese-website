@@ -9,15 +9,18 @@ const projectRoot = dirname(fileURLToPath(import.meta.url));
 const legacyRoot = resolve(projectRoot, 'abhijeetvarghese');
 const apiTarget = process.env.VITE_DEV_API_PROXY ?? 'http://127.0.0.1:8093';
 const storyEntry = resolve(projectRoot, 'story/index.html');
+const experienceEntry = resolve(projectRoot, 'experience/index.html');
+const caseStudiesEntry = resolve(projectRoot, 'case-studies/index.html');
 
 const mimeTypes: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
 };
 
 /**
- * Vite owns `/` (the React homepage) and `/story/` (the React Story page).
- * Existing clean URLs for untouched static inner pages remain usable in development; production keeps
- * their existing Apache rewrite rules via the copied .htaccess/public files.
+ * Vite owns `/` (the React homepage), `/story/`, `/experience/`, and the
+ * Case Studies listing. Existing clean URLs for untouched static inner pages
+ * remain usable in development; production keeps their existing Apache rewrite
+ * rules via the copied .htaccess/public files.
  */
 type Next = (error?: unknown) => void;
 type LegacyMiddleware = (request: IncomingMessage, response: ServerResponse, next: Next) => void;
@@ -37,16 +40,28 @@ function attachLegacyRoutes(server: LegacyServer): void {
 
     const rawUrl = request.url ?? '/';
     const pathname = decodeURIComponent(rawUrl.split('?')[0] ?? '/');
-    // Story is now a Vite multi-page entry. Keep its canonical trailing-slash
-    // URL out of the legacy `.html` fallback so development and preview use
-    // the React document exactly as production's real /story/ directory does.
-    if (pathname === '/story' || pathname === '/story.html' || pathname === '/story/index.html') {
+    // These public routes are Vite multi-page entries. Keep their canonical
+    // trailing-slash forms out of the legacy fallback so development, preview,
+    // and production resolve to the React documents in the same way.
+    const reactRouteAliases: Record<string, string> = {
+      '/story': '/story/',
+      '/story.html': '/story/',
+      '/story/index.html': '/story/',
+      '/experience': '/experience/',
+      '/experience.html': '/experience/',
+      '/experience/index.html': '/experience/',
+      '/case-studies': '/case-studies/',
+      '/case-studies.html': '/case-studies/',
+      '/case-studies/index.html': '/case-studies/',
+    };
+    const canonicalRoute = reactRouteAliases[pathname];
+    if (canonicalRoute) {
       response.statusCode = 301;
-      response.setHeader('Location', '/story/');
+      response.setHeader('Location', canonicalRoute);
       response.end();
       return;
     }
-    if (pathname === '/story/') {
+    if (pathname === '/story/' || pathname === '/experience/' || pathname === '/case-studies/') {
       next();
       return;
     }
@@ -139,6 +154,8 @@ export default defineConfig({
       input: {
         main: resolve(projectRoot, 'index.html'),
         story: storyEntry,
+        experience: experienceEntry,
+        caseStudies: caseStudiesEntry,
       },
       output: {
         manualChunks: {

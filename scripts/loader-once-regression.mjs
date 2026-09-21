@@ -55,6 +55,8 @@ function assertFollowUpView(document, label) {
 
 const homeFile = new URL('../index.html', import.meta.url);
 const storyFile = new URL('../story/index.html', import.meta.url);
+const experienceFile = new URL('../experience/index.html', import.meta.url);
+const caseStudiesFile = new URL('../case-studies/index.html', import.meta.url);
 
 const homeFirstSession = new Map();
 const homeFirst = loadDocument(homeFile, '/', homeFirstSession);
@@ -64,21 +66,36 @@ const homeReload = loadDocument(homeFile, '/', homeFirstSession);
 assertFollowUpView(homeReload.window.document, 'homepage reload');
 const storyAfterHome = loadDocument(storyFile, '/story/', homeFirstSession);
 assertFollowUpView(storyAfterHome.window.document, 'Story after homepage');
+const experienceAfterHome = loadDocument(experienceFile, '/experience/', homeFirstSession);
+assertFollowUpView(experienceAfterHome.window.document, 'Experience after homepage');
+const caseStudiesAfterHome = loadDocument(caseStudiesFile, '/case-studies/', homeFirstSession);
+assertFollowUpView(caseStudiesAfterHome.window.document, 'Case Studies after homepage');
 
-const storyFirstSession = new Map();
-const storyFirst = loadDocument(storyFile, '/story/', storyFirstSession);
-assertFirstView(storyFirst.window.document, 'Story');
-assert.equal(storyFirstSession.get(loaderKey), '1', 'Story did not persist the loader session flag');
-const storyReload = loadDocument(storyFile, '/story/', storyFirstSession);
-assertFollowUpView(storyReload.window.document, 'Story reload');
-const homeAfterStory = loadDocument(homeFile, '/', storyFirstSession);
-assertFollowUpView(homeAfterStory.window.document, 'homepage after Story');
+const experienceFirstSession = new Map();
+const experienceFirst = loadDocument(experienceFile, '/experience/', experienceFirstSession);
+assertFirstView(experienceFirst.window.document, 'Experience');
+assert.equal(experienceFirstSession.get(loaderKey), '1', 'Experience did not persist the loader session flag');
+const caseStudiesAfterExperience = loadDocument(caseStudiesFile, '/case-studies/', experienceFirstSession);
+assertFollowUpView(caseStudiesAfterExperience.window.document, 'Case Studies after Experience');
+const homeAfterExperience = loadDocument(homeFile, '/', experienceFirstSession);
+assertFollowUpView(homeAfterExperience.window.document, 'homepage after Experience');
+
+const caseStudiesFirstSession = new Map();
+const caseStudiesFirst = loadDocument(caseStudiesFile, '/case-studies/', caseStudiesFirstSession);
+assertFirstView(caseStudiesFirst.window.document, 'Case Studies');
+assert.equal(caseStudiesFirstSession.get(loaderKey), '1', 'Case Studies did not persist the loader session flag');
+const storyAfterCaseStudies = loadDocument(storyFile, '/story/', caseStudiesFirstSession);
+assertFollowUpView(storyAfterCaseStudies.window.document, 'Story after Case Studies');
 
 homeFirst.window.close();
 homeReload.window.close();
 storyAfterHome.window.close();
-storyFirst.window.close();
-storyReload.window.close();
-homeAfterStory.window.close();
+experienceAfterHome.window.close();
+caseStudiesAfterHome.window.close();
+experienceFirst.window.close();
+caseStudiesAfterExperience.window.close();
+homeAfterExperience.window.close();
+caseStudiesFirst.window.close();
+storyAfterCaseStudies.window.close();
 
-console.log('Loader-once regression passed: the first document animates the loader and all later homepage/Story documents in the same session skip it.');
+console.log('Loader-once regression passed: the first document animates the loader and all later Home, Story, Experience, and Case Studies documents in the same session skip it.');

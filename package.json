@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "vite",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src vite.config.ts scripts/validate-homepage.mjs scripts/validate-story.mjs scripts/mobile-scroll-regression.mjs scripts/homepage-parity-regression.mjs scripts/story-regression.mjs scripts/loader-once-regression.mjs scripts/mobile-footer-regression.mjs",
+    "lint": "eslint src vite.config.ts scripts/validate-homepage.mjs scripts/validate-story.mjs scripts/validate-experience.mjs scripts/validate-case-studies.mjs scripts/mobile-scroll-regression.mjs scripts/homepage-parity-regression.mjs scripts/story-regression.mjs scripts/loader-once-regression.mjs scripts/mobile-footer-regression.mjs",
     "build": "npm run typecheck && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "validate:home": "node scripts/validate-homepage.mjs",
@@ -19,6 +19,9 @@
     "test:homepage-parity": "node scripts/homepage-parity-regression.mjs",
     "validate:story": "node scripts/validate-story.mjs",
     "test:story": "node scripts/story-regression.mjs",
+    "validate:experience": "node scripts/validate-experience.mjs",
+    "validate:case-studies": "node scripts/validate-case-studies.mjs",
+    "test:migrated-pages": "tsx scripts/migrated-pages-smoke.tsx",
     "test:loader-once": "node scripts/loader-once-regression.mjs",
     "test:mobile-footer": "node scripts/mobile-footer-regression.mjs"
   },
