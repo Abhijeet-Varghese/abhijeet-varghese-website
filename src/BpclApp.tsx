@@ -36,7 +36,7 @@ export default function BpclApp() {
       <a className="page-close" href="/case-studies/" data-history-close="" aria-label="Back to Case Studies">
         <CloseIcon />
       </a>
-      <main id="main" className="bp-page">
+      <main id="main" className="bpcl-case">
         <BpclContent />
       </main>
       <SiteFooter />

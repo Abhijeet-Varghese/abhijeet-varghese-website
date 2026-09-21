@@ -38,14 +38,29 @@
     border-radius: 10px;
   }
 
+  /* Preserve 180° panorama: keep track wider than viewport so user can scroll/drag horizontally */
+  .ob-pano__scroller {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    cursor: grab;
+  }
+  .ob-pano__scroller:active {
+    cursor: grabbing;
+  }
+  .ob-pano__scroller::-webkit-scrollbar {
+    display: none;
+  }
   .ob-pano__track {
-    width: 100%;
-    min-width: 0;
+    width: max(100%, 680px);
+    min-width: 680px;
   }
 
   .ob-pano__img {
     width: 100%;
     height: auto;
+    display: block;
   }
 
   .ob-pano__details {

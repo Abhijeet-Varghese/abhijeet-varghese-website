@@ -6,9 +6,53 @@ import { useEffect } from 'react';
  */
 export function useOrangeBusinessMotion() {
   useEffect(() => {
+    // Ensure legacy body classes for CSS `body.orange-business-case.ob-page` selectors
+    document.body.classList.add('orange-business-case', 'ob-page');
+    const main = document.getElementById('main');
+    if (main) {
+      main.classList.add('ob-page');
+      if (!main.classList.contains('orange-business-case')) main.classList.add('orange-business-case');
+    }
+
     const $ = (s: string, r: Document | Element = document) => r.querySelector(s) as HTMLElement | null;
     const $$ = (s: string, r: Document | Element = document) => [...r.querySelectorAll(s)] as HTMLElement[];
     const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
+
+    // Panorama 180° drag-to-scroll (mouse) — touch already works via overflow-x:auto
+    const scroller = document.querySelector('.ob-pano__scroller') as HTMLElement | null;
+    let dragCleanup: (() => void) | null = null;
+    if (scroller) {
+      let isDown = false;
+      let startX = 0;
+      let scrollLeft = 0;
+      const onDown = (e: MouseEvent) => {
+        isDown = true;
+        scroller.classList.add('is-dragging');
+        startX = e.pageX - scroller.offsetLeft;
+        scrollLeft = scroller.scrollLeft;
+      };
+      const onUp = () => {
+        isDown = false;
+        scroller.classList.remove('is-dragging');
+      };
+      const onMove = (e: MouseEvent) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - scroller.offsetLeft;
+        const walk = (x - startX) * 1.2;
+        scroller.scrollLeft = scrollLeft - walk;
+      };
+      scroller.addEventListener('mousedown', onDown);
+      scroller.addEventListener('mouseleave', onUp);
+      scroller.addEventListener('mouseup', onUp);
+      scroller.addEventListener('mousemove', onMove);
+      dragCleanup = () => {
+        scroller.removeEventListener('mousedown', onDown);
+        scroller.removeEventListener('mouseleave', onUp);
+        scroller.removeEventListener('mouseup', onUp);
+        scroller.removeEventListener('mousemove', onMove);
+      };
+    }
 
     const hero = $('.ob-hero');
     if (hero) {
@@ -281,6 +325,7 @@ export function useOrangeBusinessMotion() {
 
     return () => {
       if (tourTimer) clearInterval(tourTimer);
+      dragCleanup?.();
       pinListeners.forEach(({ el, fn }) => el.removeEventListener('click', fn));
       stageListeners.forEach(({ el, fn }) => el.removeEventListener('click', fn));
       if (roomToggle && roomListener) roomToggle.removeEventListener('click', roomListener);
