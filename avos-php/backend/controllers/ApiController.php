@@ -426,8 +426,9 @@ final class ApiController
                     "SELECT COUNT(*) c FROM email_log WHERE template='lead_confirmation' AND recipient=? AND status='sent' AND sent_at > NOW() - INTERVAL 24 HOUR",
                     [$email]
                 )['c'] ?? 0);
+                // EmailJS primary — lead persisted via duplicate check; EmailJS will deliver owner + visitor.
                 Response::json(['ok' => true, 'id' => (int)$existing['id'], 'status' => $existing['status'], 'score' => (int)$existing['score'], 'duplicate' => true,
-                    'lead_saved' => true, 'owner_email_sent' => true, 'visitor_email_sent' => $visitorRecent, 'fallback_required' => !$visitorRecent], 200);
+                    'lead_saved' => true, 'owner_email_sent' => false, 'visitor_email_sent' => false, 'fallback_required' => true, 'email_via' => 'emailjs'], 200);
             }
         }
         $id = LeadModel::create($leadData);
@@ -448,86 +449,14 @@ final class ApiController
         if (!empty($leadData['page'])) {
             AnalyticsModel::recordConversion($leadData['page'], 'page');
         }
-        // Transactional contact emails — render CMS templates and deliver from the verified sender.
-    try {
-        $rawMessage = (string)$leadData['message'];
-        $bookingDate = '';
-        $bookingTime = '';
-        $formMessage = $rawMessage;
-        if (preg_match('/(?:^|\n\n)Requested intro call:\s*(.*?)\s+at\s+([^\r\n]+)\s+IST\s*$/s', $rawMessage, $m)) {
-            $bookingDate = trim($m[1]);
-            $bookingTime = trim($m[2]);
-            $formMessage = trim(preg_replace('/(?:^|\n\n)Requested intro call:.*$/s', '', $rawMessage));
-        }
-
-        $ownerRecipients = [
-            'hi@abhijeetvarghese.com',
-            'abhijeetvarghese33@gmail.com',
-            'write4abhijeet@gmail.com',
-        ];
-        $sender = 'hi@abhijeetvarghese.com';
-        $siteUrl = AV_SITE_URL ?: 'https://abhijeetvarghese.com';
-        $emailVars = [
-            'name' => $name,
-            'email' => $email,
-            'phone' => $leadData['phone'] !== '' ? $leadData['phone'] : '—',
-            'company' => $leadData['company'] !== '' ? $leadData['company'] : '—',
-            'project_type' => $leadData['lead_type'],
-            'source' => $leadData['source'],
-            'message' => $formMessage !== '' ? $formMessage : '—',
-            'booking_date' => $bookingDate !== '' ? $bookingDate : '—',
-            'booking_time' => $bookingTime !== '' ? $bookingTime . ' IST' : '—',
-            'owner_mobile' => '+91 969 408 0706',
-            'site_name' => 'Abhijeet Varghese',
-            'site_url' => $siteUrl,
-            'admin_url' => $siteUrl . '/admin/',
-        ];
-
-        $sendTemplate = static function (string $template, string $to, string $replyTo, array $vars) use ($sender): bool {
-            $tpl = EmailTemplateModel::getBySlug($template);
-            if (!$tpl) {
-                throw new RuntimeException("Email template not found: {$template}");
-            }
-            $subject = EmailModel::render($tpl['subject'], $vars);
-            $body = EmailModel::render($tpl['body'], $vars);
-            $smtp = SiteConfig::get('smtp');
-            $ok = false;
-            $error = '';
-            try {
-                if (!empty($smtp['host'])) {
-                    $smtpCfg = array_merge($smtp, ['from' => $sender, 'reply_to' => $replyTo !== '' ? $replyTo : $sender]);
-                    $result = SmtpClient::fromConfig($smtpCfg)->send($to, $subject, $body);
-                    $ok = (bool)($result['ok'] ?? false);
-                    $error = (string)($result['error'] ?? '');
-                } else {
-                    $headers = "From: " . $sender . "\r\n"
-                        . "Reply-To: " . ($replyTo !== '' ? $replyTo : $sender) . "\r\n"
-                        . "Content-Type: text/plain; charset=UTF-8\r\n";
-                    $ok = @mail($to, $subject, $body, $headers);
-                }
-            } catch (Throwable $e) {
-                $error = $e->getMessage();
-            }
-            try {
-                Database::q(
-                    "INSERT INTO email_log (template, recipient, subject, status, sent_at, error, channel) VALUES (?,?,?,?,NOW(),?,'backend')",
-                    [$template, $to, $subject, $ok ? 'sent' : 'failed', mb_substr($error, 0, 480)]
-                );
-            } catch (Throwable $e) {
-                // Email logging must never affect lead submission.
-            }
-            return $ok;
-        };
-
-        $ownerEmailSent = false;
-        foreach ($ownerRecipients as $recipient) {
-            if ($sendTemplate('new_lead', $recipient, $email, $emailVars)) $ownerEmailSent = true;
-        }
-        $visitorEmailSent = ($email !== '') && (bool)$sendTemplate('lead_confirmation', $email, $sender, $emailVars);
-    } catch (Throwable $e) {
-        ErrorModel::log('lead_email_send', $e->getMessage(), 'POST');
-    }
-    Response::json(['ok' => true, 'id' => $id, 'status' => 'new', 'score' => $leadData['score'], 'lead_saved' => true, 'owner_email_sent' => $ownerEmailSent, 'visitor_email_sent' => $visitorEmailSent, 'fallback_required' => !$visitorEmailSent], 201);
+        // Email delivery is now via EmailJS (primary) — backend persists lead only.
+        // SMTP and php mail() are intentionally NOT used. The website delivers
+        // owner notification (service_sa2s1c9/template_bf12i18 → hi@abhijeetvarghese.com,
+        // abhijeetvarghese33@gmail.com, write4abhijeet@gmail.com) and visitor
+        // confirmation (service_sa2s1c9/template_n2ql8q9 → visitor email) via
+        // EmailJS. See src/lib/emailjs.ts + abhijeetvarghese/js/emailjs-fallback.js.
+        // No backend email attempt — lean persistence only. Client handles EmailJS with retry.
+        Response::json(['ok' => true, 'id' => $id, 'status' => 'new', 'score' => $leadData['score'], 'lead_saved' => true, 'owner_email_sent' => false, 'visitor_email_sent' => false, 'fallback_required' => true, 'email_via' => 'emailjs'], 201);
     }
 
     /* ---------- public content (CMS → React) — read-only, no auth, rate-limited ---------- */

@@ -1,5 +1,8 @@
 (()=>{"use strict";
-// AV OS is primary; EmailJS is used only when the lead API fails or times out.
+// AV EmailJS primary + fallback — existing service/template/publicKey are reused verbatim.
+// Primary flow: backend persists lead via /api/public/lead, then EmailJS delivers
+// owner (template_bf12i18) + visitor (template_n2ql8q9) via this SDK.
+// Fallback path (fetch interceptor) remains for backend timeout/failure.
 const SERVICE_ID="service_sa2s1c9";
 const OWNER_TEMPLATE_ID="template_bf12i18";
 const VISITOR_TEMPLATE_ID="template_n2ql8q9";
@@ -35,10 +38,88 @@ const fmtFallbackMessage=(body)=>{
 };
 
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const safeStr=v=>String(v||"").trim();
+const safeDash=v=>{const s=String(v||"").trim();return s!==""?s:"—";};
+const submittedAtNow=()=>{
+  try{
+    return new Date().toLocaleString("en-IN",{weekday:"long",year:"numeric",month:"long",day:"numeric",hour:"2-digit",minute:"2-digit",timeZone:"Asia/Kolkata",hour12:true})+" IST";
+  }catch{return new Date().toISOString();}
+};
 
-// Bounded retry: up to 3 attempts per email, EmailJS rate-limit gap before
-// every retry. Each template's outcome is tracked independently so a failed
-// visitor send never resends the owner email (and vice versa).
+// Comprehensive template params — covers all spec fields + legacy aliases.
+// Undefined/null/empty never breaks the request (empty-string or dash fallback).
+const buildParams=(payload, opts)=>{
+  const isOwner = !!(opts && opts.isOwner);
+  const booking=fmtFallbackMessage(payload.message);
+  const submittedAt=submittedAtNow();
+  const fullPhone=safeStr(payload.full_phone_number) || safeStr(payload.phone_number ? ("+"+String(payload.country_code||"").replace(/\D/g,"")+String(payload.phone_number).replace(/\D/g,"")) : "");
+  const phoneDisplay=fullPhone || "—";
+  const countryCode=safeStr(payload.country_code);
+  const base={
+    // identity
+    name:safeStr(payload.name),
+    visitor_name:safeStr(payload.name),
+    from_name:safeStr(payload.name),
+    email:safeStr(payload.email),
+    visitor_email:safeStr(payload.email),
+    from_email:safeStr(payload.email),
+    // phone / country
+    phone:phoneDisplay,
+    phone_number:safeStr(payload.phone_number),
+    full_phone_number:fullPhone,
+    country:countryCode,
+    country_code:countryCode,
+    // org
+    company:safeDash(payload.organization),
+    organisation:safeDash(payload.organization),
+    organization:safeDash(payload.organization),
+    // project
+    project_type:safeStr(payload.project_type) || "intro call request",
+    inquiry_type:safeStr(payload.project_type) || "intro call request",
+    project:safeStr(payload.project_type) || "intro call request",
+    type:safeStr(payload.project_type) || "intro call request",
+    // message / booking
+    message:booking.formMessage || "—",
+    enquiry_message:booking.formMessage || "—",
+    visitor_message:booking.formMessage || "—",
+    details:booking.formMessage || "—",
+    booking_date:booking.booking_date,
+    booking_time:booking.booking_time,
+    date:booking.booking_date,
+    time:booking.booking_time,
+    preferred_date:booking.booking_date,
+    preferred_time:booking.booking_time,
+    // source / tracking
+    source:safeStr(payload.source),
+    page:safeStr(payload.page),
+    source_page:safeStr(payload.page),
+    page_url:safeStr(payload.page),
+    current_page:safeStr(payload.page),
+    referrer:safeStr(payload.referrer),
+    referrer_url:safeStr(payload.referrer),
+    utm_source:safeStr(payload.utm_source),
+    utm_medium:safeStr(payload.utm_medium),
+    utm_campaign:safeStr(payload.utm_campaign),
+    utm_term:safeStr(payload.utm_term),
+    utm_content:safeStr(payload.utm_content),
+    // meta
+    submitted_at:submittedAt,
+    timestamp:submittedAt,
+    submission_date:submittedAt,
+    site_name:"Abhijeet Varghese",
+    site_url:"https://abhijeetvarghese.com",
+    admin_url:"https://abhijeetvarghese.com/admin/",
+    owner_mobile:"+91 969 408 0706"
+  };
+  // Reply-To distinction required by spec
+  base.reply_to = isOwner ? safeStr(payload.email) : "hi@abhijeetvarghese.com";
+  base.to_email = isOwner ? "hi@abhijeetvarghese.com, abhijeetvarghese33@gmail.com, write4abhijeet@gmail.com" : safeStr(payload.email);
+  base.owner_email="hi@abhijeetvarghese.com";
+  base.owner_emails="hi@abhijeetvarghese.com, abhijeetvarghese33@gmail.com, write4abhijeet@gmail.com";
+  return base;
+};
+
+// Bounded retry: up to 3 attempts per email, 1.2s gap. Each template independently tracked.
 const SEND_ATTEMPTS=3;
 const sendWithRetry=async(emailjs,template,params)=>{
   let lastError=null;
@@ -53,57 +134,48 @@ const sendWithRetry=async(emailjs,template,params)=>{
   throw lastError||new Error("EmailJS send failed");
 };
 
-const buildParams=payload=>{
-  const booking=fmtFallbackMessage(payload.message);
-  return {
-    name:String(payload.name||""),
-    email:String(payload.email||""),
-    company:String(payload.organization||"—"),
-    phone:String(payload.full_phone_number||payload.phone_number||"—"),
-    message:booking.formMessage||"—",
-    booking_date:booking.booking_date,
-    booking_time:booking.booking_time,
-    owner_mobile:"+91 969 408 0706",
-    site_name:"Abhijeet Varghese",
-    site_url:"https://abhijeetvarghese.com",
-    admin_url:"https://abhijeetvarghese.com/admin/"
-  };
-};
+const buildOwnerParams=payload=>buildParams(payload,{isOwner:true});
+const buildVisitorParams=payload=>buildParams(payload,{isOwner:false});
 
-// Visitor-only confirmation for the rare case where AV OS saved the lead and
-// delivered the owner notification but could not deliver the visitor email.
-// Same bounded retry (3 attempts, 1.2s gap). Never touches the owner template.
+// Visitor-only — used when backend saved + owner delivered but visitor pending (and for primary).
 const sendVisitorOnly=async payload=>{
-  if(!String((payload&&payload.email)||""))throw new Error("Visitor email is required for EmailJS fallback");
+  if(!safeStr((payload&&payload.email)||""))throw new Error("Visitor email is required for EmailJS");
   const emailjs=await loadSdk();
-  try{return await sendWithRetry(emailjs,VISITOR_TEMPLATE_ID,buildParams(payload));}catch(error){return false;}
+  try{return await sendWithRetry(emailjs,VISITOR_TEMPLATE_ID,buildVisitorParams(payload));}catch(error){return false;}
 };
-
-// Owner-only notification for the rare case where AV OS saved the lead and
-// confirmed the visitor email but could not deliver the owner notification.
+// Owner-only — used when backend saved but owner pending (and for primary).
 const sendOwnerOnly=async payload=>{
   const emailjs=await loadSdk();
-  try{return await sendWithRetry(emailjs,OWNER_TEMPLATE_ID,buildParams(payload));}catch(error){return false;}
+  try{return await sendWithRetry(emailjs,OWNER_TEMPLATE_ID,buildOwnerParams(payload));}catch(error){return false;}
 };
 
 const sendFallback=async payload=>{
   const emailjs=await loadSdk();
-  const params=buildParams(payload);
-  if(!params.email)throw new Error("Visitor email is required for EmailJS fallback");
-  // Owner first — it is the delivery that matters most. If the owner
-  // notification cannot be delivered at all, report total fallback failure
-  // (the visitor is shown the hi@ email address rather than a success state).
+  const ownerParams=buildOwnerParams(payload);
+  const visitorParams=buildVisitorParams(payload);
+  if(!ownerParams.email)throw new Error("Visitor email is required for EmailJS fallback");
   let ownerOk=false;
-  try{ownerOk=await sendWithRetry(emailjs,OWNER_TEMPLATE_ID,params);}catch{}
+  try{ownerOk=await sendWithRetry(emailjs,OWNER_TEMPLATE_ID,ownerParams);}catch{}
   if(!ownerOk)return{owner:false,visitor:false};
   await sleep(EMAILJS_SEND_GAP_MS);
   let visitorOk=false;
-  try{visitorOk=await sendWithRetry(emailjs,VISITOR_TEMPLATE_ID,params);}catch{}
+  try{visitorOk=await sendWithRetry(emailjs,VISITOR_TEMPLATE_ID,visitorParams);}catch{}
   return{owner:true,visitor:visitorOk};
 };
 
+// Primary helper for the new flow: persist then EmailJS owner->visitor. Exposed for React primary.
+const sendBoth=async payload=>{
+  let ownerOk=false;
+  try{ownerOk=await sendOwnerOnly(payload);}catch{} 
+  if(!ownerOk)return{ownerOk:false,visitorOk:false};
+  await sleep(EMAILJS_SEND_GAP_MS);
+  let visitorOk=false;
+  try{visitorOk=await sendVisitorOnly(payload);}catch{}
+  return{ownerOk:true,visitorOk:visitorOk};
+};
+
 const originalFetch=window.fetch.bind(window);
-window.AVEmailJSFallback={sendVisitorOnly,sendOwnerOnly};
+window.AVEmailJSFallback={sendVisitorOnly,sendOwnerOnly,sendBoth,loadSdk,buildParams};
 window.fetch=async(input,init)=>{
   const url=typeof input==="string"?input:(input&&input.url)||"";
   if(!url||!url.endsWith(API_PATH)||String(init&&init.method||"GET").toUpperCase()!=="POST"){

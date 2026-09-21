@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { AV_COUNTRIES } from '../data/countries';
 import type { LeadPayload } from '../types';
+import { sendBothEmails } from '../lib/emailjs';
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -25,44 +26,41 @@ function shortDate(date: Date): string {
   return date.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
-async function submitLead(payload: LeadPayload): Promise<{ saved: boolean; fallback: boolean }> {
+function safeLog(email: string): string {
+  if (!email) return 'unknown';
+  return email.replace(/(.{2}).+(@.+)/, '$1***$2');
+}
+
+/**
+ * Primary EmailJS delivery: backend persists lead via /api/public/lead, then
+ * EmailJS delivers owner + visitor emails. No SMTP dependency.
+ * Returns saved + ownerOk/visitorOk so the UI only shows success when
+ * the required owner email has been delivered.
+ */
+async function submitLead(payload: LeadPayload): Promise<{ saved: boolean; ownerOk: boolean; visitorOk: boolean }> {
   try {
     const response = await fetch('/api/public/lead', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    if (!response.ok) return { saved: false, fallback: false };
-
-    let body: Record<string, unknown> | null = null;
+    if (!response.ok) return { saved: false, ownerOk: false, visitorOk: false };
+    let body: unknown = null;
     try {
-      const parsed: unknown = await response.json();
-      if (parsed && typeof parsed === 'object') body = parsed as Record<string, unknown>;
-    } catch {
-      // A successful save is enough even if the body is empty/non-JSON.
+      const parsed: unknown = await response.clone().json();
+      body = parsed;
+    } catch { void 0; }
+    const data = (body && typeof body === 'object' && (body as Record<string, unknown>).data && typeof (body as Record<string, unknown>).data === 'object' ? (body as Record<string, unknown>).data : body) as Record<string, unknown> | null;
+    if (data && data.fallback === 'emailjs') {
+      const visitorOk = data.degraded !== 'visitor';
+      return { saved: true, ownerOk: true, visitorOk };
     }
-    const data = (body?.data && typeof body.data === 'object' ? body.data : body) as Record<string, unknown> | null;
-    let fallback = data?.fallback === 'emailjs';
-
-    if (data?.fallback_required === true && data.visitor_email_sent === false) {
-      fallback = true;
-      try {
-        await window.AVEmailJSFallback?.sendVisitorOnly?.(payload);
-      } catch {
-        // The request is saved; the optional fallback cannot invalidate it.
-      }
-    }
-    if (data?.owner_email_sent === false) {
-      try {
-        await window.AVEmailJSFallback?.sendOwnerOnly?.(payload);
-      } catch {
-        // See note above.
-      }
-    }
-    return { saved: true, fallback };
-  } catch {
-    return { saved: false, fallback: false };
-  }
+    // Lead persisted — EmailJS is now responsible for actual delivery.
+    try {
+      const { ownerOk, visitorOk } = await sendBothEmails(payload);
+      return { saved: true, ownerOk, visitorOk };
+    } catch { void 0; return { saved: true, ownerOk: false, visitorOk: false }; }
+  } catch { void 0; return { saved: false, ownerOk: false, visitorOk: false }; }
 }
 
 /**
@@ -448,16 +446,34 @@ export function useBooking(): void {
           note.textContent = "I couldn't save the request just now. Please email hi@abhijeetvarghese.com.";
           note.classList.remove('is-set');
         }
+        try {
+          console.warn('[Booking] lead not saved', safeLog(payload.email));
+        } catch { void 0; }
+        return;
+      }
+      if (!result.ownerOk) {
+        if (note) {
+          note.textContent = "Your details were saved, but email delivery is pending. Please email hi@abhijeetvarghese.com directly and I'll confirm within 24 hours.";
+          note.classList.remove('is-set');
+        }
+        try {
+          console.warn('[Booking] owner EmailJS failed — lead retained', safeLog(payload.email));
+        } catch { void 0; }
         return;
       }
       if (note) {
-        note.textContent = result.fallback
-          ? 'Request received — a confirmation email is on its way.'
-          : 'Request saved — no external calendar opened.';
+        note.textContent = result.visitorOk
+          ? 'Request received — confirmation email sent.'
+          : 'Request received — you will receive a confirmation shortly. I will confirm the time by email within 24 hours.';
         note.classList.add('is-set');
       }
+      if (!result.visitorOk) {
+        try {
+          console.warn('[Booking] visitor EmailJS failed — owner was notified, lead retained', safeLog(payload.email));
+        } catch { void 0; }
+      }
       if (doneSummary && selectedDate && selectedSlot) {
-        doneSummary.textContent = `Thanks${values.name ? `,${values.name}` : ''}. Your request for ${longDate(selectedDate)} at ${selectedSlot} IST ${result.fallback ? 'has been received' : 'is saved'}.`;
+        doneSummary.textContent = `Thanks${values.name ? `, ${values.name}` : ''}. Your request for ${longDate(selectedDate)} at ${selectedSlot} IST has been received.`;
       }
       if (doneMail) {
         doneMail.href = buildMailto(values);
