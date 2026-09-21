@@ -16,6 +16,20 @@ const bpclEntry = resolve(projectRoot, 'case-studies/bharat-petroleum-corporatio
 const indianArmyEntry = resolve(projectRoot, 'case-studies/indian-army/index.html');
 const portfolioEntry = resolve(projectRoot, 'portfolio/index.html');
 const contactEntry = resolve(projectRoot, 'contact/index.html');
+const insightsHubEntry = resolve(projectRoot, 'insights/index.html');
+const insightsTechEntry = resolve(projectRoot, 'insights/technology-should-feel-human/index.html');
+const insightsAiEntry = resolve(projectRoot, 'insights/ai-isnt-replacing-creativity/index.html');
+const insightsDesignEntry = resolve(projectRoot, 'insights/designing-experiences-people-remember/index.html');
+const insightsEnterpriseEntry = resolve(projectRoot, 'insights/why-enterprise-experiences-fail/index.html');
+const consultingEntry = resolve(projectRoot, 'consulting/index.html');
+const recruiterEntry = resolve(projectRoot, 'recruiter/index.html');
+const journalEntry = resolve(projectRoot, 'journal/index.html');
+const journalAiEntry = resolve(projectRoot, 'journal-what-a-year-of-ai-enabled-production-taught-me/index.html');
+const journalExpEntry = resolve(projectRoot, 'journal-the-experience-centre-as-a-strategic-instrument/index.html');
+const privacyEntry = resolve(projectRoot, 'privacy-policy/index.html');
+const termsEntry = resolve(projectRoot, 'terms/index.html');
+const sitemapEntry = resolve(projectRoot, 'sitemap/index.html');
+const searchEntry = resolve(projectRoot, 'search/index.html');
 
 const mimeTypes: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -76,6 +90,59 @@ function attachLegacyRoutes(server: LegacyServer): void {
       '/start-a-conversation': '/contact/',
       '/start-a-conversation.html': '/contact/',
       '/start-a-conversation/index.html': '/contact/',
+      '/insights': '/insights/',
+      '/insights.html': '/insights/',
+      '/insights/index.html': '/insights/',
+      '/insights/technology-should-feel-human': '/insights/technology-should-feel-human/',
+      '/insights/technology-should-feel-human.html': '/insights/technology-should-feel-human/',
+      '/insights/technology-should-feel-human/index.html': '/insights/technology-should-feel-human/',
+      '/essay-technology-should-feel-human': '/insights/technology-should-feel-human/',
+      '/essay-technology-should-feel-human.html': '/insights/technology-should-feel-human/',
+      '/insights/ai-isnt-replacing-creativity': '/insights/ai-isnt-replacing-creativity/',
+      '/insights/ai-isnt-replacing-creativity.html': '/insights/ai-isnt-replacing-creativity/',
+      '/insights/ai-isnt-replacing-creativity/index.html': '/insights/ai-isnt-replacing-creativity/',
+      '/essay-ai-isnt-replacing-creativity': '/insights/ai-isnt-replacing-creativity/',
+      '/essay-ai-isnt-replacing-creativity.html': '/insights/ai-isnt-replacing-creativity/',
+      '/insights/designing-experiences-people-remember': '/insights/designing-experiences-people-remember/',
+      '/insights/designing-experiences-people-remember.html': '/insights/designing-experiences-people-remember/',
+      '/insights/designing-experiences-people-remember/index.html': '/insights/designing-experiences-people-remember/',
+      '/essay-designing-experiences-people-remember': '/insights/designing-experiences-people-remember/',
+      '/essay-designing-experiences-people-remember.html': '/insights/designing-experiences-people-remember/',
+      '/insights/why-enterprise-experiences-fail': '/insights/why-enterprise-experiences-fail/',
+      '/insights/why-enterprise-experiences-fail.html': '/insights/why-enterprise-experiences-fail/',
+      '/insights/why-enterprise-experiences-fail/index.html': '/insights/why-enterprise-experiences-fail/',
+      '/essay-why-enterprise-experiences-fail': '/insights/why-enterprise-experiences-fail/',
+      '/essay-why-enterprise-experiences-fail.html': '/insights/why-enterprise-experiences-fail/',
+      '/consulting': '/consulting/',
+      '/consulting.html': '/consulting/',
+      '/consulting/index.html': '/consulting/',
+      '/recruiter': '/recruiter/',
+      '/recruiter.html': '/recruiter/',
+      '/recruiter/index.html': '/recruiter/',
+      '/recruitment': '/recruiter/',
+      '/for-recruiters': '/recruiter/',
+      '/for-recruiters.html': '/recruiter/',
+      '/journal': '/journal/',
+      '/journal.html': '/journal/',
+      '/journal/index.html': '/journal/',
+      '/journal-what-a-year-of-ai-enabled-production-taught-me': '/journal-what-a-year-of-ai-enabled-production-taught-me/',
+      '/journal-what-a-year-of-ai-enabled-production-taught-me.html': '/journal-what-a-year-of-ai-enabled-production-taught-me/',
+      '/journal-what-a-year-of-ai-enabled-production-taught-me/index.html': '/journal-what-a-year-of-ai-enabled-production-taught-me/',
+      '/journal-the-experience-centre-as-a-strategic-instrument': '/journal-the-experience-centre-as-a-strategic-instrument/',
+      '/journal-the-experience-centre-as-a-strategic-instrument.html': '/journal-the-experience-centre-as-a-strategic-instrument/',
+      '/journal-the-experience-centre-as-a-strategic-instrument/index.html': '/journal-the-experience-centre-as-a-strategic-instrument/',
+      '/privacy-policy': '/privacy-policy/',
+      '/privacy-policy.html': '/privacy-policy/',
+      '/privacy-policy/index.html': '/privacy-policy/',
+      '/terms': '/terms/',
+      '/terms.html': '/terms/',
+      '/terms/index.html': '/terms/',
+      '/sitemap': '/sitemap/',
+      '/sitemap.html': '/sitemap/',
+      '/sitemap/index.html': '/sitemap/',
+      '/search': '/search/',
+      '/search.html': '/search/',
+      '/search/index.html': '/search/',
     };
     const canonicalRoute = reactRouteAliases[pathname];
     if (canonicalRoute) {
@@ -84,7 +151,7 @@ function attachLegacyRoutes(server: LegacyServer): void {
       response.end();
       return;
     }
-    if (pathname === '/story/' || pathname === '/experience/' || pathname === '/case-studies/' || pathname === '/case-studies/orange-business/' || pathname === '/case-studies/bharat-petroleum-corporation-limited/' || pathname === '/case-studies/indian-army/' || pathname === '/portfolio/' || pathname === '/contact/') {
+    if (pathname === '/story/' || pathname === '/experience/' || pathname === '/case-studies/' || pathname === '/case-studies/orange-business/' || pathname === '/case-studies/bharat-petroleum-corporation-limited/' || pathname === '/case-studies/indian-army/' || pathname === '/portfolio/' || pathname === '/contact/' || pathname === '/insights/' || pathname === '/insights/technology-should-feel-human/' || pathname === '/insights/ai-isnt-replacing-creativity/' || pathname === '/insights/designing-experiences-people-remember/' || pathname === '/insights/why-enterprise-experiences-fail/' || pathname === '/consulting/' || pathname === '/recruiter/' || pathname === '/journal/' || pathname === '/journal-what-a-year-of-ai-enabled-production-taught-me/' || pathname === '/journal-the-experience-centre-as-a-strategic-instrument/' || pathname === '/privacy-policy/' || pathname === '/terms/' || pathname === '/sitemap/' || pathname === '/search/') {
       next();
       return;
     }
@@ -184,6 +251,20 @@ export default defineConfig({
         indianArmy: indianArmyEntry,
         portfolio: portfolioEntry,
         contact: contactEntry,
+        insightsHub: insightsHubEntry,
+        insightsTech: insightsTechEntry,
+        insightsAi: insightsAiEntry,
+        insightsDesign: insightsDesignEntry,
+        insightsEnterprise: insightsEnterpriseEntry,
+        consulting: consultingEntry,
+        recruiter: recruiterEntry,
+        journal: journalEntry,
+        journalAi: journalAiEntry,
+        journalExp: journalExpEntry,
+        privacy: privacyEntry,
+        terms: termsEntry,
+        sitemap: sitemapEntry,
+        search: searchEntry,
       },
       output: {
         manualChunks: {

@@ -27,9 +27,37 @@ const nonHomepageEntries = new Set([
   'src/portfolio-main.tsx',
   'src/ContactApp.tsx',
   'src/contact-main.tsx',
+  'src/InsightsHubApp.tsx',
+  'src/insightsHub-main.tsx',
+  'src/InsightsTechnologyApp.tsx',
+  'src/insightsTech-main.tsx',
+  'src/InsightsAiApp.tsx',
+  'src/insightsAi-main.tsx',
+  'src/InsightsDesignApp.tsx',
+  'src/insightsDesign-main.tsx',
+  'src/InsightsEnterpriseApp.tsx',
+  'src/insightsEnterprise-main.tsx',
+  'src/ConsultingApp.tsx',
+  'src/consulting-main.tsx',
+  'src/RecruiterApp.tsx',
+  'src/recruiter-main.tsx',
+  'src/JournalApp.tsx',
+  'src/journal-main.tsx',
+  'src/JournalAiApp.tsx',
+  'src/journalAi-main.tsx',
+  'src/JournalExpApp.tsx',
+  'src/journalExp-main.tsx',
+  'src/PrivacyApp.tsx',
+  'src/privacy-main.tsx',
+  'src/TermsApp.tsx',
+  'src/terms-main.tsx',
+  'src/SitemapApp.tsx',
+  'src/sitemap-main.tsx',
+  'src/SearchApp.tsx',
+  'src/search-main.tsx',
 ]);
 const homepageComponentSource = sourceFiles
-  .filter((file) => file.endsWith('.tsx') && !file.startsWith('src/sections/story/') && !file.startsWith('src/sections/experience/') && !file.startsWith('src/sections/case-studies/') && !file.startsWith('src/sections/portfolio/') && !file.startsWith('src/sections/contact/') && !nonHomepageEntries.has(file))
+  .filter((file) => file.endsWith('.tsx') && !file.startsWith('src/sections/story/') && !file.startsWith('src/sections/experience/') && !file.startsWith('src/sections/case-studies/') && !file.startsWith('src/sections/portfolio/') && !file.startsWith('src/sections/contact/') && !file.startsWith('src/sections/insightsHub/') && !file.startsWith('src/sections/insightsTech/') && !file.startsWith('src/sections/insightsAi/') && !file.startsWith('src/sections/insightsDesign/') && !file.startsWith('src/sections/insightsEnterprise/') && !file.startsWith('src/sections/consulting/') && !file.startsWith('src/sections/recruiter/') && !file.startsWith('src/sections/journal/') && !file.startsWith('src/sections/journalAi/') && !file.startsWith('src/sections/journalExp/') && !file.startsWith('src/sections/privacy/') && !file.startsWith('src/sections/terms/') && !file.startsWith('src/sections/sitemap/') && !file.startsWith('src/sections/search/') && !nonHomepageEntries.has(file))
   .map((file) => read(file))
   .join('\n');
 const completeSource = `${sourceFiles.map((file) => read(file)).join('\n')}\n${read('index.html')}`;
