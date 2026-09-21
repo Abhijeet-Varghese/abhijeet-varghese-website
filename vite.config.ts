@@ -14,6 +14,8 @@ const caseStudiesEntry = resolve(projectRoot, 'case-studies/index.html');
 const orangeBusinessEntry = resolve(projectRoot, 'case-studies/orange-business/index.html');
 const bpclEntry = resolve(projectRoot, 'case-studies/bharat-petroleum-corporation-limited/index.html');
 const indianArmyEntry = resolve(projectRoot, 'case-studies/indian-army/index.html');
+const portfolioEntry = resolve(projectRoot, 'portfolio/index.html');
+const contactEntry = resolve(projectRoot, 'contact/index.html');
 
 const mimeTypes: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -65,6 +67,15 @@ function attachLegacyRoutes(server: LegacyServer): void {
       '/case-studies/indian-army': '/case-studies/indian-army/',
       '/case-studies/indian-army.html': '/case-studies/indian-army/',
       '/case-studies/indian-army/index.html': '/case-studies/indian-army/',
+      '/portfolio': '/portfolio/',
+      '/portfolio.html': '/portfolio/',
+      '/portfolio/index.html': '/portfolio/',
+      '/contact': '/contact/',
+      '/contact.html': '/contact/',
+      '/contact/index.html': '/contact/',
+      '/start-a-conversation': '/contact/',
+      '/start-a-conversation.html': '/contact/',
+      '/start-a-conversation/index.html': '/contact/',
     };
     const canonicalRoute = reactRouteAliases[pathname];
     if (canonicalRoute) {
@@ -73,7 +84,7 @@ function attachLegacyRoutes(server: LegacyServer): void {
       response.end();
       return;
     }
-    if (pathname === '/story/' || pathname === '/experience/' || pathname === '/case-studies/' || pathname === '/case-studies/orange-business/' || pathname === '/case-studies/bharat-petroleum-corporation-limited/' || pathname === '/case-studies/indian-army/') {
+    if (pathname === '/story/' || pathname === '/experience/' || pathname === '/case-studies/' || pathname === '/case-studies/orange-business/' || pathname === '/case-studies/bharat-petroleum-corporation-limited/' || pathname === '/case-studies/indian-army/' || pathname === '/portfolio/' || pathname === '/contact/') {
       next();
       return;
     }
@@ -171,6 +182,8 @@ export default defineConfig({
         orangeBusiness: orangeBusinessEntry,
         bpcl: bpclEntry,
         indianArmy: indianArmyEntry,
+        portfolio: portfolioEntry,
+        contact: contactEntry,
       },
       output: {
         manualChunks: {

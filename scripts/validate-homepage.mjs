@@ -23,9 +23,13 @@ const nonHomepageEntries = new Set([
   'src/experience-main.tsx',
   'src/CaseStudiesApp.tsx',
   'src/case-studies-main.tsx',
+  'src/PortfolioApp.tsx',
+  'src/portfolio-main.tsx',
+  'src/ContactApp.tsx',
+  'src/contact-main.tsx',
 ]);
 const homepageComponentSource = sourceFiles
-  .filter((file) => file.endsWith('.tsx') && !file.startsWith('src/sections/story/') && !file.startsWith('src/sections/experience/') && !file.startsWith('src/sections/case-studies/') && !nonHomepageEntries.has(file))
+  .filter((file) => file.endsWith('.tsx') && !file.startsWith('src/sections/story/') && !file.startsWith('src/sections/experience/') && !file.startsWith('src/sections/case-studies/') && !file.startsWith('src/sections/portfolio/') && !file.startsWith('src/sections/contact/') && !nonHomepageEntries.has(file))
   .map((file) => read(file))
   .join('\n');
 const completeSource = `${sourceFiles.map((file) => read(file)).join('\n')}\n${read('index.html')}`;

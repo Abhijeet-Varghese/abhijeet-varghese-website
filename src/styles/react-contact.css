@@ -1,0 +1,136 @@
+/* Contact / Start a Conversation — React mobile + tablet intentional (≤900) — desktop preserved */
+
+.contact-page {
+  overflow-x: clip;
+}
+
+@media (max-width: 900px) {
+  .contact-page .container,
+  .contact-page .page-hero .container,
+  .contact-page .contact__grid {
+    width: min(100% - 32px, 680px);
+    margin-inline: auto;
+  }
+
+  .page-hero {
+    padding: 96px 0 32px;
+  }
+
+  .page-hero__title {
+    font-size: clamp(1.9rem, 8vw, 2.8rem);
+    line-height: 1;
+  }
+
+  .contact__grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .contact__intro {
+    order: 2;
+  }
+
+  .book {
+    order: 1;
+  }
+
+  .contact__micro {
+    gap: 16px;
+  }
+
+  .cf-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .cf input,
+  .cf textarea,
+  .cf select,
+  .cf .date-trigger,
+  .cf .cf-cc {
+    min-height: 48px;
+    font-size: 16px; /* prevent iOS zoom */
+  }
+
+  .cf textarea {
+    min-height: 96px;
+  }
+
+  .pick__grid,
+  .datepick__grid {
+    gap: 6px;
+  }
+
+  .cf .btn,
+  .book__submit,
+  .cf button[type="submit"] {
+    min-height: 48px;
+    touch-action: manipulation;
+  }
+
+  .date-pop,
+  .cf-cc-pop {
+    width: 100%;
+    left: 0;
+    right: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .contact-page .container {
+    width: min(100% - 24px, 540px);
+  }
+
+  .page-hero {
+    padding-top: 84px;
+  }
+
+  .page-hero__title {
+    font-size: clamp(1.7rem, 7vw, 2.4rem);
+  }
+
+  .contact__micro {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .contact-page .container,
+  .contact-page .page-hero .container {
+    width: min(100% - 20px, 100%);
+  }
+
+  .page-hero {
+    padding-top: 78px;
+  }
+
+  .contact__social .social-row {
+    gap: 8px;
+  }
+
+  .social-chip {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 360px) {
+  .contact-page {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (min-width: 701px) and (max-width: 900px) {
+  .contact-page .container {
+    width: min(100% - 40px, 760px);
+  }
+
+  .cf-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .contact__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

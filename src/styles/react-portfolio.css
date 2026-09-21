@@ -1,0 +1,137 @@
+/* Portfolio — React mobile + tablet intentional (≤900) — desktop 901+ preserved */
+
+.pf {
+  overflow-x: clip;
+}
+
+@media (max-width: 900px) {
+  .pf-wrap {
+    width: min(100% - 32px, 680px);
+  }
+
+  .pf-overture {
+    min-height: auto;
+    padding: 96px 0 32px;
+  }
+
+  .pf-overture__top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .pf-display {
+    font-size: clamp(2.4rem, 10vw, 3.8rem);
+    line-height: 0.9;
+  }
+
+  .pf-overture__title .pf-suffix {
+    margin-left: 0;
+    font-size: clamp(1.4rem, 6vw, 2.2rem);
+  }
+
+  .pf-overture__foot {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .pf-lede {
+    max-width: none;
+    font-size: 1rem;
+  }
+
+  .pf-film__frame {
+    border-width: 8px;
+  }
+
+  .pf-film__stage {
+    aspect-ratio: 16 / 9;
+  }
+
+  .pf-context__grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .pf-credits {
+    grid-template-columns: 1fr;
+  }
+
+  .portfolio-practice ol {
+    grid-template-columns: 1fr;
+  }
+
+  .pf-proofwrap .r-proof__rail {
+    gap: 24px;
+  }
+
+  .pf-proofwrap .r-proof__panel {
+    flex-basis: 88vw;
+  }
+
+  .pf-soon__panel {
+    padding: 24px;
+  }
+
+  .pf-soon__kinds {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 700px) {
+  .pf-wrap {
+    width: min(100% - 24px, 540px);
+  }
+
+  .pf-display {
+    font-size: clamp(2rem, 9vw, 3rem);
+  }
+
+  .pf-film__frame {
+    border-width: 6px;
+  }
+
+  .r-proof__panel {
+    flex-basis: 90vw;
+  }
+}
+
+@media (max-width: 480px) {
+  .pf-wrap {
+    width: min(100% - 20px, 100%);
+  }
+
+  .pf-overture {
+    padding-top: 84px;
+  }
+
+  .pf-display {
+    font-size: clamp(1.9rem, 8vw, 2.6rem);
+  }
+
+  .pf-proofwrap .r-proof__panel {
+    flex-basis: 92vw;
+  }
+}
+
+@media (max-width: 360px) {
+  .pf {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (min-width: 701px) and (max-width: 900px) {
+  .pf-wrap {
+    width: min(100% - 40px, 760px);
+  }
+
+  .portfolio-practice ol {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .pf-proofwrap .r-proof__panel {
+    flex-basis: 72vw;
+  }
+}
