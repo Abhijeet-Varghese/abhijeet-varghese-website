@@ -51,6 +51,9 @@ final class ApiController
                 $action === 'auth' && $a === '2fa' && $b === 'disable' && $method === 'POST' => self::requireAuth('settings.write', fn() => self::auth2faDisable()),
                 $action === 'auth' && $a === '2fa' && $b === 'status' && $method === 'GET' => self::requireAuth('settings.read', fn() => self::auth2faStatus()),
                 $action === 'session' && $method === 'GET' => self::session(),
+                $action === 'public' && $a === 'content' && $method === 'GET' && $b === '' => self::publicContent(),
+                $action === 'public' && $a === 'content' && $method === 'GET' && $b !== '' => self::publicContentByKey($b),
+                $action === 'public' && $a === 'site' && $method === 'GET' => self::publicSite(),
                 $action === 'public' && $a === 'lead' && $method === 'POST' => self::publicLead(),
 
                 // ---------- ADMIN ----------
@@ -525,6 +528,39 @@ final class ApiController
         ErrorModel::log('lead_email_send', $e->getMessage(), 'POST');
     }
     Response::json(['ok' => true, 'id' => $id, 'status' => 'new', 'score' => $leadData['score'], 'lead_saved' => true, 'owner_email_sent' => $ownerEmailSent, 'visitor_email_sent' => $visitorEmailSent, 'fallback_required' => !$visitorEmailSent], 201);
+    }
+
+    /* ---------- public content (CMS → React) — read-only, no auth, rate-limited ---------- */
+    private const PUBLIC_CONTENT_KEYS = ['settings','nav','pages','projects','articles','seo','sections','clients','media'];
+    private static function publicContent(): void
+    {
+        self::rateLimit(Auth::ip(), 'submit');
+        $keys = self::PUBLIC_CONTENT_KEYS;
+        $doc = [];
+        foreach ($keys as $k) {
+            try { $doc[$k] = ContentStore::get($k); } catch (Throwable $e) { $doc[$k] = []; }
+        }
+        // ETag / cache headers for CDN / browser — 60s public
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: public, max-age=60, s-maxage=120');
+        header('X-Content-Source: cms');
+        Response::json(['ok' => true, 'source' => 'cms', 'keys' => $keys, 'data' => $doc]);
+    }
+    private static function publicContentByKey(string $key): void
+    {
+        self::rateLimit(Auth::ip(), 'submit');
+        if (!in_array($key, self::PUBLIC_CONTENT_KEYS, true)) Response::error('Unknown content key', 404, 'NOT_FOUND');
+        try { $data = ContentStore::get($key); } catch (Throwable $e) { $data = []; }
+        header('Cache-Control: public, max-age=60, s-maxage=120');
+        header('X-Content-Source: cms');
+        Response::json(['ok' => true, 'key' => $key, 'data' => $data]);
+    }
+    private static function publicSite(): void
+    {
+        self::rateLimit(Auth::ip(), 'submit');
+        $st = [];
+        try { $st = SiteSync::state(); } catch (Throwable $e) {}
+        Response::json(['ok' => true, 'site_url' => AV_SITE_URL, 'sync' => $st, 'version' => AV_VERSION]);
     }
 
     /**
