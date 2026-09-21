@@ -1,8 +1,11 @@
 import type { CSSProperties } from 'react';
+import { useCmsContent } from '../../hooks/useCmsContent';
+import { cmsMediaUrl } from '../../lib/cms';
+import type { CmsProject } from '../../lib/cms';
 
 const revealDelay = (value: string): CSSProperties => ({ '--d': value } as CSSProperties);
 
-const caseStudies = [
+const FALLBACK = [
   {
     id: 'cs-01',
     category: 'Telecom & Digital Services',
@@ -55,11 +58,37 @@ function ArrowIcon() {
   );
 }
 
-/** Legacy Case Studies listing, retained as one ordered, crawlable collection. */
+/** Legacy Case Studies listing — CMS projects override card media/title when available, layout unchanged. */
 export default function CaseStudiesContent() {
+  const { data: projData, source: projSource } = useCmsContent('projects', null);
+  const cmsProjects = projSource === 'cms' && Array.isArray(projData) ? (projData as CmsProject[]) : null;
+  const studies = (() => {
+    if (!cmsProjects?.length) return [...FALLBACK];
+    // map CMS projects to fallback shape, preserve fallback for missing fields
+    return FALLBACK.map((fb) => {
+      const slug = fb.href.replace('/case-studies/','').replace('/','');
+      const cms = cmsProjects.find((p) => p.slug === slug || p.id === fb.id || (p.client && fb.client.includes(p.client.split(' ')[0])));
+      if (!cms) return fb;
+      const img = cms.image ? cmsMediaUrl(cms.image) : fb.image;
+      const avif = img.includes('.webp') ? img.replace('.webp','.avif') : (cms.image ? cmsMediaUrl(cms.image) : fb.avif);
+      return {
+        ...fb,
+        client: cms.client || fb.client,
+        category: cms.industry || fb.category,
+        project: cms.cardTitle || cms.title || fb.project,
+        description: cms.summary || fb.description,
+        work: cms.services || fb.work,
+        image: img,
+        avif: avif,
+        alt: cms.imageAlt || fb.alt,
+      };
+    });
+  })();
+  const cmsActive = !!cmsProjects?.length;
+
   return (
     <>
-      <section className="page-hero" aria-label="Case Studies">
+      <section className="page-hero" aria-label="Case Studies" data-cms-source={cmsActive ? 'cms' : 'fallback'}>
         <div className="container">
           <div className="chapter__meta page-hero__meta" data-reveal="">
             <span className="chapter__num">03</span><span className="chapter__rule"></span><span className="chapter__tag">Case Studies</span>
@@ -80,7 +109,7 @@ export default function CaseStudiesContent() {
 
       <section className="cx" aria-label="Selected case studies">
         <div className="container">
-          {caseStudies.map((study) => (
+          {studies.map((study) => (
             <article className="cx-item" id={study.id} key={study.id}>
               <header className="cx-mark" data-reveal="">
                 <span className="cx-cat">{study.category}</span><i aria-hidden="true"></i>
@@ -89,7 +118,7 @@ export default function CaseStudiesContent() {
                 <span className="cx-par">
                   <picture>
                     <source type="image/avif" srcSet={study.avif} />
-                    <img src={study.image} alt={study.alt} width="1672" height="941" loading="lazy" decoding="async" />
+                    <img src={study.image} alt={study.alt} width="1672" height="941" loading="lazy" decoding="async" onError={(e: React.SyntheticEvent<HTMLImageElement>)=>{ const im=e.currentTarget; if(im.src!==study.image) im.src=study.image; }} />
                   </picture>
                 </span>
               </a>

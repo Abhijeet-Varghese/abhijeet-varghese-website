@@ -9,6 +9,7 @@ import { useMobileChrome } from './hooks/useMobileChrome';
 import { usePageMotion } from './hooks/usePageMotion';
 import { useReveal } from './hooks/useReveal';
 import { useServiceWorker } from './hooks/useServiceWorker';
+import { useCmsSeo } from './hooks/useCmsSeo';
 import ExperienceContent from './sections/experience/ExperienceContent';
 
 function CloseIcon() {
@@ -30,6 +31,7 @@ export default function ExperienceApp() {
   useHistoryClose();
   useAnalytics();
   useServiceWorker();
+  useCmsSeo('/experience/', { title: 'Experience — Abhijeet Varghese' });
 
   return (
     <>

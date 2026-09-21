@@ -8,12 +8,14 @@ import { useMobileChrome } from './hooks/useMobileChrome';
 import { usePageMotion } from './hooks/usePageMotion';
 import { useReveal } from './hooks/useReveal';
 import { useServiceWorker } from './hooks/useServiceWorker';
+import { useCmsSeo } from './hooks/useCmsSeo';
 import { useStaticMotion } from './hooks/useStaticMotion';
 import PrivacyContent from './sections/privacy/PrivacyContent';
 
 function CloseIcon(){return <svg width="17" height="17" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="m3 3 12 12M15 3 3 15" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>}
 export default function PrivacyApp(){
-  useMenu(); useReveal(); usePageMotion(); useElevate(); useMobileChrome(); useHistoryClose(); useAnalytics(); useServiceWorker(); useStaticMotion();
+  useMenu(); useReveal(); usePageMotion(); useElevate(); useMobileChrome(); useHistoryClose(); useAnalytics(); useServiceWorker();
+  useCmsSeo('/privacy-policy/', { title: 'Privacy Policy — Abhijeet Varghese' }); useStaticMotion();
   return (
     <>
       <SiteChrome activePath="/privacy-policy/" />

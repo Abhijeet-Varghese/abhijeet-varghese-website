@@ -9,6 +9,7 @@ import { useOrangeBusinessMotion } from './hooks/useOrangeBusinessMotion';
 import { usePageMotion } from './hooks/usePageMotion';
 import { useReveal } from './hooks/useReveal';
 import { useServiceWorker } from './hooks/useServiceWorker';
+import { useCmsSeo } from './hooks/useCmsSeo';
 import OrangeBusinessContent from './sections/case-studies/OrangeBusinessContent';
 
 function CloseIcon() {
@@ -28,6 +29,7 @@ export default function OrangeBusinessApp() {
   useHistoryClose();
   useAnalytics();
   useServiceWorker();
+  useCmsSeo('/case-studies/orange-business/', { title: 'Orange Business — Abhijeet Varghese' });
   useOrangeBusinessMotion();
 
   return (

@@ -9,6 +9,7 @@ import { useMobileChrome } from './hooks/useMobileChrome';
 import { usePageMotion } from './hooks/usePageMotion';
 import { useReveal } from './hooks/useReveal';
 import { useServiceWorker } from './hooks/useServiceWorker';
+import { useCmsSeo } from './hooks/useCmsSeo';
 import IndianArmyContent from './sections/case-studies/IndianArmyContent';
 
 function CloseIcon() {
@@ -28,6 +29,7 @@ export default function IndianArmyApp() {
   useHistoryClose();
   useAnalytics();
   useServiceWorker();
+  useCmsSeo('/case-studies/indian-army/', { title: 'Indian Army — Abhijeet Varghese' });
   useIndianArmyMotion();
 
   return (

@@ -9,6 +9,7 @@ import { useMobileChrome } from './hooks/useMobileChrome';
 import { usePageMotion } from './hooks/usePageMotion';
 import { useReveal } from './hooks/useReveal';
 import { useServiceWorker } from './hooks/useServiceWorker';
+import { useCmsSeo } from './hooks/useCmsSeo';
 import ContactContent from './sections/contact/ContactContent';
 
 function CloseIcon() {
@@ -28,6 +29,7 @@ export default function ContactApp() {
   useHistoryClose();
   useAnalytics();
   useServiceWorker();
+  useCmsSeo('/contact/', { title: 'Start a Conversation — Abhijeet Varghese' });
   useContactMotion();
   return (
     <>

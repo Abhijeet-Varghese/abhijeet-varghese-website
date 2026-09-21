@@ -11,6 +11,7 @@ import PointOfView from './sections/home/PointOfView';
 import Trust from './sections/home/Trust';
 import { useAnalytics } from './hooks/useAnalytics';
 import { useBooking } from './hooks/useBooking';
+import { useCmsSeo } from './hooks/useCmsSeo';
 import { useElevate } from './hooks/useElevate';
 import { useHeroMotion } from './hooks/useHeroMotion';
 import { useLoader } from './hooks/useLoader';
@@ -37,6 +38,7 @@ export default function App() {
   useBooking();
   useAnalytics();
   useServiceWorker();
+  useCmsSeo('/', { title: 'Abhijeet Varghese — Experience Design & Innovation Leadership', description: 'Abhijeet Varghese is a multidisciplinary creative systems leader with 12+ years across experience design, enterprise innovation, immersive technology and AI-enabled creative production.' });
 
   return (
     <>

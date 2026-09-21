@@ -1,9 +1,13 @@
-const NAV_ITEMS = [
-  { label: "Story", href: "/story/" },
-  { label: "Experience", href: "/experience/" },
-  { label: "Case Studies", href: "/case-studies/" },
-  { label: "Portfolio", href: "/portfolio/" },
+import { useCmsContent } from '../hooks/useCmsContent';
+import type { CmsNav, CmsSettings } from '../lib/cms';
+
+const FALLBACK_NAV: CmsNav['primary'] = [
+  { id: 'n1', label: "Story", href: "/story/" },
+  { id: 'n2', label: "Experience", href: "/experience/" },
+  { id: 'n3', label: "Case Studies", href: "/case-studies/" },
+  { id: 'n4', label: "Portfolio", href: "/portfolio/" },
 ];
+const CTA_FALLBACK = { label: 'Start a conversation', href: '/contact/' };
 
 interface SiteChromeProps {
   /** Current clean path when this is not the homepage. */
@@ -11,18 +15,44 @@ interface SiteChromeProps {
 }
 
 export default function SiteChrome({ activePath }: SiteChromeProps) {
+  const { data: navData, source: navSource } = useCmsContent('nav', null);
+  const { data: settingsData } = useCmsContent('settings', null);
+
+  const cmsNav = (navSource === 'cms' && navData && typeof navData === 'object' && Array.isArray((navData as CmsNav).primary))
+    ? (navData as CmsNav)
+    : null;
+
+  const cmsSettings = (settingsData && typeof settingsData === 'object')
+    ? (settingsData as CmsSettings)
+    : null;
+
+  // CMS nav.primary is source of truth when available — labels/hrefs/ordering from CMS, fallback otherwise
+  const rawItems = cmsNav?.primary?.length ? cmsNav.primary : FALLBACK_NAV;
+  // CTA: explicit cta flag, else /contact/, else fallback
+  const ctaItem = (cmsNav?.primary?.find((n) => n.cta) ?? rawItems.find((n) => n.href === '/contact/') ?? CTA_FALLBACK) as CmsNav['primary'][number];
+  // Primary nav excludes CTA
+  const primaryFromCms = rawItems.filter((i) => i.href !== ctaItem.href && !i.cta);
+  const items = primaryFromCms.length ? primaryFromCms : FALLBACK_NAV;
+  const cta = ctaItem.href ? ctaItem : CTA_FALLBACK;
+
+  const brandName = (cmsSettings?.siteName && cmsSettings.siteName.trim() !== '')
+    ? cmsSettings.siteName
+    : 'Abhijeet Varghese';
+  const brandLogo = cmsSettings?.logo ? (cmsSettings.logo.startsWith('http') ? cmsSettings.logo : (cmsSettings.logo.startsWith('/') ? cmsSettings.logo : `/${cmsSettings.logo}`)) : '/assets/logo.png';
+  const contactEmail = cmsSettings?.email || 'hi@abhijeetvarghese.com';
+
   return (
     <>
-<header className="site-nav" id="siteNav">
+<header className="site-nav" id="siteNav" data-cms-source={cmsNav ? 'cms' : 'fallback'}>
     <nav className="site-nav__inner" aria-label="Primary">
-      <a className="brand" href="/" {...(!activePath ? { 'aria-current': 'page' } : {})} aria-label="Abhijeet Varghese — home">
-        <img className="brand__logo" src="/assets/logo.png" alt="Abhijeet Varghese logo" width="36" height="36" decoding="async" />
-        <span className="brand__name">Abhijeet Varghese</span>
+      <a className="brand" href="/" {...(!activePath ? { 'aria-current': 'page' } : {})} aria-label={`${brandName} — home`}>
+        <img className="brand__logo" src={brandLogo} alt={`${brandName} logo`} width="36" height="36" decoding="async" />
+        <span className="brand__name">{brandName}</span>
       </a>
       <ul className="nav-links">
-        {NAV_ITEMS.map((item) => (<li key={item.href}><a href={item.href} {...(activePath === item.href ? { 'aria-current': 'page' } : {})}>{item.label}</a></li>))}
+        {items.map((item) => (<li key={item.href}><a href={item.href} {...(activePath === item.href ? { 'aria-current': 'page' } : {})}>{item.label}</a></li>))}
       </ul>
-      <a className="btn btn--accent btn--small" href="/contact/">Start a conversation</a>
+      <a className="btn btn--accent btn--small" href={cta.href}>{cta.label}</a>
       <button className="nav-toggle" type="button" id="navToggle" aria-expanded="false" aria-controls="mobileMenu" aria-label="Open menu">
         <span className="nav-toggle__line" aria-hidden="true"></span>
         <span className="nav-toggle__line" aria-hidden="true"></span>
@@ -38,13 +68,13 @@ export default function SiteChrome({ activePath }: SiteChromeProps) {
       </div>
       <nav aria-label="Mobile">
         <ul className="mobile-menu__list">
-          {NAV_ITEMS.map((item) => (
+          {items.map((item) => (
             <li key={item.href}><a href={item.href} {...(activePath === item.href ? { 'aria-current': 'page' } : {})}>{item.label}</a></li>
           ))}
         </ul>
         <div className="mobile-menu__actions">
-          <a className="btn btn--accent btn--block" href="/contact/">Start a conversation</a>
-          <a className="mobile-menu__mail" href="mailto:hi@abhijeetvarghese.com">hi@abhijeetvarghese.com</a>
+          <a className="btn btn--accent btn--block" href={cta.href}>{cta.label}</a>
+          <a className="mobile-menu__mail" href={`mailto:${contactEmail}`}>{contactEmail}</a>
         </div>
       </nav>
     </div>

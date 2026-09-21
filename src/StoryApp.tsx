@@ -8,6 +8,7 @@ import { useMobileChrome } from './hooks/useMobileChrome';
 import { usePageMotion } from './hooks/usePageMotion';
 import { useReveal } from './hooks/useReveal';
 import { useServiceWorker } from './hooks/useServiceWorker';
+import { useCmsSeo } from './hooks/useCmsSeo';
 import { useStoryMotion } from './hooks/useStoryMotion';
 import StoryContent from './sections/story/StoryContent';
 
@@ -30,6 +31,7 @@ export default function StoryApp() {
   useHistoryClose();
   useAnalytics();
   useServiceWorker();
+  useCmsSeo('/story/', { title: 'Story — Abhijeet Varghese' });
 
   return (
     <>

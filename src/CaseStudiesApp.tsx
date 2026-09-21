@@ -8,6 +8,7 @@ import { useMobileChrome } from './hooks/useMobileChrome';
 import { usePageMotion } from './hooks/usePageMotion';
 import { useReveal } from './hooks/useReveal';
 import { useServiceWorker } from './hooks/useServiceWorker';
+import { useCmsSeo } from './hooks/useCmsSeo';
 import CaseStudiesContent from './sections/case-studies/CaseStudiesContent';
 
 function CloseIcon() {
@@ -28,6 +29,7 @@ export default function CaseStudiesApp() {
   useHistoryClose();
   useAnalytics();
   useServiceWorker();
+  useCmsSeo('/case-studies/', { title: 'Case Studies — Abhijeet Varghese' });
 
   return (
     <>

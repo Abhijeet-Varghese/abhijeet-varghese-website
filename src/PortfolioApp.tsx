@@ -9,6 +9,7 @@ import { usePageMotion } from './hooks/usePageMotion';
 import { usePortfolioMotion } from './hooks/usePortfolioMotion';
 import { useReveal } from './hooks/useReveal';
 import { useServiceWorker } from './hooks/useServiceWorker';
+import { useCmsSeo } from './hooks/useCmsSeo';
 import PortfolioContent from './sections/portfolio/PortfolioContent';
 
 function CloseIcon() {
@@ -28,6 +29,7 @@ export default function PortfolioApp() {
   useHistoryClose();
   useAnalytics();
   useServiceWorker();
+  useCmsSeo('/portfolio/', { title: 'Portfolio — Abhijeet Varghese' });
   usePortfolioMotion();
   return (
     <>

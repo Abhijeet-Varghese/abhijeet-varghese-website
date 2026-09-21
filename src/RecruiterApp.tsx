@@ -8,12 +8,14 @@ import { useMobileChrome } from './hooks/useMobileChrome';
 import { usePageMotion } from './hooks/usePageMotion';
 import { useReveal } from './hooks/useReveal';
 import { useServiceWorker } from './hooks/useServiceWorker';
+import { useCmsSeo } from './hooks/useCmsSeo';
 import { useRecruiterMotion } from './hooks/useRecruiterMotion';
 import RecruiterContent from './sections/recruiter/RecruiterContent';
 
 function CloseIcon(){return <svg width="17" height="17" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="m3 3 12 12M15 3 3 15" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>}
 export default function RecruiterApp(){
-  useMenu(); useReveal(); usePageMotion(); useElevate(); useMobileChrome(); useHistoryClose(); useAnalytics(); useServiceWorker(); useRecruiterMotion();
+  useMenu(); useReveal(); usePageMotion(); useElevate(); useMobileChrome(); useHistoryClose(); useAnalytics(); useServiceWorker();
+  useCmsSeo('/recruiter/', { title: 'For Recruiters — Abhijeet Varghese' }); useRecruiterMotion();
   return (
     <>
       <SiteChrome activePath="/recruiter/" />

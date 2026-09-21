@@ -9,6 +9,7 @@ import { useMobileChrome } from './hooks/useMobileChrome';
 import { usePageMotion } from './hooks/usePageMotion';
 import { useReveal } from './hooks/useReveal';
 import { useServiceWorker } from './hooks/useServiceWorker';
+import { useCmsSeo } from './hooks/useCmsSeo';
 import BpclContent from './sections/case-studies/BpclContent';
 
 function CloseIcon() {
@@ -28,6 +29,7 @@ export default function BpclApp() {
   useHistoryClose();
   useAnalytics();
   useServiceWorker();
+  useCmsSeo('/case-studies/bharat-petroleum-corporation-limited/', { title: 'Bharat Petroleum Corporation Limited — Abhijeet Varghese' });
   useBpclMotion();
 
   return (
