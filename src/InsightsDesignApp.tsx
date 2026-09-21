@@ -19,7 +19,7 @@ export default function InsightsDesignApp(){
   return (
     <>
       <SiteChrome activePath="/insights/designing-experiences-people-remember/" />
-      <a className="page-close" href="/" data-history-close="" aria-label="Back to previous page"><CloseIcon /></a>
+      <a className="page-close" href="/insights/" data-history-close="" aria-label="Back to previous page"><CloseIcon /></a>
       <main id="main"><InsightsDesignContent /></main>
       <SiteFooter />
     </>

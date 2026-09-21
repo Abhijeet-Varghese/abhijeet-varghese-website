@@ -19,7 +19,7 @@ export default function JournalAiApp(){
   return (
     <>
       <SiteChrome activePath="/journal-what-a-year-of-ai-enabled-production-taught-me/" />
-      <a className="page-close" href="/" data-history-close="" aria-label="Back to previous page"><CloseIcon /></a>
+      <a className="page-close" href="/journal/" data-history-close="" aria-label="Back to previous page"><CloseIcon /></a>
       <main id="main"><JournalAiContent /></main>
       <SiteFooter />
     </>

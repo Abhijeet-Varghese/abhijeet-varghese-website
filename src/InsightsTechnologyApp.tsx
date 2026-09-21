@@ -19,7 +19,7 @@ export default function InsightsTechnologyApp(){
   return (
     <>
       <SiteChrome activePath="/insights/technology-should-feel-human/" />
-      <a className="page-close" href="/" data-history-close="" aria-label="Back to previous page"><CloseIcon /></a>
+      <a className="page-close" href="/insights/" data-history-close="" aria-label="Back to previous page"><CloseIcon /></a>
       <main id="main"><InsightsTechnologyContent /></main>
       <SiteFooter />
     </>

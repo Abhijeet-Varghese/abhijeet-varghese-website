@@ -1,5 +1,6 @@
 import { useCmsContent } from '../hooks/useCmsContent';
 import type { CmsNav, CmsSettings } from '../lib/cms';
+import { useOriginCapture, useScrollRestore } from '../hooks/useOriginCapture';
 
 const FALLBACK_NAV: CmsNav['primary'] = [
   { id: 'n1', label: "Story", href: "/story/" },
@@ -15,6 +16,8 @@ interface SiteChromeProps {
 }
 
 export default function SiteChrome({ activePath }: SiteChromeProps) {
+  useOriginCapture();
+  useScrollRestore();
   const { data: navData, source: navSource } = useCmsContent('nav', null);
   const { data: settingsData } = useCmsContent('settings', null);
 

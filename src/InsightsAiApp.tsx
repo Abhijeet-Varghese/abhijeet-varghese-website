@@ -19,7 +19,7 @@ export default function InsightsAiApp(){
   return (
     <>
       <SiteChrome activePath="/insights/ai-isnt-replacing-creativity/" />
-      <a className="page-close" href="/" data-history-close="" aria-label="Back to previous page"><CloseIcon /></a>
+      <a className="page-close" href="/insights/" data-history-close="" aria-label="Back to previous page"><CloseIcon /></a>
       <main id="main"><InsightsAiContent /></main>
       <SiteFooter />
     </>

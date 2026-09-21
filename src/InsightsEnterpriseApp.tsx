@@ -19,7 +19,7 @@ export default function InsightsEnterpriseApp(){
   return (
     <>
       <SiteChrome activePath="/insights/why-enterprise-experiences-fail/" />
-      <a className="page-close" href="/" data-history-close="" aria-label="Back to previous page"><CloseIcon /></a>
+      <a className="page-close" href="/insights/" data-history-close="" aria-label="Back to previous page"><CloseIcon /></a>
       <main id="main"><InsightsEnterpriseContent /></main>
       <SiteFooter />
     </>

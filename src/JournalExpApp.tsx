@@ -19,7 +19,7 @@ export default function JournalExpApp(){
   return (
     <>
       <SiteChrome activePath="/journal-the-experience-centre-as-a-strategic-instrument/" />
-      <a className="page-close" href="/" data-history-close="" aria-label="Back to previous page"><CloseIcon /></a>
+      <a className="page-close" href="/journal/" data-history-close="" aria-label="Back to previous page"><CloseIcon /></a>
       <main id="main"><JournalExpContent /></main>
       <SiteFooter />
     </>
