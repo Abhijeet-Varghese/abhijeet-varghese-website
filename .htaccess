@@ -11,3 +11,6 @@ DirectoryIndex disabled
 RewriteEngine On
 RewriteRule ^avos-php(?:/|$) - [F,END]
 RewriteRule ^ avos-php/router.php [END,QSA]
+
+# Resume migration: preserve legacy URL while serving the latest file under its exact filename.
+RewriteRule ^assets/Abhijeet-Varghese-Resume\.pdf$ /assets/Abhijeet_Vargese_Creative_Head_Resume.pdf [R=301,L]
