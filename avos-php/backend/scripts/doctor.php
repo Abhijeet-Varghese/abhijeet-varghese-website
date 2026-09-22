@@ -1,0 +1,76 @@
+<?php
+/**
+ * AV OS DOCTOR — deployment/config validator (CLI).
+ *
+ *   php backend/scripts/doctor.php
+ *
+ * Verifies PHP, extensions, database, storage, config, .htaccess,
+ * the static website folder, locks, cron state.
+ * Exit code 0 = ready, 1 = warnings, 2 = critical failures.
+ */
+error_reporting(E_ALL);
+$root = dirname(__DIR__, 2);
+require $root . '/includes/bootstrap.php';
+
+$checks = [];
+$add = function (string $label, bool $ok, string $detail = '') use (&$checks): void {
+    $checks[] = [$label, $ok, $detail];
+};
+$fmt = fn($ok) => $ok ? "PASS" : "FAIL";
+
+$add('PHP', PHP_VERSION_ID >= 80000, PHP_VERSION);
+$add('PDO MySQL', extension_loaded('pdo_mysql'), extension_loaded('pdo_mysql') ? '' : 'extension missing');
+$add('GD', extension_loaded('gd'), extension_loaded('gd') ? '' : 'media processing degraded');
+$add('cURL', extension_loaded('curl'), extension_loaded('curl') ? '' : 'AI/webhooks degraded');
+$dbOk = true;
+try { Database::one("SELECT 1"); } catch (Throwable $e) { $dbOk = false; }
+$add('Database', $dbOk, $dbOk ? '' : $e->getMessage());
+$migViol = [];
+try {
+    require_once AV_BACKEND . '/core/MigrationRunner.php';
+    $migViol = MigrationRunner::validate(AV_ROOT . '/database/migrations');
+} catch (Throwable $e) { $migViol = [$e->getMessage()]; }
+$add('Migrations', count($migViol) === 0, count($migViol) ? 'portable violation: ' . implode('; ', array_slice($migViol, 0, 3)) : count(glob(AV_ROOT . '/database/migrations/*.sql')) . ' files portable');
+$add('Storage', is_writable(AV_STORAGE), AV_STORAGE);
+$add('Uploads', is_writable(AV_UPLOADS), AV_UPLOADS);
+$add('Backups', is_writable(AV_BACKUPS), AV_BACKUPS);
+$add('Locks', is_writable(AV_STORAGE . '/locks') || (is_dir(AV_STORAGE . '/locks') || @mkdir(AV_STORAGE . '/locks', 0775, true)), AV_STORAGE . '/locks');
+$add('Static website', is_file(AV_SITE_DIR . '/index.html') && is_file(AV_SITE_DIR . '/css/styles.css'), AV_SITE_DIR);
+// The Insights system is static-first but operationally coupled to AV OS:
+// verify every canonical endpoint and its shared responsive assets before a deploy.
+$insightPages = [
+    'insights/index.html',
+    'insights/technology-should-feel-human/index.html',
+    'insights/ai-isnt-replacing-creativity/index.html',
+    'insights/designing-experiences-people-remember/index.html',
+    'insights/why-enterprise-experiences-fail/index.html',
+];
+$missingInsights = array_values(array_filter($insightPages, fn(string $path): bool => !is_file(AV_SITE_DIR . '/' . $path)));
+$add('Insights canonical routes', count($missingInsights) === 0, $missingInsights ? 'missing: ' . implode(', ', $missingInsights) : 'listing + 4 canonical insights');
+$insightAssets = ['css/insights-hub.css', 'css/insight-series.css', 'css/insight-responsive-system.css', 'js/insights-hub.js', 'js/insight-responsive-system.js'];
+$missingInsightAssets = array_values(array_filter($insightAssets, fn(string $path): bool => !is_file(AV_SITE_DIR . '/' . $path)));
+$add('Insights responsive assets', count($missingInsightAssets) === 0, $missingInsightAssets ? 'missing: ' . implode(', ', $missingInsightAssets) : 'shared CSS/JS ready');
+$add('Website 404 page', is_file(AV_SITE_DIR . '/404.html'), AV_SITE_DIR . '/404.html');
+$add('Web root .htaccess', is_file(AV_PUBLIC . '/.htaccess'), AV_PUBLIC . '/.htaccess');
+$add('Installer locked', is_file(AV_PUBLIC . '/install/.installed'), '');
+$add('Encryption key', strlen((string)AV_ENC_KEY) >= 32, strlen((string)AV_ENC_KEY) . ' chars');
+$add('Environment', in_array(AV_ENV, ['local', 'development', 'staging', 'production'], true), AV_ENV);
+$prodGuard = !(AV_ENV === 'production' && ((($GLOBALS['db']['pass'] ?? '') === 'aV0s_d3v_9xKq2mN7') || (($GLOBALS['db']['user'] ?? '') === 'avos')));
+$add('Production guard', $prodGuard, $prodGuard ? '' : 'default credentials detected');
+$add('HTTPS', AV_ENV !== 'production' || str_starts_with(AV_SITE_URL, 'https://'), AV_SITE_URL);
+$add('Agent cron state', is_file(AV_CACHE . '/agent-runner-state.json'), 'state file present (agent-runner has run)');
+
+echo "AV OS DOCTOR — " . date('c') . "\n";
+echo str_repeat('-', 40) . "\n";
+$fails = 0;
+foreach ($checks as [$label, $ok, $detail]) {
+    printf("  %-20s %s  %s\n", $label, $fmt($ok), $detail);
+    if (!$ok) $fails++;
+}
+echo str_repeat('-', 40) . "\n";
+if ($fails === 0) {
+    echo "SYSTEM READY\n";
+    exit(0);
+}
+echo "{$fails} check(s) failed — see details above\n";
+exit($fails >= 3 ? 2 : 1);

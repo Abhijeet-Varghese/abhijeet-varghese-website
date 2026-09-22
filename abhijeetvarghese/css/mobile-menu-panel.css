@@ -1,0 +1,294 @@
+/* ========================================================================
+   AV — SHARED MOBILE / TABLET MENU PANEL
+   ------------------------------------------------------------------------
+   One reusable touch navigation treatment for the React homepage and every
+   public legacy page. It is deliberately scoped to the compact 320–900px
+   tier; the 901px+ navigation remains untouched.
+   ======================================================================== */
+
+@media (max-width: 900px) {
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .site-nav {
+    inset: max(12px, env(safe-area-inset-top, 0px)) max(14px, env(safe-area-inset-right, 0px)) auto auto;
+    z-index: 250;
+    --menu-ink: #EFF0EA;
+  }
+
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .site-nav__inner {
+    width: auto;
+    margin: 0;
+    padding: 0;
+    gap: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .site-nav__inner > .brand,
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .site-nav__inner > .nav-links,
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .site-nav__inner > .btn--small {
+    display: none;
+  }
+
+  /* A compact, floating two-line control becomes an X when the sheet opens. */
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .nav-toggle {
+    position: relative;
+    display: inline-flex;
+    width: 48px;
+    min-width: 48px;
+    height: 48px;
+    min-height: 48px;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+    color: var(--menu-ink);
+    background: rgba(5, 10, 25, 0.84);
+    border: 1px solid rgba(156, 194, 255, 0.3);
+    border-radius: 50%;
+    box-shadow: 0 10px 28px -18px rgba(0, 0, 0, 0.82);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    transition: transform 0.28s var(--ease), background-color 0.28s var(--ease), border-color 0.28s var(--ease);
+  }
+
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .nav-toggle::before,
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .nav-toggle::after {
+    content: none;
+    display: none;
+  }
+
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .nav-toggle__line {
+    position: absolute;
+    right: 14px;
+    display: block;
+    width: 19px;
+    height: 1.5px;
+    margin: 0;
+    background: currentColor;
+    border-radius: 999px;
+    opacity: 1;
+    transform-origin: center;
+    transition: transform 0.3s var(--ease), width 0.3s var(--ease), opacity 0.2s var(--ease);
+  }
+
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .nav-toggle__line:nth-child(1) { top: 19px; }
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .nav-toggle__line:nth-child(2) { top: 27px; width: 14px; }
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .nav-toggle__line:nth-child(3) { display: none; }
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .nav-toggle[aria-expanded="true"] .nav-toggle__line:nth-child(1) { opacity: 1; transform: translateY(4px) rotate(45deg); }
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .nav-toggle[aria-expanded="true"] .nav-toggle__line:nth-child(2) { width: 19px; opacity: 1; transform: translateY(-4px) rotate(-45deg); }
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .nav-toggle:active { transform: scale(0.95); }
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .nav-toggle:focus-visible { outline: 2px solid #9CC2FF; outline-offset: 3px; }
+
+  /* The dialog owns a subtle scrim, while the actual navigation is a compact
+     card that rises from the bottom rather than a fullscreen treatment. */
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu {
+    position: fixed;
+    inset: 0;
+    z-index: 270;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 clamp(12px, 3vw, 28px) max(12px, env(safe-area-inset-bottom, 0px));
+    overflow: hidden;
+    color: #EFF0EA;
+    background: transparent;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(3, 6, 16, 0.08), rgba(3, 6, 16, 0.5));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu.is-open { opacity: 1; pointer-events: auto; }
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu.is-open::before { opacity: 1; }
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu[hidden] { display: none; }
+
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__bar,
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu nav {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 680px);
+    margin-inline: auto;
+    background: linear-gradient(145deg, #0A1632, #050914 70%);
+    border-inline: 1px solid rgba(156, 194, 255, 0.24);
+    box-shadow: 0 28px 70px -30px rgba(0, 0, 0, 0.88);
+    transform: translate3d(0, calc(100% + 32px), 0);
+    transition: transform 0.46s var(--ease-out);
+  }
+
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu.is-open .mobile-menu__bar,
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu.is-open nav { transform: none; }
+
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__bar {
+    display: flex;
+    min-height: 54px;
+    padding: 0 8px 0 18px;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid rgba(156, 194, 255, 0.24);
+    border-radius: 22px 22px 0 0;
+    transition-delay: 0.015s;
+  }
+
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__title {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip-path: none;
+    color: #9CC2FF;
+    font-size: 10px;
+    font-weight: 650;
+    letter-spacing: 0.22em;
+    line-height: 1;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__close {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    place-items: center;
+    color: #EFF0EA;
+    background: transparent;
+    border: 1px solid rgba(156, 194, 255, 0.28);
+    border-radius: 50%;
+    box-shadow: none;
+    overflow: visible;
+    transform: none;
+    transition: border-color 0.25s var(--ease), background-color 0.25s var(--ease), transform 0.25s var(--ease);
+  }
+
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__close::before,
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__close::after { content: none; display: none; }
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__close svg { display: block; width: 17px; height: 17px; }
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__close:hover { transform: none; border-color: #9CC2FF; background: rgba(156, 194, 255, 0.1); }
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__close:active { transform: scale(0.94); }
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__close:focus-visible { outline: 2px solid #9CC2FF; outline-offset: 3px; }
+
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu nav {
+    display: flex;
+    max-height: min(74dvh, 620px);
+    min-height: 0;
+    padding: 0 14px 14px;
+    flex: none;
+    flex-direction: column;
+    justify-content: flex-start;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-bottom: 1px solid rgba(156, 194, 255, 0.24);
+    border-radius: 0 0 22px 22px;
+  }
+
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__list {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid rgba(156, 194, 255, 0.15);
+  }
+
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__list li { overflow: visible; }
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__list li a {
+    display: flex;
+    min-height: 54px;
+    padding: 12px 6px;
+    align-items: center;
+    justify-content: space-between;
+    color: #EFF0EA;
+    font-size: clamp(1.15rem, 4.5vw, 1.7rem);
+    font-weight: 580;
+    letter-spacing: -0.025em;
+    line-height: 1.05;
+    border-bottom: 1px solid rgba(156, 194, 255, 0.15);
+    border-radius: 8px;
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+    transition: color 0.24s var(--ease), background-color 0.24s var(--ease), opacity 0.36s var(--ease-out), transform 0.36s var(--ease-out);
+    transition-delay: 0s, 0s, calc(0.06s + var(--mi, 0) * 0.045s), calc(0.06s + var(--mi, 0) * 0.045s);
+  }
+
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu.is-open .mobile-menu__list li a { opacity: 1; transform: none; }
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__list li a:hover,
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__list li a:focus-visible {
+    color: #FFFFFF;
+    background: rgba(110, 168, 255, 0.11);
+  }
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__list li a:active { color: #9CC2FF; }
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__list li a:focus-visible { outline: 2px solid #9CC2FF; outline-offset: 2px; }
+
+
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__actions {
+    display: grid;
+    margin-top: 16px;
+    gap: 9px;
+    justify-items: stretch;
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+    transition: opacity 0.36s var(--ease-out) 0.2s, transform 0.36s var(--ease-out) 0.2s;
+  }
+
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu.is-open .mobile-menu__actions { opacity: 1; transform: none; }
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__actions .btn--block {
+    min-height: 48px;
+    margin: 0;
+    padding: 12px 18px;
+    color: #06122B;
+    background: #78AAFF;
+    border: 0;
+    border-radius: 10px;
+    box-shadow: none;
+  }
+
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__mail {
+    justify-self: center;
+    padding: 6px 4px;
+    color: #B9C4DE;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    line-height: 1.35;
+    border-bottom: 1px solid rgba(156, 194, 255, 0.3);
+  }
+
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__mail:hover,
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__mail:focus-visible { color: #FFFFFF; border-color: #9CC2FF; }
+
+  /* Keep the compact trigger directional on touch; it is not a permanent bar. */
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .site-nav.nav-hidden { pointer-events: none; }
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .site-nav.nav-hidden .site-nav__inner {
+    transform: translate3d(0, calc(-100% - 20px), 0);
+  }
+}
+
+@media (max-width: 900px) and (max-height: 640px) {
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu {
+    padding-inline: 8px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
+  }
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__bar { min-height: 48px; }
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu nav { max-height: min(74dvh, 620px); padding-bottom: 10px; }
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__list li a { min-height: 47px; padding-block: 9px; }
+  :is(body.home-react, body.home-arena, body.mobile-chrome) .mobile-menu__actions { margin-top: 10px; }
+}
+
+@media (max-width: 900px) and (prefers-reduced-motion: reduce) {
+  :is(body.home-react, body.home-arena, body.mobile-chrome) :is(.nav-toggle, .nav-toggle__line, .mobile-menu, .mobile-menu::before, .mobile-menu__bar, .mobile-menu nav, .mobile-menu__close, .mobile-menu__list li a, .mobile-menu__actions) {
+    transition: none;
+  }
+}
